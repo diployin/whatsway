@@ -126,6 +126,25 @@ The application follows a monorepo structure with shared types and schemas, enab
 
 ## Recent Changes
 
+### Major Architecture Refactoring to MVC Pattern (August 2025)
+- Successfully restructured the entire codebase to follow the Model-View-Controller (MVC) pattern
+- Created organized directory structure with clear separation of concerns:
+  - **Controllers** (`server/controllers/`): Handle request/response logic for each feature
+  - **Middlewares** (`server/middlewares/`): Error handling, validation, and channel management
+  - **Services** (`server/services/`): Business logic and WhatsApp API integration
+  - **Utils** (`server/utils/`): Utility functions for validation and webhook processing
+  - **Routes** (`server/routes/`): Clean route definitions using controller methods
+- Implemented comprehensive error handling with custom AppError class and asyncHandler wrapper
+- Added validation middleware for request body validation using Zod schemas
+- Created WhatsApp API service class for centralized API integration
+- Maintained all existing functionality while improving code organization and maintainability
+- Benefits of the new architecture:
+  - Clear separation of concerns
+  - Easier testing and debugging
+  - Better error handling and validation
+  - More maintainable and scalable codebase
+  - Consistent patterns across all endpoints
+
 ### Channel-Specific Data Filtering (August 2025)
 - Implemented comprehensive channel filtering across all sections
 - Channel switcher now auto-refreshes all data when switching channels
@@ -199,23 +218,12 @@ The application follows a monorepo structure with shared types and schemas, enab
 - Users can now manually trigger sync to immediately update template statuses without waiting for webhooks
 
 ### Code Refactoring and Routes Modularization (August 2025)
-- Successfully split the monolithic 1200+ line routes.ts file into modular route files
-- Created organized server/routes/ directory structure with separate files for each feature:
-  - channels.routes.ts - Channel management endpoints
-  - contacts.routes.ts - Contact CRUD operations  
-  - templates.routes.ts - Template management and sync
-  - campaigns.routes.ts - Campaign operations
-  - conversations.routes.ts - Conversation handling
-  - messages.routes.ts - Message operations
-  - automations.routes.ts - Automation workflows
-  - whatsapp.routes.ts - WhatsApp-specific operations
-  - webhooks.routes.ts - Webhook configuration and handling
-  - dashboard.routes.ts - Dashboard stats endpoints
-  - media.routes.ts - Media upload handling
-  - index.ts - Main route registration file
+- Successfully split the monolithic 1200+ line routes.ts file into modular route files  
+- Created organized server/routes/ directory structure with separate files for each feature
 - Maintained all existing functionality during refactoring
 - Fixed critical send message 404 error caused by endpoint changes
 - Preserved backward compatibility with all existing API endpoints
+- **Note**: This was further enhanced with the MVC pattern refactoring above
 
 ### Channel Switching Data Refresh Implementation (August 2025)
 - Fixed channel switching to immediately refresh all page data

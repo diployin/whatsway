@@ -16,11 +16,14 @@ import { registerWhatsAppRoutes } from "./whatsapp.routes";
 import { registerWebhookRoutes } from "./webhooks.routes";
 import { registerMessageRoutes } from "./messages.routes";
 
+// Import error handler middleware
+import { errorHandler } from "../middlewares/error.middleware";
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Register all route modules
   registerChannelRoutes(app);
   registerDashboardRoutes(app);
-  registerAnalyticsRoutes(app);
+  registerAnalyticsRoutes(app); // Legacy - kept for compatibility
   registerContactRoutes(app);
   registerCampaignRoutes(app);
   registerTemplateRoutes(app);
@@ -48,6 +51,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('WebSocket client disconnected');
     });
   });
+
+  // Error handling middleware - must be registered last
+  app.use(errorHandler);
 
   return httpServer;
 }

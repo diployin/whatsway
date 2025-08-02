@@ -81,6 +81,11 @@ export class DatabaseStorage implements IStorage {
     return contact || undefined;
   }
 
+  async getContactByPhone(phone: string): Promise<Contact | undefined> {
+    const [contact] = await db.select().from(contacts).where(eq(contacts.phone, phone));
+    return contact || undefined;
+  }
+
   async createContact(insertContact: InsertContact): Promise<Contact> {
     const [contact] = await db
       .insert(contacts)
@@ -173,6 +178,14 @@ export class DatabaseStorage implements IStorage {
 
   async getChannel(id: string): Promise<Channel | undefined> {
     const [channel] = await db.select().from(channels).where(eq(channels.id, id));
+    return channel || undefined;
+  }
+
+  async getChannelByPhoneNumberId(phoneNumberId: string): Promise<Channel | undefined> {
+    const [channel] = await db
+      .select()
+      .from(channels)
+      .where(eq(channels.phoneNumberId, phoneNumberId));
     return channel || undefined;
   }
 
@@ -288,6 +301,11 @@ export class DatabaseStorage implements IStorage {
       .where(eq(conversations.id, id))
       .returning();
     return updated || undefined;
+  }
+
+  async deleteConversation(id: string): Promise<boolean> {
+    const result = await db.delete(conversations).where(eq(conversations.id, id)).returning();
+    return result.length > 0;
   }
 
   // Messages

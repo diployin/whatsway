@@ -1,88 +1,31 @@
 import type { Express } from "express";
-import { storage } from "../storage";
+import * as automationsController from "../controllers/automations.controller";
+import { validateRequest } from "../middlewares/validation.middleware";
 import { insertAutomationSchema } from "@shared/schema";
+import { extractChannelId } from "../middlewares/channel.middleware";
 
 export function registerAutomationRoutes(app: Express) {
   // Get all automations
-  app.get("/api/automations", async (req, res) => {
-    try {
-      const channelId = req.query.channelId as string | undefined;
-      const automations = channelId 
-        ? await storage.getAutomationsByChannel(channelId)
-        : await storage.getAutomations();
-      res.json(automations);
-    } catch (error) {
-      console.error("Error fetching automations:", error);
-      res.status(500).json({ message: "Failed to fetch automations" });
-    }
-  });
+  app.get("/api/automations",
+    extractChannelId,
+    automationsController.getAutomations
+  );
 
   // Get single automation
-  app.get("/api/automations/:id", async (req, res) => {
-    try {
-      const automation = await storage.getAutomation(req.params.id);
-      if (!automation) {
-        return res.status(404).json({ message: "Automation not found" });
-      }
-      res.json(automation);
-    } catch (error) {
-      console.error("Error fetching automation:", error);
-      res.status(500).json({ message: "Failed to fetch automation" });
-    }
-  });
+  app.get("/api/automations/:id", automationsController.getAutomation);
 
   // Create automation
-  app.post("/api/automations", async (req, res) => {
-    try {
-      const channelId = req.query.channelId as string | undefined;
-      
-      // If no channelId in query, get active channel
-      let finalChannelId = channelId;
-      if (!finalChannelId) {
-        const activeChannel = await storage.getActiveChannel();
-        if (activeChannel) {
-          finalChannelId = activeChannel.id;
-        }
-      }
-      
-      const automationData = {
-        ...insertAutomationSchema.parse(req.body),
-        channelId: finalChannelId
-      };
-      
-      const automation = await storage.createAutomation(automationData);
-      res.status(201).json(automation);
-    } catch (error) {
-      console.error("Error creating automation:", error);
-      res.status(500).json({ message: "Failed to create automation" });
-    }
-  });
+  app.post("/api/automations",
+    validateRequest(insertAutomationSchema),
+    automationsController.createAutomation
+  );
 
   // Update automation
-  app.put("/api/automations/:id", async (req, res) => {
-    try {
-      const automation = await storage.updateAutomation(req.params.id, req.body);
-      if (!automation) {
-        return res.status(404).json({ message: "Automation not found" });
-      }
-      res.json(automation);
-    } catch (error) {
-      console.error("Error updating automation:", error);
-      res.status(500).json({ message: "Failed to update automation" });
-    }
-  });
+  app.put("/api/automations/:id", automationsController.updateAutomation);
 
   // Delete automation
-  app.delete("/api/automations/:id", async (req, res) => {
-    try {
-      const deleted = await storage.deleteAutomation(req.params.id);
-      if (!deleted) {
-        return res.status(404).json({ message: "Automation not found" });
-      }
-      res.status(204).send();
-    } catch (error) {
-      console.error("Error deleting automation:", error);
-      res.status(500).json({ message: "Failed to delete automation" });
-    }
-  });
+  app.delete("/api/automations/:id", automationsController.deleteAutomation);
+
+  // Toggle automation active/inactive
+  app.post("/api/automations/:id/toggle", automationsController.toggleAutomation);
 }

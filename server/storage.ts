@@ -38,6 +38,7 @@ export interface IStorage {
   getContacts(): Promise<Contact[]>;
   getContactsByChannel(channelId: string): Promise<Contact[]>;
   getContact(id: string): Promise<Contact | undefined>;
+  getContactByPhone(phone: string): Promise<Contact | undefined>;
   createContact(contact: InsertContact): Promise<Contact>;
   updateContact(id: string, contact: Partial<Contact>): Promise<Contact | undefined>;
   deleteContact(id: string): Promise<boolean>;
@@ -67,6 +68,7 @@ export interface IStorage {
   getConversationByPhone(phone: string): Promise<Conversation | undefined>;
   createConversation(conversation: InsertConversation): Promise<Conversation>;
   updateConversation(id: string, conversation: Partial<Conversation>): Promise<Conversation | undefined>;
+  deleteConversation(id: string): Promise<boolean>;
 
   // Messages
   getMessages(conversationId: string): Promise<Message[]>;
@@ -108,6 +110,7 @@ export interface IStorage {
   // Channels
   getChannels(): Promise<Channel[]>;
   getChannel(id: string): Promise<Channel | undefined>;
+  getChannelByPhoneNumberId(phoneNumberId: string): Promise<Channel | undefined>;
   createChannel(channel: InsertChannel): Promise<Channel>;
   updateChannel(id: string, channel: Partial<Channel>): Promise<Channel | undefined>;
   deleteChannel(id: string): Promise<boolean>;

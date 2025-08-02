@@ -1,22 +1,8 @@
 import type { Express } from "express";
-import { storage } from "../storage";
+import * as dashboardController from "../controllers/dashboard.controller";
+import { extractChannelId } from "../middlewares/channel.middleware";
 
 export function registerAnalyticsRoutes(app: Express) {
-  // Get analytics data
-  app.get("/api/analytics", async (req, res) => {
-    try {
-      const channelId = req.query.channelId as string | undefined;
-      const analytics = await storage.getAnalytics();
-      
-      // Filter by channel if channelId is provided
-      const filteredAnalytics = channelId 
-        ? analytics.filter(a => a.channelId === channelId)
-        : analytics;
-      
-      res.json(filteredAnalytics);
-    } catch (error) {
-      console.error("Error fetching analytics:", error);
-      res.status(500).json({ message: "Failed to fetch analytics" });
-    }
-  });
+  // Analytics routes are handled by the dashboard controller
+  // This file is kept for backward compatibility
 }
