@@ -638,15 +638,6 @@ export default function Settings() {
                       Go to Channels
                     </Button>
                   </div>
-                ) : webhookConfigs.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Webhook className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                    <p className="text-gray-500 mb-4">No webhooks configured yet</p>
-                    <Button onClick={() => setShowWebhookDialog(true)}>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Configure Your First Webhook
-                    </Button>
-                  </div>
                 ) : (
                   <div className="space-y-4">
                     {/* Show webhook URLs for all channels */}
@@ -680,6 +671,19 @@ export default function Settings() {
                         ))}
                       </div>
                     </div>
+
+                    {/* Webhook Configuration Status */}
+                    {webhookConfigs.length === 0 && (
+                      <div className="text-center py-8 border border-gray-200 rounded-lg">
+                        <Webhook className="w-10 h-10 mx-auto text-gray-400 mb-3" />
+                        <p className="text-gray-600 font-medium mb-2">Ready to Configure Webhooks</p>
+                        <p className="text-sm text-gray-500 mb-4">Use the webhook URLs above in your WhatsApp Business configuration</p>
+                        <Button onClick={() => setShowWebhookDialog(true)} variant="outline">
+                          <Plus className="w-4 h-4 mr-2" />
+                          Save Webhook Configuration
+                        </Button>
+                      </div>
+                    )}
 
                     {webhookConfigs.map((config) => (
                       <div key={config.id} className="border border-gray-200 rounded-lg p-4">
