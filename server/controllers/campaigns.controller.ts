@@ -19,6 +19,8 @@ const createCampaignSchema = z.object({
   scheduledAt: z.string().nullable(),
   contactGroups: z.array(z.string()).optional(),
   csvData: z.array(z.any()).optional(),
+  recipientCount: z.number(),
+  autoRetry: z.boolean().optional(),
 });
 
 const updateStatusSchema = z.object({

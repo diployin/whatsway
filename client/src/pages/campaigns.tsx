@@ -27,6 +27,7 @@ export function Campaigns() {
   const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
   const [csvData, setCsvData] = useState<any[]>([]);
   const [scheduledTime, setScheduledTime] = useState("");
+  const [autoRetry, setAutoRetry] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { selectedChannel } = useChannelContext();
@@ -106,6 +107,7 @@ export function Campaigns() {
     setSelectedContacts([]);
     setCsvData([]);
     setScheduledTime("");
+    setAutoRetry(false);
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -195,6 +197,7 @@ export function Campaigns() {
       recipientCount,
       type: "marketing", // Always marketing as requested
       apiType: "mm_lite", // Always MM Lite as requested
+      autoRetry,
     };
 
     createCampaignMutation.mutate(campaignData);
@@ -295,7 +298,11 @@ export function Campaigns() {
                   </div>
 
                   <div className="flex items-center space-x-2">
-                    <Checkbox id="autoRetry" name="autoRetry" />
+                    <Checkbox 
+                      id="autoRetry" 
+                      checked={autoRetry}
+                      onCheckedChange={(checked) => setAutoRetry(checked as boolean)}
+                    />
                     <Label htmlFor="autoRetry" className="flex flex-col">
                       <span className="font-medium">Auto-retry Campaigns</span>
                       <span className="text-sm text-muted-foreground">
@@ -416,7 +423,24 @@ export function Campaigns() {
 
                 <TabsContent value="contacts" className="space-y-4">
                   <div>
-                    <Label>Select Contacts</Label>
+                    <div className="flex items-center justify-between mb-2">
+                      <Label>Select Contacts</Label>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={selectedContacts.length === contacts.length && contacts.length > 0}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedContacts(contacts.map((c: any) => c.id));
+                            } else {
+                              setSelectedContacts([]);
+                            }
+                          }}
+                        />
+                        <Label className="font-normal text-sm">
+                          Select All ({contacts.length})
+                        </Label>
+                      </div>
+                    </div>
                     <ScrollArea className="h-64 border rounded-md p-4">
                       {contacts.map((contact: any) => (
                         <div key={contact.id} className="flex items-center space-x-2 mb-2">
