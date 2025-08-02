@@ -249,3 +249,16 @@ The application follows a monorepo structure with shared types and schemas, enab
   - Automation displays channel automations
   - Analytics shows channel-specific metrics
 - Fixed "Cannot access 'activeChannel' before initialization" error in contacts page by reordering queries
+
+### Team Inbox WhatsApp-Style UI Improvements (August 2025)
+- Implemented WhatsApp-style message bubbles with proper left/right alignment based on message direction
+- Fixed message display to use actual direction fields (inbound/outbound) instead of fromUser
+- Added WhatsApp-style background pattern to chat area for authentic look
+- Implemented automatic unread count decrease when opening conversations
+- Added 24-hour window restriction for regular messages per WhatsApp Business API rules
+- Shows warning message when 24-hour window expires, allowing only template messages
+- Added date separators between messages from different days
+- Improved message status indicators with WhatsApp-style ticks (sent, delivered, read)
+- Enhanced chat header to show online status for active conversations
+- Fixed TypeScript errors for null safety in conversation phone numbers
+- Improved overall chat section design with rounded message bubbles and better spacing

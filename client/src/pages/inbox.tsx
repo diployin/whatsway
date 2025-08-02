@@ -356,6 +356,21 @@ export default function Inbox() {
     }
   };
 
+  // Check if 24-hour window has passed
+  const is24HourWindowExpired = (messages: Message[]) => {
+    const lastIncomingMessage = messages
+      .filter(m => m.direction === 'inbound' || m.direction === 'incoming')
+      .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())[0];
+    
+    if (!lastIncomingMessage || !lastIncomingMessage.createdAt) return true;
+    
+    const lastMessageTime = new Date(lastIncomingMessage.createdAt).getTime();
+    const currentTime = new Date().getTime();
+    const hoursSinceLastMessage = (currentTime - lastMessageTime) / (1000 * 60 * 60);
+    
+    return hoursSinceLastMessage > 24;
+  };
+
   const getMessageStatus = (message: Message) => {
     if (!message.status || message.direction === 'inbound') return null;
     
@@ -379,6 +394,18 @@ export default function Inbox() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Mark conversation as read when opening
+  useEffect(() => {
+    if (selectedConversation?.id && selectedConversation.unreadCount && selectedConversation.unreadCount > 0) {
+      fetch(`/api/conversations/${selectedConversation.id}/read`, {
+        method: 'PUT',
+      }).then(() => {
+        queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/conversations/unread-count"] });
+      });
+    }
+  }, [selectedConversation?.id, selectedConversation?.unreadCount, queryClient]);
 
   // WebSocket connection for real-time messages
   useEffect(() => {
@@ -541,7 +568,12 @@ export default function Inbox() {
                       <h2 className="font-semibold">
                         {getContactInfo(selectedConversation.contactId)?.name || selectedConversation.contactPhone}
                       </h2>
-                      <p className="text-sm text-gray-500">{selectedConversation.contactPhone}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm text-gray-500">{selectedConversation.contactPhone}</p>
+                        {selectedConversation.status === 'active' && (
+                          <span className="text-xs text-green-600 font-medium">• Online</span>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -602,44 +634,61 @@ export default function Inbox() {
               </CardHeader>
 
               {/* Messages */}
-              <CardContent className="flex-1 p-0 overflow-hidden">
+              <CardContent className="flex-1 p-0 overflow-hidden" style={{ 
+                backgroundImage: 'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAANCAYAAABy6+R8AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAACQSURBVHgBrZLBDYAgDEVbEkcwnuQGjmY2cAJHMBu4ATeQG3ADNpAbwA0kxRL5aYgx8ZKm/fd/S0sBwHuP2XzBYrVmEVLKSClFlFLYYDHGBJxzJIQgzjm0tonaWruOcpZl9yiKgkKI+3VdkyH43hhjKAzDpwfLskyapqnVQVVViOM4tqZpkuu6l23b3h6qqvoDXDpLPAKlE1cAAAAASUVORK5CYII=")',
+                backgroundColor: '#e5ddd5'
+              }}>
                 <ScrollArea className="h-full p-4">
                   {messagesLoading ? (
                     <Loading text="Loading messages..." />
                   ) : messages && messages.length > 0 ? (
-                    <div className="space-y-4">
-                      {messages.map((message: Message) => {
+                    <div className="space-y-2">
+                      {messages.map((message: Message, index: number) => {
                         const isAgent = message.fromUser === true;
+                        const currentMessageDate = message.createdAt ? new Date(message.createdAt).toDateString() : '';
+                        const previousMessageDate = index > 0 && messages[index - 1].createdAt 
+                          ? new Date(messages[index - 1].createdAt).toDateString() 
+                          : '';
+                        const showDateSeparator = index === 0 || currentMessageDate !== previousMessageDate;
+                        
                         return (
-                          <div
-                            key={message.id}
-                            className={cn(
-                              "flex",
-                              isAgent ? "justify-end" : "justify-start"
+                          <div key={message.id}>
+                            {showDateSeparator && message.createdAt && (
+                              <div className="flex justify-center my-4">
+                                <span className="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                                  {format(new Date(message.createdAt), "MMMM d, yyyy")}
+                                </span>
+                              </div>
                             )}
-                          >
                             <div
                               className={cn(
-                                "max-w-[70%] rounded-lg px-4 py-2",
-                                isAgent 
-                                  ? "bg-green-500 text-white" 
-                                  : "bg-gray-100 text-gray-900"
+                                "flex",
+                                message.direction === 'outbound' || message.direction === 'outgoing' ? "justify-end" : "justify-start"
                               )}
                             >
-                              <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                            <div
+                              className={cn(
+                                "max-w-[70%] rounded-2xl px-4 py-2 shadow-sm",
+                                message.direction === 'outbound' || message.direction === 'outgoing'
+                                  ? "bg-green-500 text-white rounded-br-sm" 
+                                  : "bg-white text-gray-900 rounded-bl-sm border border-gray-200"
+                              )}
+                            >
+                              <p className="whitespace-pre-wrap break-words text-sm">{message.content}</p>
                               <div className={cn(
                                 "flex items-center gap-1 mt-1",
-                                isAgent ? "justify-end" : "justify-start"
+                                message.direction === 'outbound' || message.direction === 'outgoing' ? "justify-end" : "justify-start"
                               )}>
                                 <span className={cn(
-                                  "text-xs",
-                                  isAgent ? "text-green-100" : "text-gray-500"
+                                  "text-[10px]",
+                                  message.direction === 'outbound' || message.direction === 'outgoing' ? "text-green-100" : "text-gray-500"
                                 )}>
                                   {message.createdAt ? format(new Date(message.createdAt), "HH:mm") : ""}
                                 </span>
-                                {isAgent && getMessageStatus(message)}
+                                {(message.direction === 'outbound' || message.direction === 'outgoing') && getMessageStatus(message)}
                               </div>
                             </div>
+                          </div>
                           </div>
                         );
                       })}
@@ -658,54 +707,82 @@ export default function Inbox() {
 
               {/* Message Input */}
               <div className="border-t p-4">
-                <div className="flex items-end gap-2">
-                  <TemplateDialog 
-                    channelId={selectedConversation.channelId || undefined}
-                    onSelectTemplate={(template) => {
-                      sendTemplateMutation.mutate({
-                        conversationId: selectedConversation.id,
-                        templateName: template.name,
-                        templateBody: template.body || '',
-                        phoneNumber: selectedConversation.contactPhone,
-                      });
-                    }}
-                  />
-                  
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    title="Add emoji"
-                    onClick={() => {
-                      // Simple emoji insertion
-                      const emojis = ['😊', '👍', '❤️', '🎉', '👋'];
-                      const emoji = emojis[Math.floor(Math.random() * emojis.length)];
-                      setMessageText(prev => prev + emoji);
-                    }}
-                  >
-                    <Smile className="w-5 h-5" />
-                  </Button>
-                  
-                  <Textarea
-                    value={messageText}
-                    onChange={(e) => setMessageText(e.target.value)}
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSendMessage();
-                      }
-                    }}
-                    placeholder="Type a message..."
-                    className="flex-1 resize-none"
-                    rows={1}
-                  />
-                  <Button 
-                    onClick={handleSendMessage}
-                    disabled={!messageText.trim() || sendMessageMutation.isPending}
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    <Send className="w-4 h-4" />
-                  </Button>
-                </div>
+                {messages && is24HourWindowExpired(messages) ? (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                      <div className="flex-1">
+                        <h4 className="font-medium text-yellow-800">24-hour window expired</h4>
+                        <p className="text-sm text-yellow-700 mt-1">
+                          You can only send template messages after 24 hours of customer's last message.
+                          Use the template button to send approved WhatsApp templates.
+                        </p>
+                        <div className="mt-3">
+                          <TemplateDialog 
+                            channelId={selectedConversation.channelId || undefined}
+                            onSelectTemplate={(template) => {
+                              sendTemplateMutation.mutate({
+                                conversationId: selectedConversation.id,
+                                templateName: template.name,
+                                templateBody: template.body || '',
+                                phoneNumber: selectedConversation.contactPhone || '',
+                              });
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-end gap-2">
+                    <TemplateDialog 
+                      channelId={selectedConversation.channelId || undefined}
+                      onSelectTemplate={(template) => {
+                        sendTemplateMutation.mutate({
+                          conversationId: selectedConversation.id,
+                          templateName: template.name,
+                          templateBody: template.body || '',
+                          phoneNumber: selectedConversation.contactPhone || '',
+                        });
+                      }}
+                    />
+                    
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      title="Add emoji"
+                      onClick={() => {
+                        // Simple emoji insertion
+                        const emojis = ['😊', '👍', '❤️', '🎉', '👋'];
+                        const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+                        setMessageText(prev => prev + emoji);
+                      }}
+                    >
+                      <Smile className="w-5 h-5" />
+                    </Button>
+                    
+                    <Textarea
+                      value={messageText}
+                      onChange={(e) => setMessageText(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendMessage();
+                        }
+                      }}
+                      placeholder="Type a message..."
+                      className="flex-1 resize-none"
+                      rows={1}
+                    />
+                    <Button 
+                      onClick={handleSendMessage}
+                      disabled={!messageText.trim() || sendMessageMutation.isPending}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      <Send className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
               </div>
             </Card>
           ) : (
