@@ -267,15 +267,36 @@ export class DatabaseStorage implements IStorage {
 
   // Conversations
   async getConversations(): Promise<Conversation[]> {
-    return await db.select().from(conversations).orderBy(desc(conversations.lastMessageAt));
+    const result = await db
+      .select({
+        conversation: conversations,
+        contact: contacts,
+      })
+      .from(conversations)
+      .leftJoin(contacts, eq(conversations.contactId, contacts.id))
+      .orderBy(desc(conversations.lastMessageAt));
+    
+    return result.map(row => ({
+      ...row.conversation,
+      contact: row.contact,
+    }));
   }
 
   async getConversationsByChannel(channelId: string): Promise<Conversation[]> {
-    return await db
-      .select()
+    const result = await db
+      .select({
+        conversation: conversations,
+        contact: contacts,
+      })
       .from(conversations)
+      .leftJoin(contacts, eq(conversations.contactId, contacts.id))
       .where(eq(conversations.channelId, channelId))
       .orderBy(desc(conversations.lastMessageAt));
+    
+    return result.map(row => ({
+      ...row.conversation,
+      contact: row.contact,
+    }));
   }
 
   async getConversation(id: string): Promise<Conversation | undefined> {

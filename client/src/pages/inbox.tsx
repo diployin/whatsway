@@ -14,6 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -231,13 +232,13 @@ const TemplateDialog = ({
   onSelectTemplate: (template: any) => void;
 }) => {
   const [open, setOpen] = useState(false);
-  const { data: templates } = useQuery({
+  const { data: templates = [] } = useQuery({
     queryKey: ["/api/templates", channelId],
     queryFn: () => api.getTemplates(channelId),
     enabled: !!channelId && open,
   });
 
-  const approvedTemplates = templates?.filter((t: any) => t.status === "approved") || [];
+  const approvedTemplates = (templates as any[]).filter((t: any) => t.status === "approved");
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -288,7 +289,7 @@ const TemplateDialog = ({
 };
 
 // Main Component
-export default function TeamInbox() {
+export default function Inbox() {
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [messageText, setMessageText] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -424,18 +425,18 @@ export default function TeamInbox() {
     sendTemplateMutation.mutate({
       conversationId: selectedConversation.id,
       templateName: template.name,
-      phoneNumber: selectedConversation.contactPhone,
+      phoneNumber: selectedConversation.contactPhone || "",
     });
   };
 
-  // Filter conversations
-  const filteredConversations = conversations.filter((conv: Conversation) => {
+  // Filter conversations  
+  const filteredConversations = conversations.filter((conv: any) => {
     const matchesSearch = conv.contact?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         conv.contactPhone.includes(searchQuery);
+                         conv.contactPhone?.includes(searchQuery);
     
     switch (filterTab) {
       case "unread":
-        return matchesSearch && conv.unreadCount > 0;
+        return matchesSearch && (conv.unreadCount || 0) > 0;
       case "open":
         return matchesSearch && conv.status === "open";
       case "resolved":
@@ -446,12 +447,12 @@ export default function TeamInbox() {
   });
 
   // Check if 24-hour window has passed
-  const is24HourWindowExpired = selectedConversation?.lastMessageAt && 
-    differenceInHours(new Date(), new Date(selectedConversation.lastMessageAt)) > 24;
+  const is24HourWindowExpired = selectedConversation?.lastMessageAt ? 
+    differenceInHours(new Date(), new Date(selectedConversation.lastMessageAt)) > 24 : false;
 
   if (!activeChannel) {
     return (
-      <div className="flex h-screen">
+      <div className="h-screen flex flex-col">
         <Header title="Team Inbox" />
         <div className="flex-1 flex items-center justify-center">
           <EmptyState
@@ -465,8 +466,9 @@ export default function TeamInbox() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="h-screen flex flex-col">
       <Header title="Team Inbox" />
+      <div className="flex-1 flex bg-gray-50 overflow-hidden">
       
       {/* Conversations List */}
       <div className="w-96 bg-white border-r border-gray-200 flex flex-col">
@@ -524,16 +526,16 @@ export default function TeamInbox() {
               <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10">
                   <AvatarFallback className="bg-gray-200">
-                    {selectedConversation.contact?.name?.[0]?.toUpperCase() || "?"}
+                    {(selectedConversation as any).contact?.name?.[0]?.toUpperCase() || "?"}
                   </AvatarFallback>
                 </Avatar>
                 
                 <div>
                   <h3 className="font-semibold text-gray-900">
-                    {selectedConversation.contact?.name || selectedConversation.contactPhone}
+                    {(selectedConversation as any).contact?.name || selectedConversation.contactPhone || "Unknown"}
                   </h3>
                   <p className="text-sm text-gray-500">
-                    {selectedConversation.contact?.phone || selectedConversation.contactPhone}
+                    {(selectedConversation as any).contact?.phone || selectedConversation.contactPhone || ""}
                   </p>
                 </div>
               </div>
@@ -606,8 +608,8 @@ export default function TeamInbox() {
                 {messages.map((message: Message, index: number) => {
                   const prevMessage = index > 0 ? messages[index - 1] : null;
                   const showDate = !prevMessage || 
-                    !isToday(new Date(message.createdAt)) ||
-                    (prevMessage && !isToday(new Date(prevMessage.createdAt)));
+                    !isToday(new Date(message.createdAt || new Date())) ||
+                    (prevMessage && !isToday(new Date(prevMessage.createdAt || new Date())));
                   
                   return (
                     <MessageItem
@@ -689,6 +691,7 @@ export default function TeamInbox() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
