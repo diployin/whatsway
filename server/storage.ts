@@ -103,6 +103,7 @@ export interface IStorage {
 
   // API Logs
   getApiLogs(channelId?: string, limit?: number): Promise<ApiLog[]>;
+  logApiRequest(log: InsertApiLog): Promise<ApiLog | null>;
 }
 
 export class MemStorage implements IStorage {
@@ -116,8 +117,6 @@ export class MemStorage implements IStorage {
   private analytics: Map<string, Analytics> = new Map();
   private whatsappChannels: Map<string, WhatsappChannel> = new Map();
   private webhookConfigs: Map<string, WebhookConfig> = new Map();
-  private messageQueues: Map<string, MessageQueue> = new Map();
-  private apiLogs: Map<string, ApiLog> = new Map();
   private messageQueues: Map<string, MessageQueue> = new Map();
   private apiLogs: Map<string, ApiLog> = new Map();
 
@@ -529,14 +528,24 @@ export class MemStorage implements IStorage {
     return logs.slice(-limit);
   }
 
-  async logApiRequest(log: InsertApiLog): Promise<ApiLog> {
-    const apiLog: ApiLog = {
-      ...log,
-      id: Date.now().toString(),
-      createdAt: new Date(),
-    };
-    this.apiLogs.set(apiLog.id, apiLog);
-    return apiLog;
+  async logApiRequest(log: InsertApiLog): Promise<ApiLog | null> {
+    try {
+      const apiLog: ApiLog = {
+        ...log,
+        id: Date.now().toString(),
+        createdAt: new Date(),
+      };
+      // Check if channel exists before logging
+      if (log.channelId && !this.whatsappChannels.has(log.channelId)) {
+        console.error("Channel not found for API log:", log.channelId);
+        return null;
+      }
+      this.apiLogs.set(apiLog.id, apiLog);
+      return apiLog;
+    } catch (error) {
+      console.error("Failed to log API request:", error);
+      return null;
+    }
   }
 }
 
