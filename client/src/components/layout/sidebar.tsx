@@ -105,28 +105,28 @@ export default function Sidebar() {
             const Icon = item.icon;
             
             return (
-              <Link key={item.href} href={item.href}>
-                <a
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 hover-lift group",
+                  isActive
+                    ? "bg-green-50 text-green-700 border-l-4 border-green-600"
+                    : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                )}
+              >
+                <Icon 
                   className={cn(
-                    "flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 hover-lift group",
-                    isActive
-                      ? "bg-green-50 text-green-700 border-l-4 border-green-600"
-                      : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-                  )}
-                >
-                  <Icon 
-                    className={cn(
-                      "w-5 h-5 mr-3 transition-colors",
-                      isActive ? "text-green-600" : item.color
-                    )} 
-                  />
-                  {item.label}
-                  {item.badge && (
-                    <span className="ml-auto bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
-                      {item.badge}
-                    </span>
-                  )}
-                </a>
+                    "w-5 h-5 mr-3 transition-colors",
+                    isActive ? "text-green-600" : item.color
+                  )} 
+                />
+                {item.label}
+                {item.badge && (
+                  <span className="ml-auto bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
+                    {item.badge}
+                  </span>
+                )}
               </Link>
             );
           })}

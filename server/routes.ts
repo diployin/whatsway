@@ -15,9 +15,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const channels = await storage.getChannels();
       res.json(channels);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching channels:", error);
-      res.status(500).json({ message: "Failed to fetch channels" });
+      console.error("Error stack:", error.stack);
+      res.status(500).json({ message: "Failed to fetch channels", error: error.message });
     }
   });
 
@@ -28,9 +29,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "No active channel found" });
       }
       res.json(channel);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching active channel:", error);
-      res.status(500).json({ message: "Failed to fetch active channel" });
+      console.error("Error stack:", error.stack);
+      res.status(500).json({ message: "Failed to fetch active channel", error: error.message });
     }
   });
 

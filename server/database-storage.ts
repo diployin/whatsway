@@ -4,6 +4,7 @@ import {
   users,
   contacts,
   campaigns,
+  channels,
   templates,
   conversations,
   messages,
@@ -19,6 +20,8 @@ import {
   type InsertContact,
   type Campaign,
   type InsertCampaign,
+  type Channel,
+  type InsertChannel,
   type Template,
   type InsertTemplate,
   type Conversation,
@@ -132,6 +135,47 @@ export class DatabaseStorage implements IStorage {
   async deleteCampaign(id: string): Promise<boolean> {
     const result = await db.delete(campaigns).where(eq(campaigns.id, id)).returning();
     return result.length > 0;
+  }
+
+  // Channels
+  async getChannels(): Promise<Channel[]> {
+    return await db.select().from(channels).orderBy(desc(channels.createdAt));
+  }
+
+  async getChannel(id: string): Promise<Channel | undefined> {
+    const [channel] = await db.select().from(channels).where(eq(channels.id, id));
+    return channel || undefined;
+  }
+
+  async createChannel(insertChannel: InsertChannel): Promise<Channel> {
+    const [channel] = await db
+      .insert(channels)
+      .values(insertChannel)
+      .returning();
+    return channel;
+  }
+
+  async updateChannel(id: string, channel: Partial<Channel>): Promise<Channel | undefined> {
+    const [updated] = await db
+      .update(channels)
+      .set(channel)
+      .where(eq(channels.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  async deleteChannel(id: string): Promise<boolean> {
+    const result = await db.delete(channels).where(eq(channels.id, id)).returning();
+    return result.length > 0;
+  }
+
+  async getActiveChannel(): Promise<Channel | undefined> {
+    const [channel] = await db
+      .select()
+      .from(channels)
+      .where(eq(channels.isActive, true))
+      .orderBy(desc(channels.createdAt));
+    return channel || undefined;
   }
 
   // Templates

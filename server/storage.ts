@@ -153,6 +153,20 @@ export class MemStorage implements IStorage {
       createdAt: today,
     };
     this.analytics.set(analyticsEntry.id, analyticsEntry);
+
+    // Initialize a default channel for the user to work with
+    const defaultChannel: Channel = {
+      id: randomUUID(),
+      name: "Default Channel",
+      phoneNumberId: "153851404474202", // User's provided phone number ID
+      accessToken: "Bearer token...",
+      whatsappBusinessAccountId: null,
+      phoneNumber: null,
+      isActive: true,
+      createdAt: today,
+      updatedAt: today,
+    };
+    this.channels.set(defaultChannel.id, defaultChannel);
   }
 
   // Users
@@ -265,10 +279,6 @@ export class MemStorage implements IStorage {
     return this.channels.get(id);
   }
 
-  async getActiveChannel(): Promise<Channel | undefined> {
-    return Array.from(this.channels.values()).find(channel => channel.isActive);
-  }
-
   async createChannel(insertChannel: InsertChannel): Promise<Channel> {
     const id = randomUUID();
     const channel: Channel = {
@@ -276,6 +286,9 @@ export class MemStorage implements IStorage {
       id,
       createdAt: new Date(),
       updatedAt: new Date(),
+      whatsappBusinessAccountId: insertChannel.whatsappBusinessAccountId || null,
+      phoneNumber: insertChannel.phoneNumber || null,
+      isActive: insertChannel.isActive ?? false,
     };
     this.channels.set(id, channel);
     return channel;
@@ -316,6 +329,22 @@ export class MemStorage implements IStorage {
       ...insertTemplate,
       id,
       createdAt: new Date(),
+      updatedAt: new Date(),
+      status: insertTemplate.status || null,
+      channelId: insertTemplate.channelId || null,
+      language: insertTemplate.language || null,
+      header: insertTemplate.header || null,
+      footer: insertTemplate.footer || null,
+      buttons: insertTemplate.buttons || null,
+      variables: insertTemplate.variables || null,
+      tags: insertTemplate.tags || null,
+      priority: insertTemplate.priority || null,
+      whatsappTemplateId: insertTemplate.whatsappTemplateId || null,
+      whatsappTemplateName: insertTemplate.whatsappTemplateName || null,
+      mediaType: insertTemplate.mediaType || null,
+      mediaUrl: insertTemplate.mediaUrl || null,
+      carouselCards: insertTemplate.carouselCards || null,
+      usage_count: insertTemplate.usage_count ?? 0,
     };
     this.templates.set(id, template);
     return template;
