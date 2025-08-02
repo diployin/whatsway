@@ -103,8 +103,8 @@ export default function Settings() {
   });
 
   // Fetch webhook configs
-  const { data: webhookConfigs = [], isLoading: webhooksLoading } = useQuery<WebhookConfig[]>({
-    queryKey: ["/api/webhooks"],
+  const { data: webhookConfigs = [], isLoading: webhooksLoading, refetch: refetchWebhookConfigs } = useQuery<WebhookConfig[]>({
+    queryKey: ["/api/whatsapp/webhooks"],
   });
 
   // Channel form
@@ -754,7 +754,7 @@ export default function Settings() {
                               size="sm"
                               onClick={() => {
                                 if (confirm('Are you sure you want to delete this webhook configuration?')) {
-                                  fetch(`/api/webhooks/${config.id}`, { method: 'DELETE' })
+                                  fetch(`/api/whatsapp/webhooks/${config.id}`, { method: 'DELETE' })
                                     .then(() => {
                                       toast({
                                         title: "Webhook deleted",
