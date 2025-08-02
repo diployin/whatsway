@@ -90,7 +90,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Dashboard endpoints
   app.get("/api/dashboard/stats", async (req, res) => {
     try {
-      const stats = await storage.getDashboardStats();
+      const activeChannel = await storage.getActiveChannel();
+      if (!activeChannel) {
+        return res.json({
+          totalMessages: 0,
+          activeCampaigns: 0,
+          deliveryRate: 0,
+          newLeads: 0,
+          messagesGrowth: 0,
+          campaignsRunning: 0,
+          unreadChats: 0
+        });
+      }
+      
+      const stats = await storage.getDashboardStatsByChannel(activeChannel.id);
       res.json(stats);
     } catch (error) {
       console.error("Error fetching dashboard stats:", error);
@@ -100,8 +113,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/analytics", async (req, res) => {
     try {
+      const activeChannel = await storage.getActiveChannel();
+      if (!activeChannel) {
+        return res.json([]); // Return empty array if no active channel
+      }
+      
       const days = parseInt(req.query.days as string) || 30;
-      const analytics = await storage.getAnalytics(days);
+      const analytics = await storage.getAnalyticsByChannel(activeChannel.id, days);
       res.json(analytics);
     } catch (error) {
       console.error("Error fetching analytics:", error);
@@ -112,11 +130,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Contact endpoints
   app.get("/api/contacts", async (req, res) => {
     try {
+      const activeChannel = await storage.getActiveChannel();
+      if (!activeChannel) {
+        return res.json([]); // Return empty array if no active channel
+      }
+      
       if (req.query.search) {
-        const contacts = await storage.searchContacts(req.query.search as string);
+        const contacts = await storage.searchContactsByChannel(activeChannel.id, req.query.search as string);
         res.json(contacts);
       } else {
-        const contacts = await storage.getContacts();
+        const contacts = await storage.getContactsByChannel(activeChannel.id);
         res.json(contacts);
       }
     } catch (error) {
@@ -141,7 +164,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/contacts", async (req, res) => {
     try {
       const validatedContact = insertContactSchema.parse(req.body);
-      const contact = await storage.createContact(validatedContact);
+      
+      // Get active channel if channelId not provided
+      let channelId = validatedContact.channelId;
+      if (!channelId) {
+        const activeChannel = await storage.getActiveChannel();
+        if (!activeChannel) {
+          return res.status(400).json({ 
+            message: "No active channel found. Please configure a channel first." 
+          });
+        }
+        channelId = activeChannel.id;
+      }
+      
+      const contact = await storage.createContact({
+        ...validatedContact,
+        channelId
+      });
       res.status(201).json(contact);
     } catch (error) {
       console.error("Error creating contact:", error);
@@ -179,7 +218,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Campaign endpoints
   app.get("/api/campaigns", async (req, res) => {
     try {
-      const campaigns = await storage.getCampaigns();
+      const activeChannel = await storage.getActiveChannel();
+      if (!activeChannel) {
+        return res.json([]); // Return empty array if no active channel
+      }
+      
+      const campaigns = await storage.getCampaignsByChannel(activeChannel.id);
       res.json(campaigns);
     } catch (error) {
       console.error("Error fetching campaigns:", error);
@@ -203,7 +247,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/campaigns", async (req, res) => {
     try {
       const validatedCampaign = insertCampaignSchema.parse(req.body);
-      const campaign = await storage.createCampaign(validatedCampaign);
+      
+      // Get active channel if channelId not provided
+      let channelId = validatedCampaign.channelId;
+      if (!channelId) {
+        const activeChannel = await storage.getActiveChannel();
+        if (!activeChannel) {
+          return res.status(400).json({ 
+            message: "No active channel found. Please configure a channel first." 
+          });
+        }
+        channelId = activeChannel.id;
+      }
+      
+      const campaign = await storage.createCampaign({
+        ...validatedCampaign,
+        channelId
+      });
       res.status(201).json(campaign);
     } catch (error) {
       console.error("Error creating campaign:", error);
@@ -315,7 +375,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Template endpoints
   app.get("/api/templates", async (req, res) => {
     try {
-      const templates = await storage.getTemplates();
+      const activeChannel = await storage.getActiveChannel();
+      if (!activeChannel) {
+        return res.json([]); // Return empty array if no active channel
+      }
+      
+      const templates = await storage.getTemplatesByChannel(activeChannel.id);
       res.json(templates);
     } catch (error) {
       console.error("Error fetching templates:", error);
@@ -338,7 +403,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/templates", async (req, res) => {
     try {
+      console.log("Template creation request body:", JSON.stringify(req.body, null, 2));
       const validatedTemplate = insertTemplateSchema.parse(req.body);
+      console.log("Validated template buttons:", validatedTemplate.buttons);
       
       // Get active channel if channelId not provided
       let channelId = validatedTemplate.channelId;
@@ -450,19 +517,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
           status: "pending" 
         });
         
+        console.log("Template successfully submitted to WhatsApp with ID:", result.id);
         res.status(201).json({ 
           ...template,
           whatsappTemplateId: result.id,
           status: "pending"
         });
       } else {
-        // Delete template if WhatsApp submission failed
-        await storage.deleteTemplate(template.id);
+        // Log the error but DON'T delete the template - let user fix and resubmit
+        console.error("WhatsApp API error:", JSON.stringify(result, null, 2));
+        console.error("Template payload that failed:", JSON.stringify(templatePayload, null, 2));
         
-        console.error("WhatsApp API error:", result);
-        res.status(400).json({ 
-          message: "Failed to create template in WhatsApp",
-          error: result.error?.message || "Unknown error"
+        // Update template with error status instead of deleting
+        await storage.updateTemplate(template.id, { 
+          status: "draft",
+          metadata: { 
+            ...((template.metadata as any) || {}),
+            lastError: result.error?.message || "Failed to submit to WhatsApp"
+          }
+        });
+        
+        res.status(201).json({ 
+          ...template,
+          status: "draft",
+          warning: "Template created locally but failed WhatsApp submission. You can edit and resubmit."
         });
       }
     } catch (error) {
@@ -615,7 +693,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Conversation endpoints
   app.get("/api/conversations", async (req, res) => {
     try {
-      const conversations = await storage.getConversations();
+      const activeChannel = await storage.getActiveChannel();
+      if (!activeChannel) {
+        return res.json([]); // Return empty array if no active channel
+      }
+      
+      const conversations = await storage.getConversationsByChannel(activeChannel.id);
       res.json(conversations);
     } catch (error) {
       console.error("Error fetching conversations:", error);
@@ -689,7 +772,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Automation endpoints
   app.get("/api/automations", async (req, res) => {
     try {
-      const automations = await storage.getAutomations();
+      const activeChannel = await storage.getActiveChannel();
+      if (!activeChannel) {
+        return res.json([]); // Return empty array if no active channel
+      }
+      
+      const automations = await storage.getAutomationsByChannel(activeChannel.id);
       res.json(automations);
     } catch (error) {
       console.error("Error fetching automations:", error);

@@ -36,14 +36,17 @@ export interface IStorage {
 
   // Contacts
   getContacts(): Promise<Contact[]>;
+  getContactsByChannel(channelId: string): Promise<Contact[]>;
   getContact(id: string): Promise<Contact | undefined>;
   createContact(contact: InsertContact): Promise<Contact>;
   updateContact(id: string, contact: Partial<Contact>): Promise<Contact | undefined>;
   deleteContact(id: string): Promise<boolean>;
   searchContacts(query: string): Promise<Contact[]>;
+  searchContactsByChannel(channelId: string, query: string): Promise<Contact[]>;
 
   // Campaigns
   getCampaigns(): Promise<Campaign[]>;
+  getCampaignsByChannel(channelId: string): Promise<Campaign[]>;
   getCampaign(id: string): Promise<Campaign | undefined>;
   createCampaign(campaign: InsertCampaign): Promise<Campaign>;
   updateCampaign(id: string, campaign: Partial<Campaign>): Promise<Campaign | undefined>;
@@ -51,6 +54,7 @@ export interface IStorage {
 
   // Templates
   getTemplates(): Promise<Template[]>;
+  getTemplatesByChannel(channelId: string): Promise<Template[]>;
   getTemplate(id: string): Promise<Template | undefined>;
   createTemplate(template: InsertTemplate): Promise<Template>;
   updateTemplate(id: string, template: Partial<Template>): Promise<Template | undefined>;
@@ -58,6 +62,7 @@ export interface IStorage {
 
   // Conversations
   getConversations(): Promise<Conversation[]>;
+  getConversationsByChannel(channelId: string): Promise<Conversation[]>;
   getConversation(id: string): Promise<Conversation | undefined>;
   getConversationByPhone(phone: string): Promise<Conversation | undefined>;
   createConversation(conversation: InsertConversation): Promise<Conversation>;
@@ -71,6 +76,7 @@ export interface IStorage {
 
   // Automations
   getAutomations(): Promise<Automation[]>;
+  getAutomationsByChannel(channelId: string): Promise<Automation[]>;
   getAutomation(id: string): Promise<Automation | undefined>;
   createAutomation(automation: InsertAutomation): Promise<Automation>;
   updateAutomation(id: string, automation: Partial<Automation>): Promise<Automation | undefined>;
@@ -78,8 +84,18 @@ export interface IStorage {
 
   // Analytics
   getAnalytics(days?: number): Promise<Analytics[]>;
+  getAnalyticsByChannel(channelId: string, days?: number): Promise<Analytics[]>;
   createAnalytics(analytics: InsertAnalytics): Promise<Analytics>;
   getDashboardStats(): Promise<{
+    totalMessages: number;
+    activeCampaigns: number;
+    deliveryRate: number;
+    newLeads: number;
+    messagesGrowth: number;
+    campaignsRunning: number;
+    unreadChats: number;
+  }>;
+  getDashboardStatsByChannel(channelId: string): Promise<{
     totalMessages: number;
     activeCampaigns: number;
     deliveryRate: number;

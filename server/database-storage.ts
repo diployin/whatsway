@@ -68,6 +68,14 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(contacts).orderBy(desc(contacts.createdAt));
   }
 
+  async getContactsByChannel(channelId: string): Promise<Contact[]> {
+    return await db
+      .select()
+      .from(contacts)
+      .where(eq(contacts.channelId, channelId))
+      .orderBy(desc(contacts.createdAt));
+  }
+
   async getContact(id: string): Promise<Contact | undefined> {
     const [contact] = await db.select().from(contacts).where(eq(contacts.id, id));
     return contact || undefined;
@@ -105,9 +113,30 @@ export class DatabaseStorage implements IStorage {
       );
   }
 
+  async searchContactsByChannel(channelId: string, query: string): Promise<Contact[]> {
+    const searchPattern = `%${query}%`;
+    return await db
+      .select()
+      .from(contacts)
+      .where(
+        and(
+          eq(contacts.channelId, channelId),
+          sql`${contacts.name} ILIKE ${searchPattern} OR ${contacts.phone} ILIKE ${searchPattern} OR ${contacts.email} ILIKE ${searchPattern}`
+        )
+      );
+  }
+
   // Campaigns
   async getCampaigns(): Promise<Campaign[]> {
     return await db.select().from(campaigns).orderBy(desc(campaigns.createdAt));
+  }
+
+  async getCampaignsByChannel(channelId: string): Promise<Campaign[]> {
+    return await db
+      .select()
+      .from(campaigns)
+      .where(eq(campaigns.channelId, channelId))
+      .orderBy(desc(campaigns.createdAt));
   }
 
   async getCampaign(id: string): Promise<Campaign | undefined> {
@@ -183,6 +212,14 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(templates).orderBy(desc(templates.createdAt));
   }
 
+  async getTemplatesByChannel(channelId: string): Promise<Template[]> {
+    return await db
+      .select()
+      .from(templates)
+      .where(eq(templates.channelId, channelId))
+      .orderBy(desc(templates.createdAt));
+  }
+
   async getTemplate(id: string): Promise<Template | undefined> {
     const [template] = await db.select().from(templates).where(eq(templates.id, id));
     return template || undefined;
@@ -213,6 +250,14 @@ export class DatabaseStorage implements IStorage {
   // Conversations
   async getConversations(): Promise<Conversation[]> {
     return await db.select().from(conversations).orderBy(desc(conversations.lastMessageAt));
+  }
+
+  async getConversationsByChannel(channelId: string): Promise<Conversation[]> {
+    return await db
+      .select()
+      .from(conversations)
+      .where(eq(conversations.channelId, channelId))
+      .orderBy(desc(conversations.lastMessageAt));
   }
 
   async getConversation(id: string): Promise<Conversation | undefined> {
@@ -284,6 +329,14 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(automations).orderBy(desc(automations.createdAt));
   }
 
+  async getAutomationsByChannel(channelId: string): Promise<Automation[]> {
+    return await db
+      .select()
+      .from(automations)
+      .where(eq(automations.channelId, channelId))
+      .orderBy(desc(automations.createdAt));
+  }
+
   async getAutomation(id: string): Promise<Automation | undefined> {
     const [automation] = await db.select().from(automations).where(eq(automations.id, id));
     return automation || undefined;
@@ -313,6 +366,17 @@ export class DatabaseStorage implements IStorage {
 
   // Analytics
   async getAnalytics(days?: number): Promise<Analytics[]> {
+    const startDate = days ? new Date(Date.now() - days * 24 * 60 * 60 * 1000) : undefined;
+    const query = startDate
+      ? db.select().from(analytics).where(gte(analytics.date, startDate))
+      : db.select().from(analytics);
+    return await query.orderBy(analytics.date);
+  }
+
+  async getAnalyticsByChannel(channelId: string, days?: number): Promise<Analytics[]> {
+    // Note: Analytics table doesn't have channelId column yet
+    // For now, return all analytics filtered by date only
+    // TODO: Add channelId to analytics table schema
     const startDate = days ? new Date(Date.now() - days * 24 * 60 * 60 * 1000) : undefined;
     const query = startDate
       ? db.select().from(analytics).where(gte(analytics.date, startDate))
@@ -367,6 +431,78 @@ export class DatabaseStorage implements IStorage {
       .select({ count: sql<number>`count(*)` })
       .from(contacts)
       .where(gte(contacts.createdAt, sevenDaysAgo));
+    const newLeads = Number(newLeadsResult?.count || 0);
+
+    // Calculate growth (mock for now)
+    const messagesGrowth = 12.5;
+
+    return {
+      totalMessages,
+      activeCampaigns,
+      deliveryRate,
+      newLeads,
+      messagesGrowth,
+      campaignsRunning,
+      unreadChats,
+    };
+  }
+
+  async getDashboardStatsByChannel(channelId: string): Promise<{
+    totalMessages: number;
+    activeCampaigns: number;
+    deliveryRate: number;
+    newLeads: number;
+    messagesGrowth: number;
+    campaignsRunning: number;
+    unreadChats: number;
+  }> {
+    // Get total messages count for this channel (join through conversations)
+    const [messageCountResult] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(messages)
+      .innerJoin(conversations, eq(messages.conversationId, conversations.id))
+      .where(eq(conversations.channelId, channelId));
+    const totalMessages = Number(messageCountResult?.count || 0);
+
+    // Get active campaigns count for this channel
+    const [activeCampaignResult] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(campaigns)
+      .where(
+        and(
+          eq(campaigns.channelId, channelId),
+          eq(campaigns.status, "active")
+        )
+      );
+    const activeCampaigns = Number(activeCampaignResult?.count || 0);
+    const campaignsRunning = activeCampaigns;
+
+    // Get unread chats count for this channel
+    const [unreadChatsResult] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(conversations)
+      .where(
+        and(
+          eq(conversations.channelId, channelId),
+          gt(conversations.unreadCount, 0)
+        )
+      );
+    const unreadChats = Number(unreadChatsResult?.count || 0);
+
+    // Calculate delivery rate (mock for now, would need message status tracking)
+    const deliveryRate = totalMessages > 0 ? 92 : 0;
+
+    // Calculate new leads for this channel (contacts created in last 7 days)
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const [newLeadsResult] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(contacts)
+      .where(
+        and(
+          eq(contacts.channelId, channelId),
+          gte(contacts.createdAt, sevenDaysAgo)
+        )
+      );
     const newLeads = Number(newLeadsResult?.count || 0);
 
     // Calculate growth (mock for now)
