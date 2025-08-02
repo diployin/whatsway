@@ -32,9 +32,12 @@ import {
   Copy,
   RefreshCw,
   Activity,
-  Edit
+  Edit,
+  Info,
+  MessageSquare
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -64,6 +67,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { WhatsappChannel, WebhookConfig } from "@shared/schema";
+import { WebhookFlowDiagram } from "@/components/webhook-flow-diagram";
 
 // Form schemas
 const channelFormSchema = z.object({
@@ -92,6 +96,7 @@ export default function Settings() {
   const [showTestDialog, setShowTestDialog] = useState(false);
   const [testingChannelId, setTestingChannelId] = useState<string | null>(null);
   const { toast } = useToast();
+  const [, navigate] = useLocation();
 
   // Fetch WhatsApp channels
   const { data: channels = [], isLoading: channelsLoading } = useQuery<WhatsappChannel[]>({
@@ -601,8 +606,38 @@ export default function Settings() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                {/* Webhook Setup Instructions */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                  <h4 className="font-medium text-blue-900 mb-2 flex items-center">
+                    <Info className="w-4 h-4 mr-2" />
+                    Quick Setup Guide
+                  </h4>
+                  <ol className="text-sm text-blue-800 space-y-2">
+                    <li>1. Create a WhatsApp channel in the "Channels" tab first</li>
+                    <li>2. Copy the webhook URL for your channel (shown below)</li>
+                    <li>3. Go to Facebook Business Manager → WhatsApp → Configuration → Webhooks</li>
+                    <li>4. Paste the webhook URL and set a verify token</li>
+                    <li>5. Subscribe to "messages" and "message_status" fields</li>
+                    <li>6. Configure the same verify token here in WhatsWay</li>
+                  </ol>
+                </div>
+
+                {/* Visual Flow Diagram */}
+                <div className="mb-6">
+                  <WebhookFlowDiagram />
+                </div>
+
                 {webhooksLoading ? (
                   <Loading />
+                ) : channels.length === 0 ? (
+                  <div className="text-center py-12">
+                    <MessageSquare className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                    <p className="text-gray-500 mb-4">No WhatsApp channels configured yet</p>
+                    <p className="text-sm text-gray-400 mb-4">Create a channel first to set up webhooks</p>
+                    <Button onClick={() => navigate('/settings?tab=channels')}>
+                      Go to Channels
+                    </Button>
+                  </div>
                 ) : webhookConfigs.length === 0 ? (
                   <div className="text-center py-12">
                     <Webhook className="w-12 h-12 mx-auto text-gray-400 mb-4" />
@@ -614,6 +649,37 @@ export default function Settings() {
                   </div>
                 ) : (
                   <div className="space-y-4">
+                    {/* Show webhook URLs for all channels */}
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h4 className="font-medium text-gray-900 mb-3">Your Webhook URLs</h4>
+                      <div className="space-y-3">
+                        {channels.map((channel) => (
+                          <div key={channel.id} className="flex items-center justify-between bg-white rounded-lg p-3 border">
+                            <div className="flex-1">
+                              <p className="font-medium text-sm">{channel.name}</p>
+                              <code className="text-xs text-gray-600 break-all">
+                                {window.location.origin}/webhook/{channel.id}
+                              </code>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const url = `${window.location.origin}/webhook/${channel.id}`;
+                                navigator.clipboard.writeText(url);
+                                toast({
+                                  title: "Webhook URL copied",
+                                  description: "Paste this in your WhatsApp Business configuration",
+                                });
+                              }}
+                            >
+                              <Copy className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
                     {webhookConfigs.map((config) => (
                       <div key={config.id} className="border border-gray-200 rounded-lg p-4">
                         <div className="flex items-start justify-between">
