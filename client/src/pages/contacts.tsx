@@ -211,6 +211,17 @@ export default function Contacts() {
     },
   });
 
+  // First, get the active channel
+  const { data: activeChannel } = useQuery({
+    queryKey: ["/api/channels/active"],
+    queryFn: async () => {
+      const response = await fetch("/api/channels/active");
+      if (!response.ok) return null;
+      return await response.json();
+    },
+  });
+
+  // Then use it in other queries
   const { data: contacts, isLoading } = useQuery({
     queryKey: ["/api/contacts", searchQuery, activeChannel?.id],
     queryFn: async () => {
@@ -224,15 +235,6 @@ export default function Contacts() {
     queryKey: ["/api/whatsapp/channels"],
     queryFn: async () => {
       const response = await fetch("/api/whatsapp/channels");
-      return await response.json();
-    },
-  });
-  
-  const { data: activeChannel } = useQuery({
-    queryKey: ["/api/channels/active"],
-    queryFn: async () => {
-      const response = await fetch("/api/channels/active");
-      if (!response.ok) return null;
       return await response.json();
     },
   });

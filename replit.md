@@ -216,3 +216,17 @@ The application follows a monorepo structure with shared types and schemas, enab
 - Maintained all existing functionality during refactoring
 - Fixed critical send message 404 error caused by endpoint changes
 - Preserved backward compatibility with all existing API endpoints
+
+### Channel Switching Data Refresh Implementation (August 2025)
+- Fixed channel switching to immediately refresh all page data
+- Updated API functions to support channelId parameter for proper filtering
+- Enhanced channel switcher component with refetchQueries for instant updates
+- All pages now properly filter data by active channel:
+  - Dashboard shows channel-specific stats
+  - Contacts displays only contacts for active channel
+  - Templates shows channel-specific templates
+  - Campaigns filters by active channel
+  - Team Inbox shows channel conversations
+  - Automation displays channel automations
+  - Analytics shows channel-specific metrics
+- Fixed "Cannot access 'activeChannel' before initialization" error in contacts page by reordering queries
