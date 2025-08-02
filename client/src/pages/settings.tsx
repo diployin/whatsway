@@ -83,7 +83,7 @@ const channelFormSchema = z.object({
 const webhookFormSchema = z.object({
   channelId: z.string().min(1, "Please select a channel"),
   webhookUrl: z.string().url("Valid URL required").optional(),
-  verifyToken: z.string().min(8, "Verify token must be at least 8 characters"),
+  verifyToken: z.string().min(8, "Verify token must be at least 8 characters").max(100, "Verify token must be less than 100 characters"),
   appSecret: z.string().optional(),
   events: z.array(z.string()).min(1, "Select at least one event"),
 });
@@ -252,15 +252,12 @@ export default function Settings() {
   };
 
   const handleWebhookSubmit = (data: z.infer<typeof webhookFormSchema>) => {
-    if (channels.length === 0) {
-      toast({
-        title: "No channels",
-        description: "Please add a WhatsApp channel first.",
-        variant: "destructive",
-      });
-      return;
-    }
-    createWebhookMutation.mutate({ ...data, channelId: channels[0].id });
+    // Construct the webhook URL based on selected channel
+    const webhookUrl = `${window.location.origin}/webhook/${data.channelId}`;
+    createWebhookMutation.mutate({ 
+      ...data, 
+      webhookUrl,
+    });
   };
 
   const handleSaveSettings = () => {
@@ -624,10 +621,7 @@ export default function Settings() {
                   </ol>
                 </div>
 
-                {/* Visual Flow Diagram */}
-                <div className="mb-6">
-                  <WebhookFlowDiagram />
-                </div>
+
 
                 {webhooksLoading ? (
                   <Loading />
@@ -739,7 +733,7 @@ export default function Settings() {
 
             {/* Webhook Dialog */}
             <Dialog open={showWebhookDialog} onOpenChange={setShowWebhookDialog}>
-              <DialogContent>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Configure Webhook</DialogTitle>
                   <DialogDescription>
