@@ -2,7 +2,7 @@ import type { Request, Response } from 'express';
 import { storage } from '../storage';
 import { AppError, asyncHandler } from '../middlewares/error.middleware';
 import { eq, desc, and, or, like, gte, sql } from 'drizzle-orm';
-import { messageQueue, whatsappChannels } from '@shared/schema';
+import { messages, conversations, contacts, whatsappChannels } from '@shared/schema';
 import { db } from '../db';
 
 
@@ -13,7 +13,7 @@ export const getMessageLogs = asyncHandler(async (req: Request, res: Response) =
 
   // Channel filter
   if (channelId) {
-    conditions.push(eq(messageQueue.channelId, channelId as string));
+    conditions.push(eq(conversations.channelId, channelId as string));
   }
 
   // Date range filter
@@ -33,20 +33,21 @@ export const getMessageLogs = asyncHandler(async (req: Request, res: Response) =
         break;
     }
 
-    conditions.push(gte(messageQueue.createdAt, startDate));
+    conditions.push(gte(messages.createdAt, startDate));
   }
 
   // Status filter
   if (status && status !== 'all') {
-    conditions.push(eq(messageQueue.status, status as any));
+    conditions.push(eq(messages.status, status as any));
   }
 
   // Add search condition if provided
   if (search) {
     conditions.push(
       or(
-        like(messageQueue.recipientPhone, `%${search}%`),
-        like(messageQueue.templateName, `%${search}%`)
+        like(conversations.contactPhone, `%${search}%`),
+        like(messages.content, `%${search}%`),
+        like(conversations.contactName, `%${search}%`)
       )!
     );
   }
@@ -54,26 +55,21 @@ export const getMessageLogs = asyncHandler(async (req: Request, res: Response) =
   // Build the query
   let baseQuery = db
     .select({
-      id: messageQueue.id,
-      channelId: messageQueue.channelId,
-      phoneNumber: messageQueue.recipientPhone,
+      id: messages.id,
+      channelId: conversations.channelId,
+      phoneNumber: conversations.contactPhone,
+      contactName: conversations.contactName,
       channelName: whatsappChannels.name,
-      messageType: messageQueue.messageType,
-      templateName: messageQueue.templateName,
-      templateParams: messageQueue.templateParams,
-      status: messageQueue.status,
-      errorCode: messageQueue.errorCode,
-      errorMessage: messageQueue.errorMessage,
-      whatsappMessageId: messageQueue.whatsappMessageId,
-      cost: messageQueue.cost,
-      sentVia: messageQueue.sentVia,
-      processedAt: messageQueue.processedAt,
-      deliveredAt: messageQueue.deliveredAt,
-      readAt: messageQueue.readAt,
-      createdAt: messageQueue.createdAt,
+      content: messages.content,
+      direction: messages.direction,
+      fromUser: messages.fromUser,
+      status: messages.status,
+      whatsappMessageId: messages.whatsappMessageId,
+      createdAt: messages.createdAt,
     })
-    .from(messageQueue)
-    .leftJoin(whatsappChannels, eq(messageQueue.channelId, whatsappChannels.id));
+    .from(messages)
+    .innerJoin(conversations, eq(messages.conversationId, conversations.id))
+    .leftJoin(whatsappChannels, eq(conversations.channelId, whatsappChannels.id));
 
   // Apply conditions only if we have any
   if (conditions.length > 0) {
@@ -81,24 +77,24 @@ export const getMessageLogs = asyncHandler(async (req: Request, res: Response) =
   }
 
   const messageLogs = await baseQuery
-    .orderBy(desc(messageQueue.createdAt))
+    .orderBy(desc(messages.createdAt))
     .limit(100); // Limit to last 100 messages
   
   // Transform to match expected format
   const formattedLogs = messageLogs.map(log => ({
     id: log.id,
-    channelId: log.channelId,
-    phoneNumber: log.phoneNumber,
-    contactName: log.channelName || '',
-    messageType: log.messageType,
-    content: log.templateName ? `Template: ${log.templateName}` : 'Text message',
-    templateName: log.templateName,
-    status: log.status,
-    errorCode: log.errorCode,
-    errorMessage: log.errorMessage,
+    channelId: log.channelId || '',
+    phoneNumber: log.phoneNumber || '',
+    contactName: log.contactName || '',
+    messageType: log.direction === 'outbound' ? 'sent' : 'received',
+    content: log.content || '',
+    templateName: log.content?.startsWith('Template:') ? log.content.replace('Template: ', '') : undefined,
+    status: log.status || 'pending',
+    errorCode: null,
+    errorMessage: null,
     whatsappMessageId: log.whatsappMessageId,
-    createdAt: log.createdAt,
-    updatedAt: log.createdAt,
+    createdAt: log.createdAt || new Date().toISOString(),
+    updatedAt: log.createdAt || new Date().toISOString(),
   }));
   
   res.json(formattedLogs);
@@ -106,20 +102,15 @@ export const getMessageLogs = asyncHandler(async (req: Request, res: Response) =
 
 export const updateMessageStatus = asyncHandler(async (req: Request, res: Response) => {
   const { messageId } = req.params;
-  const { status, errorCode, errorMessage } = req.body;
+  const { status } = req.body;
 
-  // Update message queue status
+  // Update message status
   const [updatedMessage] = await db
-    .update(messageQueue)
+    .update(messages)
     .set({
       status,
-      errorCode,
-      errorMessage,
-      processedAt: status === 'sent' ? new Date() : undefined,
-      deliveredAt: status === 'delivered' ? new Date() : undefined,
-      readAt: status === 'read' ? new Date() : undefined,
     })
-    .where(eq(messageQueue.id, messageId))
+    .where(eq(messages.id, messageId))
     .returning();
 
   if (!updatedMessage) {
