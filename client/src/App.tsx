@@ -11,6 +11,7 @@ import Templates from "@/pages/templates";
 import Inbox from "@/pages/inbox";
 import Automation from "@/pages/automation";
 import Analytics from "@/pages/analytics";
+import CampaignAnalytics from "@/pages/campaign-analytics";
 import Settings from "@/pages/settings";
 import Logs from "@/pages/logs";
 import Sidebar from "@/components/layout/sidebar";
@@ -28,6 +29,7 @@ function Router() {
           <Route path="/inbox" component={Inbox} />
           <Route path="/automation" component={Automation} />
           <Route path="/analytics" component={Analytics} />
+          <Route path="/analytics/campaign/:campaignId" component={CampaignAnalytics} />
           <Route path="/logs" component={Logs} />
           <Route path="/settings" component={Settings} />
           <Route component={NotFound} />

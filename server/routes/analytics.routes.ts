@@ -1,8 +1,15 @@
 import type { Express } from "express";
+import * as analyticsController from "../controllers/analytics.controller";
 import * as dashboardController from "../controllers/dashboard.controller";
 import { extractChannelId } from "../middlewares/channel.middleware";
 
 export function registerAnalyticsRoutes(app: Express) {
-  // Analytics routes are handled by the dashboard controller
-  // This file is kept for backward compatibility
+  // Legacy analytics endpoint for backward compatibility
+  app.get("/api/analytics", dashboardController.getAnalytics);
+  
+  // New comprehensive analytics endpoints
+  app.get("/api/analytics/messages", analyticsController.getMessageAnalytics);
+  app.get("/api/analytics/campaigns", analyticsController.getCampaignAnalytics);
+  app.get("/api/analytics/campaigns/:campaignId", analyticsController.getCampaignAnalyticsById);
+  app.get("/api/analytics/export", analyticsController.exportAnalytics);
 }
