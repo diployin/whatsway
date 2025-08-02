@@ -35,6 +35,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerWebhookRoutes(app);
   registerMessageRoutes(app);
   registerMessageLogsRoutes(app);
+  
+  // User routes for team assignment
+  app.get("/api/users", async (req, res) => {
+    try {
+      const { storage } = await import("../storage");
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ error: "Failed to fetch users" });
+    }
+  });
 
   // Create HTTP server
   const httpServer = createServer(app);

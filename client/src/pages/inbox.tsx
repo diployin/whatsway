@@ -17,8 +17,17 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { 
   MessageSquare, 
   Search, 
@@ -27,6 +36,7 @@ import {
   MoreVertical,
   Edit,
   User,
+  UserPlus,
   Clock,
   Check,
   CheckCheck,
@@ -41,11 +51,134 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import type { Conversation, Message, Contact } from "@shared/schema";
 
+// Template Dialog Component
+const TemplateDialog = ({ channelId, onSelectTemplate }: { 
+  channelId?: string; 
+  onSelectTemplate: (template: any) => void 
+}) => {
+  const { data: templates } = useQuery({
+    queryKey: ["/api/templates", channelId],
+    queryFn: async () => {
+      const response = await api.getTemplates(undefined, channelId);
+      return await response.json();
+    },
+    enabled: !!channelId,
+  });
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="icon" title="Send template">
+          <FileText className="w-5 h-5" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl max-h-[80vh]">
+        <DialogHeader>
+          <DialogTitle>Select Template</DialogTitle>
+          <DialogDescription>
+            Choose a template to send to this contact
+          </DialogDescription>
+        </DialogHeader>
+        <ScrollArea className="h-[400px] pr-4">
+          {templates && templates.length > 0 ? (
+            <div className="space-y-3">
+              {templates.filter((t: any) => t.status === 'approved').map((template: any) => (
+                <Card 
+                  key={template.id} 
+                  className="p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                  onClick={() => onSelectTemplate(template)}
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-medium">{template.name}</h4>
+                      <Badge variant="secondary" className="text-xs">
+                        {template.category}
+                      </Badge>
+                    </div>
+                    {template.header && (
+                      <p className="text-sm font-medium text-gray-700">{template.header}</p>
+                    )}
+                    <p className="text-sm text-gray-600 whitespace-pre-wrap">{template.body}</p>
+                    {template.footer && (
+                      <p className="text-xs text-gray-500">{template.footer}</p>
+                    )}
+                  </div>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              icon={FileText}
+              title="No templates available"
+              description="Create approved templates to use them here"
+              className="py-8"
+            />
+          )}
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+// Team Assignment Dropdown Component
+const TeamAssignDropdown = ({ conversationId, currentAssignee, onAssign }: {
+  conversationId: string;
+  currentAssignee?: string;
+  onAssign: (assignedTo: string, assignedToName: string) => void;
+}) => {
+  const { data: users } = useQuery({
+    queryKey: ["/api/users"],
+    queryFn: async () => {
+      const response = await fetch("/api/users");
+      if (!response.ok) throw new Error("Failed to fetch users");
+      return response.json();
+    },
+  });
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm" className="gap-2">
+          <UserPlus className="w-4 h-4" />
+          {currentAssignee ? "Reassign" : "Assign"}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuLabel>Assign to team member</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {currentAssignee && (
+          <>
+            <DropdownMenuItem onClick={() => onAssign("", "")}>
+              <User className="w-4 h-4 mr-2" />
+              Unassign
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+          </>
+        )}
+        {users?.map((user: any) => (
+          <DropdownMenuItem 
+            key={user.id} 
+            onClick={() => onAssign(user.id, `${user.firstName} ${user.lastName}`.trim() || user.username)}
+          >
+            <User className="w-4 h-4 mr-2" />
+            <div className="flex flex-col">
+              <span>{user.firstName} {user.lastName}</span>
+              <span className="text-xs text-gray-500">@{user.username}</span>
+            </div>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
 export default function Inbox() {
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [messageText, setMessageText] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
+  const [templateParams, setTemplateParams] = useState<string[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -103,11 +236,66 @@ export default function Inbox() {
     },
   });
 
+  const sendTemplateMutation = useMutation({
+    mutationFn: async (data: { 
+      conversationId: string; 
+      templateName: string; 
+      templateBody: string;
+      phoneNumber: string;
+    }) => {
+      // First send the template via WhatsApp API
+      const response = await fetch("/api/messages/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: data.phoneNumber,
+          templateName: data.templateName,
+          channelId: selectedConversation?.channelId
+        }),
+      });
+      
+      if (!response.ok) throw new Error("Failed to send template");
+      
+      // Then create a message record
+      return api.createMessage(data.conversationId, { 
+        content: `[Template: ${data.templateName}]\n${data.templateBody}`, 
+        fromUser: true,
+        type: 'template'
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations", selectedConversation?.id, "messages"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      toast({
+        title: "Success",
+        description: "Template sent successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send template",
+        variant: "destructive",
+      });
+    },
+  });
+
   const updateConversationMutation = useMutation({
-    mutationFn: (data: { id: string; updates: any }) => 
-      api.updateConversation(data.id, data.updates),
+    mutationFn: async (data: { id: string; updates: any }) => {
+      const response = await fetch(`/api/conversations/${data.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data.updates),
+      });
+      if (!response.ok) throw new Error('Failed to update conversation');
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      toast({
+        title: "Success",
+        description: "Conversation updated successfully",
+      });
     },
   });
 
@@ -120,12 +308,17 @@ export default function Inbox() {
     });
   };
 
-  const handleAssignConversation = (assignedTo: string) => {
+  const handleAssignConversation = (assignedTo: string, assignedToName: string) => {
     if (!selectedConversation) return;
     
     updateConversationMutation.mutate({
       id: selectedConversation.id,
-      updates: { assignedTo, status: "assigned" }
+      updates: { 
+        assignedTo, 
+        assignedToName,
+        assignedAt: new Date().toISOString(),
+        status: assignedTo ? "assigned" : "open" 
+      }
     });
   };
 
@@ -149,6 +342,23 @@ export default function Inbox() {
       case "normal": return "bg-blue-100 text-blue-800";
       case "low": return "bg-gray-100 text-gray-800";
       default: return "bg-blue-100 text-blue-800";
+    }
+  };
+
+  const getMessageStatus = (message: Message) => {
+    if (!message.status || message.direction === 'inbound') return null;
+    
+    switch (message.status) {
+      case 'sent':
+        return <Check className="w-3 h-3 text-green-100" />;
+      case 'delivered':
+        return <CheckCheck className="w-3 h-3 text-green-100" />;
+      case 'read':
+        return <CheckCheck className="w-3 h-3 text-blue-300" />;
+      case 'failed':
+        return <AlertCircle className="w-3 h-3 text-red-300" />;
+      default:
+        return <Clock className="w-3 h-3 text-green-100" />;
     }
   };
 
@@ -198,19 +408,6 @@ export default function Inbox() {
       }
     };
   }, [selectedConversation, queryClient]);
-
-  const getMessageStatus = (message: Message) => {
-    if (message.status === 'failed') {
-      return <AlertCircle className="w-4 h-4 text-red-500" />;
-    } else if (message.status === 'read') {
-      return <CheckCheck className="w-4 h-4 text-blue-500" />;
-    } else if (message.status === 'delivered') {
-      return <CheckCheck className="w-4 h-4 text-gray-400" />;
-    } else if (message.status === 'sent') {
-      return <Check className="w-4 h-4 text-gray-400" />;
-    }
-    return null;
-  };
 
   if (conversationsLoading) {
     return (
@@ -337,6 +534,11 @@ export default function Inbox() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
+                    <TeamAssignDropdown
+                      conversationId={selectedConversation.id}
+                      currentAssignee={selectedConversation.assignedTo}
+                      onAssign={handleAssignConversation}
+                    />
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button variant="ghost" size="icon">
@@ -446,21 +648,17 @@ export default function Inbox() {
               {/* Message Input */}
               <div className="border-t p-4">
                 <div className="flex items-end gap-2">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="ghost" size="icon" title="Send template">
-                        <FileText className="w-5 h-5" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Select Template</DialogTitle>
-                      </DialogHeader>
-                      <div className="text-sm text-muted-foreground">
-                        Template sending feature coming soon...
-                      </div>
-                    </DialogContent>
-                  </Dialog>
+                  <TemplateDialog 
+                    channelId={selectedConversation.channelId}
+                    onSelectTemplate={(template) => {
+                      sendTemplateMutation.mutate({
+                        conversationId: selectedConversation.id,
+                        templateName: template.name,
+                        templateBody: template.body,
+                        phoneNumber: selectedConversation.contactPhone,
+                      });
+                    }}
+                  />
                   
                   <Button 
                     variant="ghost" 
