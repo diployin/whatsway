@@ -21,7 +21,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 export function Campaigns() {
   const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [campaignType, setCampaignType] = useState<"contacts" | "csv">("contacts");
+  const [campaignType, setCampaignType] = useState<"contacts" | "csv" | "api">("contacts");
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
   const [variableMapping, setVariableMapping] = useState<Record<string, string>>({});
   const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
@@ -181,6 +181,13 @@ export function Campaigns() {
       return;
     }
 
+    let recipientCount = 0;
+    if (campaignType === "contacts") {
+      recipientCount = selectedContacts.length;
+    } else if (campaignType === "csv") {
+      recipientCount = csvData.length;
+    }
+
     const campaignData = {
       ...formData,
       channelId: selectedChannel?.id,
@@ -193,6 +200,9 @@ export function Campaigns() {
       scheduledAt: scheduledTime || null,
       contactGroups: campaignType === "contacts" ? selectedContacts : [],
       csvData: campaignType === "csv" ? csvData : [],
+      recipientCount,
+      type: "marketing", // Always marketing as requested
+      apiType: "mm_lite", // Always MM Lite as requested
     };
 
     createCampaignMutation.mutate(campaignData);
@@ -260,7 +270,7 @@ export function Campaigns() {
             </DialogHeader>
 
             <Tabs value={campaignType} onValueChange={(v) => setCampaignType(v as any)}>
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="contacts" className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
                   Contacts
@@ -268,6 +278,10 @@ export function Campaigns() {
                 <TabsTrigger value="csv" className="flex items-center gap-2">
                   <FileSpreadsheet className="h-4 w-4" />
                   CSV Import
+                </TabsTrigger>
+                <TabsTrigger value="api" className="flex items-center gap-2">
+                  <Code className="h-4 w-4" />
+                  API Based
                 </TabsTrigger>
               </TabsList>
 
@@ -288,29 +302,14 @@ export function Campaigns() {
                     <Textarea id="description" name="description" />
                   </div>
 
-                  <div>
-                    <Label htmlFor="type">Campaign Type</Label>
-                    <Select name="type" defaultValue="marketing">
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="marketing">Marketing</SelectItem>
-                        <SelectItem value="transactional">Transactional</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="apiType">API Type</Label>
-                    <Select name="apiType" defaultValue="mm_lite" disabled>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="mm_lite">Meta Marketing Lite API (Required)</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox id="autoRetry" name="autoRetry" />
+                    <Label htmlFor="autoRetry" className="flex flex-col">
+                      <span className="font-medium">Auto-retry Campaigns</span>
+                      <span className="text-sm text-muted-foreground">
+                        Boost your campaign reach with our auto-retry feature
+                      </span>
+                    </Label>
                   </div>
 
                   <div>
@@ -333,6 +332,29 @@ export function Campaigns() {
                         ))}
                       </SelectContent>
                     </Select>
+                    
+                    {/* Template Preview */}
+                    {selectedTemplate && (
+                      <Card className="mt-3 p-4 bg-gray-50">
+                        <h4 className="font-medium mb-2">Template Preview</h4>
+                        <div className="space-y-2">
+                          {selectedTemplate.header && (
+                            <div className="text-sm">
+                              <span className="font-medium">Header:</span> {selectedTemplate.header}
+                            </div>
+                          )}
+                          <div className="text-sm">
+                            <span className="font-medium">Body:</span>
+                            <p className="mt-1 whitespace-pre-wrap">{selectedTemplate.body}</p>
+                          </div>
+                          {selectedTemplate.footer && (
+                            <div className="text-sm">
+                              <span className="font-medium">Footer:</span> {selectedTemplate.footer}
+                            </div>
+                          )}
+                        </div>
+                      </Card>
+                    )}
                   </div>
 
                   {/* Variable mapping */}
@@ -342,15 +364,47 @@ export function Campaigns() {
                       <div className="space-y-2">
                         {extractTemplateVariables(selectedTemplate).map((variable) => (
                           <div key={variable} className="flex items-center gap-2">
-                            <span className="text-sm font-medium">{`{{${variable}}}`}:</span>
-                            <Input
-                              placeholder={campaignType === "csv" ? "CSV column name" : "Contact field"}
-                              value={variableMapping[variable] || ""}
-                              onChange={(e) => setVariableMapping({
-                                ...variableMapping,
-                                [variable]: e.target.value
-                              })}
-                            />
+                            <span className="text-sm font-medium w-20">{`{{${variable}}}`}:</span>
+                            {campaignType === "csv" ? (
+                              <Input
+                                placeholder="CSV column name"
+                                value={variableMapping[variable] || ""}
+                                onChange={(e) => setVariableMapping({
+                                  ...variableMapping,
+                                  [variable]: e.target.value
+                                })}
+                              />
+                            ) : (
+                              <Select
+                                value={variableMapping[variable] || ""}
+                                onValueChange={(value) => {
+                                  if (value === "custom") {
+                                    const customValue = prompt("Enter custom text:");
+                                    if (customValue) {
+                                      setVariableMapping({
+                                        ...variableMapping,
+                                        [variable]: customValue
+                                      });
+                                    }
+                                  } else {
+                                    setVariableMapping({
+                                      ...variableMapping,
+                                      [variable]: value
+                                    });
+                                  }
+                                }}
+                              >
+                                <SelectTrigger className="flex-1">
+                                  <SelectValue placeholder="Select mapping" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="name">Contact Name</SelectItem>
+                                  <SelectItem value="phone">Contact Number</SelectItem>
+                                  <SelectItem value="email">Contact Email</SelectItem>
+                                  <SelectItem value="custom">Custom Text...</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -443,7 +497,14 @@ export function Campaigns() {
                   )}
                 </TabsContent>
 
-
+                <TabsContent value="api" className="space-y-4">
+                  <div className="bg-blue-50 p-4 rounded-md">
+                    <p className="text-sm text-blue-800">
+                      API campaigns allow external applications to trigger messages using your templates.
+                      After creating the campaign, you'll receive an API endpoint and key.
+                    </p>
+                  </div>
+                </TabsContent>
 
                 <div className="flex justify-end gap-2">
                   <Button type="button" variant="outline" onClick={() => setCreateDialogOpen(false)}>
