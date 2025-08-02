@@ -169,15 +169,19 @@ The application follows a monorepo structure with shared types and schemas, enab
 - API version is now configurable via WHATSAPP_API_VERSION environment variable
 - Ensures compatibility with latest WhatsApp Business Platform features
 
-### Webhook Implementation
-- Implemented comprehensive webhook service for real-time message handling
-- Dynamic webhook endpoints per channel: `/webhook/:channelId`
-- Features include:
-  - Signature verification for security
-  - Automatic message status updates
-  - Inbound message processing with conversation management
-  - Error handling and retry logic
-- Enhanced database schema to support webhook data:
-  - Added fields for WhatsApp message IDs
-  - Contact phone tracking in conversations
-  - Message metadata storage for webhook payloads
+### Global Webhook Implementation (January 2025)
+- Simplified webhook architecture to use one global webhook for all channels
+- Single global webhook endpoint: `/webhook/d420e261-9c12-4cee-9d65-253cda8ab4bc`
+- Updated webhook configuration:
+  - Removed channel-specific webhook URLs
+  - Removed foreign key constraint on webhook_configs table
+  - Simplified webhook UI to show only global webhook URL
+  - Updated webhook dialog to remove channel selection
+- Global webhook benefits:
+  - One webhook URL for all WhatsApp Business accounts
+  - Events from all channels received at single endpoint
+  - Routing based on phone_number_id in webhook payload
+  - Simplified configuration in Facebook Business Manager
+- Enhanced database schema changes:
+  - Made channelId nullable in webhook_configs table
+  - Removed foreign key constraints for global webhook support

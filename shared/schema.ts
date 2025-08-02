@@ -162,7 +162,7 @@ export const whatsappChannels = pgTable("whatsapp_channels", {
 // Webhook Configuration table
 export const webhookConfigs = pgTable("webhook_configs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  channelId: varchar("channel_id").references(() => whatsappChannels.id), // Optional - global webhook for all channels
+  channelId: varchar("channel_id"), // No foreign key - global webhook for all channels
   webhookUrl: text("webhook_url").notNull(),
   verifyToken: varchar("verify_token", { length: 100 }).notNull(),
   appSecret: text("app_secret"), // For signature verification

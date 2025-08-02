@@ -81,8 +81,6 @@ const channelFormSchema = z.object({
 });
 
 const webhookFormSchema = z.object({
-  channelId: z.string().min(1, "Please select a channel"),
-  webhookUrl: z.string().url("Valid URL required").optional(),
   verifyToken: z.string().min(8, "Verify token must be at least 8 characters").max(100, "Verify token must be less than 100 characters"),
   appSecret: z.string().optional(),
   events: z.array(z.string()).min(1, "Select at least one event"),
@@ -278,11 +276,13 @@ export default function Settings() {
   };
 
   const handleWebhookSubmit = (data: z.infer<typeof webhookFormSchema>) => {
-    // Construct the webhook URL based on selected channel
-    const webhookUrl = `${window.location.origin}/webhook/${data.channelId}`;
+    // Use a simple webhook ID for the global webhook
+    const webhookId = 'd420e261-9c12-4cee-9d65-253cda8ab4bc'; // Fixed webhook ID for global webhook
+    const webhookUrl = `${window.location.origin}/webhook/${webhookId}`;
     createWebhookMutation.mutate({ 
       ...data, 
       webhookUrl,
+      channelId: null, // Global webhook - not tied to a specific channel
     });
   };
 
@@ -621,12 +621,11 @@ export default function Settings() {
                       Quick Setup Guide
                     </h4>
                     <ol className="text-sm text-blue-800 space-y-2">
-                      <li>1. Click "Start Quick Setup" above</li>
-                      <li>2. Select your WhatsApp channel</li>
-                      <li>3. Copy the generated webhook URL and verify token</li>
-                      <li>4. Go to Facebook Business Manager → WhatsApp → Configuration</li>
-                      <li>5. Paste the webhook URL and verify token</li>
-                      <li>6. Subscribe to "messages" and "message_status" fields</li>
+                      <li>1. Copy the global webhook URL below</li>
+                      <li>2. Go to Facebook Business Manager → WhatsApp → Configuration</li>
+                      <li>3. Paste the webhook URL and verify token</li>
+                      <li>4. Subscribe to "messages" and "message_status" fields</li>
+                      <li>5. All your WhatsApp channels will receive events through this single webhook</li>
                     </ol>
                   </div>
                 </div>
@@ -646,35 +645,32 @@ export default function Settings() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {/* Show webhook URLs for all channels */}
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <h4 className="font-medium text-gray-900 mb-3">Your Webhook URLs</h4>
-                      <div className="space-y-3">
-                        {channels.map((channel) => (
-                          <div key={channel.id} className="flex items-center justify-between bg-white rounded-lg p-3 border">
-                            <div className="flex-1">
-                              <p className="font-medium text-sm">{channel.name}</p>
-                              <p className="text-xs text-gray-500 mb-1">Channel ID: {channel.id}</p>
-                              <code className="text-xs text-gray-600 break-all">
-                                {window.location.origin}/webhook/{channel.id}
-                              </code>
-                            </div>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                const url = `${window.location.origin}/webhook/${channel.id}`;
-                                navigator.clipboard.writeText(url);
-                                toast({
-                                  title: "Webhook URL copied",
-                                  description: "Paste this in your WhatsApp Business configuration",
-                                });
-                              }}
-                            >
-                              <Copy className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        ))}
+
+                    {/* Global Webhook Information */}
+                    <div className="mb-6">
+                      <h3 className="text-lg font-medium mb-3">Global Webhook URL</h3>
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <p className="text-sm text-gray-700 mb-2">
+                          Use this single webhook URL for all your WhatsApp Business accounts:
+                        </p>
+                        <code className="bg-white px-3 py-2 rounded text-sm block break-all mb-3">
+                          {window.location.origin}/webhook/d420e261-9c12-4cee-9d65-253cda8ab4bc
+                        </code>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const url = `${window.location.origin}/webhook/d420e261-9c12-4cee-9d65-253cda8ab4bc`;
+                            navigator.clipboard.writeText(url);
+                            toast({
+                              title: "Webhook URL copied",
+                              description: "Paste this in your WhatsApp Business configuration",
+                            });
+                          }}
+                        >
+                          <Copy className="w-4 h-4 mr-2" />
+                          Copy URL
+                        </Button>
                       </div>
                     </div>
 
@@ -682,8 +678,8 @@ export default function Settings() {
                     {webhookConfigs.length === 0 && (
                       <div className="text-center py-8 border border-gray-200 rounded-lg">
                         <Webhook className="w-10 h-10 mx-auto text-gray-400 mb-3" />
-                        <p className="text-gray-600 font-medium mb-2">Ready to Configure Webhooks</p>
-                        <p className="text-sm text-gray-500 mb-4">Use the webhook URLs above in your WhatsApp Business configuration</p>
+                        <p className="text-gray-600 font-medium mb-2">No Webhook Configuration Saved</p>
+                        <p className="text-sm text-gray-500 mb-4">Save your webhook configuration to track its status</p>
                         <Button onClick={() => setShowWebhookDialog(true)} variant="outline">
                           <Plus className="w-4 h-4 mr-2" />
                           Save Webhook Configuration
@@ -691,100 +687,97 @@ export default function Settings() {
                       </div>
                     )}
 
-                    {webhookConfigs.map((config) => {
-                      const channel = channels.find(c => c.id === config.channelId);
-                      return (
-                        <div key={config.id} className="border border-gray-200 rounded-lg p-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center space-x-2 mb-2">
-                                <h3 className="text-lg font-medium text-gray-900">
-                                  {channel ? `${channel.name} Webhook` : 'Webhook Configuration'}
-                                </h3>
-                                <Badge className={config.isActive ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>
-                                  <Webhook className="w-3 h-3 mr-1" />
-                                  {config.isActive ? 'Active' : 'Inactive'}
-                                </Badge>
-                              </div>
-                              <div className="space-y-2 text-sm text-gray-600">
-                                <div>
-                                  <strong>Webhook URL:</strong> 
-                                  <code className="ml-2 bg-gray-100 px-2 py-1 rounded text-xs">
-                                    {config.webhookUrl}
-                                  </code>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <strong>Verify Token:</strong>
-                                  <code className="bg-yellow-100 px-2 py-1 rounded text-xs font-mono">
-                                    {config.verifyToken}
-                                  </code>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => {
-                                      navigator.clipboard.writeText(config.verifyToken);
-                                      toast({
-                                        title: "Verify token copied!",
-                                        description: "Use this exact token in Facebook Business Manager",
-                                      });
-                                    }}
-                                  >
-                                    <Copy className="h-3 w-3" />
-                                  </Button>
-                                </div>
-                                <div>
-                                  <strong>Events:</strong> {(config.events as string[]).join(', ')}
-                                </div>
-                                <div>
-                                  <strong>Last Ping:</strong> {config.lastPingAt ? new Date(config.lastPingAt).toLocaleString() : 'Never'}
-                                </div>
-                              </div>
+                    {webhookConfigs.map((config) => (
+                      <div key={config.id} className="border border-gray-200 rounded-lg p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <h3 className="text-lg font-medium text-gray-900">
+                                Global Webhook Configuration
+                              </h3>
+                              <Badge className={config.isActive ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>
+                                <Webhook className="w-3 h-3 mr-1" />
+                                {config.isActive ? 'Active' : 'Inactive'}
+                              </Badge>
                             </div>
-                            <div className="flex space-x-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  navigator.clipboard.writeText(config.webhookUrl);
-                                  toast({
-                                    title: "Webhook URL copied",
-                                    description: config.webhookUrl,
-                                  });
-                                }}
-                              >
-                                <Copy className="w-4 h-4 mr-1" />
-                                Copy URL
-                              </Button>
-                              <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={() => {
-                                  if (confirm('Are you sure you want to delete this webhook configuration?')) {
-                                    fetch(`/api/webhooks/${config.id}`, { method: 'DELETE' })
-                                      .then(() => {
-                                        toast({
-                                          title: "Webhook deleted",
-                                          description: "Webhook configuration has been removed",
-                                        });
-                                        refetchWebhookConfigs();
-                                      })
-                                      .catch(() => {
-                                        toast({
-                                          title: "Error",
-                                          description: "Failed to delete webhook configuration",
-                                          variant: "destructive",
-                                        });
-                                      });
-                                  }
-                                }}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
+                            <div className="space-y-2 text-sm text-gray-600">
+                              <div>
+                                <strong>Webhook URL:</strong> 
+                                <code className="ml-2 bg-gray-100 px-2 py-1 rounded text-xs">
+                                  {config.webhookUrl}
+                                </code>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <strong>Verify Token:</strong>
+                                <code className="bg-yellow-100 px-2 py-1 rounded text-xs font-mono">
+                                  {config.verifyToken}
+                                </code>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(config.verifyToken);
+                                    toast({
+                                      title: "Verify token copied!",
+                                      description: "Use this exact token in Facebook Business Manager",
+                                    });
+                                  }}
+                                >
+                                  <Copy className="h-3 w-3" />
+                                </Button>
+                              </div>
+                              <div>
+                                <strong>Events:</strong> {(config.events as string[]).join(', ')}
+                              </div>
+                              <div>
+                                <strong>Last Ping:</strong> {config.lastPingAt ? new Date(config.lastPingAt).toLocaleString() : 'Never'}
+                              </div>
                             </div>
                           </div>
+                          <div className="flex space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                navigator.clipboard.writeText(config.webhookUrl);
+                                toast({
+                                  title: "Webhook URL copied",
+                                  description: config.webhookUrl,
+                                });
+                              }}
+                            >
+                              <Copy className="w-4 h-4 mr-1" />
+                              Copy URL
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => {
+                                if (confirm('Are you sure you want to delete this webhook configuration?')) {
+                                  fetch(`/api/webhooks/${config.id}`, { method: 'DELETE' })
+                                    .then(() => {
+                                      toast({
+                                        title: "Webhook deleted",
+                                        description: "Webhook configuration has been removed",
+                                      });
+                                      refetchWebhookConfigs();
+                                    })
+                                    .catch(() => {
+                                      toast({
+                                        title: "Error",
+                                        description: "Failed to delete webhook configuration",
+                                        variant: "destructive",
+                                      });
+                                    });
+                                }
+                              }}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </div>
-                      );
-                    })}
+                      </div>
+                    ))}
                   </div>
                 )}
               </CardContent>
@@ -801,61 +794,34 @@ export default function Settings() {
                 </DialogHeader>
                 <Form {...webhookForm}>
                   <form onSubmit={webhookForm.handleSubmit(handleWebhookSubmit)} className="space-y-4">
-                    <FormField
-                      control={webhookForm.control}
-                      name="channelId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Select Channel</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Choose a WhatsApp channel" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {channels.map((channel) => (
-                                <SelectItem key={channel.id} value={channel.id}>
-                                  {channel.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormDescription>
-                            Select the channel you're configuring webhooks for
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    {webhookForm.watch("channelId") && (
-                      <div className="bg-blue-50 p-4 rounded-lg">
-                        <p className="text-sm text-gray-700 mb-2">
-                          <strong>Your webhook URL for this channel:</strong>
-                        </p>
-                        <code className="bg-white px-3 py-2 rounded text-sm block break-all">
-                          {window.location.origin}/webhook/{webhookForm.watch("channelId")}
-                        </code>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="mt-2"
-                          onClick={() => {
-                            const url = `${window.location.origin}/webhook/${webhookForm.watch("channelId")}`;
-                            navigator.clipboard.writeText(url);
-                            toast({
-                              title: "Webhook URL copied",
-                              description: "Paste this in Facebook Business Manager",
-                            });
-                          }}
-                        >
-                          <Copy className="w-4 h-4 mr-2" />
-                          Copy URL
-                        </Button>
-                      </div>
-                    )}
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <p className="text-sm text-gray-700 mb-2">
+                        <strong>Your global webhook URL (for all WhatsApp channels):</strong>
+                      </p>
+                      <code className="bg-white px-3 py-2 rounded text-sm block break-all">
+                        {window.location.origin}/webhook/d420e261-9c12-4cee-9d65-253cda8ab4bc
+                      </code>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="mt-2"
+                        onClick={() => {
+                          const url = `${window.location.origin}/webhook/d420e261-9c12-4cee-9d65-253cda8ab4bc`;
+                          navigator.clipboard.writeText(url);
+                          toast({
+                            title: "Webhook URL copied",
+                            description: "Paste this in Facebook Business Manager",
+                          });
+                        }}
+                      >
+                        <Copy className="w-4 h-4 mr-2" />
+                        Copy URL
+                      </Button>
+                      <p className="text-xs text-gray-600 mt-2">
+                        Use this single URL for all your WhatsApp Business accounts. Events from all channels will be received here.
+                      </p>
+                    </div>
                     <FormField
                       control={webhookForm.control}
                       name="webhookUrl"
