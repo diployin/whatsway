@@ -1060,9 +1060,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Test WhatsApp connection
   app.post("/api/whatsapp/channels/:id/send", async (req, res) => {
     try {
-      const channel = await storage.getWhatsappChannel(req.params.id);
+      // Get the regular channel first
+      const channel = await storage.getChannel(req.params.id);
       if (!channel) {
         return res.status(404).json({ message: "Channel not found" });
+      }
+      
+      // Ensure channel has WhatsApp credentials
+      if (!channel.phoneNumberId || !channel.accessToken) {
+        return res.status(400).json({ message: "Channel is not configured for WhatsApp" });
       }
 
       const { to, type, message, templateName, templateLanguage, templateVariables } = req.body;
@@ -1115,13 +1121,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       }
       
+      // Create WhatsApp channel object from regular channel
+      const whatsappChannel = {
+        id: channel.id,
+        name: channel.name,
+        phoneNumber: channel.phoneNumber || "",
+        phoneNumberId: channel.phoneNumberId,
+        wabaId: channel.whatsappBusinessAccountId || "",
+        accessToken: channel.accessToken,
+        businessAccountId: channel.whatsappBusinessAccountId,
+        mmLiteEnabled: channel.mmLiteEnabled || false,
+        mmLiteEndpoint: (channel as any).mmLiteEndpoint || null,
+        qualityRating: "green",
+        status: "active",
+        lastHealthCheck: channel.lastHealthCheck || null,
+      } as any;
+      
       // Send message
-      const result = await WhatsAppApiService.sendMessage(channel, payload);
+      const result = await WhatsAppApiService.sendMessage(whatsappChannel, payload);
 
-      if (result.success) {
+      if (result.success && result.data) {
+        // Save the message to database
+        const messageId = result.data.messages?.[0]?.id;
+        
+        // Find or create contact
+        const contacts = await storage.searchContacts(to);
+        let contact = contacts.find(c => c.phone === to);
+        
+        if (!contact) {
+          // Create new contact if doesn't exist
+          contact = await storage.createContact({
+            name: to,
+            phone: to,
+            email: "",
+            channelId: channel.id,
+            status: "active",
+          });
+        }
+        
+        // Find or create conversation
+        let conversation = await storage.getConversationByPhone(to);
+        if (!conversation) {
+          conversation = await storage.createConversation({
+            channelId: channel.id,
+            contactId: contact.id,
+            contactPhone: to,
+            contactName: contact.name,
+            status: "active",
+            lastMessageAt: new Date(),
+          });
+        }
+        
+        // Create message record
+        await storage.createMessage({
+          conversationId: conversation.id,
+          content: type === "text" ? message : `Template: ${templateName}`,
+          direction: "outgoing",
+          type: type,
+          status: "sent",
+          whatsappMessageId: messageId || undefined,
+        });
+        
+        // Update conversation last message time
+        await storage.updateConversation(conversation.id, {
+          lastMessageAt: new Date(),
+        });
+        
         res.json({ 
           success: true, 
-          messageId: result.data.messages?.[0]?.id,
+          messageId: messageId,
           message: "Message sent successfully" 
         });
       } else {
@@ -1138,15 +1206,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/whatsapp/channels/:id/test", async (req, res) => {
     try {
-      const channel = await storage.getWhatsappChannel(req.params.id);
+      const channel = await storage.getChannel(req.params.id);
       if (!channel) {
         return res.status(404).json({ message: "Channel not found" });
+      }
+      
+      if (!channel.phoneNumberId || !channel.accessToken) {
+        return res.status(400).json({ message: "Channel is not configured for WhatsApp" });
       }
 
       const testPhone = req.body.testPhone || "919310797700"; // Default test number
       
+      // Create WhatsApp channel object from regular channel
+      const whatsappChannel = {
+        id: channel.id,
+        name: channel.name,
+        phoneNumber: channel.phoneNumber || "",
+        phoneNumberId: channel.phoneNumberId,
+        wabaId: channel.whatsappBusinessAccountId || "",
+        accessToken: channel.accessToken,
+        businessAccountId: channel.whatsappBusinessAccountId,
+        mmLiteEnabled: channel.mmLiteEnabled || false,
+        mmLiteEndpoint: (channel as any).mmLiteEndpoint || null,
+        qualityRating: "green",
+        status: "active",
+        lastHealthCheck: channel.lastHealthCheck || null,
+      } as any;
+      
       // Test connection by sending hello_world template
-      const result = await WhatsAppApiService.sendMessage(channel, {
+      const result = await WhatsAppApiService.sendMessage(whatsappChannel, {
         to: testPhone,
         type: "template",
         template: {
