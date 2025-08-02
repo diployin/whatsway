@@ -202,7 +202,37 @@ export class WebhookHandler {
   // Handle message status updates
   private static async handleStatusUpdate(status: WebhookStatus): Promise<void> {
     try {
-      // Update message queue status
+      // Update message status in messages table
+      const [message] = await db
+        .select()
+        .from(messages)
+        .where(eq(messages.whatsappMessageId, status.id))
+        .limit(1);
+
+      if (message) {
+        const updateData: any = {
+          status: status.status === "failed" ? "failed" : status.status,
+          updatedAt: new Date(),
+        };
+
+        if (status.status === "delivered") {
+          updateData.deliveredAt = new Date();
+        } else if (status.status === "read") {
+          updateData.readAt = new Date();
+        } else if (status.status === "failed" && status.errors?.[0]) {
+          updateData.errorCode = status.errors[0].code.toString();
+          updateData.errorMessage = status.errors[0].message;
+        }
+
+        await db
+          .update(messages)
+          .set(updateData)
+          .where(eq(messages.id, message.id));
+
+        console.log(`Message ${status.id} status updated to ${status.status}`);
+      }
+
+      // Also check message queue for campaign messages
       const [queueItem] = await db
         .select()
         .from(messageQueue)
@@ -223,15 +253,6 @@ export class WebhookHandler {
           updateData.errorMessage = status.errors[0].message;
         }
 
-        if (status.conversation?.id) {
-          updateData.conversationId = status.conversation.id;
-        }
-
-        if (status.pricing) {
-          // Store cost information if available
-          updateData.cost = status.pricing.category; // You might want to map this to actual cost
-        }
-
         await db
           .update(messageQueue)
           .set(updateData)
@@ -242,8 +263,6 @@ export class WebhookHandler {
           await this.updateCampaignStats(queueItem.campaignId, status.status);
         }
       }
-
-      console.log(`Message ${status.id} status updated to ${status.status}`);
     } catch (error) {
       console.error("Error handling status update:", error);
       throw error;
@@ -305,7 +324,6 @@ export class WebhookHandler {
         .update(templates)
         .set({ 
           status,
-          rejectionReason: reason || null,
           updatedAt: new Date()
         })
         .where(eq(templates.whatsappTemplateId, message_template_id))
@@ -317,7 +335,6 @@ export class WebhookHandler {
           .update(templates)
           .set({ 
             status,
-            rejectionReason: reason || null,
             updatedAt: new Date()
           })
           .where(eq(templates.name, message_template_name))

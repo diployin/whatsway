@@ -64,8 +64,11 @@ export const getMessageLogs = asyncHandler(async (req: Request, res: Response) =
       direction: messages.direction,
       fromUser: messages.fromUser,
       status: messages.status,
+      errorCode: messages.errorCode,
+      errorMessage: messages.errorMessage,
       whatsappMessageId: messages.whatsappMessageId,
       createdAt: messages.createdAt,
+      updatedAt: messages.updatedAt,
     })
     .from(messages)
     .innerJoin(conversations, eq(messages.conversationId, conversations.id))
@@ -90,11 +93,11 @@ export const getMessageLogs = asyncHandler(async (req: Request, res: Response) =
     content: log.content || '',
     templateName: log.content?.startsWith('Template:') ? log.content.replace('Template: ', '') : undefined,
     status: log.status || 'pending',
-    errorCode: null,
-    errorMessage: null,
+    errorCode: log.errorCode,
+    errorMessage: log.errorMessage,
     whatsappMessageId: log.whatsappMessageId,
     createdAt: log.createdAt || new Date().toISOString(),
-    updatedAt: log.createdAt || new Date().toISOString(),
+    updatedAt: log.updatedAt || new Date().toISOString(),
   }));
   
   res.json(formattedLogs);

@@ -126,9 +126,12 @@ export default function Logs() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => refetch()}
+                onClick={() => {
+                  refetch();
+                }}
+                disabled={isLoading}
               >
-                <RefreshCw className="w-4 h-4 mr-2" />
+                <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
                 Refresh
               </Button>
             </div>
@@ -220,11 +223,10 @@ export default function Logs() {
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline">
-                            {log.messageType === "template" ? (
-                              <>Template: {log.templateName}</>
-                            ) : (
-                              log.messageType
-                            )}
+                            {log.messageType === "sent" ? "Outbound" : 
+                             log.messageType === "received" ? "Inbound" :
+                             log.messageType === "template" ? `Template: ${log.templateName || "Unknown"}` :
+                             log.messageType}
                           </Badge>
                         </TableCell>
                         <TableCell className="max-w-xs truncate">

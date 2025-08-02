@@ -117,7 +117,12 @@ export const messages = pgTable("messages", {
   status: text("status").default("sent"), // sent, delivered, read, failed, received
   timestamp: timestamp("timestamp"), // WhatsApp timestamp
   metadata: jsonb("metadata").default({}), // Store additional WhatsApp data
+  deliveredAt: timestamp("delivered_at"),
+  readAt: timestamp("read_at"),
+  errorCode: varchar("error_code", { length: 50 }),
+  errorMessage: text("error_message"),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const automations = pgTable("automations", {
