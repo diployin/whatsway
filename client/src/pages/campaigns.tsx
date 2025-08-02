@@ -175,16 +175,41 @@ export function Campaigns() {
       return;
     }
 
+    if (!selectedChannel?.id) {
+      toast({
+        title: "Error",
+        description: "Please select a channel first",
+        variant: "destructive",
+      });
+      return;
+    }
+
     let recipientCount = 0;
     if (campaignType === "contacts") {
       recipientCount = selectedContacts.length;
+      if (recipientCount === 0) {
+        toast({
+          title: "Error",
+          description: "Please select at least one contact",
+          variant: "destructive",
+        });
+        return;
+      }
     } else if (campaignType === "csv") {
       recipientCount = csvData.length;
+      if (recipientCount === 0) {
+        toast({
+          title: "Error",
+          description: "Please upload a CSV file with contacts",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     const campaignData = {
       ...formData,
-      channelId: selectedChannel?.id,
+      channelId: selectedChannel.id,
       campaignType,
       templateId: selectedTemplate.id,
       templateName: selectedTemplate.name,
@@ -200,6 +225,7 @@ export function Campaigns() {
       autoRetry,
     };
 
+    console.log("Creating campaign with data:", campaignData);
     createCampaignMutation.mutate(campaignData);
   };
 
