@@ -8,6 +8,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogHeader, 
+  DialogTitle 
+} from "@/components/ui/dialog";
+import { 
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage
+} from "@/components/ui/form";
+import { 
   Users, 
   Search, 
   Filter, 
@@ -15,22 +31,79 @@ import {
   Edit, 
   Trash2,
   Upload,
-  Plus
+  Plus,
+  MessageSquare,
+  Phone
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import type { Contact } from "@shared/schema";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { insertContactSchema, type Contact, type InsertContact } from "@shared/schema";
 
 export default function Contacts() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showMessageDialog, setShowMessageDialog] = useState(false);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [selectedChannel, setSelectedChannel] = useState("");
+  const [messageText, setMessageText] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Form for adding contacts
+  const form = useForm<InsertContact>({
+    resolver: zodResolver(insertContactSchema),
+    defaultValues: {
+      name: "",
+      phone: "",
+      email: "",
+      groups: [],
+      tags: [],
+    },
+  });
 
   const { data: contacts, isLoading } = useQuery({
     queryKey: ["/api/contacts", searchQuery],
     queryFn: async () => {
       const response = await api.getContacts(searchQuery);
       return await response.json();
+    },
+  });
+
+  const { data: channels } = useQuery({
+    queryKey: ["/api/whatsapp/channels"],
+    queryFn: async () => {
+      const response = await fetch("/api/whatsapp/channels");
+      return await response.json();
+    },
+  });
+
+  const createContactMutation = useMutation({
+    mutationFn: async (data: InsertContact) => {
+      const response = await fetch("/api/contacts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error("Failed to create contact");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
+      toast({
+        title: "Contact created",
+        description: "The contact has been successfully added.",
+      });
+      setShowAddDialog(false);
+      form.reset();
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create contact. Please try again.",
+        variant: "destructive",
+      });
     },
   });
 
@@ -47,6 +120,33 @@ export default function Contacts() {
       toast({
         title: "Error",
         description: "Failed to delete contact. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const sendMessageMutation = useMutation({
+    mutationFn: async ({ channelId, phone, message }: { channelId: string; phone: string; message: string }) => {
+      const response = await fetch(`/api/whatsapp/channels/${channelId}/send`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ to: phone, message }),
+      });
+      if (!response.ok) throw new Error("Failed to send message");
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Message sent",
+        description: "Your message has been sent successfully.",
+      });
+      setShowMessageDialog(false);
+      setMessageText("");
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again.",
         variant: "destructive",
       });
     },
@@ -76,7 +176,7 @@ export default function Contacts() {
         subtitle="Manage your WhatsApp contacts and groups"
         action={{
           label: "Add Contact",
-          onClick: () => console.log("Add contact")
+          onClick: () => setShowAddDialog(true)
         }}
       />
 
@@ -123,7 +223,7 @@ export default function Contacts() {
                 }
                 action={!searchQuery ? {
                   label: "Add First Contact",
-                  onClick: () => console.log("Add contact")
+                  onClick: () => setShowAddDialog(true)
                 } : undefined}
                 className="py-12"
               />
@@ -212,6 +312,18 @@ export default function Contacts() {
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex space-x-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => {
+                                setSelectedContact(contact);
+                                setShowMessageDialog(true);
+                              }}
+                              disabled={!channels || channels.length === 0}
+                              title={!channels || channels.length === 0 ? "No WhatsApp channels configured" : "Send message"}
+                            >
+                              <MessageSquare className="w-4 h-4 text-blue-600" />
+                            </Button>
                             <Button variant="ghost" size="sm">
                               <Edit className="w-4 h-4" />
                             </Button>
@@ -259,6 +371,145 @@ export default function Contacts() {
           </CardContent>
         </Card>
       </main>
+
+      {/* Add Contact Dialog */}
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Contact</DialogTitle>
+            <DialogDescription>
+              Add a new WhatsApp contact to your contact list.
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit((data) => createContactMutation.mutate(data))} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="John Doe" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Contact's full name
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="+1234567890" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      WhatsApp phone number with country code
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email (Optional)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="john@example.com" 
+                        {...field} 
+                        value={field.value || ""} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="flex justify-end space-x-2">
+                <Button type="button" variant="outline" onClick={() => setShowAddDialog(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={createContactMutation.isPending}>
+                  {createContactMutation.isPending ? "Adding..." : "Add Contact"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Send Message Dialog */}
+      <Dialog open={showMessageDialog} onOpenChange={setShowMessageDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Send WhatsApp Message</DialogTitle>
+            <DialogDescription>
+              Send a message to {selectedContact?.name} ({selectedContact?.phone})
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {channels && channels.length > 0 && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Select WhatsApp Channel</label>
+                <select 
+                  className="w-full p-2 border rounded-md"
+                  onChange={(e) => setSelectedChannel(e.target.value)}
+                >
+                  <option value="">Select a channel</option>
+                  {channels.map((channel: any) => (
+                    <option key={channel.id} value={channel.id}>
+                      {channel.name} ({channel.phoneNumber})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Message</label>
+              <textarea
+                className="w-full p-3 border rounded-md resize-none"
+                rows={4}
+                placeholder="Type your message here..."
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => {
+                  setShowMessageDialog(false);
+                  setMessageText("");
+                }}
+              >
+                Cancel
+              </Button>
+              <Button 
+                disabled={!messageText || !selectedChannel || sendMessageMutation.isPending}
+                onClick={() => {
+                  if (selectedContact && selectedChannel) {
+                    sendMessageMutation.mutate({
+                      channelId: selectedChannel,
+                      phone: selectedContact.phone,
+                      message: messageText,
+                    });
+                  }
+                }}
+              >
+                {sendMessageMutation.isPending ? "Sending..." : "Send Message"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

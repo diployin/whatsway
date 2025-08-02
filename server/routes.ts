@@ -428,6 +428,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Test WhatsApp connection
+  app.post("/api/whatsapp/channels/:id/send", async (req, res) => {
+    try {
+      const channel = await storage.getWhatsappChannel(req.params.id);
+      if (!channel) {
+        return res.status(404).json({ message: "Channel not found" });
+      }
+
+      const { to, message } = req.body;
+      if (!to || !message) {
+        return res.status(400).json({ message: "Phone number and message are required" });
+      }
+      
+      // Send text message
+      const result = await WhatsAppApiService.sendMessage(channel, {
+        to,
+        type: "text",
+        text: {
+          body: message
+        }
+      });
+
+      if (result.success) {
+        res.json({ 
+          success: true, 
+          messageId: result.data.messages?.[0]?.id,
+          message: "Message sent successfully" 
+        });
+      } else {
+        res.status(400).json({ 
+          success: false, 
+          message: result.error || "Failed to send message" 
+        });
+      }
+    } catch (error) {
+      console.error("Error sending WhatsApp message:", error);
+      res.status(500).json({ message: "Failed to send WhatsApp message" });
+    }
+  });
+
   app.post("/api/whatsapp/channels/:id/test", async (req, res) => {
     try {
       const channel = await storage.getWhatsappChannel(req.params.id);
