@@ -116,7 +116,11 @@ export const whatsappChannels = pgTable("whatsapp_channels", {
   mmLiteEnabled: boolean("mm_lite_enabled").default(false),
   rateLimitTier: varchar("rate_limit_tier", { length: 20 }).default("standard"),
   qualityRating: varchar("quality_rating", { length: 20 }).default("green"), // green, yellow, red
-  status: varchar("status", { length: 20 }).default("active"), // active, inactive, suspended
+  status: varchar("status", { length: 20 }).default("inactive"), // active, inactive, error
+  errorMessage: text("error_message"),
+  lastHealthCheck: timestamp("last_health_check"),
+  messageLimit: integer("message_limit"),
+  messagesUsed: integer("messages_used"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

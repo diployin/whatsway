@@ -522,6 +522,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lastHealthCheck: new Date(),
         messageLimit: health.messageLimit,
         messagesUsed: health.messagesUsed,
+        qualityRating: health.qualityRating,
         errorMessage: health.error,
       });
 

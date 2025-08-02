@@ -356,6 +356,12 @@ export default function Settings() {
                                   MM Lite Enabled
                                 </Badge>
                               )}
+                              {channel.lastHealthCheck && (
+                                <Badge className="bg-blue-100 text-blue-800" title={`Last checked: ${new Date(channel.lastHealthCheck).toLocaleString()}`}>
+                                  <Activity className="w-3 h-3 mr-1" />
+                                  {channel.messagesUsed || 0}/{channel.messageLimit || 1000}
+                                </Badge>
+                              )}
                             </div>
                             <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
                               <div>

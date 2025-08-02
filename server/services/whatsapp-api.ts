@@ -161,34 +161,62 @@ export class WhatsAppApiService {
     }
   }
 
-  static async checkHealth(channel: WhatsappChannel): Promise<HealthCheckResult> {
+  static async checkHealth(channel: WhatsappChannel): Promise<HealthCheckResult & { qualityRating?: string }> {
     try {
-      // Check WhatsApp Business Account details and message limits
-      const endpoint = `${this.CLOUD_API_BASE_URL}/${channel.businessAccountId || channel.phoneNumberId}`;
+      // Check phone number status and quality rating
+      const phoneEndpoint = `${this.CLOUD_API_BASE_URL}/${channel.phoneNumberId}`;
       
-      const response = await fetch(endpoint, {
+      const phoneResponse = await fetch(phoneEndpoint, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${channel.accessToken}`,
         },
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
+      if (!phoneResponse.ok) {
+        const errorData = await phoneResponse.json();
         return {
           status: "error",
           error: errorData.error?.message || "Failed to check health"
         };
       }
 
-      const data = await response.json();
+      const phoneData = await phoneResponse.json();
       
-      // For now, if we can fetch the account, it's active
-      // In a real implementation, you would parse the response for actual limits
+      // Extract quality rating and status
+      const qualityRating = phoneData.quality_rating || "unknown";
+      const accountMode = phoneData.account_mode || "LIVE";
+      
+      // Check message limits if business account ID is available
+      let messageLimit = 1000; // Default
+      let messagesUsed = 0;
+      
+      if (channel.businessAccountId) {
+        try {
+          const limitEndpoint = `${this.CLOUD_API_BASE_URL}/${channel.businessAccountId}/phone_numbers/${channel.phoneNumberId}`;
+          const limitResponse = await fetch(limitEndpoint, {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${channel.accessToken}`,
+            },
+          });
+          
+          if (limitResponse.ok) {
+            const limitData = await limitResponse.json();
+            // Extract actual limits from response
+            messageLimit = limitData.messaging_limit?.max || 1000;
+            messagesUsed = limitData.messaging_limit?.current || 0;
+          }
+        } catch (err) {
+          console.error("Failed to fetch message limits:", err);
+        }
+      }
+      
       return {
-        status: "active",
-        messageLimit: 1000, // Default limit, should be fetched from API
-        messagesUsed: 0, // Should be calculated from actual usage
+        status: accountMode === "LIVE" ? "active" : "inactive",
+        messageLimit,
+        messagesUsed,
+        qualityRating,
       };
     } catch (error) {
       return {
