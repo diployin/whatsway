@@ -237,11 +237,12 @@ export default function Contacts() {
   });
   
   const { data: availableTemplates = [] } = useQuery({
-    queryKey: ["/api/templates"],
+    queryKey: ["/api/templates", activeChannel?.id],
     queryFn: async () => {
       const response = await fetch("/api/templates");
       return await response.json();
     },
+    enabled: !!activeChannel,
   });
 
   // Extract unique groups from all contacts
@@ -803,7 +804,7 @@ export default function Contacts() {
                     }}
                   >
                     <option value="">Select a template</option>
-                    {availableTemplates?.filter((t: any) => t.status === "APPROVED").map((template: any) => (
+                    {availableTemplates?.filter((t: any) => t.status?.toLowerCase() === "approved").map((template: any) => (
                       <option key={template.id} value={template.id}>
                         {template.name} ({template.category})
                       </option>
