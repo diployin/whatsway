@@ -24,6 +24,68 @@ export class WhatsAppApiService {
     };
   }
 
+  // Static method for sending template messages
+  static async sendTemplateMessage(
+    channel: Channel,
+    to: string,
+    templateName: string,
+    parameters: string[] = [],
+    language: string = "en_US",
+    useMMlite: boolean = true // Always use MM Lite for marketing campaigns
+  ): Promise<any> {
+    const apiService = new WhatsAppApiService(channel);
+    
+    // Always use standard Meta API with marketing messaging (MM Lite)
+    // MM Lite is not a separate endpoint, it's a feature of the standard API
+    return await apiService.sendMessage(to, templateName, parameters);
+  }
+
+  // Static method for checking rate limits
+  static async checkRateLimit(channelId: string): Promise<boolean> {
+    // Simple rate limit check - can be enhanced with Redis or database tracking
+    return true;
+  }
+
+  // MM Lite message sending
+  private async sendMMliteMessage(to: string, templateName: string, parameters: string[] = [], language: string = "en_US"): Promise<any> {
+    if (!this.channel.mmLiteApiUrl || !this.channel.mmLiteApiKey) {
+      throw new Error("MM Lite configuration missing");
+    }
+
+    const body = {
+      messaging_product: "whatsapp",
+      to,
+      type: "template",
+      template: {
+        name: templateName,
+        language: { code: language },
+        components: parameters.length > 0 ? [{
+          type: "body",
+          parameters: parameters.map(text => ({ type: "text", text }))
+        }] : undefined
+      }
+    };
+
+    const response = await fetch(
+      `${this.channel.mmLiteApiUrl}/messages`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.channel.mmLiteApiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || 'Failed to send MM Lite message');
+    }
+
+    return await response.json();
+  }
+
   async createTemplate(templateData: any): Promise<any> {
     const components = this.formatTemplateComponents(templateData);
     

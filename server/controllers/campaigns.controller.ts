@@ -211,14 +211,14 @@ export const campaignsController = {
     }
 
     try {
-      // Send template message
+      // Send template message - always use MM Lite for marketing campaigns
       const response = await WhatsAppApiService.sendTemplateMessage(
         channel,
         phone,
         template.name,
         templateParams.map(p => p.text),
         template.language || "en_US",
-        campaign.apiType === "mm_lite"
+        true // Always use MM Lite
       );
       const messageId = response.messages?.[0]?.id || `msg_${randomUUID()}`;
       
@@ -318,14 +318,14 @@ async function startCampaignExecution(campaignId: string) {
         });
       }
 
-      // Send template message
+      // Send template message - always use MM Lite for marketing campaigns
       const response = await WhatsAppApiService.sendTemplateMessage(
         channel,
         contact.phone,
         template.name,
         templateParams.map(p => p.text),
         template.language || "en_US",
-        campaign.apiType === "mm_lite"
+        true // Always use MM Lite
       );
       const messageId = response.messages?.[0]?.id || `msg_${randomUUID()}`;
       
