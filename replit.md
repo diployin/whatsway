@@ -93,9 +93,10 @@ The application uses a comprehensive PostgreSQL schema with the following main e
 
 ### WhatsApp Integration
 The application is designed to integrate with:
-- WhatsApp Business Cloud API
-- WhatsApp Business API (On-premises)
-- Webhook endpoints for message delivery status
+- WhatsApp Business Cloud API (v23.0)
+- MM Lite API for high-volume messaging
+- Dynamic webhook endpoints for real-time message events
+- Channel-specific webhook configuration with signature verification
 
 ### Development Tools
 - **Vite**: Fast development server and build tool
@@ -122,3 +123,23 @@ The application is designed to integrate with:
 - WhatsApp Business API credentials (for messaging features)
 
 The application follows a monorepo structure with shared types and schemas, enabling type safety across frontend and backend while maintaining clear separation of concerns.
+
+## Recent Changes
+
+### WhatsApp API Version Update (January 2025)
+- Updated WhatsApp Cloud API version to v23.0
+- API version is now configurable via WHATSAPP_API_VERSION environment variable
+- Ensures compatibility with latest WhatsApp Business Platform features
+
+### Webhook Implementation
+- Implemented comprehensive webhook service for real-time message handling
+- Dynamic webhook endpoints per channel: `/webhook/:channelId`
+- Features include:
+  - Signature verification for security
+  - Automatic message status updates
+  - Inbound message processing with conversation management
+  - Error handling and retry logic
+- Enhanced database schema to support webhook data:
+  - Added fields for WhatsApp message IDs
+  - Contact phone tracking in conversations
+  - Message metadata storage for webhook payloads

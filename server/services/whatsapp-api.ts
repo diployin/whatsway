@@ -52,8 +52,9 @@ interface HealthCheckResult {
 }
 
 export class WhatsAppApiService {
-  private static CLOUD_API_BASE_URL = "https://graph.facebook.com/v18.0";
-  private static MM_LITE_API_BASE_URL = "https://graph.facebook.com/v18.0"; // MM Lite uses same base URL but different endpoint
+  private static readonly WHATSAPP_API_VERSION = process.env.WHATSAPP_API_VERSION || "v23.0";
+  private static readonly CLOUD_API_BASE_URL = `https://graph.facebook.com/${WhatsAppApiService.WHATSAPP_API_VERSION}`;
+  private static readonly MM_LITE_API_BASE_URL = `https://graph.facebook.com/${WhatsAppApiService.WHATSAPP_API_VERSION}`; // MM Lite uses same base URL but different endpoint
 
   private static async logApiRequest(
     channelId: string,

@@ -644,7 +644,7 @@ export default function Settings() {
                               variant="outline"
                               size="sm"
                               onClick={() => {
-                                const url = window.location.origin + '/webhook';
+                                const url = `${window.location.origin}/webhook/${config.channelId}`;
                                 navigator.clipboard.writeText(url);
                                 toast({
                                   title: "Webhook URL copied",
@@ -677,11 +677,14 @@ export default function Settings() {
                   <form onSubmit={webhookForm.handleSubmit(handleWebhookSubmit)} className="space-y-4">
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <p className="text-sm text-gray-600 mb-2">
-                        <strong>Your webhook endpoint:</strong>
+                        <strong>Your webhook endpoint will be:</strong>
                       </p>
                       <code className="bg-white px-2 py-1 rounded text-sm">
-                        {window.location.origin}/webhook
+                        {window.location.origin}/webhook/[channel-id]
                       </code>
+                      <p className="text-xs text-gray-500 mt-2">
+                        The actual URL will include your channel ID after configuration
+                      </p>
                     </div>
                     <FormField
                       control={webhookForm.control}

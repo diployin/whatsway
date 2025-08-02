@@ -176,6 +176,14 @@ export class DatabaseStorage implements IStorage {
     return conversation || undefined;
   }
 
+  async getConversationByPhone(phone: string): Promise<Conversation | undefined> {
+    const [conversation] = await db
+      .select()
+      .from(conversations)
+      .where(eq(conversations.contactPhone, phone));
+    return conversation || undefined;
+  }
+
   async createConversation(insertConversation: InsertConversation): Promise<Conversation> {
     const [conversation] = await db
       .insert(conversations)
@@ -208,6 +216,23 @@ export class DatabaseStorage implements IStorage {
       .values(insertMessage)
       .returning();
     return message;
+  }
+
+  async updateMessage(id: string, message: Partial<Message>): Promise<Message | undefined> {
+    const [updated] = await db
+      .update(messages)
+      .set(message)
+      .where(eq(messages.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  async getMessageByWhatsAppId(whatsappMessageId: string): Promise<Message | undefined> {
+    const [message] = await db
+      .select()
+      .from(messages)
+      .where(eq(messages.whatsappMessageId, whatsappMessageId));
+    return message || undefined;
   }
 
   // Automations

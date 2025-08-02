@@ -57,12 +57,15 @@ export interface IStorage {
   // Conversations
   getConversations(): Promise<Conversation[]>;
   getConversation(id: string): Promise<Conversation | undefined>;
+  getConversationByPhone(phone: string): Promise<Conversation | undefined>;
   createConversation(conversation: InsertConversation): Promise<Conversation>;
   updateConversation(id: string, conversation: Partial<Conversation>): Promise<Conversation | undefined>;
 
   // Messages
   getMessages(conversationId: string): Promise<Message[]>;
   createMessage(message: InsertMessage): Promise<Message>;
+  updateMessage(id: string, message: Partial<Message>): Promise<Message | undefined>;
+  getMessageByWhatsAppId(whatsappMessageId: string): Promise<Message | undefined>;
 
   // Automations
   getAutomations(): Promise<Automation[]>;
@@ -287,6 +290,10 @@ export class MemStorage implements IStorage {
     return this.conversations.get(id);
   }
 
+  async getConversationByPhone(phone: string): Promise<Conversation | undefined> {
+    return Array.from(this.conversations.values()).find(c => c.contactPhone === phone);
+  }
+
   async createConversation(insertConversation: InsertConversation): Promise<Conversation> {
     const id = randomUUID();
     const conversation: Conversation = {
@@ -333,6 +340,19 @@ export class MemStorage implements IStorage {
     }
 
     return message;
+  }
+
+  async updateMessage(id: string, updates: Partial<Message>): Promise<Message | undefined> {
+    const message = this.messages.get(id);
+    if (!message) return undefined;
+
+    const updatedMessage = { ...message, ...updates };
+    this.messages.set(id, updatedMessage);
+    return updatedMessage;
+  }
+
+  async getMessageByWhatsAppId(whatsappMessageId: string): Promise<Message | undefined> {
+    return Array.from(this.messages.values()).find(m => m.whatsappMessageId === whatsappMessageId);
   }
 
   // Automations

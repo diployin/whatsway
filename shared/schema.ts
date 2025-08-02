@@ -62,10 +62,13 @@ export const templates = pgTable("templates", {
 export const conversations = pgTable("conversations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   contactId: varchar("contact_id").notNull(),
+  contactPhone: varchar("contact_phone"), // Store phone number for webhook lookups
+  contactName: varchar("contact_name"), // Store contact name
   assignedTo: varchar("assigned_to"),
   status: text("status").default("open"), // open, closed, assigned
   priority: text("priority").default("normal"), // low, normal, high, urgent
   tags: jsonb("tags").default([]),
+  unreadCount: integer("unread_count").default(0), // Track unread messages
   lastMessageAt: timestamp("last_message_at"),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -73,10 +76,15 @@ export const conversations = pgTable("conversations", {
 export const messages = pgTable("messages", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   conversationId: varchar("conversation_id").notNull(),
+  whatsappMessageId: varchar("whatsapp_message_id"), // Store WhatsApp message ID
   fromUser: boolean("from_user").default(false),
+  direction: varchar("direction").default("outbound"), // inbound, outbound
   content: text("content").notNull(),
   type: text("type").default("text"), // text, image, document, template
-  status: text("status").default("sent"), // sent, delivered, read, failed
+  messageType: varchar("message_type"), // For WhatsApp message types
+  status: text("status").default("sent"), // sent, delivered, read, failed, received
+  timestamp: timestamp("timestamp"), // WhatsApp timestamp
+  metadata: jsonb("metadata").default({}), // Store additional WhatsApp data
   createdAt: timestamp("created_at").defaultNow(),
 });
 

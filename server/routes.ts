@@ -6,6 +6,7 @@ import { insertContactSchema, insertCampaignSchema, insertTemplateSchema, insert
 import { WebhookHandler } from "./services/webhook-handler";
 import { MessageQueueService } from "./services/message-queue";
 import { WhatsAppApiService } from "./services/whatsapp-api";
+import { WebhookService } from "./services/webhook-service";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Dashboard endpoints
@@ -592,15 +593,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // WhatsApp Webhook endpoint (receives messages from WhatsApp)
-  app.get("/webhook", async (req, res) => {
+  // WhatsApp Webhook endpoints (receives messages from WhatsApp)
+  // Dynamic webhook endpoints for each channel
+  app.get("/webhook/:channelId", async (req, res) => {
     try {
       const mode = req.query["hub.mode"] as string;
       const token = req.query["hub.verify_token"] as string;
       const challenge = req.query["hub.challenge"] as string;
+      const channelId = req.params.channelId;
       
-      // For now, just verify with a simple token
-      const result = await WebhookHandler.handleVerification(mode, token, challenge, "VERIFY_TOKEN");
+      // Get webhook config for this channel
+      const config = await storage.getWebhookConfig(channelId);
+      if (!config || !config.isActive) {
+        return res.sendStatus(403);
+      }
+      
+      const result = WebhookService.handleVerification(mode, token, challenge, config.verifyToken);
       
       if (result.verified && result.challenge) {
         res.status(200).send(result.challenge);
@@ -613,9 +621,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/webhook", async (req, res) => {
+  app.post("/webhook/:channelId", async (req, res) => {
     try {
-      await WebhookHandler.processWebhook(req.body);
+      const channelId = req.params.channelId;
+      const signature = req.headers["x-hub-signature-256"] as string;
+      
+      // Get webhook config
+      const config = await storage.getWebhookConfig(channelId);
+      if (!config || !config.isActive) {
+        return res.sendStatus(403);
+      }
+      
+      // Verify signature if app secret is configured
+      if (config.appSecret && signature) {
+        const isValid = WebhookService.verifySignature(
+          JSON.stringify(req.body),
+          signature,
+          config.appSecret
+        );
+        
+        if (!isValid) {
+          console.error("Invalid webhook signature");
+          return res.sendStatus(403);
+        }
+      }
+      
+      // Process webhook payload
+      await WebhookService.processWebhook(req.body, channelId);
+      
+      // Update last ping timestamp
+      await storage.updateWebhookConfig(config.id, {
+        lastPingAt: new Date(),
+      });
+      
       res.sendStatus(200);
     } catch (error) {
       console.error("Webhook processing error:", error);
