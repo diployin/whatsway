@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer, boolean, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, boolean, jsonb, index, unique } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -16,7 +17,7 @@ export const users = pgTable("users", {
 
 export const contacts = pgTable("contacts", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  channelId: varchar("channel_id"),
+  channelId: varchar("channel_id").references(() => channels.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   phone: text("phone").notNull(),
   email: text("email"),
@@ -25,26 +26,63 @@ export const contacts = pgTable("contacts", {
   status: text("status").default("active"), // active, blocked, unsubscribed
   lastContact: timestamp("last_contact"),
   createdAt: timestamp("created_at").defaultNow(),
-});
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  contactChannelIdx: index("contacts_channel_idx").on(table.channelId),
+  contactPhoneIdx: index("contacts_phone_idx").on(table.phone),
+  contactStatusIdx: index("contacts_status_idx").on(table.status),
+  contactChannelPhoneUnique: unique("contacts_channel_phone_unique").on(table.channelId, table.phone),
+}));
 
 export const campaigns = pgTable("campaigns", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  channelId: varchar("channel_id"),
+  channelId: varchar("channel_id").references(() => channels.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   description: text("description"),
   type: text("type").notNull(), // marketing, transactional
   apiType: text("api_type").notNull(), // cloud_api, mm_lite
-  templateId: varchar("template_id"),
-  recipients: jsonb("recipients").default([]),
+  templateId: varchar("template_id").references(() => templates.id),
   status: text("status").default("draft"), // draft, scheduled, active, paused, completed
   scheduledAt: timestamp("scheduled_at"),
+  recipientCount: integer("recipient_count").default(0),
   sentCount: integer("sent_count").default(0),
   deliveredCount: integer("delivered_count").default(0),
   readCount: integer("read_count").default(0),
   repliedCount: integer("replied_count").default(0),
   failedCount: integer("failed_count").default(0),
+  completedAt: timestamp("completed_at"),
   createdAt: timestamp("created_at").defaultNow(),
-});
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  campaignChannelIdx: index("campaigns_channel_idx").on(table.channelId),
+  campaignStatusIdx: index("campaigns_status_idx").on(table.status),
+  campaignCreatedIdx: index("campaigns_created_idx").on(table.createdAt),
+}));
+
+// Campaign Recipients table for tracking individual recipient status
+export const campaignRecipients = pgTable("campaign_recipients", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  campaignId: varchar("campaign_id").notNull().references(() => campaigns.id, { onDelete: "cascade" }),
+  contactId: varchar("contact_id").references(() => contacts.id, { onDelete: "cascade" }),
+  phone: text("phone").notNull(),
+  name: text("name"),
+  status: text("status").default("pending"), // pending, sent, delivered, read, failed
+  whatsappMessageId: varchar("whatsapp_message_id"),
+  templateParams: jsonb("template_params").default({}),
+  sentAt: timestamp("sent_at"),
+  deliveredAt: timestamp("delivered_at"),
+  readAt: timestamp("read_at"),
+  errorCode: varchar("error_code"),
+  errorMessage: text("error_message"),
+  retryCount: integer("retry_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  recipientCampaignIdx: index("recipients_campaign_idx").on(table.campaignId),
+  recipientStatusIdx: index("recipients_status_idx").on(table.status),
+  recipientPhoneIdx: index("recipients_phone_idx").on(table.phone),
+  campaignPhoneUnique: unique("campaign_phone_unique").on(table.campaignId, table.phone),
+}));
 
 // WhatsApp Business Channels for multi-account support
 export const channels = pgTable("channels", {
@@ -92,22 +130,29 @@ export const templates = pgTable("templates", {
 
 export const conversations = pgTable("conversations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  channelId: varchar("channel_id"),
-  contactId: varchar("contact_id").notNull(),
+  channelId: varchar("channel_id").references(() => channels.id, { onDelete: "cascade" }),
+  contactId: varchar("contact_id").references(() => contacts.id, { onDelete: "cascade" }),
   contactPhone: varchar("contact_phone"), // Store phone number for webhook lookups
   contactName: varchar("contact_name"), // Store contact name
-  assignedTo: varchar("assigned_to"),
+  assignedTo: varchar("assigned_to").references(() => users.id),
   status: text("status").default("open"), // open, closed, assigned
   priority: text("priority").default("normal"), // low, normal, high, urgent
   tags: jsonb("tags").default([]),
   unreadCount: integer("unread_count").default(0), // Track unread messages
   lastMessageAt: timestamp("last_message_at"),
   createdAt: timestamp("created_at").defaultNow(),
-});
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  conversationChannelIdx: index("conversations_channel_idx").on(table.channelId),
+  conversationContactIdx: index("conversations_contact_idx").on(table.contactId),
+  conversationPhoneIdx: index("conversations_phone_idx").on(table.contactPhone),
+  conversationStatusIdx: index("conversations_status_idx").on(table.status),
+  conversationAssignedIdx: index("conversations_assigned_idx").on(table.assignedTo),
+}));
 
 export const messages = pgTable("messages", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  conversationId: varchar("conversation_id").notNull(),
+  conversationId: varchar("conversation_id").notNull().references(() => conversations.id, { onDelete: "cascade" }),
   whatsappMessageId: varchar("whatsapp_message_id"), // Store WhatsApp message ID
   fromUser: boolean("from_user").default(false),
   direction: varchar("direction").default("outbound"), // inbound, outbound
@@ -123,7 +168,14 @@ export const messages = pgTable("messages", {
   errorMessage: text("error_message"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => ({
+  messageConversationIdx: index("messages_conversation_idx").on(table.conversationId),
+  messageWhatsappIdx: index("messages_whatsapp_idx").on(table.whatsappMessageId),
+  messageDirectionIdx: index("messages_direction_idx").on(table.direction),
+  messageStatusIdx: index("messages_status_idx").on(table.status),
+  messageTimestampIdx: index("messages_timestamp_idx").on(table.timestamp),
+  messageCreatedIdx: index("messages_created_idx").on(table.createdAt),
+}));
 
 export const automations = pgTable("automations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -237,6 +289,7 @@ export const insertWhatsappChannelSchema = createInsertSchema(whatsappChannels).
 export const insertWebhookConfigSchema = createInsertSchema(webhookConfigs).omit({ id: true, createdAt: true });
 export const insertMessageQueueSchema = createInsertSchema(messageQueue).omit({ id: true, createdAt: true });
 export const insertApiLogSchema = createInsertSchema(apiLogs).omit({ id: true, createdAt: true });
+export const insertCampaignRecipientSchema = createInsertSchema(campaignRecipients).omit({ id: true, createdAt: true, updatedAt: true });
 
 // Types
 export type User = typeof users.$inferSelect;
@@ -265,3 +318,80 @@ export type MessageQueue = typeof messageQueue.$inferSelect;
 export type InsertMessageQueue = z.infer<typeof insertMessageQueueSchema>;
 export type ApiLog = typeof apiLogs.$inferSelect;
 export type InsertApiLog = z.infer<typeof insertApiLogSchema>;
+export type CampaignRecipient = typeof campaignRecipients.$inferSelect;
+export type InsertCampaignRecipient = z.infer<typeof insertCampaignRecipientSchema>;
+
+// Drizzle Relations for proper joins and queries
+export const channelsRelations = relations(channels, ({ many }) => ({
+  contacts: many(contacts),
+  campaigns: many(campaigns),
+  templates: many(templates),
+  conversations: many(conversations),
+}));
+
+export const contactsRelations = relations(contacts, ({ one, many }) => ({
+  channel: one(channels, {
+    fields: [contacts.channelId],
+    references: [channels.id],
+  }),
+  conversations: many(conversations),
+  campaignRecipients: many(campaignRecipients),
+}));
+
+export const campaignsRelations = relations(campaigns, ({ one, many }) => ({
+  channel: one(channels, {
+    fields: [campaigns.channelId],
+    references: [channels.id],
+  }),
+  template: one(templates, {
+    fields: [campaigns.templateId],
+    references: [templates.id],
+  }),
+  recipients: many(campaignRecipients),
+}));
+
+export const campaignRecipientsRelations = relations(campaignRecipients, ({ one }) => ({
+  campaign: one(campaigns, {
+    fields: [campaignRecipients.campaignId],
+    references: [campaigns.id],
+  }),
+  contact: one(contacts, {
+    fields: [campaignRecipients.contactId],
+    references: [contacts.id],
+  }),
+}));
+
+export const templatesRelations = relations(templates, ({ one, many }) => ({
+  channel: one(channels, {
+    fields: [templates.channelId],
+    references: [channels.id],
+  }),
+  campaigns: many(campaigns),
+}));
+
+export const conversationsRelations = relations(conversations, ({ one, many }) => ({
+  channel: one(channels, {
+    fields: [conversations.channelId],
+    references: [channels.id],
+  }),
+  contact: one(contacts, {
+    fields: [conversations.contactId],
+    references: [contacts.id],
+  }),
+  assignedUser: one(users, {
+    fields: [conversations.assignedTo],
+    references: [users.id],
+  }),
+  messages: many(messages),
+}));
+
+export const messagesRelations = relations(messages, ({ one }) => ({
+  conversation: one(conversations, {
+    fields: [messages.conversationId],
+    references: [conversations.id],
+  }),
+}));
+
+export const usersRelations = relations(users, ({ many }) => ({
+  assignedConversations: many(conversations),
+}));
