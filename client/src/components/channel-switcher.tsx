@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Phone, Check, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useChannelContext } from "@/contexts/channel-context";
 import type { Channel } from "@shared/schema";
 
 export function ChannelSwitcher() {
@@ -19,6 +20,7 @@ export function ChannelSwitcher() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { setSelectedChannel } = useChannelContext();
 
   // Fetch channels
   const { data: channels = [], isLoading } = useQuery<Channel[]>({
@@ -31,12 +33,21 @@ export function ChannelSwitcher() {
     retry: false,
   });
 
-  // Set selected channel on mount
+  // Set selected channel on mount and update context
   useEffect(() => {
     if (activeChannel && !selectedChannelId) {
       setSelectedChannelId(activeChannel.id);
+      setSelectedChannel(activeChannel);
     }
-  }, [activeChannel, selectedChannelId]);
+  }, [activeChannel, selectedChannelId, setSelectedChannel]);
+
+  // Update context when channel changes
+  useEffect(() => {
+    const channel = channels.find(c => c.id === selectedChannelId);
+    if (channel) {
+      setSelectedChannel(channel);
+    }
+  }, [selectedChannelId, channels, setSelectedChannel]);
 
   // Update channel mutation
   const updateChannelMutation = useMutation({

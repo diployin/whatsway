@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Send, Pause, Play, BarChart, Users, FileSpreadsheet, Code, Clock, CheckCircle, XCircle, AlertCircle, Eye, Download, Trash2, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,11 @@ export function Campaigns() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { selectedChannel } = useChannelContext();
+  
+  // Log selected channel for debugging
+  useEffect(() => {
+    console.log("Selected channel in campaigns:", selectedChannel);
+  }, [selectedChannel]);
 
   // Fetch campaigns
   const { data: campaigns = [], isLoading: campaignsLoading } = useQuery({
@@ -175,10 +180,11 @@ export function Campaigns() {
       return;
     }
 
-    if (!selectedChannel?.id) {
+    if (!selectedChannel || !selectedChannel.id) {
+      console.error("No selected channel:", selectedChannel);
       toast({
         title: "Error",
-        description: "Please select a channel first",
+        description: "Please select a channel from the top navigation",
         variant: "destructive",
       });
       return;
