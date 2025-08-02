@@ -85,9 +85,17 @@ export const campaigns = pgTable("campaigns", {
   channelId: varchar("channel_id").references(() => channels.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   description: text("description"),
+  campaignType: text("campaign_type").notNull(), // contacts, csv, api
   type: text("type").notNull(), // marketing, transactional
   apiType: text("api_type").notNull(), // cloud_api, mm_lite
   templateId: varchar("template_id").references(() => templates.id),
+  templateName: text("template_name"),
+  templateLanguage: text("template_language"),
+  variableMapping: jsonb("variable_mapping").default({}), // Maps template variables to contact/csv fields
+  contactGroups: jsonb("contact_groups").default([]), // For contacts campaign
+  csvData: jsonb("csv_data").default([]), // For CSV campaign
+  apiKey: varchar("api_key"), // For API campaign
+  apiEndpoint: text("api_endpoint"), // For API campaign
   status: text("status").default("draft"), // draft, scheduled, active, paused, completed
   scheduledAt: timestamp("scheduled_at"),
   recipientCount: integer("recipient_count").default(0),

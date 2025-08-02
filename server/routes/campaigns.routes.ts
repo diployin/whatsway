@@ -1,31 +1,46 @@
 import type { Express } from "express";
-import * as campaignsController from "../controllers/campaigns.controller";
-import { validateRequest } from "../middlewares/validation.middleware";
-import { insertCampaignSchema } from "@shared/schema";
+import { campaignsController } from "../controllers/campaigns.controller";
 import { extractChannelId } from "../middlewares/channel.middleware";
 
 export function registerCampaignRoutes(app: Express) {
   // Get all campaigns
-  app.get("/api/campaigns",
+  app.get("/api/campaigns", 
     extractChannelId,
     campaignsController.getCampaigns
   );
 
-  // Get single campaign
-  app.get("/api/campaigns/:id", campaignsController.getCampaign);
+  // Get campaign by ID
+  app.get("/api/campaigns/:id", 
+    campaignsController.getCampaign
+  );
 
-  // Create campaign
-  app.post("/api/campaigns",
-    validateRequest(insertCampaignSchema),
+  // Create new campaign
+  app.post("/api/campaigns", 
     campaignsController.createCampaign
   );
 
-  // Update campaign
-  app.put("/api/campaigns/:id", campaignsController.updateCampaign);
+  // Update campaign status
+  app.patch("/api/campaigns/:id/status", 
+    campaignsController.updateCampaignStatus
+  );
 
   // Delete campaign
-  app.delete("/api/campaigns/:id", campaignsController.deleteCampaign);
+  app.delete("/api/campaigns/:id", 
+    campaignsController.deleteCampaign
+  );
 
-  // Start campaign
-  app.post("/api/campaigns/:id/start", campaignsController.startCampaign);
+  // Start campaign execution
+  app.post("/api/campaigns/:id/start", 
+    campaignsController.startCampaign
+  );
+
+  // Get campaign analytics
+  app.get("/api/campaigns/:id/analytics", 
+    campaignsController.getCampaignAnalytics
+  );
+
+  // API campaign endpoint
+  app.post("/api/campaigns/send/:apiKey", 
+    campaignsController.sendApiCampaign
+  );
 }
