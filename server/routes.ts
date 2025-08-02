@@ -1,9 +1,11 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { z } from "zod";
 import { storage } from "./storage";
 import { insertContactSchema, insertCampaignSchema, insertTemplateSchema, insertConversationSchema, insertMessageSchema, insertAutomationSchema, insertWhatsappChannelSchema, insertWebhookConfigSchema } from "@shared/schema";
 import { WebhookHandler } from "./services/webhook-handler";
 import { MessageQueueService } from "./services/message-queue";
+import { WhatsAppApiService } from "./services/whatsapp-api";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Dashboard endpoints
@@ -386,6 +388,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(channel);
     } catch (error) {
       console.error("Error creating WhatsApp channel:", error);
+      if (error instanceof z.ZodError) {
+        console.error("Validation errors:", error.errors);
+        return res.status(400).json({ 
+          message: "Invalid WhatsApp channel data",
+          errors: error.errors 
+        });
+      }
       res.status(400).json({ message: "Invalid WhatsApp channel data" });
     }
   });
@@ -428,7 +437,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const testPhone = req.body.testPhone || "919310797700"; // Default test number
       
       // Test connection by sending hello_world template
-      const result = await WhatsAppService.sendMessage(channel, {
+      const result = await WhatsAppApiService.sendMessage(channel, {
         to: testPhone,
         type: "template",
         template: {
@@ -477,7 +486,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         success: false,
         message: "Failed to test connection",
-        error: error.message
+        error: error instanceof Error ? error.message : String(error)
       });
     }
   });

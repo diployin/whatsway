@@ -102,6 +102,9 @@ export default function Settings() {
   const [showChannelDialog, setShowChannelDialog] = useState(false);
   const [editingChannel, setEditingChannel] = useState<WhatsappChannel | null>(null);
   const [showWebhookDialog, setShowWebhookDialog] = useState(false);
+  const [testPhoneNumber, setTestPhoneNumber] = useState("919310797700");
+  const [showTestDialog, setShowTestDialog] = useState(false);
+  const [testingChannelId, setTestingChannelId] = useState<string | null>(null);
   const { toast } = useToast();
 
   // Fetch WhatsApp channels
@@ -143,15 +146,11 @@ export default function Settings() {
   const createChannelMutation = useMutation({
     mutationFn: async (data: z.infer<typeof channelFormSchema>) => {
       if (editingChannel) {
-        return apiRequest(`/api/whatsapp/channels/${editingChannel.id}`, {
-          method: "PUT",
-          body: JSON.stringify(data),
-        });
+        const res = await apiRequest("PUT", `/api/whatsapp/channels/${editingChannel.id}`, data);
+        return res.json();
       }
-      return apiRequest("/api/whatsapp/channels", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      const res = await apiRequest("POST", "/api/whatsapp/channels", data);
+      return res.json();
     },
     onSuccess: () => {
       toast({
@@ -175,9 +174,7 @@ export default function Settings() {
   // Delete channel mutation
   const deleteChannelMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest(`/api/whatsapp/channels/${id}`, {
-        method: "DELETE",
-      });
+      return apiRequest("DELETE", `/api/whatsapp/channels/${id}`);
     },
     onSuccess: () => {
       toast({
@@ -197,17 +194,16 @@ export default function Settings() {
 
   // Test channel mutation
   const testChannelMutation = useMutation({
-    mutationFn: async (id: string) => {
-      return apiRequest(`/api/whatsapp/channels/${id}/test`, {
-        method: "POST",
-        body: JSON.stringify({}),
-      });
+    mutationFn: async ({ id, testPhone }: { id: string; testPhone: string }) => {
+      const res = await apiRequest("POST", `/api/whatsapp/channels/${id}/test`, { testPhone });
+      return res.json();
     },
     onSuccess: (data) => {
       toast({
         title: "Test successful",
         description: "WhatsApp message sent successfully. Check your phone!",
       });
+      setShowTestDialog(false);
     },
     onError: (error) => {
       toast({
@@ -221,10 +217,8 @@ export default function Settings() {
   // Create webhook config mutation
   const createWebhookMutation = useMutation({
     mutationFn: async (data: z.infer<typeof webhookFormSchema> & { channelId: string }) => {
-      return apiRequest("/api/whatsapp/webhooks", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      const res = await apiRequest("POST", "/api/whatsapp/webhooks", data);
+      return res.json();
     },
     onSuccess: () => {
       toast({
@@ -428,14 +422,13 @@ export default function Settings() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => testChannelMutation.mutate(channel.id)}
+                              onClick={() => {
+                                setTestingChannelId(channel.id);
+                                setShowTestDialog(true);
+                              }}
                               disabled={testChannelMutation.isPending}
                             >
-                              {testChannelMutation.isPending ? (
-                                <>Testing...</>
-                              ) : (
-                                <>Test Connection</>
-                              )}
+                              Test Connection
                             </Button>
                             <Button
                               variant="outline"
@@ -648,10 +641,10 @@ export default function Settings() {
                                 <strong>Webhook URL:</strong> {config.webhookUrl}
                               </div>
                               <div>
-                                <strong>Events:</strong> {config.events.join(', ')}
+                                <strong>Events:</strong> {(config.events as string[]).join(', ')}
                               </div>
                               <div>
-                                <strong>Last Received:</strong> {config.lastReceived ? new Date(config.lastReceived).toLocaleString() : 'Never'}
+                                <strong>Last Ping:</strong> {config.lastPingAt ? new Date(config.lastPingAt).toLocaleString() : 'Never'}
                               </div>
                             </div>
                           </div>
@@ -1079,6 +1072,51 @@ export default function Settings() {
 >>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
           </TabsContent>
         </Tabs>
+
+        {/* Test Connection Dialog */}
+        <Dialog open={showTestDialog} onOpenChange={setShowTestDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Test WhatsApp Connection</DialogTitle>
+              <DialogDescription>
+                Send a test message to verify your WhatsApp channel configuration
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="test-phone">Test Phone Number</Label>
+                <Input
+                  id="test-phone"
+                  value={testPhoneNumber}
+                  onChange={(e) => setTestPhoneNumber(e.target.value)}
+                  placeholder="919310797700"
+                  className="mt-1"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Enter phone number with country code (without + sign)
+                </p>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowTestDialog(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  if (testingChannelId) {
+                    testChannelMutation.mutate({
+                      id: testingChannelId,
+                      testPhone: testPhoneNumber,
+                    });
+                  }
+                }}
+                disabled={testChannelMutation.isPending}
+              >
+                {testChannelMutation.isPending ? "Sending..." : "Send Test Message"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   );
