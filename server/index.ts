@@ -1,15 +1,21 @@
 import express, { type Request, Response, NextFunction } from "express";
+<<<<<<< HEAD
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool } from "./db";
 import { registerRoutes } from "./routes/index";
 import { setupVite, serveStatic, log } from "./vite";
 import { MessageStatusUpdater } from "./services/message-status-updater";
+=======
+import { registerRoutes } from "./routes";
+import { setupVite, serveStatic, log } from "./vite";
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+<<<<<<< HEAD
 // Set up session management
 const PostgresSessionStore = connectPgSimple(session);
 app.use(
@@ -29,6 +35,8 @@ app.use(
   })
 );
 
+=======
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -79,6 +87,7 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
+<<<<<<< HEAD
   // Check if running under Plesk Passenger
   const isPassenger = process.env.PASSENGER_APP_ENV || false;
   
@@ -118,3 +127,18 @@ app.use((req, res, next) => {
 
 // Export the app for Plesk Passenger
 export default app;
+=======
+  // ALWAYS serve the app on the port specified in the environment variable PORT
+  // Other ports are firewalled. Default to 5000 if not specified.
+  // this serves both the API and the client.
+  // It is the only port that is not firewalled.
+  const port = parseInt(process.env.PORT || '5000', 10);
+  server.listen({
+    port,
+    host: "0.0.0.0",
+    reusePort: true,
+  }, () => {
+    log(`serving on port ${port}`);
+  });
+})();
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)

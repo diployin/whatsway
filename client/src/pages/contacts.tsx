@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { useState, useMemo } from "react";
+=======
+import { useState } from "react";
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Header from "@/components/layout/header";
 import { Loading } from "@/components/ui/loading";
@@ -7,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+<<<<<<< HEAD
 import { Textarea } from "@/components/ui/textarea";
 import {
   DropdownMenu,
@@ -30,6 +35,8 @@ import {
   FormLabel,
   FormMessage
 } from "@/components/ui/form";
+=======
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
 import { 
   Users, 
   Search, 
@@ -38,6 +45,7 @@ import {
   Edit, 
   Trash2,
   Upload,
+<<<<<<< HEAD
   Plus,
   MessageSquare,
   Phone
@@ -305,14 +313,40 @@ export default function Contacts() {
       });
       if (!response.ok) throw new Error("Failed to delete contact");
     },
+=======
+  Plus
+} from "lucide-react";
+import { api } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
+import type { Contact } from "@shared/schema";
+
+export default function Contacts() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const { data: contacts, isLoading } = useQuery({
+    queryKey: ["/api/contacts", searchQuery],
+    queryFn: async () => {
+      const response = await api.getContacts(searchQuery);
+      return await response.json();
+    },
+  });
+
+  const deleteContactMutation = useMutation({
+    mutationFn: (id: string) => api.deleteContact(id),
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
       toast({
         title: "Contact deleted",
         description: "The contact has been successfully deleted.",
       });
+<<<<<<< HEAD
       setShowDeleteDialog(false);
       setContactToDelete(null);
+=======
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
     },
     onError: () => {
       toast({
@@ -323,6 +357,7 @@ export default function Contacts() {
     },
   });
 
+<<<<<<< HEAD
   const sendMessageMutation = useMutation({
     mutationFn: async (data: any) => {
       const { phone, type, message, templateName, templateLanguage, templateVariables } = data;
@@ -374,6 +409,12 @@ export default function Contacts() {
   const handleDeleteContact = (id: string) => {
     setContactToDelete(id);
     setShowDeleteDialog(true);
+=======
+  const handleDeleteContact = (id: string) => {
+    if (confirm("Are you sure you want to delete this contact?")) {
+      deleteContactMutation.mutate(id);
+    }
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
   };
 
   if (isLoading) {
@@ -394,7 +435,11 @@ export default function Contacts() {
         subtitle="Manage your WhatsApp contacts and groups"
         action={{
           label: "Add Contact",
+<<<<<<< HEAD
           onClick: () => setShowAddDialog(true)
+=======
+          onClick: () => console.log("Add contact")
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
         }}
       />
 
@@ -412,6 +457,7 @@ export default function Contacts() {
                   className="pl-10"
                 />
               </div>
+<<<<<<< HEAD
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline">
@@ -451,6 +497,12 @@ export default function Contacts() {
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
+=======
+              <Button variant="outline">
+                <Filter className="w-4 h-4 mr-2" />
+                All Groups
+              </Button>
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
               <Button variant="outline">
                 <Filter className="w-4 h-4 mr-2" />
                 All Status
@@ -466,6 +518,7 @@ export default function Contacts() {
         {/* Contacts List */}
         <Card>
           <CardContent className="p-0">
+<<<<<<< HEAD
             {!filteredContacts?.length ? (
               <EmptyState
                 icon={Users}
@@ -480,6 +533,19 @@ export default function Contacts() {
                 action={!searchQuery ? {
                   label: "Add First Contact",
                   onClick: () => setShowAddDialog(true)
+=======
+            {!contacts?.length ? (
+              <EmptyState
+                icon={Users}
+                title="No contacts found"
+                description={searchQuery ? 
+                  "No contacts match your search criteria. Try adjusting your search." :
+                  "You haven't added any contacts yet. Import contacts or add them manually to get started."
+                }
+                action={!searchQuery ? {
+                  label: "Add First Contact",
+                  onClick: () => console.log("Add contact")
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
                 } : undefined}
                 className="py-12"
               />
@@ -512,7 +578,11 @@ export default function Contacts() {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
+<<<<<<< HEAD
                     {filteredContacts.map((contact: Contact) => (
+=======
+                    {contacts.map((contact: Contact) => (
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
                       <tr key={contact.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4">
                           <input type="checkbox" className="rounded border-gray-300" />
@@ -568,6 +638,7 @@ export default function Contacts() {
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex space-x-2">
+<<<<<<< HEAD
                             <Button 
                               variant="ghost" 
                               size="sm"
@@ -588,6 +659,9 @@ export default function Contacts() {
                                 setShowEditDialog(true);
                               }}
                             >
+=======
+                            <Button variant="ghost" size="sm">
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
                               <Edit className="w-4 h-4" />
                             </Button>
                             <Button 
@@ -598,6 +672,7 @@ export default function Contacts() {
                             >
                               <Trash2 className="w-4 h-4 text-red-600" />
                             </Button>
+<<<<<<< HEAD
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="sm">
@@ -633,6 +708,11 @@ export default function Contacts() {
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
+=======
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="w-4 h-4" />
+                            </Button>
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
                           </div>
                         </td>
                       </tr>
@@ -643,6 +723,7 @@ export default function Contacts() {
             )}
 
             {/* Pagination */}
+<<<<<<< HEAD
             {filteredContacts?.length > 0 && (
               <div className="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
                 <div className="text-sm text-gray-700">
@@ -650,6 +731,14 @@ export default function Contacts() {
                   <span className="font-medium">{Math.min(10, filteredContacts.length)}</span> of{" "}
                   <span className="font-medium">{filteredContacts.length}</span> contacts
                   {selectedGroup && ` in "${selectedGroup}" group`}
+=======
+            {contacts?.length > 0 && (
+              <div className="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
+                <div className="text-sm text-gray-700">
+                  Showing <span className="font-medium">1</span> to{" "}
+                  <span className="font-medium">{Math.min(10, contacts.length)}</span> of{" "}
+                  <span className="font-medium">{contacts.length}</span> contacts
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
                 </div>
                 <div className="flex space-x-2">
                   <Button variant="outline" size="sm" disabled>
@@ -667,6 +756,7 @@ export default function Contacts() {
           </CardContent>
         </Card>
       </main>
+<<<<<<< HEAD
 
       {/* Add Contact Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
@@ -1032,6 +1122,8 @@ export default function Contacts() {
           </div>
         </DialogContent>
       </Dialog>
+=======
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
     </div>
   );
 }

@@ -5,8 +5,11 @@ import {
   type InsertContact,
   type Campaign,
   type InsertCampaign,
+<<<<<<< HEAD
   type Channel,
   type InsertChannel,
+=======
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
   type Template,
   type InsertTemplate,
   type Conversation,
@@ -17,6 +20,10 @@ import {
   type InsertAutomation,
   type Analytics,
   type InsertAnalytics,
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 2a6e854b (Enable campaign creation and manage WhatsApp channel configurations)
   type WhatsappChannel,
   type InsertWhatsappChannel,
   type WebhookConfig,
@@ -24,7 +31,16 @@ import {
   type MessageQueue,
   type InsertMessageQueue,
   type ApiLog,
+<<<<<<< HEAD
+<<<<<<< HEAD
   type InsertApiLog,
+=======
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
+=======
+>>>>>>> 2a6e854b (Enable campaign creation and manage WhatsApp channel configurations)
+=======
+  type InsertApiLog,
+>>>>>>> d1e3f7ab (Add feature to test WhatsApp channel connections within settings)
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 
@@ -33,6 +49,7 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+<<<<<<< HEAD
   getAllUsers(): Promise<User[]>;
 
   // Contacts
@@ -40,15 +57,27 @@ export interface IStorage {
   getContactsByChannel(channelId: string): Promise<Contact[]>;
   getContact(id: string): Promise<Contact | undefined>;
   getContactByPhone(phone: string): Promise<Contact | undefined>;
+=======
+
+  // Contacts
+  getContacts(): Promise<Contact[]>;
+  getContact(id: string): Promise<Contact | undefined>;
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
   createContact(contact: InsertContact): Promise<Contact>;
   updateContact(id: string, contact: Partial<Contact>): Promise<Contact | undefined>;
   deleteContact(id: string): Promise<boolean>;
   searchContacts(query: string): Promise<Contact[]>;
+<<<<<<< HEAD
   searchContactsByChannel(channelId: string, query: string): Promise<Contact[]>;
 
   // Campaigns
   getCampaigns(): Promise<Campaign[]>;
   getCampaignsByChannel(channelId: string): Promise<Campaign[]>;
+=======
+
+  // Campaigns
+  getCampaigns(): Promise<Campaign[]>;
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
   getCampaign(id: string): Promise<Campaign | undefined>;
   createCampaign(campaign: InsertCampaign): Promise<Campaign>;
   updateCampaign(id: string, campaign: Partial<Campaign>): Promise<Campaign | undefined>;
@@ -56,7 +85,10 @@ export interface IStorage {
 
   // Templates
   getTemplates(): Promise<Template[]>;
+<<<<<<< HEAD
   getTemplatesByChannel(channelId: string): Promise<Template[]>;
+=======
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
   getTemplate(id: string): Promise<Template | undefined>;
   createTemplate(template: InsertTemplate): Promise<Template>;
   updateTemplate(id: string, template: Partial<Template>): Promise<Template | undefined>;
@@ -64,22 +96,34 @@ export interface IStorage {
 
   // Conversations
   getConversations(): Promise<Conversation[]>;
+<<<<<<< HEAD
   getConversationsByChannel(channelId: string): Promise<Conversation[]>;
   getConversation(id: string): Promise<Conversation | undefined>;
   getConversationByPhone(phone: string): Promise<Conversation | undefined>;
   createConversation(conversation: InsertConversation): Promise<Conversation>;
   updateConversation(id: string, conversation: Partial<Conversation>): Promise<Conversation | undefined>;
   deleteConversation(id: string): Promise<boolean>;
+=======
+  getConversation(id: string): Promise<Conversation | undefined>;
+  createConversation(conversation: InsertConversation): Promise<Conversation>;
+  updateConversation(id: string, conversation: Partial<Conversation>): Promise<Conversation | undefined>;
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
 
   // Messages
   getMessages(conversationId: string): Promise<Message[]>;
   createMessage(message: InsertMessage): Promise<Message>;
+<<<<<<< HEAD
   updateMessage(id: string, message: Partial<Message>): Promise<Message | undefined>;
   getMessageByWhatsAppId(whatsappMessageId: string): Promise<Message | undefined>;
 
   // Automations
   getAutomations(): Promise<Automation[]>;
   getAutomationsByChannel(channelId: string): Promise<Automation[]>;
+=======
+
+  // Automations
+  getAutomations(): Promise<Automation[]>;
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
   getAutomation(id: string): Promise<Automation | undefined>;
   createAutomation(automation: InsertAutomation): Promise<Automation>;
   updateAutomation(id: string, automation: Partial<Automation>): Promise<Automation | undefined>;
@@ -87,7 +131,10 @@ export interface IStorage {
 
   // Analytics
   getAnalytics(days?: number): Promise<Analytics[]>;
+<<<<<<< HEAD
   getAnalyticsByChannel(channelId: string, days?: number): Promise<Analytics[]>;
+=======
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
   createAnalytics(analytics: InsertAnalytics): Promise<Analytics>;
   getDashboardStats(): Promise<{
     totalMessages: number;
@@ -98,6 +145,8 @@ export interface IStorage {
     campaignsRunning: number;
     unreadChats: number;
   }>;
+<<<<<<< HEAD
+<<<<<<< HEAD
   getDashboardStatsByChannel(channelId: string): Promise<{
     totalMessages: number;
     activeCampaigns: number;
@@ -116,6 +165,8 @@ export interface IStorage {
   updateChannel(id: string, channel: Partial<Channel>): Promise<Channel | undefined>;
   deleteChannel(id: string): Promise<boolean>;
   getActiveChannel(): Promise<Channel | undefined>;
+=======
+>>>>>>> 2a6e854b (Enable campaign creation and manage WhatsApp channel configurations)
 
   // WhatsApp Channels
   getWhatsappChannels(): Promise<WhatsappChannel[]>;
@@ -126,6 +177,7 @@ export interface IStorage {
 
   // Webhook Configs
   getWebhookConfigs(): Promise<WebhookConfig[]>;
+<<<<<<< HEAD
   getWebhookConfig(id: string): Promise<WebhookConfig | undefined>;
   createWebhookConfig(config: InsertWebhookConfig): Promise<WebhookConfig>;
   updateWebhookConfig(id: string, config: Partial<WebhookConfig>): Promise<WebhookConfig | undefined>;
@@ -137,6 +189,11 @@ export interface IStorage {
   createWebhookConfig(config: InsertWebhookConfig): Promise<WebhookConfig>;
   updateWebhookConfig(id: string, config: Partial<InsertWebhookConfig>): Promise<WebhookConfig | undefined>;
   deleteWebhookConfig(id: string): Promise<boolean>;
+=======
+  getWebhookConfig(channelId: string): Promise<WebhookConfig | undefined>;
+  createWebhookConfig(config: InsertWebhookConfig): Promise<WebhookConfig>;
+  updateWebhookConfig(id: string, config: Partial<WebhookConfig>): Promise<WebhookConfig | undefined>;
+>>>>>>> 2a6e854b (Enable campaign creation and manage WhatsApp channel configurations)
 
   // Message Queue
   getMessageQueueStats(): Promise<Record<string, number>>;
@@ -144,23 +201,42 @@ export interface IStorage {
 
   // API Logs
   getApiLogs(channelId?: string, limit?: number): Promise<ApiLog[]>;
+<<<<<<< HEAD
   logApiRequest(log: InsertApiLog): Promise<ApiLog | null>;
+=======
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
+=======
+>>>>>>> 2a6e854b (Enable campaign creation and manage WhatsApp channel configurations)
 }
 
 export class MemStorage implements IStorage {
   private users: Map<string, User> = new Map();
   private contacts: Map<string, Contact> = new Map();
   private campaigns: Map<string, Campaign> = new Map();
+<<<<<<< HEAD
   private channels: Map<string, Channel> = new Map();
+=======
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
   private templates: Map<string, Template> = new Map();
   private conversations: Map<string, Conversation> = new Map();
   private messages: Map<string, Message> = new Map();
   private automations: Map<string, Automation> = new Map();
   private analytics: Map<string, Analytics> = new Map();
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 2a6e854b (Enable campaign creation and manage WhatsApp channel configurations)
   private whatsappChannels: Map<string, WhatsappChannel> = new Map();
   private webhookConfigs: Map<string, WebhookConfig> = new Map();
   private messageQueues: Map<string, MessageQueue> = new Map();
   private apiLogs: Map<string, ApiLog> = new Map();
+<<<<<<< HEAD
+=======
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
+=======
+  private messageQueues: Map<string, MessageQueue> = new Map();
+  private apiLogs: Map<string, ApiLog> = new Map();
+>>>>>>> 2a6e854b (Enable campaign creation and manage WhatsApp channel configurations)
 
   constructor() {
     this.initializeSampleData();
@@ -181,6 +257,7 @@ export class MemStorage implements IStorage {
       createdAt: today,
     };
     this.analytics.set(analyticsEntry.id, analyticsEntry);
+<<<<<<< HEAD
 
     // Initialize a default channel for the user to work with
     const defaultChannel: Channel = {
@@ -195,6 +272,8 @@ export class MemStorage implements IStorage {
       updatedAt: today,
     };
     this.channels.set(defaultChannel.id, defaultChannel);
+=======
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
   }
 
   // Users
@@ -296,6 +375,7 @@ export class MemStorage implements IStorage {
     return this.campaigns.delete(id);
   }
 
+<<<<<<< HEAD
   // Channels
   async getChannels(): Promise<Channel[]> {
     return Array.from(this.channels.values()).sort((a, b) => 
@@ -340,6 +420,8 @@ export class MemStorage implements IStorage {
     return channels.find(c => c.isActive) || channels[0];
   }
 
+=======
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
   // Templates
   async getTemplates(): Promise<Template[]> {
     return Array.from(this.templates.values()).sort((a, b) => 
@@ -357,6 +439,7 @@ export class MemStorage implements IStorage {
       ...insertTemplate,
       id,
       createdAt: new Date(),
+<<<<<<< HEAD
       updatedAt: new Date(),
       status: insertTemplate.status || "draft",
       channelId: insertTemplate.channelId || null,
@@ -374,6 +457,8 @@ export class MemStorage implements IStorage {
       mediaHandle: insertTemplate.mediaHandle || null,
       carouselCards: insertTemplate.carouselCards || [],
       usage_count: insertTemplate.usage_count ?? 0,
+=======
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
     };
     this.templates.set(id, template);
     return template;
@@ -404,10 +489,13 @@ export class MemStorage implements IStorage {
     return this.conversations.get(id);
   }
 
+<<<<<<< HEAD
   async getConversationByPhone(phone: string): Promise<Conversation | undefined> {
     return Array.from(this.conversations.values()).find(c => c.contactPhone === phone);
   }
 
+=======
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
   async createConversation(insertConversation: InsertConversation): Promise<Conversation> {
     const id = randomUUID();
     const conversation: Conversation = {
@@ -456,6 +544,7 @@ export class MemStorage implements IStorage {
     return message;
   }
 
+<<<<<<< HEAD
   async updateMessage(id: string, updates: Partial<Message>): Promise<Message | undefined> {
     const message = this.messages.get(id);
     if (!message) return undefined;
@@ -469,6 +558,8 @@ export class MemStorage implements IStorage {
     return Array.from(this.messages.values()).find(m => m.whatsappMessageId === whatsappMessageId);
   }
 
+=======
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
   // Automations
   async getAutomations(): Promise<Automation[]> {
     return Array.from(this.automations.values()).sort((a, b) => 
@@ -560,6 +651,10 @@ export class MemStorage implements IStorage {
       unreadChats,
     };
   }
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 2a6e854b (Enable campaign creation and manage WhatsApp channel configurations)
 
   // WhatsApp Channels
   async getWhatsappChannels(): Promise<WhatsappChannel[]> {
@@ -616,7 +711,11 @@ export class MemStorage implements IStorage {
     return config;
   }
 
+<<<<<<< HEAD
   async updateWebhookConfig(id: string, updates: Partial<InsertWebhookConfig>): Promise<WebhookConfig | undefined> {
+=======
+  async updateWebhookConfig(id: string, updates: Partial<WebhookConfig>): Promise<WebhookConfig | undefined> {
+>>>>>>> 2a6e854b (Enable campaign creation and manage WhatsApp channel configurations)
     const config = this.webhookConfigs.get(id);
     if (config) {
       const updated = { ...config, ...updates };
@@ -626,10 +725,13 @@ export class MemStorage implements IStorage {
     return undefined;
   }
 
+<<<<<<< HEAD
   async deleteWebhookConfig(id: string): Promise<boolean> {
     return this.webhookConfigs.delete(id);
   }
 
+=======
+>>>>>>> 2a6e854b (Enable campaign creation and manage WhatsApp channel configurations)
   // Message Queue
   async getMessageQueueStats(): Promise<Record<string, number>> {
     const stats: Record<string, number> = {
@@ -665,6 +767,8 @@ export class MemStorage implements IStorage {
     
     return logs.slice(-limit);
   }
+<<<<<<< HEAD
+<<<<<<< HEAD
 
   async logApiRequest(log: InsertApiLog): Promise<ApiLog | null> {
     try {
@@ -692,3 +796,22 @@ export class MemStorage implements IStorage {
 // Import DatabaseStorage and use it instead
 import { DatabaseStorage } from "./database-storage";
 export const storage = new DatabaseStorage();
+=======
+=======
+>>>>>>> 2a6e854b (Enable campaign creation and manage WhatsApp channel configurations)
+=======
+
+  async logApiRequest(log: InsertApiLog): Promise<ApiLog> {
+    const apiLog: ApiLog = {
+      ...log,
+      id: Date.now().toString(),
+      createdAt: new Date(),
+    };
+    this.apiLogs.set(apiLog.id, apiLog);
+    return apiLog;
+  }
+>>>>>>> d1e3f7ab (Add feature to test WhatsApp channel connections within settings)
+}
+
+export const storage = new MemStorage();
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)

@@ -1,9 +1,18 @@
+<<<<<<< HEAD
 import * as schema from "@shared/schema";
 import { drizzle as drizzleNeon } from 'drizzle-orm/neon-serverless';
 import { drizzle as drizzleNode } from 'drizzle-orm/node-postgres';
 import { Pool as NeonPool, neonConfig } from '@neondatabase/serverless';
 import { Pool as PgPool } from 'pg';
 import ws from "ws";
+=======
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import ws from "ws";
+import * as schema from "@shared/schema";
+
+neonConfig.webSocketConstructor = ws;
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -11,6 +20,7 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
+<<<<<<< HEAD
 // Detect if using Neon database (contains 'neon' in the URL)
 const isNeonDatabase = process.env.DATABASE_URL.includes('neon.tech') || 
                        process.env.DATABASE_URL.includes('neon.') ||
@@ -75,3 +85,7 @@ pool.connect()
   });
 
 export { pool, db };
+=======
+export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+export const db = drizzle({ client: pool, schema });
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)

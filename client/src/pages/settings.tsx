@@ -1,4 +1,6 @@
 import { useState } from "react";
+<<<<<<< HEAD
+<<<<<<< HEAD
 import Header from "@/components/layout/header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Smartphone, Webhook, Key, User } from "lucide-react";
@@ -9,6 +11,276 @@ import { ApiKeySettings } from "@/components/settings/ApiKeySettings";
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState("whatsapp");
+=======
+import { useQuery } from "@tanstack/react-query";
+=======
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+>>>>>>> 2a6e854b (Enable campaign creation and manage WhatsApp channel configurations)
+import Header from "@/components/layout/header";
+import { Loading } from "@/components/ui/loading";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Settings as SettingsIcon, 
+  Smartphone, 
+  Webhook, 
+  Key, 
+  User, 
+  Users, 
+  Shield,
+  Bell,
+  Zap,
+  CheckCircle,
+  XCircle,
+  TestTube,
+  Eye,
+  Save,
+  Plus,
+  Trash2,
+  AlertCircle,
+  Copy,
+  RefreshCw
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { 
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { WhatsappChannel, WebhookConfig } from "@shared/schema";
+
+// Form schemas
+const channelFormSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  phoneNumber: z.string().min(10, "Valid phone number required"),
+  phoneNumberId: z.string().min(1, "Phone Number ID is required"),
+  wabaId: z.string().min(1, "Business Account ID is required"),
+  accessToken: z.string().min(1, "Access Token is required"),
+  businessAccountId: z.string().optional(),
+  mmLiteEnabled: z.boolean().default(false),
+});
+
+const webhookFormSchema = z.object({
+  webhookUrl: z.string().url("Valid URL required"),
+  verifyToken: z.string().min(8, "Verify token must be at least 8 characters"),
+  appSecret: z.string().optional(),
+  events: z.array(z.string()).min(1, "Select at least one event"),
+});
+
+export default function Settings() {
+  const [activeTab, setActiveTab] = useState("whatsapp");
+  const [showChannelDialog, setShowChannelDialog] = useState(false);
+  const [editingChannel, setEditingChannel] = useState<WhatsappChannel | null>(null);
+  const [showWebhookDialog, setShowWebhookDialog] = useState(false);
+  const { toast } = useToast();
+
+  // Fetch WhatsApp channels
+  const { data: channels = [], isLoading: channelsLoading } = useQuery<WhatsappChannel[]>({
+    queryKey: ["/api/whatsapp/channels"],
+  });
+
+  // Fetch webhook configs
+  const { data: webhookConfigs = [], isLoading: webhooksLoading } = useQuery<WebhookConfig[]>({
+    queryKey: ["/api/whatsapp/webhooks"],
+  });
+
+  // Channel form
+  const channelForm = useForm<z.infer<typeof channelFormSchema>>({
+    resolver: zodResolver(channelFormSchema),
+    defaultValues: {
+      name: "",
+      phoneNumber: "",
+      phoneNumberId: "",
+      wabaId: "",
+      accessToken: "",
+      businessAccountId: "",
+      mmLiteEnabled: false,
+    },
+  });
+
+  // Webhook form
+  const webhookForm = useForm<z.infer<typeof webhookFormSchema>>({
+    resolver: zodResolver(webhookFormSchema),
+    defaultValues: {
+      webhookUrl: "",
+      verifyToken: "",
+      appSecret: "",
+      events: ["messages", "message_status"],
+    },
+  });
+
+  // Create channel mutation
+  const createChannelMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof channelFormSchema>) => {
+      if (editingChannel) {
+        return apiRequest(`/api/whatsapp/channels/${editingChannel.id}`, {
+          method: "PUT",
+          body: JSON.stringify(data),
+        });
+      }
+      return apiRequest("/api/whatsapp/channels", {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: editingChannel ? "Channel updated" : "Channel added",
+        description: "WhatsApp channel has been saved successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/whatsapp/channels"] });
+      setShowChannelDialog(false);
+      setEditingChannel(null);
+      channelForm.reset();
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete channel mutation
+  const deleteChannelMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return apiRequest(`/api/whatsapp/channels/${id}`, {
+        method: "DELETE",
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Channel deleted",
+        description: "WhatsApp channel has been removed.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/whatsapp/channels"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Test channel mutation
+  const testChannelMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return apiRequest(`/api/whatsapp/channels/${id}/test`, {
+        method: "POST",
+        body: JSON.stringify({}),
+      });
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Test successful",
+        description: "WhatsApp message sent successfully. Check your phone!",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Test failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Create webhook config mutation
+  const createWebhookMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof webhookFormSchema> & { channelId: string }) => {
+      return apiRequest("/api/whatsapp/webhooks", {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Webhook configured",
+        description: "Webhook configuration has been saved.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/whatsapp/webhooks"] });
+      setShowWebhookDialog(false);
+      webhookForm.reset();
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleEditChannel = (channel: WhatsappChannel) => {
+    setEditingChannel(channel);
+    channelForm.reset({
+      name: channel.name,
+      phoneNumber: channel.phoneNumber,
+      phoneNumberId: channel.phoneNumberId,
+      wabaId: channel.wabaId,
+      accessToken: channel.accessToken,
+      businessAccountId: channel.businessAccountId || "",
+      mmLiteEnabled: channel.mmLiteEnabled || false,
+    });
+    setShowChannelDialog(true);
+  };
+
+  const handleChannelSubmit = (data: z.infer<typeof channelFormSchema>) => {
+    createChannelMutation.mutate(data);
+  };
+
+  const handleWebhookSubmit = (data: z.infer<typeof webhookFormSchema>) => {
+    if (channels.length === 0) {
+      toast({
+        title: "No channels",
+        description: "Please add a WhatsApp channel first.",
+        variant: "destructive",
+      });
+      return;
+    }
+    createWebhookMutation.mutate({ ...data, channelId: channels[0].id });
+  };
+
+  const handleSaveSettings = () => {
+    toast({
+      title: "Settings saved",
+      description: "Your settings have been updated successfully.",
+    });
+  };
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
 
   return (
     <div className="flex-1 dots-bg min-h-screen">
@@ -19,7 +291,11 @@ export default function Settings() {
 
       <main className="p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+<<<<<<< HEAD
           <TabsList className="grid w-full grid-cols-4">
+=======
+          <TabsList className="grid w-full grid-cols-5">
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
             <TabsTrigger value="whatsapp" className="flex items-center space-x-2">
               <Smartphone className="w-4 h-4" />
               <span>WhatsApp</span>
@@ -32,6 +308,13 @@ export default function Settings() {
               <Key className="w-4 h-4" />
               <span>API Keys</span>
             </TabsTrigger>
+<<<<<<< HEAD
+=======
+            <TabsTrigger value="team" className="flex items-center space-x-2">
+              <Users className="w-4 h-4" />
+              <span>Team</span>
+            </TabsTrigger>
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
             <TabsTrigger value="account" className="flex items-center space-x-2">
               <User className="w-4 h-4" />
               <span>Account</span>
@@ -39,6 +322,7 @@ export default function Settings() {
           </TabsList>
 
           {/* WhatsApp Numbers Tab */}
+<<<<<<< HEAD
           <TabsContent value="whatsapp">
             <ChannelSettings />
           </TabsContent>
@@ -56,9 +340,750 @@ export default function Settings() {
           {/* Account Tab */}
           <TabsContent value="account">
             <AccountSettings />
+=======
+          <TabsContent value="whatsapp" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center">
+                    <Smartphone className="w-5 h-5 mr-2" />
+                    WhatsApp Channels
+                  </CardTitle>
+                  <Button onClick={() => {
+                    setEditingChannel(null);
+                    channelForm.reset();
+                    setShowChannelDialog(true);
+                  }}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Channel
+                  </Button>
+                </div>
+                <CardDescription>
+                  Configure your WhatsApp Business API channels for Cloud API and MM Lite
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {channelsLoading ? (
+                  <Loading />
+                ) : channels.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Smartphone className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                    <p className="text-gray-500 mb-4">No WhatsApp channels configured yet</p>
+                    <Button onClick={() => setShowChannelDialog(true)}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Your First Channel
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {channels.map((channel) => (
+                      <div key={channel.id} className="border border-gray-200 rounded-lg p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <h3 className="text-lg font-medium text-gray-900">{channel.name}</h3>
+                              <Badge className={channel.status === 'active' ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
+                                {channel.status === 'active' ? (
+                                  <>
+                                    <CheckCircle className="w-3 h-3 mr-1" />
+                                    Active
+                                  </>
+                                ) : (
+                                  <>
+                                    <XCircle className="w-3 h-3 mr-1" />
+                                    Inactive
+                                  </>
+                                )}
+                              </Badge>
+                              {channel.mmLiteEnabled && (
+                                <Badge className="bg-purple-100 text-purple-800">
+                                  <Zap className="w-3 h-3 mr-1" />
+                                  MM Lite Enabled
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+                              <div>
+                                <strong>Phone:</strong> {channel.phoneNumber}
+                              </div>
+                              <div>
+                                <strong>Quality Rating:</strong>{' '}
+                                <span className={`font-medium ${
+                                  channel.qualityRating === 'green' ? 'text-green-600' :
+                                  channel.qualityRating === 'yellow' ? 'text-yellow-600' :
+                                  'text-red-600'
+                                }`}>
+                                  {channel.qualityRating?.toUpperCase()}
+                                </span>
+                              </div>
+                              <div>
+                                <strong>Phone Number ID:</strong> {channel.phoneNumberId}
+                              </div>
+                              <div>
+                                <strong>WABA ID:</strong> {channel.wabaId}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => testChannelMutation.mutate(channel.id)}
+                              disabled={testChannelMutation.isPending}
+                            >
+                              {testChannelMutation.isPending ? (
+                                <>Testing...</>
+                              ) : (
+                                <>Test Connection</>
+                              )}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditChannel(channel)}
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                if (confirm("Are you sure you want to delete this channel?")) {
+                                  deleteChannelMutation.mutate(channel.id);
+                                }
+                              }}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Channel Dialog */}
+            <Dialog open={showChannelDialog} onOpenChange={setShowChannelDialog}>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingChannel ? "Edit WhatsApp Channel" : "Add WhatsApp Channel"}
+                  </DialogTitle>
+                  <DialogDescription>
+                    Configure your WhatsApp Business API credentials
+                  </DialogDescription>
+                </DialogHeader>
+                <Form {...channelForm}>
+                  <form onSubmit={channelForm.handleSubmit(handleChannelSubmit)} className="space-y-4">
+                    <FormField
+                      control={channelForm.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Channel Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g., Main Business Number" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={channelForm.control}
+                        name="phoneNumber"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Phone Number</FormLabel>
+                            <FormControl>
+                              <Input placeholder="+1234567890" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={channelForm.control}
+                        name="phoneNumberId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Phone Number ID</FormLabel>
+                            <FormControl>
+                              <Input placeholder="123456789012345" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={channelForm.control}
+                        name="wabaId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>WhatsApp Business Account ID</FormLabel>
+                            <FormControl>
+                              <Input placeholder="987654321098765" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={channelForm.control}
+                        name="businessAccountId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Business Account ID (Optional)</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Optional" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <FormField
+                      control={channelForm.control}
+                      name="accessToken"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Access Token</FormLabel>
+                          <FormControl>
+                            <Input type="password" placeholder="EAAxxxxxxx..." {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            Your Meta Business Platform access token
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={channelForm.control}
+                      name="mmLiteEnabled"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel>
+                              Enable MM Lite API
+                            </FormLabel>
+                            <FormDescription>
+                              Use MM Lite for optimized marketing message delivery
+                            </FormDescription>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                    <DialogFooter>
+                      <Button type="button" variant="outline" onClick={() => setShowChannelDialog(false)}>
+                        Cancel
+                      </Button>
+                      <Button type="submit" disabled={createChannelMutation.isPending}>
+                        {createChannelMutation.isPending ? "Saving..." : "Save Channel"}
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
+          </TabsContent>
+
+          {/* Webhooks Tab */}
+          <TabsContent value="webhooks" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center">
+                    <Webhook className="w-5 h-5 mr-2" />
+                    Webhook Configuration
+                  </CardTitle>
+                  <Button onClick={() => setShowWebhookDialog(true)}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Configure Webhook
+                  </Button>
+                </div>
+                <CardDescription>
+                  Set up webhooks to receive real-time notifications for message events
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {webhooksLoading ? (
+                  <Loading />
+                ) : webhookConfigs.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Webhook className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                    <p className="text-gray-500 mb-4">No webhooks configured yet</p>
+                    <Button onClick={() => setShowWebhookDialog(true)}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Configure Your First Webhook
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {webhookConfigs.map((config) => (
+                      <div key={config.id} className="border border-gray-200 rounded-lg p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <h3 className="text-lg font-medium text-gray-900">
+                                {channels.find(c => c.id === config.channelId)?.name || 'Unknown Channel'}
+                              </h3>
+                              <Badge className="bg-blue-100 text-blue-800">
+                                <Webhook className="w-3 h-3 mr-1" />
+                                Webhook Active
+                              </Badge>
+                            </div>
+                            <div className="space-y-2 text-sm text-gray-600">
+                              <div>
+                                <strong>Webhook URL:</strong> {config.webhookUrl}
+                              </div>
+                              <div>
+                                <strong>Events:</strong> {config.events.join(', ')}
+                              </div>
+                              <div>
+                                <strong>Last Received:</strong> {config.lastReceived ? new Date(config.lastReceived).toLocaleString() : 'Never'}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const url = window.location.origin + '/webhook';
+                                navigator.clipboard.writeText(url);
+                                toast({
+                                  title: "Webhook URL copied",
+                                  description: url,
+                                });
+                              }}
+                            >
+                              <Copy className="w-4 h-4 mr-1" />
+                              Copy URL
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Webhook Dialog */}
+            <Dialog open={showWebhookDialog} onOpenChange={setShowWebhookDialog}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Configure Webhook</DialogTitle>
+                  <DialogDescription>
+                    Set up webhook to receive real-time message events
+                  </DialogDescription>
+                </DialogHeader>
+                <Form {...webhookForm}>
+                  <form onSubmit={webhookForm.handleSubmit(handleWebhookSubmit)} className="space-y-4">
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <p className="text-sm text-gray-600 mb-2">
+                        <strong>Your webhook endpoint:</strong>
+                      </p>
+                      <code className="bg-white px-2 py-1 rounded text-sm">
+                        {window.location.origin}/webhook
+                      </code>
+                    </div>
+                    <FormField
+                      control={webhookForm.control}
+                      name="webhookUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Webhook URL</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="https://your-domain.com/webhook" 
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            URL where WhatsApp will send event notifications
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={webhookForm.control}
+                      name="verifyToken"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Verify Token</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="Enter a secure verify token" 
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Token used to verify webhook requests from WhatsApp
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={webhookForm.control}
+                      name="appSecret"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>App Secret (Optional)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="password"
+                              placeholder="Optional app secret for signature verification" 
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={webhookForm.control}
+                      name="events"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Subscribe to Events</FormLabel>
+                          <div className="grid grid-cols-2 gap-2 mt-2">
+                            {[
+                              { value: "messages", label: "Messages" },
+                              { value: "message_status", label: "Message Status" },
+                              { value: "message_reads", label: "Message Reads" },
+                              { value: "message_reactions", label: "Reactions" }
+                            ].map((event) => (
+                              <div key={event.value} className="flex items-center space-x-2">
+                                <input
+                                  type="checkbox"
+                                  id={event.value}
+                                  checked={field.value.includes(event.value)}
+                                  onChange={(e) => {
+                                    const newValue = e.target.checked
+                                      ? [...field.value, event.value]
+                                      : field.value.filter(v => v !== event.value);
+                                    field.onChange(newValue);
+                                  }}
+                                  className="rounded"
+                                />
+                                <label htmlFor={event.value} className="text-sm text-gray-700">
+                                  {event.label}
+                                </label>
+                              </div>
+                            ))}
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <DialogFooter>
+                      <Button type="button" variant="outline" onClick={() => setShowWebhookDialog(false)}>
+                        Cancel
+                      </Button>
+                      <Button type="submit" disabled={createWebhookMutation.isPending}>
+                        {createWebhookMutation.isPending ? "Saving..." : "Save Configuration"}
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
+          </TabsContent>
+
+          {/* API Keys Tab */}
+          <TabsContent value="api" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Key className="w-5 h-5 mr-2" />
+                  API Keys & Integrations
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* OpenAI Integration */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900">OpenAI ChatGPT</h3>
+                      <p className="text-sm text-gray-600">AI-powered chatbot responses</p>
+                    </div>
+                    <Badge className="bg-green-100 text-green-800">
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                      Connected
+                    </Badge>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        API Key
+                      </label>
+                      <Input 
+                        type="password" 
+                        placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                        defaultValue="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Model
+                      </label>
+                      <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent">
+                        <option value="gpt-4">GPT-4</option>
+                        <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        System Instructions
+                      </label>
+                      <Textarea 
+                        rows={3}
+                        placeholder="You are a helpful customer service assistant..."
+                        defaultValue="You are a helpful customer service assistant for our business. Be friendly, professional, and concise in your responses."
+                      />
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch id="ai-enabled" defaultChecked />
+                      <label htmlFor="ai-enabled" className="text-sm text-gray-700">
+                        Enable AI responses
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* External API Keys */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">External Integrations</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        CRM API Key
+                      </label>
+                      <Input type="password" placeholder="Enter your CRM API key" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Analytics Webhook URL
+                      </label>
+                      <Input placeholder="https://your-analytics-service.com/webhook" />
+                    </div>
+                  </div>
+                </div>
+
+                <Button 
+                  onClick={() => {
+                    toast({
+                      title: "Settings saved",
+                      description: "API settings have been saved successfully.",
+                    });
+                  }} 
+                  className="w-full"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  Save API Settings
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Team Tab */}
+          <TabsContent value="team" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center">
+                    <Users className="w-5 h-5 mr-2" />
+                    Team Management
+                  </CardTitle>
+                  <Button>
+                    <User className="w-4 h-4 mr-2" />
+                    Invite Member
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Member
+                        </th>
+                        <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Role
+                        </th>
+                        <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Status
+                        </th>
+                        <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Last Active
+                        </th>
+                        <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      <tr>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center">
+                            <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
+                              <span className="text-sm font-medium text-white">JD</span>
+                            </div>
+                            <div className="ml-4">
+                              <div className="text-sm font-medium text-gray-900">John Doe</div>
+                              <div className="text-sm text-gray-500">john@company.com</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <Badge className="bg-purple-100 text-purple-800">Admin</Badge>
+                        </td>
+                        <td className="px-6 py-4">
+                          <Badge className="bg-green-100 text-green-800">Active</Badge>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900">2 minutes ago</td>
+                        <td className="px-6 py-4">
+                          <div className="flex space-x-2">
+                            <Button variant="ghost" size="sm">
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm">
+                              <SettingsIcon className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Account Tab */}
+          <TabsContent value="account" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Profile Settings */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <User className="w-5 h-5 mr-2" />
+                    Profile Settings
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Full Name
+                    </label>
+                    <Input defaultValue="John Doe" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Email
+                    </label>
+                    <Input type="email" defaultValue="john@company.com" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Company
+                    </label>
+                    <Input defaultValue="Acme Corp" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Current Password
+                    </label>
+                    <Input type="password" placeholder="Enter current password" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      New Password
+                    </label>
+                    <Input type="password" placeholder="Enter new password" />
+                  </div>
+                  <Button onClick={handleSaveSettings} className="w-full">
+                    <Save className="w-4 h-4 mr-2" />
+                    Update Profile
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Notification Settings */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Bell className="w-5 h-5 mr-2" />
+                    Notification Settings
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-900">New Messages</h4>
+                      <p className="text-sm text-gray-500">Get notified when you receive new messages</p>
+                    </div>
+                    <Switch defaultChecked />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-900">Campaign Updates</h4>
+                      <p className="text-sm text-gray-500">Notifications about campaign status changes</p>
+                    </div>
+                    <Switch defaultChecked />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-900">System Alerts</h4>
+                      <p className="text-sm text-gray-500">Important system notifications and alerts</p>
+                    </div>
+                    <Switch defaultChecked />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-900">Weekly Reports</h4>
+                      <p className="text-sm text-gray-500">Receive weekly performance reports</p>
+                    </div>
+                    <Switch />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-900">Marketing Updates</h4>
+                      <p className="text-sm text-gray-500">Product updates and feature announcements</p>
+                    </div>
+                    <Switch />
+                  </div>
+                  <Button onClick={handleSaveSettings} className="w-full">
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Preferences
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
           </TabsContent>
         </Tabs>
       </main>
     </div>
   );
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)

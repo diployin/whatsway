@@ -1,5 +1,9 @@
 import { db } from "../db";
+<<<<<<< HEAD
 import { messageQueue, channels, campaigns } from "@shared/schema";
+=======
+import { messageQueue, whatsappChannels, campaigns } from "@shared/schema";
+>>>>>>> 2a6e854b (Enable campaign creation and manage WhatsApp channel configurations)
 import { eq, and, lte, isNull, sql } from "drizzle-orm";
 import { WhatsAppApiService } from "./whatsapp-api";
 
@@ -77,8 +81,13 @@ export class MessageQueueService {
       // Get the channel
       const [channel] = await db
         .select()
+<<<<<<< HEAD
         .from(channels)
         .where(eq(channels.id, message.channelId))
+=======
+        .from(whatsappChannels)
+        .where(eq(whatsappChannels.id, message.channelId))
+>>>>>>> 2a6e854b (Enable campaign creation and manage WhatsApp channel configurations)
         .limit(1);
 
       if (!channel) {
@@ -99,9 +108,16 @@ export class MessageQueueService {
         return;
       }
 
+<<<<<<< HEAD
       // Determine if we should use marketing_messages endpoint
       const isMarketing = message.messageType === "marketing" && 
                          message.sentVia !== "cloud_api"; // Allow forcing standard API
+=======
+      // Determine if we should use MM Lite
+      const useMMlite = message.messageType === "marketing" && 
+                       channel.mmLiteEnabled === true && 
+                       message.sentVia !== "cloud_api"; // Allow forcing standard API
+>>>>>>> 2a6e854b (Enable campaign creation and manage WhatsApp channel configurations)
 
       // Send the message
       let response;
@@ -112,7 +128,11 @@ export class MessageQueueService {
           message.templateName,
           message.templateParams || [],
           "en_US",
+<<<<<<< HEAD
           isMarketing
+=======
+          useMMlite
+>>>>>>> 2a6e854b (Enable campaign creation and manage WhatsApp channel configurations)
         );
       } else {
         // For non-template messages (future implementation)
@@ -125,7 +145,11 @@ export class MessageQueueService {
         .set({
           status: "sent",
           whatsappMessageId: response.messages?.[0]?.id,
+<<<<<<< HEAD
           sentVia: isMarketing ? "marketing_messages" : "cloud_api",
+=======
+          sentVia: useMMlite ? "mm_lite" : "cloud_api",
+>>>>>>> 2a6e854b (Enable campaign creation and manage WhatsApp channel configurations)
           attempts: message.attempts + 1
         })
         .where(eq(messageQueue.id, message.id));

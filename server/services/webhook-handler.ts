@@ -1,5 +1,9 @@
 import { db } from "../db";
+<<<<<<< HEAD
 import { webhookConfigs, messages, conversations, contacts, messageQueue, templates } from "@shared/schema";
+=======
+import { webhookConfigs, messages, conversations, contacts, messageQueue } from "@shared/schema";
+>>>>>>> 2a6e854b (Enable campaign creation and manage WhatsApp channel configurations)
 import { eq, and } from "drizzle-orm";
 import crypto from "crypto";
 
@@ -202,6 +206,7 @@ export class WebhookHandler {
   // Handle message status updates
   private static async handleStatusUpdate(status: WebhookStatus): Promise<void> {
     try {
+<<<<<<< HEAD
       // Update message status in messages table
       const [message] = await db
         .select()
@@ -233,6 +238,9 @@ export class WebhookHandler {
       }
 
       // Also check message queue for campaign messages
+=======
+      // Update message queue status
+>>>>>>> 2a6e854b (Enable campaign creation and manage WhatsApp channel configurations)
       const [queueItem] = await db
         .select()
         .from(messageQueue)
@@ -253,6 +261,18 @@ export class WebhookHandler {
           updateData.errorMessage = status.errors[0].message;
         }
 
+<<<<<<< HEAD
+=======
+        if (status.conversation?.id) {
+          updateData.conversationId = status.conversation.id;
+        }
+
+        if (status.pricing) {
+          // Store cost information if available
+          updateData.cost = status.pricing.category; // You might want to map this to actual cost
+        }
+
+>>>>>>> 2a6e854b (Enable campaign creation and manage WhatsApp channel configurations)
         await db
           .update(messageQueue)
           .set(updateData)
@@ -263,6 +283,11 @@ export class WebhookHandler {
           await this.updateCampaignStats(queueItem.campaignId, status.status);
         }
       }
+<<<<<<< HEAD
+=======
+
+      console.log(`Message ${status.id} status updated to ${status.status}`);
+>>>>>>> 2a6e854b (Enable campaign creation and manage WhatsApp channel configurations)
     } catch (error) {
       console.error("Error handling status update:", error);
       throw error;
@@ -290,7 +315,11 @@ export class WebhookHandler {
   }
 
   // Handle template status updates
+<<<<<<< HEAD
   static async handleTemplateStatusUpdate(value: any): Promise<void> {
+=======
+  private static async handleTemplateStatusUpdate(value: any): Promise<void> {
+>>>>>>> 2a6e854b (Enable campaign creation and manage WhatsApp channel configurations)
     try {
       const { message_template_id, message_template_name, event, reason } = value;
 
@@ -299,6 +328,7 @@ export class WebhookHandler {
         reason ? `Reason: ${reason}` : ""
       );
 
+<<<<<<< HEAD
       // Map WhatsApp event status to our template status
       let status: string;
       switch (event) {
@@ -344,6 +374,10 @@ export class WebhookHandler {
           console.warn(`Template not found for update: ${message_template_name} (${message_template_id})`);
         }
       }
+=======
+      // You can update your templates table here based on the status
+      // For now, we'll just log it
+>>>>>>> 2a6e854b (Enable campaign creation and manage WhatsApp channel configurations)
     } catch (error) {
       console.error("Error handling template status update:", error);
       throw error;

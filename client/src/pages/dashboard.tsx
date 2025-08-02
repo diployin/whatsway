@@ -19,6 +19,7 @@ import {
   ExternalLink
 } from "lucide-react";
 import { useDashboardStats, useAnalytics } from "@/hooks/use-dashboard";
+<<<<<<< HEAD
 import { useTranslation } from "@/lib/i18n";
 
 export default function Dashboard() {
@@ -34,6 +35,12 @@ export default function Dashboard() {
 
   const { data: stats, isLoading: statsLoading } = useDashboardStats(activeChannel?.id);
   const { data: analytics, isLoading: analyticsLoading } = useAnalytics(7, activeChannel?.id);
+=======
+
+export default function Dashboard() {
+  const { data: stats, isLoading: statsLoading } = useDashboardStats();
+  const { data: analytics, isLoading: analyticsLoading } = useAnalytics(7);
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
 
   if (statsLoading) {
     return (
@@ -51,10 +58,17 @@ export default function Dashboard() {
   return (
     <div className="flex-1 dots-bg min-h-screen">
       <Header 
+<<<<<<< HEAD
         title={t('dashboard.title')} 
         subtitle={t('dashboard.subtitle')}
         action={{
           label: t('dashboard.newCampaign'),
+=======
+        title="Dashboard Overview" 
+        subtitle="Welcome back! Here's what's happening with your WhatsApp business."
+        action={{
+          label: "New Campaign",
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
           onClick: () => console.log("Create campaign")
         }}
       />
@@ -66,7 +80,11 @@ export default function Dashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
+<<<<<<< HEAD
                   <p className="text-sm font-medium text-gray-600">{t('dashboard.totalMessagesSent')}</p>
+=======
+                  <p className="text-sm font-medium text-gray-600">Total Messages Sent</p>
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
                   <p className="text-2xl font-bold text-gray-900 mt-1">
                     {stats?.totalMessages?.toLocaleString() || "0"}
                   </p>
@@ -75,7 +93,11 @@ export default function Dashboard() {
                     <span className="text-sm text-green-600 font-medium">
                       +{stats?.messagesGrowth || 0}%
                     </span>
+<<<<<<< HEAD
                     <span className="text-sm text-gray-500 ml-1">{t('dashboard.vsLastMonth')}</span>
+=======
+                    <span className="text-sm text-gray-500 ml-1">vs last month</span>
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
                   </div>
                 </div>
                 <div className="p-3 bg-blue-50 rounded-lg">
@@ -89,14 +111,22 @@ export default function Dashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
+<<<<<<< HEAD
                   <p className="text-sm font-medium text-gray-600">{t('dashboard.activeCampaigns')}</p>
+=======
+                  <p className="text-sm font-medium text-gray-600">Active Campaigns</p>
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
                   <p className="text-2xl font-bold text-gray-900 mt-1">
                     {stats?.activeCampaigns || 0}
                   </p>
                   <div className="flex items-center mt-2">
                     <Clock className="w-4 h-4 text-orange-500 mr-1" />
                     <span className="text-sm text-orange-600 font-medium">
+<<<<<<< HEAD
                       {stats?.campaignsRunning || 0} {t('dashboard.runningNow')}
+=======
+                      {stats?.campaignsRunning || 0} running now
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
                     </span>
                   </div>
                 </div>
@@ -111,7 +141,11 @@ export default function Dashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
+<<<<<<< HEAD
                   <p className="text-sm font-medium text-gray-600">{t('dashboard.deliveryRate')}</p>
+=======
+                  <p className="text-sm font-medium text-gray-600">Delivery Rate</p>
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
                   <p className="text-2xl font-bold text-gray-900 mt-1">
                     {stats?.deliveryRate?.toFixed(1) || "0.0"}%
                   </p>
@@ -157,6 +191,7 @@ export default function Dashboard() {
           <Card className="lg:col-span-2 hover-lift fade-in">
             <CardHeader>
               <div className="flex items-center justify-between">
+<<<<<<< HEAD
                 <CardTitle>{t('dashboard.messageAnalytics')}</CardTitle>
                 <div className="flex space-x-2">
                   <Button variant="outline" size="sm" className="bg-green-600 text-white border-green-600">
@@ -164,6 +199,15 @@ export default function Dashboard() {
                   </Button>
                   <Button variant="outline" size="sm">{t('dashboard.30Days')}</Button>
                   <Button variant="outline" size="sm">{t('dashboard.3Months')}</Button>
+=======
+                <CardTitle>Message Analytics</CardTitle>
+                <div className="flex space-x-2">
+                  <Button variant="outline" size="sm" className="bg-green-600 text-white border-green-600">
+                    7 Days
+                  </Button>
+                  <Button variant="outline" size="sm">30 Days</Button>
+                  <Button variant="outline" size="sm">3 Months</Button>
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
                 </div>
               </div>
             </CardHeader>
@@ -178,6 +222,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-center space-x-6 mt-4">
                 <div className="flex items-center">
                   <div className="w-3 h-3 bg-blue-600 rounded mr-2" />
+<<<<<<< HEAD
                   <span className="text-sm text-gray-600">{t('dashboard.sent')}</span>
                 </div>
                 <div className="flex items-center">
@@ -191,6 +236,21 @@ export default function Dashboard() {
                 <div className="flex items-center">
                   <div className="w-3 h-3 bg-purple-600 rounded mr-2" />
                   <span className="text-sm text-gray-600">{t('dashboard.replied')}</span>
+=======
+                  <span className="text-sm text-gray-600">Messages Sent</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-green-600 rounded mr-2" />
+                  <span className="text-sm text-gray-600">Delivered</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-orange-600 rounded mr-2" />
+                  <span className="text-sm text-gray-600">Read</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-purple-600 rounded mr-2" />
+                  <span className="text-sm text-gray-600">Replied</span>
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
                 </div>
               </div>
             </CardContent>
@@ -201,7 +261,11 @@ export default function Dashboard() {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Activity className="w-5 h-5 mr-2" />
+<<<<<<< HEAD
                 {t('dashboard.recentActivities')}
+=======
+                Recent Activities
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -211,8 +275,13 @@ export default function Dashboard() {
                     <Megaphone className="w-4 h-4 text-green-600" />
                   </div>
                   <div className="flex-1 min-w-0">
+<<<<<<< HEAD
                     <p className="text-sm text-gray-900">{t('dashboard.noRecentCampaigns')}</p>
                     <p className="text-xs text-gray-500">{t('dashboard.createFirstCampaign')}</p>
+=======
+                    <p className="text-sm text-gray-900">No recent campaigns</p>
+                    <p className="text-xs text-gray-500">Create your first campaign to see activity</p>
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
                   </div>
                 </div>
 
@@ -221,8 +290,13 @@ export default function Dashboard() {
                     <Users className="w-4 h-4 text-blue-600" />
                   </div>
                   <div className="flex-1 min-w-0">
+<<<<<<< HEAD
                     <p className="text-sm text-gray-900">{t('dashboard.noContactsImported')}</p>
                     <p className="text-xs text-gray-500">{t('dashboard.importContactsToStart')}</p>
+=======
+                    <p className="text-sm text-gray-900">No contacts imported</p>
+                    <p className="text-xs text-gray-500">Import contacts to start messaging</p>
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
                   </div>
                 </div>
 
@@ -231,14 +305,23 @@ export default function Dashboard() {
                     <Zap className="w-4 h-4 text-purple-600" />
                   </div>
                   <div className="flex-1 min-w-0">
+<<<<<<< HEAD
                     <p className="text-sm text-gray-900">{t('dashboard.noAutomationsActive')}</p>
                     <p className="text-xs text-gray-500">{t('dashboard.setupAutomationFlows')}</p>
+=======
+                    <p className="text-sm text-gray-900">No automations active</p>
+                    <p className="text-xs text-gray-500">Set up automation flows</p>
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
                   </div>
                 </div>
               </div>
               
               <Button variant="ghost" className="w-full mt-4 text-green-600 hover:text-green-700">
+<<<<<<< HEAD
                 {t('dashboard.viewAllActivities')} <ExternalLink className="w-4 h-4 ml-1" />
+=======
+                View All Activities <ExternalLink className="w-4 h-4 ml-1" />
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
               </Button>
             </CardContent>
           </Card>
@@ -249,7 +332,11 @@ export default function Dashboard() {
           {/* Quick Actions */}
           <Card className="hover-lift fade-in">
             <CardHeader>
+<<<<<<< HEAD
               <CardTitle>{t('dashboard.quickActions')}</CardTitle>
+=======
+              <CardTitle>Quick Actions</CardTitle>
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
@@ -261,8 +348,13 @@ export default function Dashboard() {
                     <Upload className="w-4 h-4 text-white" />
                   </div>
                   <div>
+<<<<<<< HEAD
                     <h4 className="font-medium text-gray-900">{t('dashboard.importContacts')}</h4>
                     <p className="text-sm text-gray-600">{t('dashboard.uploadCSV')}</p>
+=======
+                    <h4 className="font-medium text-gray-900">Import Contacts</h4>
+                    <p className="text-sm text-gray-600">Upload CSV file</p>
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
                   </div>
                 </Button>
 
@@ -274,8 +366,13 @@ export default function Dashboard() {
                     <FileText className="w-4 h-4 text-white" />
                   </div>
                   <div>
+<<<<<<< HEAD
                     <h4 className="font-medium text-gray-900">{t('dashboard.newTemplate')}</h4>
                     <p className="text-sm text-gray-600">{t('dashboard.createMessageTemplate')}</p>
+=======
+                    <h4 className="font-medium text-gray-900">New Template</h4>
+                    <p className="text-sm text-gray-600">Create message template</p>
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
                   </div>
                 </Button>
 
@@ -287,8 +384,13 @@ export default function Dashboard() {
                     <Zap className="w-4 h-4 text-white" />
                   </div>
                   <div>
+<<<<<<< HEAD
                     <h4 className="font-medium text-gray-900">{t('dashboard.buildFlow')}</h4>
                     <p className="text-sm text-gray-600">{t('dashboard.createAutomation')}</p>
+=======
+                    <h4 className="font-medium text-gray-900">Build Flow</h4>
+                    <p className="text-sm text-gray-600">Create automation</p>
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
                   </div>
                 </Button>
 
@@ -300,8 +402,13 @@ export default function Dashboard() {
                     <BarChart3 className="w-4 h-4 text-white" />
                   </div>
                   <div>
+<<<<<<< HEAD
                     <h4 className="font-medium text-gray-900">{t('dashboard.viewReports')}</h4>
                     <p className="text-sm text-gray-600">{t('dashboard.detailedAnalytics')}</p>
+=======
+                    <h4 className="font-medium text-gray-900">View Reports</h4>
+                    <p className="text-sm text-gray-600">Detailed analytics</p>
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
                   </div>
                 </Button>
               </div>
@@ -311,11 +418,16 @@ export default function Dashboard() {
           {/* API Status */}
           <Card className="hover-lift fade-in">
             <CardHeader>
+<<<<<<< HEAD
               <CardTitle>{t('dashboard.apiStatusConnection')}</CardTitle>
+=======
+              <CardTitle>API Status & Connection</CardTitle>
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {/* WhatsApp Cloud API */}
+<<<<<<< HEAD
                 <div className={`flex items-center justify-between p-3 rounded-lg ${
                   activeChannel?.status === 'active' ? 'bg-green-50' : 
                   activeChannel?.status === 'warning' ? 'bg-yellow-50' : 'bg-red-50'
@@ -371,10 +483,45 @@ export default function Dashboard() {
                     </div>
                   </div>
                 )}
+=======
+                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
+                      <MessageSquare className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-900">WhatsApp Cloud API</h4>
+                      <p className="text-sm text-gray-600">Two-way messaging & support</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full pulse-gentle" />
+                    <span className="text-sm text-green-600 font-medium">Connected</span>
+                  </div>
+                </div>
+
+                {/* MM Lite API */}
+                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                      <Zap className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-900">MM Lite API</h4>
+                      <p className="text-sm text-gray-600">Bulk marketing campaigns</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full pulse-gentle" />
+                    <span className="text-sm text-green-600 font-medium">Active</span>
+                  </div>
+                </div>
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
 
                 {/* Performance Stats */}
                 <div className="grid grid-cols-2 gap-4 mt-4">
                   <div className="text-center p-3 bg-gray-50 rounded-lg">
+<<<<<<< HEAD
                     <p className="text-lg font-bold text-gray-900">
                       {activeChannel?.lastCheckedAt ? '100%' : 'N/A'}
                     </p>
@@ -385,12 +532,21 @@ export default function Dashboard() {
                       {activeChannel ? '~200ms' : 'N/A'}
                     </p>
                     <p className="text-xs text-gray-600">{t('dashboard.avgResponse')}</p>
+=======
+                    <p className="text-lg font-bold text-gray-900">99.9%</p>
+                    <p className="text-xs text-gray-600">API Uptime</p>
+                  </div>
+                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <p className="text-lg font-bold text-gray-900">142ms</p>
+                    <p className="text-xs text-gray-600">Avg Response</p>
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
                   </div>
                 </div>
 
                 {/* Daily Limit */}
                 <div className="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
                   <div className="flex items-center justify-between mb-2">
+<<<<<<< HEAD
                     <span className="text-sm font-medium text-gray-700">{t('dashboard.dailyMessageLimit')}</span>
                     <span className="text-sm text-gray-600">
                       {stats?.totalMessages || 0} / {
@@ -415,6 +571,13 @@ export default function Dashboard() {
                         )}%` 
                       }} 
                     />
+=======
+                    <span className="text-sm font-medium text-gray-700">Daily Message Limit</span>
+                    <span className="text-sm text-gray-600">0 / 50,000</span>
+                  </div>
+                  <div className="w-full bg-yellow-200 rounded-full h-2">
+                    <div className="bg-yellow-500 h-2 rounded-full" style={{ width: "0%" }} />
+>>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
                   </div>
                 </div>
               </div>
