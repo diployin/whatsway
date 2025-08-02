@@ -21,7 +21,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 export function Campaigns() {
   const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [campaignType, setCampaignType] = useState<"contacts" | "csv" | "api">("contacts");
+  const [campaignType, setCampaignType] = useState<"contacts" | "csv">("contacts");
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
   const [variableMapping, setVariableMapping] = useState<Record<string, string>>({});
   const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
@@ -29,24 +29,24 @@ export function Campaigns() {
   const [scheduledTime, setScheduledTime] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { activeChannel } = useChannelContext();
+  const { selectedChannel } = useChannelContext();
 
   // Fetch campaigns
   const { data: campaigns = [], isLoading: campaignsLoading } = useQuery({
-    queryKey: ["/api/campaigns", activeChannel?.id],
-    enabled: !!activeChannel,
+    queryKey: ["/api/campaigns", selectedChannel?.id],
+    enabled: !!selectedChannel,
   });
 
   // Fetch templates for campaign creation
   const { data: templates = [] } = useQuery({
-    queryKey: ["/api/templates", activeChannel?.id],
-    enabled: !!activeChannel && createDialogOpen,
+    queryKey: ["/api/templates"],
+    enabled: createDialogOpen,
   });
 
   // Fetch contacts for contacts-based campaigns
   const { data: contacts = [] } = useQuery({
-    queryKey: ["/api/contacts", activeChannel?.id],
-    enabled: !!activeChannel && createDialogOpen && campaignType === "contacts",
+    queryKey: ["/api/contacts"],
+    enabled: createDialogOpen && campaignType === "contacts",
   });
 
   // Create campaign mutation
@@ -151,6 +151,26 @@ export function Campaigns() {
     return variables;
   };
 
+  const downloadSampleCSV = () => {
+    const sampleData = [
+      ["name", "phone", "email", "custom_field_1", "custom_field_2"],
+      ["John Doe", "+1234567890", "john@example.com", "Value 1", "Value 2"],
+      ["Jane Smith", "+0987654321", "jane@example.com", "Value 3", "Value 4"],
+      ["Example User", "+1122334455", "example@email.com", "Value 5", "Value 6"]
+    ];
+    
+    const csvContent = sampleData.map(row => row.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'campaign_contacts_template.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  };
+
   const handleCreateCampaign = async (formData: any) => {
     if (!selectedTemplate) {
       toast({
@@ -163,7 +183,7 @@ export function Campaigns() {
 
     const campaignData = {
       ...formData,
-      channelId: activeChannel?.id,
+      channelId: selectedChannel?.id,
       campaignType,
       templateId: selectedTemplate.id,
       templateName: selectedTemplate.name,
@@ -240,7 +260,7 @@ export function Campaigns() {
             </DialogHeader>
 
             <Tabs value={campaignType} onValueChange={(v) => setCampaignType(v as any)}>
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="contacts" className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
                   Contacts
@@ -248,10 +268,6 @@ export function Campaigns() {
                 <TabsTrigger value="csv" className="flex items-center gap-2">
                   <FileSpreadsheet className="h-4 w-4" />
                   CSV Import
-                </TabsTrigger>
-                <TabsTrigger value="api" className="flex items-center gap-2">
-                  <Code className="h-4 w-4" />
-                  API Based
                 </TabsTrigger>
               </TabsList>
 
@@ -287,13 +303,12 @@ export function Campaigns() {
 
                   <div>
                     <Label htmlFor="apiType">API Type</Label>
-                    <Select name="apiType" defaultValue="cloud_api">
+                    <Select name="apiType" defaultValue="mm_lite" disabled>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="cloud_api">WhatsApp Cloud API</SelectItem>
-                        <SelectItem value="mm_lite">MM Lite API</SelectItem>
+                        <SelectItem value="mm_lite">Meta Marketing Lite API (Required)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -387,6 +402,18 @@ export function Campaigns() {
                       accept=".csv"
                       onChange={handleFileUpload}
                     />
+                    <p className="text-sm text-muted-foreground mt-2">
+                      <a 
+                        href="#" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          downloadSampleCSV();
+                        }}
+                        className="text-blue-500 hover:underline"
+                      >
+                        Download sample CSV template
+                      </a>
+                    </p>
                   </div>
                   
                   {csvData.length > 0 && (
@@ -416,14 +443,7 @@ export function Campaigns() {
                   )}
                 </TabsContent>
 
-                <TabsContent value="api" className="space-y-4">
-                  <div className="bg-blue-50 p-4 rounded-md">
-                    <p className="text-sm text-blue-800">
-                      API campaigns allow external applications to trigger messages using your templates.
-                      After creating the campaign, you'll receive an API endpoint and key.
-                    </p>
-                  </div>
-                </TabsContent>
+
 
                 <div className="flex justify-end gap-2">
                   <Button type="button" variant="outline" onClick={() => setCreateDialogOpen(false)}>
