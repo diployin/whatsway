@@ -1,10 +1,44 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import Header from "@/components/layout/header";
 import { Loading } from "@/components/ui/loading";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { 
   Megaphone, 
   Activity, 
@@ -13,12 +47,37 @@ import {
   Eye,
   Copy,
   Trash2,
-  Zap
+  Zap,
+  Calendar,
+  Upload,
+  Users as UsersIcon,
+  Send,
+  MessageSquare
 } from "lucide-react";
 import { api } from "@/lib/api";
-import type { Campaign } from "@shared/schema";
+import type { Campaign, WhatsappChannel, Template } from "@shared/schema";
+
+// Campaign creation form schema
+const campaignFormSchema = z.object({
+  name: z.string().min(1, "Campaign name is required"),
+  templateId: z.string().min(1, "Template is required"),
+  channelId: z.string().min(1, "WhatsApp channel is required"),
+  recipientType: z.enum(["contacts", "groups", "csv"]),
+  recipientIds: z.array(z.string()).optional(),
+  csvData: z.string().optional(),
+  scheduledFor: z.string().optional(),
+  type: z.enum(["marketing", "transactional", "utility"]),
+  templateVariables: z.record(z.string()).optional(),
+});
+
+type CampaignFormValues = z.infer<typeof campaignFormSchema>;
 
 export default function Campaigns() {
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const { toast } = useToast();
+  
+  // Query for campaigns
   const { data: campaigns, isLoading } = useQuery({
     queryKey: ["/api/campaigns"],
     queryFn: async () => {
@@ -27,9 +86,89 @@ export default function Campaigns() {
     },
   });
 
+  // Query for WhatsApp channels
+  const { data: whatsappChannels } = useQuery({
+    queryKey: ["/api/whatsapp/channels"],
+  });
+
+  // Query for templates
+  const { data: templates } = useQuery({
+    queryKey: ["/api/templates"],
+  });
+
+  // Query for contacts and groups
+  const { data: contacts } = useQuery({
+    queryKey: ["/api/contacts"],
+  });
+
+  // Create campaign mutation
+  const createCampaignMutation = useMutation({
+    mutationFn: async (data: CampaignFormValues) => {
+      return await apiRequest("/api/campaigns", {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/campaigns"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
+      setIsCreateOpen(false);
+      form.reset();
+      setCsvFile(null);
+      toast({
+        title: "Campaign created successfully",
+        description: "Your campaign has been queued for sending.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to create campaign",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Form setup
+  const form = useForm<CampaignFormValues>({
+    resolver: zodResolver(campaignFormSchema),
+    defaultValues: {
+      name: "",
+      templateId: "",
+      channelId: "",
+      recipientType: "contacts",
+      recipientIds: [],
+      type: "marketing",
+      templateVariables: {},
+    },
+  });
+
   const activeCampaigns = campaigns?.filter((c: Campaign) => c.status === "active").length || 0;
   const scheduledCampaigns = campaigns?.filter((c: Campaign) => c.status === "scheduled").length || 0;
   const completedCampaigns = campaigns?.filter((c: Campaign) => c.status === "completed").length || 0;
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type === "text/csv") {
+      setCsvFile(file);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const text = event.target?.result as string;
+        form.setValue("csvData", text);
+      };
+      reader.readAsText(file);
+    } else {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload a CSV file",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const onSubmit = (data: CampaignFormValues) => {
+    createCampaignMutation.mutate(data);
+  };
 
   if (isLoading) {
     return (
@@ -49,7 +188,7 @@ export default function Campaigns() {
         subtitle="Create and manage your WhatsApp marketing campaigns"
         action={{
           label: "Create Campaign",
-          onClick: () => console.log("Create campaign")
+          onClick: () => setIsCreateOpen(true)
         }}
       />
 
@@ -156,7 +295,7 @@ export default function Campaigns() {
                 description="You haven't created any campaigns yet. Create your first campaign to start sending WhatsApp messages to your contacts."
                 action={{
                   label: "Create First Campaign",
-                  onClick: () => console.log("Create campaign")
+                  onClick: () => setIsCreateOpen(true)
                 }}
                 className="py-12"
               />
@@ -281,6 +420,272 @@ export default function Campaigns() {
           </CardContent>
         </Card>
       </main>
+
+      {/* Create Campaign Dialog */}
+      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create New Campaign</DialogTitle>
+            <DialogDescription>
+              Set up a new WhatsApp campaign using your configured channels and templates
+            </DialogDescription>
+          </DialogHeader>
+
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {/* Basic Information */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-gray-700">Basic Information</h3>
+                
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Campaign Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter campaign name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Campaign Type</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select campaign type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="marketing">Marketing</SelectItem>
+                          <SelectItem value="transactional">Transactional</SelectItem>
+                          <SelectItem value="utility">Utility</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* WhatsApp Configuration */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-gray-700">WhatsApp Configuration</h3>
+                
+                <FormField
+                  control={form.control}
+                  name="channelId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>WhatsApp Channel</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select WhatsApp channel" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {whatsappChannels?.length === 0 ? (
+                            <SelectItem value="none" disabled>
+                              No channels configured
+                            </SelectItem>
+                          ) : (
+                            whatsappChannels?.map((channel: WhatsappChannel) => (
+                              <SelectItem key={channel.id} value={channel.id}>
+                                {channel.name} ({channel.apiType === "cloud" ? "Cloud API" : "MM Lite"})
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Choose the WhatsApp channel to send messages from
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="templateId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Message Template</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select message template" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {templates?.length === 0 ? (
+                            <SelectItem value="none" disabled>
+                              No templates available
+                            </SelectItem>
+                          ) : (
+                            templates?.filter((t: Template) => t.status === "approved").map((template: Template) => (
+                              <SelectItem key={template.id} value={template.id}>
+                                {template.name} ({template.category})
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Only approved templates can be used for campaigns
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Recipients */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-gray-700">Recipients</h3>
+                
+                <FormField
+                  control={form.control}
+                  name="recipientType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Select Recipients</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          className="space-y-4"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="contacts" id="contacts" />
+                            <Label htmlFor="contacts" className="flex-1 cursor-pointer">
+                              <div>
+                                <div className="font-medium">Contacts</div>
+                                <div className="text-sm text-gray-500">
+                                  Select from your saved contacts
+                                </div>
+                              </div>
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="groups" id="groups" />
+                            <Label htmlFor="groups" className="flex-1 cursor-pointer">
+                              <div>
+                                <div className="font-medium">Contact Groups</div>
+                                <div className="text-sm text-gray-500">
+                                  Send to specific contact groups
+                                </div>
+                              </div>
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="csv" id="csv" />
+                            <Label htmlFor="csv" className="flex-1 cursor-pointer">
+                              <div>
+                                <div className="font-medium">CSV Upload</div>
+                                <div className="text-sm text-gray-500">
+                                  Upload a CSV file with phone numbers
+                                </div>
+                              </div>
+                            </Label>
+                          </div>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {form.watch("recipientType") === "csv" && (
+                  <FormItem>
+                    <FormLabel>Upload CSV File</FormLabel>
+                    <FormControl>
+                      <div className="flex items-center space-x-4">
+                        <Input
+                          type="file"
+                          accept=".csv"
+                          onChange={handleFileUpload}
+                          className="flex-1"
+                        />
+                        {csvFile && (
+                          <Badge variant="outline" className="bg-green-50">
+                            <Upload className="w-3 h-3 mr-1" />
+                            {csvFile.name}
+                          </Badge>
+                        )}
+                      </div>
+                    </FormControl>
+                    <FormDescription>
+                      CSV should contain phone numbers in the first column
+                    </FormDescription>
+                  </FormItem>
+                )}
+              </div>
+
+              {/* Schedule */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-gray-700">Schedule</h3>
+                
+                <FormField
+                  control={form.control}
+                  name="scheduledFor"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Schedule Campaign (Optional)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="datetime-local"
+                          {...field}
+                          min={new Date().toISOString().slice(0, 16)}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Leave empty to send immediately
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsCreateOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={createCampaignMutation.isPending}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  {createCampaignMutation.isPending ? (
+                    <>
+                      <Clock className="w-4 h-4 mr-2 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4 mr-2" />
+                      Create Campaign
+                    </>
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

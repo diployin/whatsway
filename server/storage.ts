@@ -15,6 +15,13 @@ import {
   type InsertAutomation,
   type Analytics,
   type InsertAnalytics,
+  type WhatsappChannel,
+  type InsertWhatsappChannel,
+  type WebhookConfig,
+  type InsertWebhookConfig,
+  type MessageQueue,
+  type InsertMessageQueue,
+  type ApiLog,
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 
@@ -75,6 +82,26 @@ export interface IStorage {
     campaignsRunning: number;
     unreadChats: number;
   }>;
+
+  // WhatsApp Channels
+  getWhatsappChannels(): Promise<WhatsappChannel[]>;
+  getWhatsappChannel(id: string): Promise<WhatsappChannel | undefined>;
+  createWhatsappChannel(channel: InsertWhatsappChannel): Promise<WhatsappChannel>;
+  updateWhatsappChannel(id: string, channel: Partial<WhatsappChannel>): Promise<WhatsappChannel | undefined>;
+  deleteWhatsappChannel(id: string): Promise<boolean>;
+
+  // Webhook Configs
+  getWebhookConfigs(): Promise<WebhookConfig[]>;
+  getWebhookConfig(channelId: string): Promise<WebhookConfig | undefined>;
+  createWebhookConfig(config: InsertWebhookConfig): Promise<WebhookConfig>;
+  updateWebhookConfig(id: string, config: Partial<WebhookConfig>): Promise<WebhookConfig | undefined>;
+
+  // Message Queue
+  getMessageQueueStats(): Promise<Record<string, number>>;
+  getQueuedMessages(limit?: number): Promise<MessageQueue[]>;
+
+  // API Logs
+  getApiLogs(channelId?: string, limit?: number): Promise<ApiLog[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -86,6 +113,12 @@ export class MemStorage implements IStorage {
   private messages: Map<string, Message> = new Map();
   private automations: Map<string, Automation> = new Map();
   private analytics: Map<string, Analytics> = new Map();
+  private whatsappChannels: Map<string, WhatsappChannel> = new Map();
+  private webhookConfigs: Map<string, WebhookConfig> = new Map();
+  private messageQueues: Map<string, MessageQueue> = new Map();
+  private apiLogs: Map<string, ApiLog> = new Map();
+  private messageQueues: Map<string, MessageQueue> = new Map();
+  private apiLogs: Map<string, ApiLog> = new Map();
 
   constructor() {
     this.initializeSampleData();
@@ -392,6 +425,107 @@ export class MemStorage implements IStorage {
       campaignsRunning: activeCampaigns,
       unreadChats,
     };
+  }
+
+  // WhatsApp Channels
+  async getWhatsappChannels(): Promise<WhatsappChannel[]> {
+    return Array.from(this.whatsappChannels.values());
+  }
+
+  async getWhatsappChannel(id: string): Promise<WhatsappChannel | undefined> {
+    return this.whatsappChannels.get(id);
+  }
+
+  async createWhatsappChannel(insertChannel: InsertWhatsappChannel): Promise<WhatsappChannel> {
+    const id = randomUUID();
+    const channel: WhatsappChannel = {
+      ...insertChannel,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.whatsappChannels.set(id, channel);
+    return channel;
+  }
+
+  async updateWhatsappChannel(id: string, updates: Partial<WhatsappChannel>): Promise<WhatsappChannel | undefined> {
+    const channel = this.whatsappChannels.get(id);
+    if (channel) {
+      const updated = { ...channel, ...updates, updatedAt: new Date() };
+      this.whatsappChannels.set(id, updated);
+      return updated;
+    }
+    return undefined;
+  }
+
+  async deleteWhatsappChannel(id: string): Promise<boolean> {
+    return this.whatsappChannels.delete(id);
+  }
+
+  // Webhook Configs
+  async getWebhookConfigs(): Promise<WebhookConfig[]> {
+    return Array.from(this.webhookConfigs.values());
+  }
+
+  async getWebhookConfig(channelId: string): Promise<WebhookConfig | undefined> {
+    return Array.from(this.webhookConfigs.values()).find(config => config.channelId === channelId);
+  }
+
+  async createWebhookConfig(insertConfig: InsertWebhookConfig): Promise<WebhookConfig> {
+    const id = randomUUID();
+    const config: WebhookConfig = {
+      ...insertConfig,
+      id,
+      createdAt: new Date(),
+    };
+    this.webhookConfigs.set(id, config);
+    return config;
+  }
+
+  async updateWebhookConfig(id: string, updates: Partial<WebhookConfig>): Promise<WebhookConfig | undefined> {
+    const config = this.webhookConfigs.get(id);
+    if (config) {
+      const updated = { ...config, ...updates };
+      this.webhookConfigs.set(id, updated);
+      return updated;
+    }
+    return undefined;
+  }
+
+  // Message Queue
+  async getMessageQueueStats(): Promise<Record<string, number>> {
+    const stats: Record<string, number> = {
+      queued: 0,
+      processing: 0,
+      sent: 0,
+      delivered: 0,
+      failed: 0,
+    };
+    
+    this.messageQueues.forEach(message => {
+      if (message.status) {
+        stats[message.status] = (stats[message.status] || 0) + 1;
+      }
+    });
+    
+    return stats;
+  }
+
+  async getQueuedMessages(limit: number = 10): Promise<MessageQueue[]> {
+    return Array.from(this.messageQueues.values())
+      .filter(msg => msg.status === 'queued')
+      .slice(0, limit);
+  }
+
+  // API Logs
+  async getApiLogs(channelId?: string, limit: number = 100): Promise<ApiLog[]> {
+    let logs = Array.from(this.apiLogs.values());
+    
+    if (channelId) {
+      logs = logs.filter(log => log.channelId === channelId);
+    }
+    
+    return logs.slice(-limit);
   }
 }
 

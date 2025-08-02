@@ -1,7 +1,9 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertContactSchema, insertCampaignSchema, insertTemplateSchema, insertConversationSchema, insertMessageSchema, insertAutomationSchema } from "@shared/schema";
+import { insertContactSchema, insertCampaignSchema, insertTemplateSchema, insertConversationSchema, insertMessageSchema, insertAutomationSchema, insertWhatsappChannelSchema, insertWebhookConfigSchema } from "@shared/schema";
+import { WebhookHandler } from "./services/webhook-handler";
+import { MessageQueueService } from "./services/message-queue";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Dashboard endpoints
@@ -352,6 +354,186 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to delete automation" });
     }
   });
+
+  // WhatsApp Channel endpoints
+  app.get("/api/whatsapp/channels", async (req, res) => {
+    try {
+      const channels = await storage.getWhatsappChannels();
+      res.json(channels);
+    } catch (error) {
+      console.error("Error fetching WhatsApp channels:", error);
+      res.status(500).json({ message: "Failed to fetch WhatsApp channels" });
+    }
+  });
+
+  app.get("/api/whatsapp/channels/:id", async (req, res) => {
+    try {
+      const channel = await storage.getWhatsappChannel(req.params.id);
+      if (!channel) {
+        return res.status(404).json({ message: "WhatsApp channel not found" });
+      }
+      res.json(channel);
+    } catch (error) {
+      console.error("Error fetching WhatsApp channel:", error);
+      res.status(500).json({ message: "Failed to fetch WhatsApp channel" });
+    }
+  });
+
+  app.post("/api/whatsapp/channels", async (req, res) => {
+    try {
+      const validatedChannel = insertWhatsappChannelSchema.parse(req.body);
+      const channel = await storage.createWhatsappChannel(validatedChannel);
+      res.status(201).json(channel);
+    } catch (error) {
+      console.error("Error creating WhatsApp channel:", error);
+      res.status(400).json({ message: "Invalid WhatsApp channel data" });
+    }
+  });
+
+  app.put("/api/whatsapp/channels/:id", async (req, res) => {
+    try {
+      const updates = req.body;
+      const channel = await storage.updateWhatsappChannel(req.params.id, updates);
+      if (!channel) {
+        return res.status(404).json({ message: "WhatsApp channel not found" });
+      }
+      res.json(channel);
+    } catch (error) {
+      console.error("Error updating WhatsApp channel:", error);
+      res.status(500).json({ message: "Failed to update WhatsApp channel" });
+    }
+  });
+
+  app.delete("/api/whatsapp/channels/:id", async (req, res) => {
+    try {
+      const deleted = await storage.deleteWhatsappChannel(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "WhatsApp channel not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting WhatsApp channel:", error);
+      res.status(500).json({ message: "Failed to delete WhatsApp channel" });
+    }
+  });
+
+  // Webhook Configuration endpoints
+  app.get("/api/whatsapp/webhooks", async (req, res) => {
+    try {
+      const configs = await storage.getWebhookConfigs();
+      res.json(configs);
+    } catch (error) {
+      console.error("Error fetching webhook configs:", error);
+      res.status(500).json({ message: "Failed to fetch webhook configurations" });
+    }
+  });
+
+  app.get("/api/whatsapp/webhooks/:channelId", async (req, res) => {
+    try {
+      const config = await storage.getWebhookConfig(req.params.channelId);
+      if (!config) {
+        return res.status(404).json({ message: "Webhook configuration not found" });
+      }
+      res.json(config);
+    } catch (error) {
+      console.error("Error fetching webhook config:", error);
+      res.status(500).json({ message: "Failed to fetch webhook configuration" });
+    }
+  });
+
+  app.post("/api/whatsapp/webhooks", async (req, res) => {
+    try {
+      const validatedConfig = insertWebhookConfigSchema.parse(req.body);
+      const config = await storage.createWebhookConfig(validatedConfig);
+      res.status(201).json(config);
+    } catch (error) {
+      console.error("Error creating webhook config:", error);
+      res.status(400).json({ message: "Invalid webhook configuration data" });
+    }
+  });
+
+  app.put("/api/whatsapp/webhooks/:id", async (req, res) => {
+    try {
+      const updates = req.body;
+      const config = await storage.updateWebhookConfig(req.params.id, updates);
+      if (!config) {
+        return res.status(404).json({ message: "Webhook configuration not found" });
+      }
+      res.json(config);
+    } catch (error) {
+      console.error("Error updating webhook config:", error);
+      res.status(500).json({ message: "Failed to update webhook configuration" });
+    }
+  });
+
+  // WhatsApp Webhook endpoint (receives messages from WhatsApp)
+  app.get("/webhook", async (req, res) => {
+    try {
+      const mode = req.query["hub.mode"] as string;
+      const token = req.query["hub.verify_token"] as string;
+      const challenge = req.query["hub.challenge"] as string;
+      
+      // For now, just verify with a simple token
+      const result = await WebhookHandler.handleVerification(mode, token, challenge, "VERIFY_TOKEN");
+      
+      if (result.verified && result.challenge) {
+        res.status(200).send(result.challenge);
+      } else {
+        res.sendStatus(403);
+      }
+    } catch (error) {
+      console.error("Webhook verification error:", error);
+      res.sendStatus(403);
+    }
+  });
+
+  app.post("/webhook", async (req, res) => {
+    try {
+      await WebhookHandler.processWebhook(req.body);
+      res.sendStatus(200);
+    } catch (error) {
+      console.error("Webhook processing error:", error);
+      res.sendStatus(500);
+    }
+  });
+
+  // Message Queue endpoints
+  app.get("/api/whatsapp/queue/stats", async (req, res) => {
+    try {
+      const stats = await storage.getMessageQueueStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching queue stats:", error);
+      res.status(500).json({ message: "Failed to fetch queue statistics" });
+    }
+  });
+
+  app.get("/api/whatsapp/queue", async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 10;
+      const messages = await storage.getQueuedMessages(limit);
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching queued messages:", error);
+      res.status(500).json({ message: "Failed to fetch queued messages" });
+    }
+  });
+
+  // API Logs endpoint
+  app.get("/api/whatsapp/logs", async (req, res) => {
+    try {
+      const channelId = req.query.channelId as string;
+      const limit = parseInt(req.query.limit as string) || 100;
+      const logs = await storage.getApiLogs(channelId, limit);
+      res.json(logs);
+    } catch (error) {
+      console.error("Error fetching API logs:", error);
+      res.status(500).json({ message: "Failed to fetch API logs" });
+    }
+  });
+
+  // Start message queue processing
+  MessageQueueService.startProcessing();
 
   const httpServer = createServer(app);
   return httpServer;
