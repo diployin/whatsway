@@ -21,8 +21,17 @@ import {
 import { useDashboardStats, useAnalytics } from "@/hooks/use-dashboard";
 
 export default function Dashboard() {
-  const { data: stats, isLoading: statsLoading } = useDashboardStats();
-  const { data: analytics, isLoading: analyticsLoading } = useAnalytics(7);
+  const { data: activeChannel } = useQuery({
+    queryKey: ["/api/channels/active"],
+    queryFn: async () => {
+      const response = await fetch("/api/channels/active");
+      if (!response.ok) return null;
+      return await response.json();
+    },
+  });
+
+  const { data: stats, isLoading: statsLoading } = useDashboardStats(activeChannel?.id);
+  const { data: analytics, isLoading: analyticsLoading } = useAnalytics(7, activeChannel?.id);
 
   if (statsLoading) {
     return (

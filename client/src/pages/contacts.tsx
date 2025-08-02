@@ -212,11 +212,12 @@ export default function Contacts() {
   });
 
   const { data: contacts, isLoading } = useQuery({
-    queryKey: ["/api/contacts", searchQuery],
+    queryKey: ["/api/contacts", searchQuery, activeChannel?.id],
     queryFn: async () => {
-      const response = await api.getContacts(searchQuery);
+      const response = await api.getContacts(searchQuery, activeChannel?.id);
       return await response.json();
     },
+    enabled: !!activeChannel,
   });
 
   const { data: channels } = useQuery({
@@ -269,7 +270,7 @@ export default function Contacts() {
 
   const createContactMutation = useMutation({
     mutationFn: async (data: InsertContact) => {
-      const response = await fetch("/api/contacts", {
+      const response = await fetch(`/api/contacts${activeChannel?.id ? `?channelId=${activeChannel.id}` : ""}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),

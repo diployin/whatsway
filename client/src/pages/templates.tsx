@@ -340,8 +340,22 @@ export default function Templates() {
   });
 
   // Queries
+  const { data: activeChannel } = useQuery({
+    queryKey: ["/api/channels/active"],
+    queryFn: async () => {
+      const response = await fetch("/api/channels/active");
+      if (!response.ok) return null;
+      return await response.json();
+    },
+  });
+
   const { data: templates = [], isLoading } = useQuery({
-    queryKey: ["/api/templates"],
+    queryKey: ["/api/templates", activeChannel?.id],
+    queryFn: async () => {
+      const response = await api.getTemplates(activeChannel?.id);
+      return await response.json();
+    },
+    enabled: !!activeChannel,
   });
 
   // Mutations

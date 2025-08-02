@@ -28,12 +28,22 @@ export default function AutomationPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: automations, isLoading } = useQuery({
-    queryKey: ["/api/automations"],
+  const { data: activeChannel } = useQuery({
+    queryKey: ["/api/channels/active"],
     queryFn: async () => {
-      const response = await api.getAutomations();
+      const response = await fetch("/api/channels/active");
+      if (!response.ok) return null;
       return await response.json();
     },
+  });
+
+  const { data: automations, isLoading } = useQuery({
+    queryKey: ["/api/automations", activeChannel?.id],
+    queryFn: async () => {
+      const response = await api.getAutomations(activeChannel?.id);
+      return await response.json();
+    },
+    enabled: !!activeChannel,
   });
 
   const updateAutomationMutation = useMutation({

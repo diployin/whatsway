@@ -23,13 +23,23 @@ export default function Analytics() {
   const [timeRange, setTimeRange] = useState<number>(30);
   const [selectedMetric, setSelectedMetric] = useState<string>("messages");
 
-  const { data: analytics, isLoading: analyticsLoading } = useAnalytics(timeRange);
-  const { data: campaigns } = useQuery({
-    queryKey: ["/api/campaigns"],
+  const { data: activeChannel } = useQuery({
+    queryKey: ["/api/channels/active"],
     queryFn: async () => {
-      const response = await api.getCampaigns();
+      const response = await fetch("/api/channels/active");
+      if (!response.ok) return null;
       return await response.json();
     },
+  });
+
+  const { data: analytics, isLoading: analyticsLoading } = useAnalytics(timeRange, activeChannel?.id);
+  const { data: campaigns } = useQuery({
+    queryKey: ["/api/campaigns", activeChannel?.id],
+    queryFn: async () => {
+      const response = await api.getCampaigns(activeChannel?.id);
+      return await response.json();
+    },
+    enabled: !!activeChannel,
   });
 
   const calculateMetrics = () => {

@@ -65,17 +65,35 @@ export function ChannelSwitcher() {
       if (!response.ok) throw new Error("Failed to update channel");
       return response.json();
     },
-    onSuccess: () => {
-      // Invalidate all queries to refresh data for the new channel
-      queryClient.invalidateQueries({ queryKey: ["/api/channels"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/channels/active"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/campaigns"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/templates"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/analytics"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/automations"] });
+    onSuccess: async () => {
+      // Invalidate and refetch all queries to refresh data for the new channel
+      await queryClient.invalidateQueries({ queryKey: ["/api/channels"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/channels/active"] });
+      
+      // Force refetch all data-related queries
+      queryClient.refetchQueries({ queryKey: ["/api/contacts"] });
+      queryClient.refetchQueries({ queryKey: ["/api/campaigns"] });
+      queryClient.refetchQueries({ queryKey: ["/api/templates"] });
+      queryClient.refetchQueries({ queryKey: ["/api/conversations"] });
+      queryClient.refetchQueries({ queryKey: ["/api/analytics"] });
+      queryClient.refetchQueries({ queryKey: ["/api/dashboard/stats"] });
+      queryClient.refetchQueries({ queryKey: ["/api/automations"] });
+      queryClient.refetchQueries({ queryKey: ["/api/messages"] });
+      
+      // Also invalidate any queries with these prefixes
+      queryClient.invalidateQueries({ predicate: (query) => {
+        const key = query.queryKey[0] as string;
+        return !!(key && (
+          key.startsWith('/api/contacts') ||
+          key.startsWith('/api/campaigns') ||
+          key.startsWith('/api/templates') ||
+          key.startsWith('/api/conversations') ||
+          key.startsWith('/api/analytics') ||
+          key.startsWith('/api/dashboard') ||
+          key.startsWith('/api/automations') ||
+          key.startsWith('/api/messages')
+        ));
+      }});
       
       toast({
         title: "Channel switched",

@@ -77,13 +77,24 @@ export default function Campaigns() {
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const { toast } = useToast();
   
-  // Query for campaigns
-  const { data: campaigns, isLoading } = useQuery({
-    queryKey: ["/api/campaigns"],
+  // Query for active channel
+  const { data: activeChannel } = useQuery({
+    queryKey: ["/api/channels/active"],
     queryFn: async () => {
-      const response = await api.getCampaigns();
+      const response = await fetch("/api/channels/active");
+      if (!response.ok) return null;
       return await response.json();
     },
+  });
+
+  // Query for campaigns
+  const { data: campaigns, isLoading } = useQuery({
+    queryKey: ["/api/campaigns", activeChannel?.id],
+    queryFn: async () => {
+      const response = await api.getCampaigns(activeChannel?.id);
+      return await response.json();
+    },
+    enabled: !!activeChannel,
   });
 
   // Query for WhatsApp channels
@@ -93,21 +104,29 @@ export default function Campaigns() {
 
   // Query for templates
   const { data: templates } = useQuery({
-    queryKey: ["/api/templates"],
+    queryKey: ["/api/templates", activeChannel?.id],
+    queryFn: async () => {
+      const response = await api.getTemplates(activeChannel?.id);
+      return await response.json();
+    },
+    enabled: !!activeChannel,
   });
 
   // Query for contacts and groups
   const { data: contacts } = useQuery({
-    queryKey: ["/api/contacts"],
+    queryKey: ["/api/contacts", activeChannel?.id],
+    queryFn: async () => {
+      const response = await api.getContacts(undefined, activeChannel?.id);
+      return await response.json();
+    },
+    enabled: !!activeChannel,
   });
 
   // Create campaign mutation
   const createCampaignMutation = useMutation({
     mutationFn: async (data: CampaignFormValues) => {
-      return await apiRequest("/api/campaigns", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      const response = await api.createCampaign(data, activeChannel?.id);
+      return await response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/campaigns"] });

@@ -41,11 +41,12 @@ export default function Inbox() {
   });
 
   const { data: conversations, isLoading: conversationsLoading } = useQuery({
-    queryKey: ["/api/conversations"],
+    queryKey: ["/api/conversations", activeChannel?.id],
     queryFn: async () => {
-      const response = await api.getConversations();
+      const response = await api.getConversations(activeChannel?.id);
       return await response.json();
     },
+    enabled: !!activeChannel,
   });
 
   const { data: messages, isLoading: messagesLoading } = useQuery({
@@ -59,11 +60,12 @@ export default function Inbox() {
   });
 
   const { data: contacts } = useQuery({
-    queryKey: ["/api/contacts"],
+    queryKey: ["/api/contacts", activeChannel?.id],
     queryFn: async () => {
-      const response = await api.getContacts();
+      const response = await api.getContacts(undefined, activeChannel?.id);
       return await response.json();
     },
+    enabled: !!activeChannel,
   });
 
   const sendMessageMutation = useMutation({
