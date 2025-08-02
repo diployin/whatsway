@@ -16,6 +16,7 @@ export const users = pgTable("users", {
 
 export const contacts = pgTable("contacts", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  channelId: varchar("channel_id"),
   name: text("name").notNull(),
   phone: text("phone").notNull(),
   email: text("email"),
@@ -28,6 +29,7 @@ export const contacts = pgTable("contacts", {
 
 export const campaigns = pgTable("campaigns", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  channelId: varchar("channel_id"),
   name: text("name").notNull(),
   description: text("description"),
   type: text("type").notNull(), // marketing, transactional
@@ -82,6 +84,7 @@ export const templates = pgTable("templates", {
 
 export const conversations = pgTable("conversations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  channelId: varchar("channel_id"),
   contactId: varchar("contact_id").notNull(),
   contactPhone: varchar("contact_phone"), // Store phone number for webhook lookups
   contactName: varchar("contact_name"), // Store contact name
@@ -111,6 +114,7 @@ export const messages = pgTable("messages", {
 
 export const automations = pgTable("automations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  channelId: varchar("channel_id"),
   name: text("name").notNull(),
   description: text("description"),
   trigger: jsonb("trigger").notNull(),
@@ -123,6 +127,7 @@ export const automations = pgTable("automations", {
 
 export const analytics = pgTable("analytics", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  channelId: varchar("channel_id"),
   date: timestamp("date").notNull(),
   messagesSent: integer("messages_sent").default(0),
   messagesDelivered: integer("messages_delivered").default(0),
