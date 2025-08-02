@@ -1150,30 +1150,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // WhatsApp Webhook endpoints (receives messages from WhatsApp)
-  // Dynamic webhook endpoints for each channel
-  app.get("/webhook/:channelId", async (req, res) => {
+  // Global webhook endpoint for all channels (WhatsApp Cloud API standard)
+  app.get("/webhook", async (req, res) => {
     try {
       const mode = req.query["hub.mode"] as string;
       const token = req.query["hub.verify_token"] as string;
       const challenge = req.query["hub.challenge"] as string;
-      const channelId = req.params.channelId;
       
       console.log("Webhook verification request:", {
-        channelId,
         mode,
         token: token ? `${token.substring(0, 5)}...` : "missing",
         challenge: challenge ? `${challenge.substring(0, 10)}...` : "missing"
       });
       
-      // Get webhook config for this channel
-      const config = await storage.getWebhookConfig(channelId);
+      // Get global webhook config
+      const configs = await storage.getWebhookConfigs();
+      const config = configs[0]; // Use first active config
+      
       if (!config) {
-        console.error(`No webhook config found for channel: ${channelId}`);
+        console.error("No webhook config found");
         return res.status(403).send("Webhook config not found");
       }
       
       if (!config.isActive) {
-        console.error(`Webhook config is inactive for channel: ${channelId}`);
+        console.error("Webhook config is inactive");
         return res.status(403).send("Webhook is inactive");
       }
       
@@ -1198,13 +1198,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/webhook/:channelId", async (req, res) => {
+  app.post("/webhook", async (req, res) => {
     try {
-      const channelId = req.params.channelId;
       const signature = req.headers["x-hub-signature-256"] as string;
       
-      // Get webhook config
-      const config = await storage.getWebhookConfig(channelId);
+      // Get global webhook config
+      const configs = await storage.getWebhookConfigs();
+      const config = configs[0]; // Use first active config
+      
       if (!config || !config.isActive) {
         return res.sendStatus(403);
       }
@@ -1223,8 +1224,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Process webhook payload
-      await WebhookService.processWebhook(req.body, channelId);
+      // Process webhook payload - WhatsApp sends phone_number_id in the payload
+      // Extract phone_number_id from the WhatsApp webhook payload
+      let phoneNumberId: string | undefined;
+      
+      if (req.body.entry && req.body.entry[0] && req.body.entry[0].changes && req.body.entry[0].changes[0]) {
+        const change = req.body.entry[0].changes[0];
+        if (change.value && change.value.metadata) {
+          phoneNumberId = change.value.metadata.phone_number_id;
+        }
+      }
+      
+      if (phoneNumberId) {
+        // Find the channel by phone number ID
+        const channels = await storage.getWhatsappChannels();
+        const channel = channels.find(c => c.phoneNumberId === phoneNumberId);
+        
+        if (channel) {
+          await WebhookService.processWebhook(req.body, channel.id);
+        } else {
+          console.warn(`No channel found for phone_number_id: ${phoneNumberId}`);
+        }
+      }
       
       // Update last ping timestamp
       await storage.updateWebhookConfig(config.id, {
@@ -1239,28 +1260,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Test endpoint to verify webhook configuration
-  app.get("/api/whatsapp/webhooks/test/:channelId", async (req, res) => {
+  app.get("/api/whatsapp/webhooks/test", async (req, res) => {
     try {
-      const channelId = req.params.channelId;
-      const config = await storage.getWebhookConfig(channelId);
+      const configs = await storage.getWebhookConfigs();
+      const config = configs[0]; // Get the global webhook config
       
       if (!config) {
         return res.status(404).json({ 
           success: false,
-          message: "No webhook configuration found for this channel",
-          channelId 
+          message: "No webhook configuration found. Please configure the webhook first."
         });
       }
       
       res.json({
         success: true,
-        webhookUrl: `${req.protocol}://${req.get('host')}/webhook/${channelId}`,
+        webhookUrl: `${req.protocol}://${req.get('host')}/webhook`,
         verifyToken: config.verifyToken,
         isActive: config.isActive,
         events: config.events,
-        channelId: config.channelId,
         configId: config.id,
-        createdAt: config.createdAt
+        createdAt: config.createdAt,
+        lastPingAt: config.lastPingAt
       });
     } catch (error) {
       console.error("Error testing webhook config:", error);

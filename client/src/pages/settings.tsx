@@ -81,7 +81,7 @@ const channelFormSchema = z.object({
 });
 
 const webhookFormSchema = z.object({
-  channelId: z.string().min(1, "Please select a channel"),
+  channelId: z.string().optional(), // Global webhook - not channel-specific
   webhookUrl: z.string().url("Valid URL required").optional(),
   verifyToken: z.string().min(8, "Verify token must be at least 8 characters").max(100, "Verify token must be less than 100 characters"),
   appSecret: z.string().optional(),
@@ -278,11 +278,13 @@ export default function Settings() {
   };
 
   const handleWebhookSubmit = (data: z.infer<typeof webhookFormSchema>) => {
-    // Construct the webhook URL based on selected channel
-    const webhookUrl = `${window.location.origin}/webhook/${data.channelId}`;
+    // Use global webhook URL for all channels
+    const webhookUrl = `${window.location.origin}/webhook`;
+    const { channelId, ...restData } = data; // Remove channelId from data
     createWebhookMutation.mutate({ 
-      ...data, 
+      ...restData, 
       webhookUrl,
+      // No channelId - this is a global webhook for all channels
     });
   };
 
@@ -697,11 +699,11 @@ export default function Settings() {
                           <div className="flex-1">
                             <div className="flex items-center space-x-2 mb-2">
                               <h3 className="text-lg font-medium text-gray-900">
-                                {channels.find(c => c.id === config.channelId)?.name || 'Unknown Channel'}
+                                Global Webhook Configuration
                               </h3>
                               <Badge className="bg-blue-100 text-blue-800">
                                 <Webhook className="w-3 h-3 mr-1" />
-                                Webhook Active
+                                Active for All Channels
                               </Badge>
                             </div>
                             <div className="space-y-2 text-sm text-gray-600">
@@ -774,53 +776,24 @@ export default function Settings() {
                 </DialogHeader>
                 <Form {...webhookForm}>
                   <form onSubmit={webhookForm.handleSubmit(handleWebhookSubmit)} className="space-y-4">
-                    <FormField
-                      control={webhookForm.control}
-                      name="channelId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Select Channel</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Choose a WhatsApp channel" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {channels.map((channel) => (
-                                <SelectItem key={channel.id} value={channel.id}>
-                                  {channel.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormDescription>
-                            Select the channel you're configuring webhooks for
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    {webhookForm.watch("channelId") && (
-                      <div className="bg-blue-50 p-4 rounded-lg">
-                        <p className="text-sm text-gray-700 mb-2">
-                          <strong>Your webhook URL for this channel:</strong>
-                        </p>
-                        <code className="bg-white px-3 py-2 rounded text-sm block break-all">
-                          {window.location.origin}/webhook/{webhookForm.watch("channelId")}
-                        </code>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="mt-2"
-                          onClick={() => {
-                            const url = `${window.location.origin}/webhook/${webhookForm.watch("channelId")}`;
-                            navigator.clipboard.writeText(url);
-                            toast({
-                              title: "Webhook URL copied",
-                              description: "Paste this in Facebook Business Manager",
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <p className="text-sm text-gray-700 mb-2">
+                        <strong>Your global webhook URL (for all WhatsApp channels):</strong>
+                      </p>
+                      <code className="bg-white px-3 py-2 rounded text-sm block break-all">
+                        {window.location.origin}/webhook
+                      </code>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="mt-2"
+                        onClick={() => {
+                          const url = `${window.location.origin}/webhook`;
+                          navigator.clipboard.writeText(url);
+                          toast({
+                            title: "Webhook URL copied",
+                            description: "Paste this in Facebook Business Manager",
                             });
                           }}
                         >
@@ -828,7 +801,6 @@ export default function Settings() {
                           Copy URL
                         </Button>
                       </div>
-                    )}
                     <FormField
                       control={webhookForm.control}
                       name="webhookUrl"
