@@ -81,7 +81,8 @@ const channelFormSchema = z.object({
 });
 
 const webhookFormSchema = z.object({
-  webhookUrl: z.string().url("Valid URL required"),
+  channelId: z.string().min(1, "Please select a channel"),
+  webhookUrl: z.string().url("Valid URL required").optional(),
   verifyToken: z.string().min(8, "Verify token must be at least 8 characters"),
   appSecret: z.string().optional(),
   events: z.array(z.string()).min(1, "Select at least one event"),
@@ -126,6 +127,7 @@ export default function Settings() {
   const webhookForm = useForm<z.infer<typeof webhookFormSchema>>({
     resolver: zodResolver(webhookFormSchema),
     defaultValues: {
+      channelId: "",
       webhookUrl: "",
       verifyToken: "",
       appSecret: "",
@@ -746,17 +748,61 @@ export default function Settings() {
                 </DialogHeader>
                 <Form {...webhookForm}>
                   <form onSubmit={webhookForm.handleSubmit(handleWebhookSubmit)} className="space-y-4">
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <p className="text-sm text-gray-600 mb-2">
-                        <strong>Your webhook endpoint will be:</strong>
-                      </p>
-                      <code className="bg-white px-2 py-1 rounded text-sm">
-                        {window.location.origin}/webhook/[channel-id]
-                      </code>
-                      <p className="text-xs text-gray-500 mt-2">
-                        The actual URL will include your channel ID after configuration
-                      </p>
-                    </div>
+                    <FormField
+                      control={webhookForm.control}
+                      name="channelId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Select Channel</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Choose a WhatsApp channel" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {channels.map((channel) => (
+                                <SelectItem key={channel.id} value={channel.id}>
+                                  {channel.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormDescription>
+                            Select the channel you're configuring webhooks for
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    {webhookForm.watch("channelId") && (
+                      <div className="bg-blue-50 p-4 rounded-lg">
+                        <p className="text-sm text-gray-700 mb-2">
+                          <strong>Your webhook URL for this channel:</strong>
+                        </p>
+                        <code className="bg-white px-3 py-2 rounded text-sm block break-all">
+                          {window.location.origin}/webhook/{webhookForm.watch("channelId")}
+                        </code>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="mt-2"
+                          onClick={() => {
+                            const url = `${window.location.origin}/webhook/${webhookForm.watch("channelId")}`;
+                            navigator.clipboard.writeText(url);
+                            toast({
+                              title: "Webhook URL copied",
+                              description: "Paste this in Facebook Business Manager",
+                            });
+                          }}
+                        >
+                          <Copy className="w-4 h-4 mr-2" />
+                          Copy URL
+                        </Button>
+                      </div>
+                    )}
                     <FormField
                       control={webhookForm.control}
                       name="webhookUrl"
@@ -789,12 +835,22 @@ export default function Settings() {
                             />
                           </FormControl>
                           <FormDescription>
-                            Token used to verify webhook requests from WhatsApp
+                            <span className="text-yellow-600">Important:</span> Enter the EXACT same token you'll use in Facebook Business Manager
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
+                    
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm">
+                      <strong className="text-yellow-800">⚠️ Facebook Webhook Setup Tips:</strong>
+                      <ul className="mt-2 space-y-1 text-yellow-700">
+                        <li>• Copy the webhook URL above and paste it in Facebook's "Callback URL" field</li>
+                        <li>• Enter your verify token in BOTH Facebook and here (must match exactly)</li>
+                        <li>• Click "Verify and save" in Facebook first</li>
+                        <li>• Then save the configuration here in WhatsWay</li>
+                      </ul>
+                    </div>
                     <FormField
                       control={webhookForm.control}
                       name="appSecret"
