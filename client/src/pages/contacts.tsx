@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Header from "@/components/layout/header";
 import { Loading } from "@/components/ui/loading";
@@ -66,7 +66,7 @@ function EditContactForm({
       phone: contact.phone,
       groups: contact.groups || [],
       tags: contact.tags || [],
-      notes: contact.notes || "",
+
       status: contact.status,
     },
   });
@@ -117,7 +117,7 @@ function EditContactForm({
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input {...field} type="email" />
+                <Input {...field} type="email" value={field.value || ""} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -148,7 +148,7 @@ function EditContactForm({
                 <Input 
                   {...field} 
                   placeholder="Enter groups separated by commas"
-                  value={field.value?.join(", ") || ""}
+                  value={Array.isArray(field.value) ? field.value.join(", ") : ""}
                   onChange={(e) => {
                     const groups = e.target.value
                       .split(",")
@@ -157,20 +157,6 @@ function EditContactForm({
                     field.onChange(groups);
                   }}
                 />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="notes"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Notes</FormLabel>
-              <FormControl>
-                <Textarea {...field} rows={3} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -244,10 +230,14 @@ export default function Contacts() {
   
   const { data: availableTemplates = [] } = useQuery({
     queryKey: ["/api/templates"],
+    queryFn: async () => {
+      const response = await fetch("/api/templates");
+      return await response.json();
+    },
   });
 
   // Extract unique groups from all contacts
-  const uniqueGroups = React.useMemo(() => {
+  const uniqueGroups = useMemo(() => {
     if (!contacts) return [];
     const groups = new Set<string>();
     contacts.forEach((contact: Contact) => {
@@ -259,7 +249,7 @@ export default function Contacts() {
   }, [contacts]);
 
   // Filter contacts based on selected group
-  const filteredContacts = React.useMemo(() => {
+  const filteredContacts = useMemo(() => {
     if (!contacts) return [];
     if (!selectedGroup) return contacts;
     
