@@ -52,10 +52,7 @@ export function Campaigns() {
   // Create campaign mutation
   const createCampaignMutation = useMutation({
     mutationFn: async (campaignData: any) => {
-      return await apiRequest("/api/campaigns", {
-        method: "POST",
-        body: JSON.stringify(campaignData),
-      });
+      return await apiRequest("POST", "/api/campaigns", campaignData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/campaigns"] });
@@ -78,10 +75,7 @@ export function Campaigns() {
   // Update campaign status mutation
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      return await apiRequest(`/api/campaigns/${id}/status`, {
-        method: "PATCH",
-        body: JSON.stringify({ status }),
-      });
+      return await apiRequest("PATCH", `/api/campaigns/${id}/status`, { status });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/campaigns"] });
@@ -95,9 +89,7 @@ export function Campaigns() {
   // Delete campaign mutation
   const deleteCampaignMutation = useMutation({
     mutationFn: async (id: string) => {
-      return await apiRequest(`/api/campaigns/${id}`, {
-        method: "DELETE",
-      });
+      return await apiRequest("DELETE", `/api/campaigns/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/campaigns"] });
