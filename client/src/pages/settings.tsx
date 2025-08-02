@@ -657,6 +657,7 @@ export default function Settings() {
                           <div key={channel.id} className="flex items-center justify-between bg-white rounded-lg p-3 border">
                             <div className="flex-1">
                               <p className="font-medium text-sm">{channel.name}</p>
+                              <p className="text-xs text-gray-500 mb-1">Channel ID: {channel.id}</p>
                               <code className="text-xs text-gray-600 break-all">
                                 {window.location.origin}/webhook/{channel.id}
                               </code>
