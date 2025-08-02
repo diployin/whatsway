@@ -4,6 +4,7 @@ import { insertMessageSchema, insertConversationSchema } from '@shared/schema';
 import { AppError, asyncHandler } from '../middlewares/error.middleware';
 import { WhatsAppApiService } from '../services/whatsapp-api';
 import type { RequestWithChannel } from '../middlewares/channel.middleware';
+import { randomUUID } from 'crypto';
 
 export const getMessages = asyncHandler(async (req: Request, res: Response) => {
   const { conversationId } = req.params;
@@ -13,27 +14,79 @@ export const getMessages = asyncHandler(async (req: Request, res: Response) => {
 
 export const createMessage = asyncHandler(async (req: Request, res: Response) => {
   const { conversationId } = req.params;
-  const validatedMessage = insertMessageSchema.parse({
-    ...req.body,
-    conversationId
-  });
+  const { content, fromUser } = req.body;
   
-  const message = await storage.createMessage(validatedMessage);
-  
-  // Update conversation's last message
-  await storage.updateConversation(conversationId, {
-    lastMessageAt: new Date()
-  });
-  
-  // Broadcast new message to WebSocket clients
-  if ((global as any).broadcastToConversation) {
-    (global as any).broadcastToConversation(conversationId, {
-      type: 'new-message',
-      message
-    });
+  // Get conversation details
+  const conversation = await storage.getConversation(conversationId);
+  if (!conversation) {
+    throw new AppError(404, 'Conversation not found');
   }
   
-  res.json(message);
+  // If message is from user, send it via WhatsApp
+  if (fromUser && content) {
+    // Get active channel
+    const channel = await storage.getChannel(conversation.channelId);
+    if (!channel) {
+      throw new AppError(404, 'Channel not found');
+    }
+    
+    const whatsappApi = new WhatsAppApiService(channel);
+    
+    try {
+      // Send text message via WhatsApp
+      const result = await whatsappApi.sendTextMessage(conversation.contactPhone, content);
+      
+      // Create message record with WhatsApp message ID
+      const message = await storage.createMessage({
+        conversationId,
+        content,
+        sender: 'business',
+        status: 'sent',
+        whatsappMessageId: result.messages?.[0]?.id
+      });
+      
+      // Update conversation's last message
+      await storage.updateConversation(conversationId, {
+        lastMessageAt: new Date()
+      });
+      
+      // Broadcast new message to WebSocket clients
+      if ((global as any).broadcastToConversation) {
+        (global as any).broadcastToConversation(conversationId, {
+          type: 'new-message',
+          message
+        });
+      }
+      
+      res.json(message);
+    } catch (error) {
+      console.error('Error sending WhatsApp message:', error);
+      throw new AppError(500, error instanceof Error ? error.message : 'Failed to send message');
+    }
+  } else {
+    // Just create message record (for incoming messages)
+    const validatedMessage = insertMessageSchema.parse({
+      ...req.body,
+      conversationId
+    });
+    
+    const message = await storage.createMessage(validatedMessage);
+    
+    // Update conversation's last message
+    await storage.updateConversation(conversationId, {
+      lastMessageAt: new Date()
+    });
+    
+    // Broadcast new message to WebSocket clients
+    if ((global as any).broadcastToConversation) {
+      (global as any).broadcastToConversation(conversationId, {
+        type: 'new-message',
+        message
+      });
+    }
+    
+    res.json(message);
+  }
 });
 
 export const sendMessage = asyncHandler(async (req: RequestWithChannel, res: Response) => {

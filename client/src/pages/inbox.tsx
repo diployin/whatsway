@@ -11,6 +11,14 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
 import { 
   MessageSquare, 
   Search, 
@@ -23,9 +31,9 @@ import {
   Check,
   CheckCheck,
   AlertCircle,
-  Phone,
-  Video,
-  Info
+  Info,
+  Smile,
+  FileText
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
@@ -329,15 +337,53 @@ export default function Inbox() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon">
-                      <Phone className="w-4 h-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon">
-                      <Video className="w-4 h-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon">
-                      <Info className="w-4 h-4" />
-                    </Button>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <Info className="w-4 h-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Contact Information</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="w-12 h-12">
+                              <AvatarFallback>
+                                {getContactInfo(selectedConversation.contactId)?.name?.charAt(0).toUpperCase() || "?"}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <h3 className="font-semibold">{getContactInfo(selectedConversation.contactId)?.name || "Unknown"}</h3>
+                              <p className="text-sm text-gray-500">{selectedConversation.contactPhone}</p>
+                            </div>
+                          </div>
+                          <Separator />
+                          <div className="space-y-2">
+                            <div className="flex justify-between">
+                              <span className="text-sm text-gray-500">Email</span>
+                              <span className="text-sm">{getContactInfo(selectedConversation.contactId)?.email || "Not provided"}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-sm text-gray-500">Group</span>
+                              <span className="text-sm">{getContactInfo(selectedConversation.contactId)?.group || "None"}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-sm text-gray-500">Tags</span>
+                              <span className="text-sm">{getContactInfo(selectedConversation.contactId)?.tags?.join(", ") || "None"}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-sm text-gray-500">Created</span>
+                              <span className="text-sm">
+                                {getContactInfo(selectedConversation.contactId)?.createdAt ? 
+                                  format(new Date(getContactInfo(selectedConversation.contactId)!.createdAt!), "MMM d, yyyy") : "Unknown"}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 </div>
               </CardHeader>
@@ -400,9 +446,36 @@ export default function Inbox() {
               {/* Message Input */}
               <div className="border-t p-4">
                 <div className="flex items-end gap-2">
-                  <Button variant="ghost" size="icon">
-                    <Paperclip className="w-5 h-5" />
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="ghost" size="icon" title="Send template">
+                        <FileText className="w-5 h-5" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Select Template</DialogTitle>
+                      </DialogHeader>
+                      <div className="text-sm text-muted-foreground">
+                        Template sending feature coming soon...
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                  
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    title="Add emoji"
+                    onClick={() => {
+                      // Simple emoji insertion
+                      const emojis = ['😊', '👍', '❤️', '🎉', '👋'];
+                      const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+                      setMessageText(prev => prev + emoji);
+                    }}
+                  >
+                    <Smile className="w-5 h-5" />
                   </Button>
+                  
                   <Textarea
                     value={messageText}
                     onChange={(e) => setMessageText(e.target.value)}

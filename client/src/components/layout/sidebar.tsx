@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ChannelSwitcher } from "@/components/channel-switcher";
+import { useQuery } from "@tanstack/react-query";
 
 interface NavItem {
   href: string;
@@ -81,6 +82,16 @@ const navItems: NavItem[] = [
 
 export default function Sidebar() {
   const [location] = useLocation();
+  const { data: unreadCount = 0 } = useQuery({
+    queryKey: ["/api/conversations/unread-count"],
+    queryFn: async () => {
+      const response = await fetch("/api/conversations/unread-count");
+      if (!response.ok) return 0;
+      const data = await response.json();
+      return data.count || 0;
+    },
+    refetchInterval: 5000, // Refresh every 5 seconds
+  });
 
   return (
     <div className="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg border-r border-gray-100">
@@ -110,6 +121,7 @@ export default function Sidebar() {
           {navItems.map((item) => {
             const isActive = location === item.href;
             const Icon = item.icon;
+            const showBadge = item.href === "/inbox" && unreadCount > 0;
             
             return (
               <Link
@@ -132,6 +144,11 @@ export default function Sidebar() {
                 {item.badge && (
                   <span className="ml-auto bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
                     {item.badge}
+                  </span>
+                )}
+                {showBadge && (
+                  <span className="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                    {unreadCount > 99 ? '99+' : unreadCount}
                   </span>
                 )}
               </Link>

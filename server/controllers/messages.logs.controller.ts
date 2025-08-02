@@ -4,7 +4,7 @@ import { AppError, asyncHandler } from '../middlewares/error.middleware';
 import { eq, desc, and, or, like, gte, sql } from 'drizzle-orm';
 import { messageQueue, whatsappChannels } from '@shared/schema';
 import { db } from '../db';
-import { update } from 'drizzle-orm';
+
 
 export const getMessageLogs = asyncHandler(async (req: Request, res: Response) => {
   const { channelId, status, dateRange, search } = req.query;
@@ -84,7 +84,24 @@ export const getMessageLogs = asyncHandler(async (req: Request, res: Response) =
     .orderBy(desc(messageQueue.createdAt))
     .limit(100); // Limit to last 100 messages
   
-  res.json(messageLogs);
+  // Transform to match expected format
+  const formattedLogs = messageLogs.map(log => ({
+    id: log.id,
+    channelId: log.channelId,
+    phoneNumber: log.phoneNumber,
+    contactName: log.channelName || '',
+    messageType: log.messageType,
+    content: log.templateName ? `Template: ${log.templateName}` : 'Text message',
+    templateName: log.templateName,
+    status: log.status,
+    errorCode: log.errorCode,
+    errorMessage: log.errorMessage,
+    whatsappMessageId: log.whatsappMessageId,
+    createdAt: log.createdAt,
+    updatedAt: log.createdAt,
+  }));
+  
+  res.json(formattedLogs);
 });
 
 export const updateMessageStatus = asyncHandler(async (req: Request, res: Response) => {

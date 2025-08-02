@@ -61,8 +61,10 @@ export default function Logs() {
       if (dateFilter !== "all") params.append("dateRange", dateFilter);
       if (searchQuery) params.append("search", searchQuery);
       
-      const response = await apiRequest("GET", `/api/messages/logs?${params.toString()}`);
-      return response;
+      const response = await fetch(`/api/messages/logs?${params.toString()}`);
+      if (!response.ok) throw new Error('Failed to fetch logs');
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
     },
     enabled: !!activeChannel,
     refetchInterval: 5000, // Auto-refresh every 5 seconds
