@@ -124,14 +124,24 @@ export default function Settings() {
   });
 
   // Webhook form
+  // Generate a secure random token
+  const generateSecureToken = () => {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    let token = '';
+    for (let i = 0; i < 32; i++) {
+      token += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return token;
+  };
+
   const webhookForm = useForm<z.infer<typeof webhookFormSchema>>({
     resolver: zodResolver(webhookFormSchema),
     defaultValues: {
       channelId: "",
       webhookUrl: "",
-      verifyToken: "",
+      verifyToken: generateSecureToken(),
       appSecret: "",
-      events: ["messages", "message_status"],
+      events: ["messages", "message_status", "message_template_status_update"],
     },
   });
 
@@ -606,19 +616,52 @@ export default function Settings() {
               </CardHeader>
               <CardContent>
                 {/* Webhook Setup Instructions */}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                  <h4 className="font-medium text-blue-900 mb-2 flex items-center">
-                    <Info className="w-4 h-4 mr-2" />
-                    Quick Setup Guide
-                  </h4>
-                  <ol className="text-sm text-blue-800 space-y-2">
-                    <li>1. Create a WhatsApp channel in the "Channels" tab first</li>
-                    <li>2. Copy the webhook URL for your channel (shown below)</li>
-                    <li>3. Go to Facebook Business Manager → WhatsApp → Configuration → Webhooks</li>
-                    <li>4. Paste the webhook URL and set a verify token</li>
-                    <li>5. Subscribe to "messages" and "message_status" fields</li>
-                    <li>6. Configure the same verify token here in WhatsWay</li>
-                  </ol>
+                <div className="space-y-4 mb-6">
+                  <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-6 rounded-lg text-white">
+                    <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
+                      <Zap className="h-5 w-5" />
+                      One-Click Webhook Setup
+                    </h3>
+                    <p className="mb-4 text-purple-100">
+                      Configure your WhatsApp webhook in seconds with our automated wizard
+                    </p>
+                    <Button 
+                      onClick={() => {
+                        if (channels.length === 0) {
+                          toast({
+                            title: "No channels found",
+                            description: "Please add a WhatsApp channel first",
+                            variant: "destructive",
+                          });
+                          return;
+                        }
+                        setShowWebhookDialog(true);
+                        // Pre-select the first channel if available
+                        if (channels.length > 0 && !webhookForm.getValues("channelId")) {
+                          webhookForm.setValue("channelId", channels[0].id);
+                        }
+                      }}
+                      className="bg-white text-purple-600 hover:bg-purple-50"
+                    >
+                      <Zap className="h-4 w-4 mr-2" />
+                      Start Quick Setup
+                    </Button>
+                  </div>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="font-medium text-blue-900 mb-2 flex items-center">
+                      <Info className="w-4 h-4 mr-2" />
+                      Quick Setup Guide
+                    </h4>
+                    <ol className="text-sm text-blue-800 space-y-2">
+                      <li>1. Click "Start Quick Setup" above</li>
+                      <li>2. Select your WhatsApp channel</li>
+                      <li>3. Copy the generated webhook URL and verify token</li>
+                      <li>4. Go to Facebook Business Manager → WhatsApp → Configuration</li>
+                      <li>5. Paste the webhook URL and verify token</li>
+                      <li>6. Subscribe to "messages" and "message_status" fields</li>
+                    </ol>
+                  </div>
                 </div>
 
 
@@ -823,13 +866,32 @@ export default function Settings() {
                         <FormItem>
                           <FormLabel>Verify Token</FormLabel>
                           <FormControl>
-                            <Input 
-                              placeholder="Enter a secure verify token" 
-                              {...field} 
-                            />
+                            <div className="flex gap-2">
+                              <Input 
+                                placeholder="Auto-generated secure token" 
+                                {...field} 
+                                className="flex-1"
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                onClick={() => {
+                                  const newToken = generateSecureToken();
+                                  field.onChange(newToken);
+                                  toast({
+                                    title: "Token regenerated",
+                                    description: "A new secure token has been generated",
+                                  });
+                                }}
+                              >
+                                <RefreshCw className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </FormControl>
                           <FormDescription>
-                            <span className="text-yellow-600">Important:</span> Enter the EXACT same token you'll use in Facebook Business Manager
+                            <span className="text-yellow-600 font-medium">Important:</span> Copy this token and use it in Facebook Business Manager<br />
+                            <span className="text-muted-foreground">Max 100 characters • Auto-generated for security</span>
                           </FormDescription>
                           <FormMessage />
                         </FormItem>

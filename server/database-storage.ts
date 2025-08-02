@@ -88,8 +88,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteContact(id: string): Promise<boolean> {
-    const result = await db.delete(contacts).where(eq(contacts.id, id));
-    return result.count > 0;
+    const result = await db.delete(contacts).where(eq(contacts.id, id)).returning();
+    return result.length > 0;
   }
 
   async searchContacts(query: string): Promise<Contact[]> {
@@ -130,8 +130,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteCampaign(id: string): Promise<boolean> {
-    const result = await db.delete(campaigns).where(eq(campaigns.id, id));
-    return result.count > 0;
+    const result = await db.delete(campaigns).where(eq(campaigns.id, id)).returning();
+    return result.length > 0;
   }
 
   // Templates
@@ -162,8 +162,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteTemplate(id: string): Promise<boolean> {
-    const result = await db.delete(templates).where(eq(templates.id, id));
-    return result.count > 0;
+    const result = await db.delete(templates).where(eq(templates.id, id)).returning();
+    return result.length > 0;
   }
 
   // Conversations
@@ -263,8 +263,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteAutomation(id: string): Promise<boolean> {
-    const result = await db.delete(automations).where(eq(automations.id, id));
-    return result.count > 0;
+    const result = await db.delete(automations).where(eq(automations.id, id)).returning();
+    return result.length > 0;
   }
 
   // Analytics
@@ -370,8 +370,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteWhatsappChannel(id: string): Promise<boolean> {
-    const result = await db.delete(whatsappChannels).where(eq(whatsappChannels.id, id));
-    return result.count > 0;
+    const result = await db.delete(whatsappChannels).where(eq(whatsappChannels.id, id)).returning();
+    return result.length > 0;
   }
 
   // Webhook Configs
