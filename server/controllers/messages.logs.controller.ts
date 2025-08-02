@@ -91,7 +91,7 @@ export const getMessageLogs = asyncHandler(async (req: Request, res: Response) =
     channelId: log.channelId || '',
     phoneNumber: log.phoneNumber || '',
     contactName: log.contactName || '',
-    messageType: log.direction === 'outbound' ? 'sent' : 'received',
+    messageType: (log.direction === 'outbound' || log.direction === 'outgoing') ? 'sent' : 'received',
     content: log.content || '',
     templateName: log.content?.startsWith('Template:') ? log.content.replace('Template: ', '') : undefined,
     status: log.status || 'pending',

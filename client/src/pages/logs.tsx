@@ -36,6 +36,8 @@ interface MessageLog {
   status: 'sent' | 'delivered' | 'read' | 'failed' | 'pending';
   errorCode?: string;
   errorMessage?: string;
+  deliveredAt?: string;
+  readAt?: string;
   whatsappMessageId?: string;
   createdAt: string;
   updatedAt: string;
@@ -52,7 +54,7 @@ export default function Logs() {
   });
 
   // Fetch message logs
-  const { data: logs = [], isLoading, refetch } = useQuery<MessageLog[]>({
+  const { data: logs = [], isLoading, refetch, isFetching } = useQuery<MessageLog[]>({
     queryKey: ["/api/messages/logs", activeChannel?.id, statusFilter, dateFilter, searchQuery],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -73,12 +75,13 @@ export default function Logs() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'delivered':
+        return <CheckCircle className="w-4 h-4 text-blue-600" />;
       case 'read':
         return <CheckCircle className="w-4 h-4 text-green-600" />;
       case 'failed':
         return <XCircle className="w-4 h-4 text-red-600" />;
       case 'sent':
-        return <Clock className="w-4 h-4 text-blue-600" />;
+        return <Clock className="w-4 h-4 text-gray-600" />;
       case 'pending':
         return <Clock className="w-4 h-4 text-yellow-600" />;
       default:
@@ -86,20 +89,25 @@ export default function Logs() {
     }
   };
 
-  const getStatusVariant = (status: string) => {
+  const getStatusColor = (status: string, messageType: string) => {
+    // For received messages (inbound), use black/white
+    if (messageType === 'received') {
+      return "bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-100 border-gray-300";
+    }
+    
+    // For sent messages (outbound), use status-specific colors
     switch (status) {
-      case 'delivered':
-        return "default";
-      case 'read':
-        return "default";
       case 'failed':
-        return "destructive";
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 border-red-300";
+      case 'delivered':
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 border-blue-300";
+      case 'read':
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 border-green-300";
       case 'sent':
-        return "secondary";
       case 'pending':
-        return "secondary";
+        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200 border-gray-300";
       default:
-        return "outline";
+        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200 border-gray-300";
     }
   };
 
@@ -131,7 +139,7 @@ export default function Logs() {
                 }}
                 disabled={isLoading}
               >
-                <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`w-4 h-4 mr-2 ${isFetching ? 'animate-spin' : ''}`} />
                 Refresh
               </Button>
             </div>
@@ -207,13 +215,24 @@ export default function Logs() {
                     {logs.map((log) => (
                       <TableRow key={log.id}>
                         <TableCell>
-                          <Badge 
-                            variant={getStatusVariant(log.status)}
-                            className="flex items-center gap-1 w-fit"
-                          >
-                            {getStatusIcon(log.status)}
-                            {log.status}
-                          </Badge>
+                          <div className="space-y-1">
+                            <div 
+                              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusColor(log.status, log.messageType)}`}
+                            >
+                              {getStatusIcon(log.status)}
+                              {log.status}
+                            </div>
+                            {log.deliveredAt && (
+                              <div className="text-xs text-gray-500">
+                                Delivered: {format(new Date(log.deliveredAt), "h:mm a")}
+                              </div>
+                            )}
+                            {log.readAt && (
+                              <div className="text-xs text-gray-500">
+                                Read: {format(new Date(log.readAt), "h:mm a")}
+                              </div>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="font-mono text-sm">
                           {log.phoneNumber}
