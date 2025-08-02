@@ -58,10 +58,7 @@ const TemplateDialog = ({ channelId, onSelectTemplate }: {
 }) => {
   const { data: templates } = useQuery({
     queryKey: ["/api/templates", channelId],
-    queryFn: async () => {
-      const response = await api.getTemplates(undefined, channelId);
-      return await response.json();
-    },
+    queryFn: () => api.getTemplates(channelId),
     enabled: !!channelId,
   });
 
@@ -80,7 +77,7 @@ const TemplateDialog = ({ channelId, onSelectTemplate }: {
           </DialogDescription>
         </DialogHeader>
         <ScrollArea className="h-[400px] pr-4">
-          {templates && templates.length > 0 ? (
+          {templates && Array.isArray(templates) && templates.length > 0 ? (
             <div className="space-y-3">
               {templates.filter((t: any) => t.status === 'approved').map((template: any) => (
                 <Card 
@@ -220,17 +217,30 @@ export default function Inbox() {
   });
 
   const sendMessageMutation = useMutation({
-    mutationFn: (data: { conversationId: string; content: string }) => 
-      api.createMessage(data.conversationId, { content: data.content, fromUser: true }),
+    mutationFn: async (data: { conversationId: string; content: string }) => {
+      // Send message through conversation endpoint which uses WhatsApp API
+      const response = await fetch(`/api/conversations/${data.conversationId}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: data.content, fromUser: true }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to send message");
+      }
+      
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", selectedConversation?.id, "messages"] });
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
       setMessageText("");
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: "Failed to send message. Please try again.",
+        description: error.message || "Failed to send message. Please try again.",
         variant: "destructive",
       });
     },
@@ -243,7 +253,7 @@ export default function Inbox() {
       templateBody: string;
       phoneNumber: string;
     }) => {
-      // First send the template via WhatsApp API
+      // Send template via WhatsApp API
       const response = await fetch("/api/messages/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -254,14 +264,15 @@ export default function Inbox() {
         }),
       });
       
-      if (!response.ok) throw new Error("Failed to send template");
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to send template");
+      }
       
-      // Then create a message record
-      return api.createMessage(data.conversationId, { 
-        content: `[Template: ${data.templateName}]\n${data.templateBody}`, 
-        fromUser: true,
-        type: 'template'
-      });
+      // Refresh messages to show the sent template
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations", data.conversationId, "messages"] });
+      
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", selectedConversation?.id, "messages"] });
@@ -536,7 +547,7 @@ export default function Inbox() {
                   <div className="flex items-center gap-2">
                     <TeamAssignDropdown
                       conversationId={selectedConversation.id}
-                      currentAssignee={selectedConversation.assignedTo}
+                      currentAssignee={selectedConversation.assignedTo || undefined}
                       onAssign={handleAssignConversation}
                     />
                     <Dialog>
@@ -649,12 +660,12 @@ export default function Inbox() {
               <div className="border-t p-4">
                 <div className="flex items-end gap-2">
                   <TemplateDialog 
-                    channelId={selectedConversation.channelId}
+                    channelId={selectedConversation.channelId || undefined}
                     onSelectTemplate={(template) => {
                       sendTemplateMutation.mutate({
                         conversationId: selectedConversation.id,
                         templateName: template.name,
-                        templateBody: template.body,
+                        templateBody: template.body || '',
                         phoneNumber: selectedConversation.contactPhone,
                       });
                     }}

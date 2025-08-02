@@ -225,6 +225,17 @@ The application follows a monorepo structure with shared types and schemas, enab
 - Preserved backward compatibility with all existing API endpoints
 - **Note**: This was further enhanced with the MVC pattern refactoring above
 
+### Team Inbox WhatsApp Cloud API Integration (August 2025)
+- Fixed Team Inbox message sending with proper Meta Cloud API integration
+- Implemented direct text message sending through conversation endpoint
+- Added template message sending with approved template selection
+- Integrated message status tracking (sent, delivered, read) with WhatsApp webhooks
+- Created user management system with team assignment functionality
+- Fixed template dialog to show only approved templates from WhatsApp
+- Both text and template messages now successfully send via WhatsApp Cloud API
+- Message status updates automatically via webhook integration
+- Added users table population for team assignment dropdown functionality
+
 ### Channel Switching Data Refresh Implementation (August 2025)
 - Fixed channel switching to immediately refresh all page data
 - Updated API functions to support channelId parameter for proper filtering

@@ -9,7 +9,6 @@ export function registerMessageRoutes(app: Express) {
 
   // Create message in conversation
   app.post("/api/conversations/:conversationId/messages",
-    validateRequest(insertMessageSchema),
     messagesController.createMessage
   );
 
