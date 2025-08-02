@@ -3,6 +3,7 @@ import { storage } from "../storage";
 import { z } from "zod";
 import type { Contact } from "@shared/schema";
 import { randomUUID } from "crypto";
+import { WhatsAppApiService } from "../services/whatsapp-api";
 
 const createCampaignSchema = z.object({
   channelId: z.string(),
@@ -210,9 +211,35 @@ export const campaignsController = {
     }
 
     try {
-      // Send message (temporarily commented for testing)
-      const messageId = `test_${randomUUID()}`;
-      console.log("Would send template message to:", phone);
+      // Send template message
+      const response = await WhatsAppApiService.sendTemplateMessage(
+        channel,
+        phone,
+        template.name,
+        templateParams.map(p => p.text),
+        template.language || "en_US",
+        campaign.apiType === "mm_lite"
+      );
+      const messageId = response.messages?.[0]?.id || `msg_${randomUUID()}`;
+      
+      // Create message log entry
+      await storage.createMessage({
+        channelId: channel.id,
+        conversationId: null, // API messages may not have conversation
+        to: phone,
+        from: channel.phoneNumber,
+        type: "template",
+        content: JSON.stringify({
+          templateId: template.id,
+          templateName: template.name,
+          parameters: templateParams,
+        }),
+        status: "sent",
+        direction: "outbound",
+        whatsappMessageId: messageId,
+        timestamp: new Date(),
+        campaignId: campaign.id,
+      });
 
       // Update campaign stats
       await storage.updateCampaign(campaign.id, {
@@ -291,8 +318,35 @@ async function startCampaignExecution(campaignId: string) {
         });
       }
 
-      // Send message (temporarily commented for testing)
-      console.log("Would send template message to:", contact.phone);
+      // Send template message
+      const response = await WhatsAppApiService.sendTemplateMessage(
+        channel,
+        contact.phone,
+        template.name,
+        templateParams.map(p => p.text),
+        template.language || "en_US",
+        campaign.apiType === "mm_lite"
+      );
+      const messageId = response.messages?.[0]?.id || `msg_${randomUUID()}`;
+      
+      // Create message log entry
+      await storage.createMessage({
+        channelId: channel.id,
+        conversationId: null, // Campaign messages may not have conversation
+        to: contact.phone,
+        from: channel.phoneNumber,
+        type: "template",
+        content: JSON.stringify({
+          templateId: template.id,
+          templateName: template.name,
+          parameters: templateParams,
+        }),
+        status: "sent",
+        direction: "outbound",
+        whatsappMessageId: messageId,
+        timestamp: new Date(),
+        campaignId: campaignId,
+      });
 
       // Update sent count
       await storage.updateCampaign(campaignId, {
