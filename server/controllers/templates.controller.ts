@@ -93,10 +93,15 @@ export const deleteTemplate = asyncHandler(async (req: Request, res: Response) =
 });
 
 export const syncTemplates = asyncHandler(async (req: RequestWithChannel, res: Response) => {
-  const channelId = req.body.channelId || req.query.channelId as string;
+  const channelId = req.body.channelId || req.query.channelId as string || req.channel?.id;
   
   if (!channelId) {
-    throw new AppError(400, 'Channel ID is required');
+    // Get active channel if not provided
+    const activeChannel = await storage.getActiveChannel();
+    if (!activeChannel) {
+      throw new AppError(400, 'No active channel found');
+    }
+    channelId = activeChannel.id;
   }
   
   const channel = await storage.getChannel(channelId);
@@ -109,24 +114,54 @@ export const syncTemplates = asyncHandler(async (req: RequestWithChannel, res: R
     const whatsappTemplates = await whatsappApi.getTemplates();
     
     const existingTemplates = await storage.getTemplatesByChannel(channelId);
-    const existingByName = new Map(existingTemplates.map(t => [t.name, t]));
+    const existingByName = new Map(existingTemplates.map(t => [`${t.name}_${t.language}`, t]));
     
     let updatedCount = 0;
+    let createdCount = 0;
     
     for (const waTemplate of whatsappTemplates) {
-      const existing = existingByName.get(waTemplate.name);
-      if (existing && existing.status !== waTemplate.status) {
-        await storage.updateTemplate(existing.id, {
+      const key = `${waTemplate.name}_${waTemplate.language}`;
+      const existing = existingByName.get(key);
+      
+      // Extract body text from components
+      let bodyText = '';
+      if (waTemplate.components && Array.isArray(waTemplate.components)) {
+        const bodyComponent = waTemplate.components.find((c: any) => c.type === 'BODY');
+        if (bodyComponent && bodyComponent.text) {
+          bodyText = bodyComponent.text;
+        }
+      }
+      
+      if (existing) {
+        // Update existing template
+        if (existing.status !== waTemplate.status || existing.whatsappTemplateId !== waTemplate.id) {
+          await storage.updateTemplate(existing.id, {
+            status: waTemplate.status,
+            whatsappTemplateId: waTemplate.id,
+            body: bodyText || existing.body
+          });
+          updatedCount++;
+        }
+      } else {
+        // Create new template
+        await storage.createTemplate({
+          name: waTemplate.name,
+          language: waTemplate.language,
+          category: waTemplate.category || 'marketing',
           status: waTemplate.status,
+          body: bodyText || `Template ${waTemplate.name}`,
+          channelId: channelId,
           whatsappTemplateId: waTemplate.id
         });
-        updatedCount++;
+        createdCount++;
       }
     }
     
     res.json({
-      message: `Synced ${updatedCount} templates`,
-      updatedCount
+      message: `Synced templates: ${createdCount} created, ${updatedCount} updated`,
+      createdCount,
+      updatedCount,
+      totalTemplates: whatsappTemplates.length
     });
   } catch (error) {
     console.error("Template sync error:", error);

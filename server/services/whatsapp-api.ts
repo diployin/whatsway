@@ -115,7 +115,7 @@ export class WhatsAppApiService {
 
   async getTemplates(): Promise<WhatsAppTemplate[]> {
     const response = await fetch(
-      `${this.baseUrl}/${this.channel.whatsappBusinessAccountId}/message_templates?fields=id,status,name,language,category`,
+      `${this.baseUrl}/${this.channel.whatsappBusinessAccountId}/message_templates?fields=id,status,name,language,category,components&limit=100`,
       {
         headers: this.headers
       }

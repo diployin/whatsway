@@ -48,6 +48,16 @@ export const createContact = asyncHandler(async (req: RequestWithChannel, res: R
     }
   }
   
+  // Check for duplicate phone number
+  const existingContacts = channelId 
+    ? await storage.getContactsByChannel(channelId)
+    : await storage.getContacts();
+  
+  const duplicate = existingContacts.find(c => c.phone === validatedContact.phone);
+  if (duplicate) {
+    throw new AppError(409, 'Contact with this phone number already exists');
+  }
+  
   const contact = await storage.createContact({
     ...validatedContact,
     channelId
@@ -90,17 +100,35 @@ export const importContacts = asyncHandler(async (req: RequestWithChannel, res: 
     }
   }
   
+  // Get existing contacts for duplicate check
+  const existingContacts = channelId 
+    ? await storage.getContactsByChannel(channelId)
+    : await storage.getContacts();
+  
+  const existingPhones = new Set(existingContacts.map(c => c.phone));
+  
   const createdContacts = [];
+  const duplicates = [];
   const errors = [];
   
   for (const contact of contacts) {
     try {
+      // Check for duplicate phone number
+      if (existingPhones.has(contact.phone)) {
+        duplicates.push({
+          contact,
+          reason: 'Phone number already exists'
+        });
+        continue;
+      }
+      
       const validatedContact = insertContactSchema.parse({
         ...contact,
         channelId
       });
       const created = await storage.createContact(validatedContact);
       createdContacts.push(created);
+      existingPhones.add(created.phone); // Add to set to catch duplicates within the import
     } catch (error) {
       errors.push({
         contact,
@@ -111,7 +139,13 @@ export const importContacts = asyncHandler(async (req: RequestWithChannel, res: 
   
   res.json({
     created: createdContacts.length,
+    duplicates: duplicates.length,
     failed: errors.length,
-    errors: errors.slice(0, 10) // Limit errors to first 10
+    total: contacts.length,
+    details: {
+      created: createdContacts.length,
+      duplicates: duplicates.slice(0, 10), // Limit to first 10
+      errors: errors.slice(0, 10) // Limit to first 10
+    }
   });
 });

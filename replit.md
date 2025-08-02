@@ -53,3 +53,13 @@ Preferred communication style: Simple, everyday language.
 - **Vite**: Fast development server and build tool.
 - **TypeScript**: Type safety across the stack.
 - **ESBuild**: Fast JavaScript bundling for production.
+
+## Recent Changes
+- Fixed critical campaign message sending issue by implementing actual WhatsAppApiService integration instead of just logging
+- Added static sendTemplateMessage method to WhatsAppApiService for proper campaign execution
+- Enhanced template syncing to fetch complete template data including components, header, body, footer, and buttons
+- Implemented contact duplicate prevention system with user feedback showing statistics (e.g., "90 added, 10 duplicates")
+- Enhanced API campaign functionality with sample code generation and improved API details display
+- Updated template sync to import all templates from WhatsApp API with proper language handling
+- Enhanced contact import with duplicate detection showing detailed statistics
+- Improved API campaign details display with copy buttons and sample code generation

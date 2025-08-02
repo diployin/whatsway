@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Send, Pause, Play, BarChart, Users, FileSpreadsheet, Code, Clock, CheckCircle, XCircle, AlertCircle, Eye, Download, Trash2, Calendar } from "lucide-react";
+import { Plus, Send, Pause, Play, BarChart, Users, FileSpreadsheet, Code, Clock, CheckCircle, XCircle, AlertCircle, Eye, Download, Trash2, Calendar, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -813,16 +813,86 @@ export function Campaigns() {
               {selectedCampaign.campaignType === "api" && selectedCampaign.apiEndpoint && (
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-sm">API Details</CardTitle>
+                    <CardTitle className="text-sm">API Integration Details</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-2">
+                  <CardContent className="space-y-4">
                     <div>
-                      <Label>Endpoint</Label>
-                      <Input value={selectedCampaign.apiEndpoint} readOnly />
+                      <Label>Endpoint URL</Label>
+                      <div className="flex gap-2">
+                        <Input value={selectedCampaign.apiEndpoint} readOnly />
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => navigator.clipboard.writeText(selectedCampaign.apiEndpoint)}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                     <div>
                       <Label>API Key</Label>
-                      <Input value={selectedCampaign.apiKey} type="password" readOnly />
+                      <div className="flex gap-2">
+                        <Input value={selectedCampaign.apiKey} readOnly />
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => navigator.clipboard.writeText(selectedCampaign.apiKey)}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Sample Code</Label>
+                      <div className="bg-muted p-4 rounded-lg font-mono text-sm">
+                        <pre>{`// Send WhatsApp message via API
+const response = await fetch('${selectedCampaign.apiEndpoint}', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    phone: '+1234567890',
+    variables: {
+      ${Object.entries(selectedCampaign.variableMapping || {}).map(([key, value]) => 
+        `'${value}': 'Your value here'`
+      ).join(',\n      ')}
+    }
+  })
+});
+
+const result = await response.json();
+console.log(result);`}</pre>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          const code = `// Send WhatsApp message via API
+const response = await fetch('${selectedCampaign.apiEndpoint}', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    phone: '+1234567890',
+    variables: {
+      ${Object.entries(selectedCampaign.variableMapping || {}).map(([key, value]) => 
+        `'${value}': 'Your value here'`
+      ).join(',\n      ')}
+    }
+  })
+});
+
+const result = await response.json();
+console.log(result);`;
+                          navigator.clipboard.writeText(code);
+                        }}
+                      >
+                        <Copy className="h-4 w-4 mr-2" />
+                        Copy Code
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
