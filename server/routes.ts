@@ -602,22 +602,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const challenge = req.query["hub.challenge"] as string;
       const channelId = req.params.channelId;
       
+      console.log("Webhook verification request:", {
+        channelId,
+        mode,
+        token: token ? `${token.substring(0, 5)}...` : "missing",
+        challenge: challenge ? `${challenge.substring(0, 10)}...` : "missing"
+      });
+      
       // Get webhook config for this channel
       const config = await storage.getWebhookConfig(channelId);
-      if (!config || !config.isActive) {
-        return res.sendStatus(403);
+      if (!config) {
+        console.error(`No webhook config found for channel: ${channelId}`);
+        return res.status(403).send("Webhook config not found");
       }
+      
+      if (!config.isActive) {
+        console.error(`Webhook config is inactive for channel: ${channelId}`);
+        return res.status(403).send("Webhook is inactive");
+      }
+      
+      console.log("Verifying token:", {
+        providedToken: token ? `${token.substring(0, 5)}...` : "missing",
+        expectedToken: config.verifyToken ? `${config.verifyToken.substring(0, 5)}...` : "missing",
+        matches: token === config.verifyToken
+      });
       
       const result = WebhookService.handleVerification(mode, token, challenge, config.verifyToken);
       
       if (result.verified && result.challenge) {
+        console.log("Webhook verification successful");
         res.status(200).send(result.challenge);
       } else {
-        res.sendStatus(403);
+        console.error("Webhook verification failed:", { mode, tokenMatches: token === config.verifyToken });
+        res.status(403).send("Verification failed");
       }
     } catch (error) {
       console.error("Webhook verification error:", error);
-      res.sendStatus(403);
+      res.status(403).send("Verification error");
     }
   });
 
@@ -658,6 +679,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Webhook processing error:", error);
       res.sendStatus(500);
+    }
+  });
+
+  // Test endpoint to verify webhook configuration
+  app.get("/api/whatsapp/webhooks/test/:channelId", async (req, res) => {
+    try {
+      const channelId = req.params.channelId;
+      const config = await storage.getWebhookConfig(channelId);
+      
+      if (!config) {
+        return res.status(404).json({ 
+          success: false,
+          message: "No webhook configuration found for this channel",
+          channelId 
+        });
+      }
+      
+      res.json({
+        success: true,
+        webhookUrl: `${req.protocol}://${req.get('host')}/webhook/${channelId}`,
+        verifyToken: config.verifyToken,
+        isActive: config.isActive,
+        events: config.events,
+        channelId: config.channelId,
+        configId: config.id,
+        createdAt: config.createdAt
+      });
+    } catch (error) {
+      console.error("Error testing webhook config:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to test webhook configuration",
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   });
 

@@ -739,7 +739,29 @@ export default function Settings() {
                             </div>
                             <div className="space-y-2 text-sm text-gray-600">
                               <div>
-                                <strong>Webhook URL:</strong> {config.webhookUrl}
+                                <strong>Webhook URL:</strong> 
+                                <code className="ml-2 bg-gray-100 px-2 py-1 rounded text-xs">
+                                  {config.webhookUrl}
+                                </code>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <strong>Verify Token:</strong>
+                                <code className="bg-yellow-100 px-2 py-1 rounded text-xs font-mono">
+                                  {config.verifyToken}
+                                </code>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(config.verifyToken);
+                                    toast({
+                                      title: "Verify token copied!",
+                                      description: "Use this exact token in Facebook Business Manager",
+                                    });
+                                  }}
+                                >
+                                  <Copy className="h-3 w-3" />
+                                </Button>
                               </div>
                               <div>
                                 <strong>Events:</strong> {(config.events as string[]).join(', ')}
