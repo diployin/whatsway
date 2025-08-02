@@ -3,12 +3,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Header from "@/components/layout/header";
 import { Loading } from "@/components/ui/loading";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -16,7 +13,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
@@ -28,88 +24,262 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { 
-  MessageSquare, 
   Search, 
   Send,
   Paperclip,
   MoreVertical,
-  Edit,
-  User,
-  UserPlus,
+  Phone,
+  Video,
+  Ban,
+  Archive,
+  Trash2,
+  Star,
+  Filter,
+  MessageCircle,
   Clock,
   Check,
   CheckCheck,
   AlertCircle,
-  Info,
+  FileText,
   Smile,
-  FileText
+  Mic,
+  Image,
+  X,
+  Users,
+  UserPlus,
+  User,
+  ChevronDown,
+  Calendar,
+  Tag,
+  Forward,
+  Reply
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+import { format, differenceInMinutes, differenceInHours, differenceInDays, isToday, isYesterday } from "date-fns";
 import { cn } from "@/lib/utils";
-import type { Conversation, Message, Contact } from "@shared/schema";
+import type { Conversation, Message, Contact, TeamMember } from "@shared/schema";
+
+// Helper functions
+const formatLastSeen = (date: Date | string | null) => {
+  if (!date) return "Never";
+  
+  const lastSeenDate = new Date(date);
+  const now = new Date();
+  const minutes = differenceInMinutes(now, lastSeenDate);
+  const hours = differenceInHours(now, lastSeenDate);
+  const days = differenceInDays(now, lastSeenDate);
+  
+  if (minutes < 1) return "Just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  if (days < 7) return `${days}d ago`;
+  return format(lastSeenDate, "MMM d, yyyy");
+};
+
+const formatMessageDate = (date: Date | string) => {
+  const messageDate = new Date(date);
+  
+  if (isToday(messageDate)) return "Today";
+  if (isYesterday(messageDate)) return "Yesterday";
+  return format(messageDate, "MMMM d, yyyy");
+};
+
+const getMessageStatusIcon = (status: string) => {
+  switch (status) {
+    case "sent":
+      return <Check className="w-3 h-3 text-gray-400" />;
+    case "delivered":
+      return <CheckCheck className="w-3 h-3 text-gray-400" />;
+    case "read":
+      return <CheckCheck className="w-3 h-3 text-blue-500" />;
+    default:
+      return <Clock className="w-3 h-3 text-gray-400" />;
+  }
+};
+
+// Conversation List Item Component
+const ConversationListItem = ({ 
+  conversation, 
+  isSelected, 
+  onClick 
+}: { 
+  conversation: Conversation & { contact?: Contact };
+  isSelected: boolean;
+  onClick: () => void;
+}) => {
+  const lastMessageTime = conversation.lastMessageAt 
+    ? formatLastSeen(conversation.lastMessageAt)
+    : "";
+
+  return (
+    <div
+      onClick={onClick}
+      className={cn(
+        "flex items-center gap-3 p-3 cursor-pointer transition-colors border-b",
+        isSelected 
+          ? "bg-green-50 border-l-4 border-l-green-600" 
+          : "hover:bg-gray-50"
+      )}
+    >
+      <Avatar className="h-12 w-12">
+        <AvatarFallback className="bg-gray-200">
+          {conversation.contact?.name?.[0]?.toUpperCase() || "?"}
+        </AvatarFallback>
+      </Avatar>
+      
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between mb-1">
+          <h4 className="font-medium text-gray-900 truncate">
+            {conversation.contact?.name || conversation.contactPhone}
+          </h4>
+          <span className="text-xs text-gray-500 whitespace-nowrap ml-2">
+            {lastMessageTime}
+          </span>
+        </div>
+        
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-gray-600 truncate">
+            {conversation.lastMessageText || "No messages yet"}
+          </p>
+          {conversation.unreadCount && conversation.unreadCount > 0 && (
+            <Badge className="ml-2 bg-green-600 text-white">
+              {conversation.unreadCount}
+            </Badge>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Message Component
+const MessageItem = ({ 
+  message, 
+  showDate 
+}: { 
+  message: Message;
+  showDate: boolean;
+}) => {
+  const isOutbound = message.direction === "outbound";
+  
+  return (
+    <>
+      {showDate && (
+        <div className="flex items-center justify-center my-4">
+          <div className="bg-gray-100 px-3 py-1 rounded-full text-xs text-gray-600">
+            {formatMessageDate(message.createdAt || new Date())}
+          </div>
+        </div>
+      )}
+      
+      <div className={cn(
+        "flex items-end gap-2 mb-4",
+        isOutbound ? "justify-end" : "justify-start"
+      )}>
+        {!isOutbound && (
+          <Avatar className="h-8 w-8">
+            <AvatarFallback className="bg-gray-200 text-xs">C</AvatarFallback>
+          </Avatar>
+        )}
+        
+        <div className={cn(
+          "max-w-[70%] rounded-2xl px-4 py-2",
+          isOutbound 
+            ? "bg-green-600 text-white rounded-br-sm" 
+            : "bg-gray-100 text-gray-900 rounded-bl-sm"
+        )}>
+          <p className="text-sm whitespace-pre-wrap">{message.content || ""}</p>
+          
+          <div className={cn(
+            "flex items-center gap-1 mt-1",
+            isOutbound ? "justify-end" : "justify-start"
+          )}>
+            <span className={cn(
+              "text-xs",
+              isOutbound ? "text-green-100" : "text-gray-500"
+            )}>
+              {format(new Date(message.createdAt || new Date()), "h:mm a")}
+            </span>
+            {isOutbound && getMessageStatusIcon(message.status || "pending")}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
 
 // Template Dialog Component
-const TemplateDialog = ({ channelId, onSelectTemplate }: { 
+const TemplateDialog = ({ 
+  channelId, 
+  onSelectTemplate 
+}: { 
   channelId?: string; 
-  onSelectTemplate: (template: any) => void 
+  onSelectTemplate: (template: any) => void;
 }) => {
+  const [open, setOpen] = useState(false);
   const { data: templates } = useQuery({
     queryKey: ["/api/templates", channelId],
     queryFn: () => api.getTemplates(channelId),
-    enabled: !!channelId,
+    enabled: !!channelId && open,
   });
 
+  const approvedTemplates = templates?.filter((t: any) => t.status === "approved") || [];
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" title="Send template">
-          <FileText className="w-5 h-5" />
+        <Button variant="ghost" size="icon" className="h-9 w-9">
+          <FileText className="h-4 w-4" />
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[80vh]">
         <DialogHeader>
           <DialogTitle>Select Template</DialogTitle>
           <DialogDescription>
-            Choose a template to send to this contact
+            Choose from approved WhatsApp templates
           </DialogDescription>
         </DialogHeader>
+        
         <ScrollArea className="h-[400px] pr-4">
-          {templates && Array.isArray(templates) && templates.length > 0 ? (
-            <div className="space-y-3">
-              {templates.filter((t: any) => t.status === 'approved').map((template: any) => (
-                <Card 
-                  key={template.id} 
-                  className="p-4 hover:bg-gray-50 cursor-pointer transition-colors"
-                  onClick={() => onSelectTemplate(template)}
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium">{template.name}</h4>
-                      <Badge variant="secondary" className="text-xs">
-                        {template.category}
-                      </Badge>
-                    </div>
-                    {template.header && (
-                      <p className="text-sm font-medium text-gray-700">{template.header}</p>
-                    )}
-                    <p className="text-sm text-gray-600 whitespace-pre-wrap">{template.body}</p>
-                    {template.footer && (
-                      <p className="text-xs text-gray-500">{template.footer}</p>
-                    )}
-                  </div>
-                </Card>
-              ))}
+          {approvedTemplates.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              No approved templates available
             </div>
           ) : (
-            <EmptyState
-              icon={FileText}
-              title="No templates available"
-              description="Create approved templates to use them here"
-              className="py-8"
-            />
+            <div className="space-y-3">
+              {approvedTemplates.map((template: any) => (
+                <div
+                  key={template.id}
+                  onClick={() => {
+                    onSelectTemplate(template);
+                    setOpen(false);
+                  }}
+                  className="p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <h4 className="font-medium">{template.name}</h4>
+                    <Badge variant="outline" className="text-xs">
+                      {template.category}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-gray-600">{template.body}</p>
+                </div>
+              ))}
+            </div>
           )}
         </ScrollArea>
       </DialogContent>
@@ -117,68 +287,17 @@ const TemplateDialog = ({ channelId, onSelectTemplate }: {
   );
 };
 
-// Team Assignment Dropdown Component
-const TeamAssignDropdown = ({ conversationId, currentAssignee, onAssign }: {
-  conversationId: string;
-  currentAssignee?: string;
-  onAssign: (assignedTo: string, assignedToName: string) => void;
-}) => {
-  const { data: users } = useQuery({
-    queryKey: ["/api/users"],
-    queryFn: async () => {
-      const response = await fetch("/api/users");
-      if (!response.ok) throw new Error("Failed to fetch users");
-      return response.json();
-    },
-  });
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
-          <UserPlus className="w-4 h-4" />
-          {currentAssignee ? "Reassign" : "Assign"}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel>Assign to team member</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {currentAssignee && (
-          <>
-            <DropdownMenuItem onClick={() => onAssign("", "")}>
-              <User className="w-4 h-4 mr-2" />
-              Unassign
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-          </>
-        )}
-        {users?.map((user: any) => (
-          <DropdownMenuItem 
-            key={user.id} 
-            onClick={() => onAssign(user.id, `${user.firstName} ${user.lastName}`.trim() || user.username)}
-          >
-            <User className="w-4 h-4 mr-2" />
-            <div className="flex flex-col">
-              <span>{user.firstName} {user.lastName}</span>
-              <span className="text-xs text-gray-500">@{user.username}</span>
-            </div>
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-};
-
-export default function Inbox() {
+// Main Component
+export default function TeamInbox() {
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [messageText, setMessageText] = useState("");
-  const [filterStatus, setFilterStatus] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
-  const [templateParams, setTemplateParams] = useState<string[]>([]);
+  const [filterTab, setFilterTab] = useState("all");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Fetch active channel
   const { data: activeChannel } = useQuery({
     queryKey: ["/api/channels/active"],
     queryFn: async () => {
@@ -188,7 +307,8 @@ export default function Inbox() {
     },
   });
 
-  const { data: conversations, isLoading: conversationsLoading } = useQuery({
+  // Fetch conversations
+  const { data: conversations = [], isLoading: conversationsLoading } = useQuery({
     queryKey: ["/api/conversations", activeChannel?.id],
     queryFn: async () => {
       const response = await api.getConversations(activeChannel?.id);
@@ -197,7 +317,8 @@ export default function Inbox() {
     enabled: !!activeChannel,
   });
 
-  const { data: messages, isLoading: messagesLoading } = useQuery({
+  // Fetch messages for selected conversation
+  const { data: messages = [], isLoading: messagesLoading } = useQuery({
     queryKey: ["/api/conversations", selectedConversation?.id, "messages"],
     queryFn: async () => {
       if (!selectedConversation?.id) return [];
@@ -207,18 +328,20 @@ export default function Inbox() {
     enabled: !!selectedConversation?.id,
   });
 
-  const { data: contacts } = useQuery({
-    queryKey: ["/api/contacts", activeChannel?.id],
-    queryFn: async () => {
-      const response = await api.getContacts(undefined, activeChannel?.id);
-      return await response.json();
-    },
-    enabled: !!activeChannel,
+  // Fetch team members
+  const { data: teamMembers = [] } = useQuery({
+    queryKey: ["/api/team/members"],
+    enabled: !!selectedConversation,
   });
 
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (data: { conversationId: string; content: string }) => {
-      // Send message through conversation endpoint which uses WhatsApp API
       const response = await fetch(`/api/conversations/${data.conversationId}/messages`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -240,20 +363,19 @@ export default function Inbox() {
     onError: (error: Error) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to send message. Please try again.",
+        description: error.message,
         variant: "destructive",
       });
     },
   });
 
+  // Send template mutation
   const sendTemplateMutation = useMutation({
     mutationFn: async (data: { 
       conversationId: string; 
       templateName: string; 
-      templateBody: string;
       phoneNumber: string;
     }) => {
-      // Send template via WhatsApp API
       const response = await fetch("/api/messages/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -269,14 +391,10 @@ export default function Inbox() {
         throw new Error(error.message || "Failed to send template");
       }
       
-      // Refresh messages to show the sent template
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations", data.conversationId, "messages"] });
-      
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", selectedConversation?.id, "messages"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
       toast({
         title: "Success",
         description: "Template sent successfully",
@@ -285,27 +403,8 @@ export default function Inbox() {
     onError: (error: Error) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to send template",
+        description: error.message,
         variant: "destructive",
-      });
-    },
-  });
-
-  const updateConversationMutation = useMutation({
-    mutationFn: async (data: { id: string; updates: any }) => {
-      const response = await fetch(`/api/conversations/${data.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data.updates),
-      });
-      if (!response.ok) throw new Error('Failed to update conversation');
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-      toast({
-        title: "Success",
-        description: "Conversation updated successfully",
       });
     },
   });
@@ -319,483 +418,277 @@ export default function Inbox() {
     });
   };
 
-  const handleAssignConversation = (assignedTo: string, assignedToName: string) => {
+  const handleSelectTemplate = (template: any) => {
     if (!selectedConversation) return;
     
-    updateConversationMutation.mutate({
-      id: selectedConversation.id,
-      updates: { 
-        assignedTo, 
-        assignedToName,
-        assignedAt: new Date().toISOString(),
-        status: assignedTo ? "assigned" : "open" 
-      }
+    sendTemplateMutation.mutate({
+      conversationId: selectedConversation.id,
+      templateName: template.name,
+      phoneNumber: selectedConversation.contactPhone,
     });
   };
 
-  const filteredConversations = conversations?.filter((conv: Conversation) => {
-    const statusMatch = filterStatus === "all" || conv.status === filterStatus;
-    const contact = contacts?.find((c: Contact) => c.id === conv.contactId);
-    const searchMatch = !searchQuery || 
-      contact?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      contact?.phone.includes(searchQuery);
-    return statusMatch && searchMatch;
-  }) || [];
-
-  const getContactInfo = (contactId: string) => {
-    return contacts?.find((c: Contact) => c.id === contactId);
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "urgent": return "bg-red-100 text-red-800";
-      case "high": return "bg-orange-100 text-orange-800";
-      case "normal": return "bg-blue-100 text-blue-800";
-      case "low": return "bg-gray-100 text-gray-800";
-      default: return "bg-blue-100 text-blue-800";
+  // Filter conversations
+  const filteredConversations = conversations.filter((conv: Conversation) => {
+    const matchesSearch = conv.contact?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         conv.contactPhone.includes(searchQuery);
+    
+    switch (filterTab) {
+      case "unread":
+        return matchesSearch && conv.unreadCount > 0;
+      case "open":
+        return matchesSearch && conv.status === "open";
+      case "resolved":
+        return matchesSearch && conv.status === "resolved";
+      default:
+        return matchesSearch;
     }
-  };
+  });
 
   // Check if 24-hour window has passed
-  const is24HourWindowExpired = (messages: Message[]) => {
-    const lastIncomingMessage = messages
-      .filter(m => m.direction === 'inbound' || m.direction === 'incoming')
-      .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())[0];
-    
-    if (!lastIncomingMessage || !lastIncomingMessage.createdAt) return true;
-    
-    const lastMessageTime = new Date(lastIncomingMessage.createdAt).getTime();
-    const currentTime = new Date().getTime();
-    const hoursSinceLastMessage = (currentTime - lastMessageTime) / (1000 * 60 * 60);
-    
-    return hoursSinceLastMessage > 24;
-  };
+  const is24HourWindowExpired = selectedConversation?.lastMessageAt && 
+    differenceInHours(new Date(), new Date(selectedConversation.lastMessageAt)) > 24;
 
-  const getMessageStatus = (message: Message) => {
-    if (!message.status || message.direction === 'inbound') return null;
-    
-    switch (message.status) {
-      case 'sent':
-        return <Check className="w-3 h-3 text-green-100" />;
-      case 'delivered':
-        return <CheckCheck className="w-3 h-3 text-green-100" />;
-      case 'read':
-        return <CheckCheck className="w-3 h-3 text-blue-300" />;
-      case 'failed':
-        return <AlertCircle className="w-3 h-3 text-red-300" />;
-      default:
-        return <Clock className="w-3 h-3 text-green-100" />;
-    }
-  };
-
-  // Auto scroll to bottom on new messages
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  // Mark conversation as read when opening
-  useEffect(() => {
-    if (selectedConversation?.id && selectedConversation.unreadCount && selectedConversation.unreadCount > 0) {
-      fetch(`/api/conversations/${selectedConversation.id}/read`, {
-        method: 'PUT',
-      }).then(() => {
-        queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-        queryClient.invalidateQueries({ queryKey: ["/api/conversations/unread-count"] });
-      });
-    }
-  }, [selectedConversation?.id, selectedConversation?.unreadCount, queryClient]);
-
-  // WebSocket connection for real-time messages
-  useEffect(() => {
-    if (!selectedConversation) return;
-    
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.host}/ws`;
-    const socket = new WebSocket(wsUrl);
-    
-    socket.onopen = () => {
-      console.log('WebSocket connected');
-      socket.send(JSON.stringify({
-        type: 'join-conversation',
-        conversationId: selectedConversation.id
-      }));
-    };
-    
-    socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'new-message') {
-        // Invalidate messages query to refetch
-        queryClient.invalidateQueries({ 
-          queryKey: ["/api/conversations", selectedConversation.id, "messages"] 
-        });
-        queryClient.invalidateQueries({ 
-          queryKey: ["/api/conversations"] 
-        });
-      }
-    };
-    
-    socket.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
-    
-    return () => {
-      if (socket.readyState === WebSocket.OPEN) {
-        socket.close();
-      }
-    };
-  }, [selectedConversation, queryClient]);
-
-  if (conversationsLoading) {
+  if (!activeChannel) {
     return (
-      <div className="flex-1 dots-bg">
-        <Header title="Team Inbox" subtitle="Loading conversations..." />
-        <div className="p-6">
-          <Loading size="lg" text="Loading inbox..." />
+      <div className="flex h-screen">
+        <Header title="Team Inbox" />
+        <div className="flex-1 flex items-center justify-center">
+          <EmptyState
+            icon={MessageCircle}
+            title="No Active Channel"
+            description="Please select a channel from the channel switcher to view conversations."
+          />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 dots-bg min-h-screen">
-      <Header 
-        title="Team Inbox" 
-        subtitle="Real-time customer conversations"
-      />
-
-      <main className="p-6">
-        <div className="h-[calc(100vh-200px)] flex gap-6">
-          {/* Conversations List */}
-          <Card className="w-96 flex flex-col">
-            <CardHeader className="pb-4">
-              <div className="space-y-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <Input
-                    placeholder="Search conversations..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-                <Select value={filterStatus} onValueChange={setFilterStatus}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Filter conversations" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Conversations</SelectItem>
-                    <SelectItem value="open">Open</SelectItem>
-                    <SelectItem value="assigned">Assigned</SelectItem>
-                    <SelectItem value="closed">Closed</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardHeader>
-            <CardContent className="flex-1 p-0 overflow-hidden">
-              <ScrollArea className="h-full">
-                {!filteredConversations.length ? (
-                  <EmptyState
-                    icon={MessageSquare}
-                    title="No conversations"
-                    description="Start chatting when customers message you"
-                    className="py-12"
-                  />
-                ) : (
-                  <div className="divide-y divide-gray-100">
-                    {filteredConversations.map((conversation: Conversation) => {
-                      const contact = getContactInfo(conversation.contactId);
-                      const isSelected = selectedConversation?.id === conversation.id;
-                      
-                      return (
-                        <div
-                          key={conversation.id}
-                          className={cn(
-                            "p-4 hover:bg-gray-50 transition-colors cursor-pointer",
-                            isSelected && "bg-green-50 border-l-4 border-green-500"
-                          )}
-                          onClick={() => setSelectedConversation(conversation)}
-                        >
-                          <div className="flex items-start gap-3">
-                            <Avatar>
-                              <AvatarFallback>
-                                {contact?.name?.charAt(0).toUpperCase() || "?"}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between">
-                                <h3 className="font-medium text-sm truncate">
-                                  {contact?.name || conversation.contactPhone || "Unknown"}
-                                </h3>
-                                <span className="text-xs text-gray-500">
-                                  {conversation.lastMessageAt ? 
-                                    format(new Date(conversation.lastMessageAt), "HH:mm") : ""}
-                                </span>
-                              </div>
-                              <p className="text-xs text-gray-500 truncate mt-1">
-                                {conversation.contactPhone}
-                              </p>
-                              {conversation.unreadCount && conversation.unreadCount > 0 && (
-                                <Badge className="mt-1 bg-green-600 text-white text-xs">
-                                  {conversation.unreadCount} new
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </ScrollArea>
-            </CardContent>
-          </Card>
-
-          {/* Chat Interface */}
-          {selectedConversation ? (
-            <Card className="flex-1 flex flex-col">
-              {/* Chat Header */}
-              <CardHeader className="border-b bg-gray-50">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Avatar>
-                      <AvatarFallback>
-                        {getContactInfo(selectedConversation.contactId)?.name?.charAt(0).toUpperCase() || "?"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h2 className="font-semibold">
-                        {getContactInfo(selectedConversation.contactId)?.name || selectedConversation.contactPhone}
-                      </h2>
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm text-gray-500">{selectedConversation.contactPhone}</p>
-                        {selectedConversation.status === 'active' && (
-                          <span className="text-xs text-green-600 font-medium">• Online</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <TeamAssignDropdown
-                      conversationId={selectedConversation.id}
-                      currentAssignee={selectedConversation.assignedTo || undefined}
-                      onAssign={handleAssignConversation}
-                    />
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <Info className="w-4 h-4" />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Contact Information</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div className="flex items-center gap-3">
-                            <Avatar className="w-12 h-12">
-                              <AvatarFallback>
-                                {getContactInfo(selectedConversation.contactId)?.name?.charAt(0).toUpperCase() || "?"}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <h3 className="font-semibold">{getContactInfo(selectedConversation.contactId)?.name || "Unknown"}</h3>
-                              <p className="text-sm text-gray-500">{selectedConversation.contactPhone}</p>
-                            </div>
-                          </div>
-                          <Separator />
-                          <div className="space-y-2">
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-500">Email</span>
-                              <span className="text-sm">{getContactInfo(selectedConversation.contactId)?.email || "Not provided"}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-500">Group</span>
-                              <span className="text-sm">{getContactInfo(selectedConversation.contactId)?.group || "None"}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-500">Tags</span>
-                              <span className="text-sm">{getContactInfo(selectedConversation.contactId)?.tags?.join(", ") || "None"}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-500">Created</span>
-                              <span className="text-sm">
-                                {getContactInfo(selectedConversation.contactId)?.createdAt ? 
-                                  format(new Date(getContactInfo(selectedConversation.contactId)!.createdAt!), "MMM d, yyyy") : "Unknown"}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                </div>
-              </CardHeader>
-
-              {/* Messages */}
-              <CardContent className="flex-1 p-0 overflow-hidden" style={{ 
-                backgroundImage: 'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAANCAYAAABy6+R8AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAACQSURBVHgBrZLBDYAgDEVbEkcwnuQGjmY2cAJHMBu4ATeQG3ADNpAbwA0kxRL5aYgx8ZKm/fd/S0sBwHuP2XzBYrVmEVLKSClFlFLYYDHGBJxzJIQgzjm0tonaWruOcpZl9yiKgkKI+3VdkyH43hhjKAzDpwfLskyapqnVQVVViOM4tqZpkuu6l23b3h6qqvoDXDpLPAKlE1cAAAAASUVORK5CYII=")',
-                backgroundColor: '#e5ddd5'
-              }}>
-                <ScrollArea className="h-full p-4">
-                  {messagesLoading ? (
-                    <Loading text="Loading messages..." />
-                  ) : messages && messages.length > 0 ? (
-                    <div className="space-y-2">
-                      {messages.map((message: Message, index: number) => {
-                        const isAgent = message.fromUser === true;
-                        const currentMessageDate = message.createdAt ? new Date(message.createdAt).toDateString() : '';
-                        const previousMessageDate = index > 0 && messages[index - 1].createdAt 
-                          ? new Date(messages[index - 1].createdAt).toDateString() 
-                          : '';
-                        const showDateSeparator = index === 0 || currentMessageDate !== previousMessageDate;
-                        
-                        return (
-                          <div key={message.id}>
-                            {showDateSeparator && message.createdAt && (
-                              <div className="flex justify-center my-4">
-                                <span className="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                                  {format(new Date(message.createdAt), "MMMM d, yyyy")}
-                                </span>
-                              </div>
-                            )}
-                            <div
-                              className={cn(
-                                "flex",
-                                message.direction === 'outbound' || message.direction === 'outgoing' ? "justify-end" : "justify-start"
-                              )}
-                            >
-                            <div
-                              className={cn(
-                                "max-w-[70%] rounded-2xl px-4 py-2 shadow-sm",
-                                message.direction === 'outbound' || message.direction === 'outgoing'
-                                  ? "bg-green-500 text-white rounded-br-sm" 
-                                  : "bg-white text-gray-900 rounded-bl-sm border border-gray-200"
-                              )}
-                            >
-                              <p className="whitespace-pre-wrap break-words text-sm">{message.content}</p>
-                              <div className={cn(
-                                "flex items-center gap-1 mt-1",
-                                message.direction === 'outbound' || message.direction === 'outgoing' ? "justify-end" : "justify-start"
-                              )}>
-                                <span className={cn(
-                                  "text-[10px]",
-                                  message.direction === 'outbound' || message.direction === 'outgoing' ? "text-green-100" : "text-gray-500"
-                                )}>
-                                  {message.createdAt ? format(new Date(message.createdAt), "HH:mm") : ""}
-                                </span>
-                                {(message.direction === 'outbound' || message.direction === 'outgoing') && getMessageStatus(message)}
-                              </div>
-                            </div>
-                          </div>
-                          </div>
-                        );
-                      })}
-                      <div ref={messagesEndRef} />
-                    </div>
-                  ) : (
-                    <EmptyState
-                      icon={MessageSquare}
-                      title="No messages yet"
-                      description="Start a conversation with this contact"
-                      className="h-full"
-                    />
-                  )}
-                </ScrollArea>
-              </CardContent>
-
-              {/* Message Input */}
-              <div className="border-t p-4">
-                {messages && is24HourWindowExpired(messages) ? (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                    <div className="flex items-start gap-3">
-                      <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
-                      <div className="flex-1">
-                        <h4 className="font-medium text-yellow-800">24-hour window expired</h4>
-                        <p className="text-sm text-yellow-700 mt-1">
-                          You can only send template messages after 24 hours of customer's last message.
-                          Use the template button to send approved WhatsApp templates.
-                        </p>
-                        <div className="mt-3">
-                          <TemplateDialog 
-                            channelId={selectedConversation.channelId || undefined}
-                            onSelectTemplate={(template) => {
-                              sendTemplateMutation.mutate({
-                                conversationId: selectedConversation.id,
-                                templateName: template.name,
-                                templateBody: template.body || '',
-                                phoneNumber: selectedConversation.contactPhone || '',
-                              });
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-end gap-2">
-                    <TemplateDialog 
-                      channelId={selectedConversation.channelId || undefined}
-                      onSelectTemplate={(template) => {
-                        sendTemplateMutation.mutate({
-                          conversationId: selectedConversation.id,
-                          templateName: template.name,
-                          templateBody: template.body || '',
-                          phoneNumber: selectedConversation.contactPhone || '',
-                        });
-                      }}
-                    />
-                    
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      title="Add emoji"
-                      onClick={() => {
-                        // Simple emoji insertion
-                        const emojis = ['😊', '👍', '❤️', '🎉', '👋'];
-                        const emoji = emojis[Math.floor(Math.random() * emojis.length)];
-                        setMessageText(prev => prev + emoji);
-                      }}
-                    >
-                      <Smile className="w-5 h-5" />
-                    </Button>
-                    
-                    <Textarea
-                      value={messageText}
-                      onChange={(e) => setMessageText(e.target.value)}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          handleSendMessage();
-                        }
-                      }}
-                      placeholder="Type a message..."
-                      className="flex-1 resize-none"
-                      rows={1}
-                    />
-                    <Button 
-                      onClick={handleSendMessage}
-                      disabled={!messageText.trim() || sendMessageMutation.isPending}
-                      className="bg-green-600 hover:bg-green-700"
-                    >
-                      <Send className="w-4 h-4" />
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </Card>
-          ) : (
-            <Card className="flex-1 flex items-center justify-center">
-              <EmptyState
-                icon={MessageSquare}
-                title="Select a conversation"
-                description="Choose a conversation from the list to start chatting"
-              />
-            </Card>
-          )}
+    <div className="flex h-screen bg-gray-50">
+      <Header title="Team Inbox" />
+      
+      {/* Conversations List */}
+      <div className="w-96 bg-white border-r border-gray-200 flex flex-col">
+        {/* Search and Filter */}
+        <div className="p-4 border-b border-gray-200">
+          <div className="relative mb-3">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search conversations..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 bg-gray-50"
+            />
+          </div>
+          
+          <Tabs value={filterTab} onValueChange={setFilterTab}>
+            <TabsList className="grid w-full grid-cols-4 h-9">
+              <TabsTrigger value="all" className="text-xs">All</TabsTrigger>
+              <TabsTrigger value="unread" className="text-xs">Unread</TabsTrigger>
+              <TabsTrigger value="open" className="text-xs">Open</TabsTrigger>
+              <TabsTrigger value="resolved" className="text-xs">Resolved</TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
-      </main>
+
+        {/* Conversations */}
+        <ScrollArea className="flex-1">
+          {conversationsLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loading />
+            </div>
+          ) : filteredConversations.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              No conversations found
+            </div>
+          ) : (
+            filteredConversations.map((conversation: Conversation & { contact?: Contact }) => (
+              <ConversationListItem
+                key={conversation.id}
+                conversation={conversation}
+                isSelected={selectedConversation?.id === conversation.id}
+                onClick={() => setSelectedConversation(conversation)}
+              />
+            ))
+          )}
+        </ScrollArea>
+      </div>
+
+      {/* Chat Area */}
+      {selectedConversation ? (
+        <div className="flex-1 flex flex-col">
+          {/* Chat Header */}
+          <div className="bg-white border-b border-gray-200 px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Avatar className="h-10 w-10">
+                  <AvatarFallback className="bg-gray-200">
+                    {selectedConversation.contact?.name?.[0]?.toUpperCase() || "?"}
+                  </AvatarFallback>
+                </Avatar>
+                
+                <div>
+                  <h3 className="font-semibold text-gray-900">
+                    {selectedConversation.contact?.name || selectedConversation.contactPhone}
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    {selectedConversation.contact?.phone || selectedConversation.contactPhone}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-9 w-9">
+                        <Phone className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Voice Call</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-9 w-9">
+                        <Video className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Video Call</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-9 w-9">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem>
+                      <User className="mr-2 h-4 w-4" />
+                      View Contact
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Archive className="mr-2 h-4 w-4" />
+                      Archive Chat
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Ban className="mr-2 h-4 w-4" />
+                      Block Contact
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem className="text-red-600">
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete Chat
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          </div>
+
+          {/* Messages Area */}
+          <ScrollArea className="flex-1 p-4 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImEiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PHBhdGggZD0iTTAgMTBoNDBNMTAgMHY0ME0wIDIwaDQwTTIwIDB2NDBNMCAzMGg0ME0zMCAwdjQwIiBmaWxsPSJub25lIiBzdHJva2U9IiNlMGUwZTAiIG9wYWNpdHk9IjAuMiIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNhKSIvPjwvc3ZnPg==')]">
+            {messagesLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loading />
+              </div>
+            ) : messages.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                No messages yet. Start a conversation!
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {messages.map((message: Message, index: number) => {
+                  const prevMessage = index > 0 ? messages[index - 1] : null;
+                  const showDate = !prevMessage || 
+                    !isToday(new Date(message.createdAt)) ||
+                    (prevMessage && !isToday(new Date(prevMessage.createdAt)));
+                  
+                  return (
+                    <MessageItem
+                      key={message.id}
+                      message={message}
+                      showDate={showDate}
+                    />
+                  );
+                })}
+                <div ref={messagesEndRef} />
+              </div>
+            )}
+          </ScrollArea>
+
+          {/* Message Input */}
+          <div className="bg-white border-t border-gray-200 p-4">
+            {is24HourWindowExpired && (
+              <div className="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5" />
+                  <div className="text-sm">
+                    <p className="font-medium text-yellow-800">24-hour window expired</p>
+                    <p className="text-yellow-700">You can only send template messages now</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-end gap-2">
+              <div className="flex gap-1">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-9 w-9">
+                        <Paperclip className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Attach File</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                <TemplateDialog
+                  channelId={activeChannel?.id}
+                  onSelectTemplate={handleSelectTemplate}
+                />
+              </div>
+
+              <Input
+                placeholder={is24HourWindowExpired ? "Templates only" : "Type a message..."}
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
+                disabled={is24HourWindowExpired}
+                className="flex-1"
+              />
+
+              <Button
+                onClick={handleSendMessage}
+                disabled={!messageText.trim() || is24HourWindowExpired || sendMessageMutation.isPending}
+                size="icon"
+                className="h-9 w-9 bg-green-600 hover:bg-green-700"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="flex-1 flex items-center justify-center bg-gray-50">
+          <div className="text-center">
+            <MessageCircle className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Select a conversation</h3>
+            <p className="text-gray-500">Choose a conversation from the list to start messaging</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

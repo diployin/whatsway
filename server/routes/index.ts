@@ -16,6 +16,7 @@ import { registerWhatsAppRoutes } from "./whatsapp.routes";
 import { registerWebhookRoutes } from "./webhooks.routes";
 import { registerMessageRoutes } from "./messages.routes";
 import { registerMessageLogsRoutes } from "./messages.logs.routes";
+import teamRoutes from "./team.routes";
 
 // Import error handler middleware
 import { errorHandler } from "../middlewares/error.middleware";
@@ -35,6 +36,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerWebhookRoutes(app);
   registerMessageRoutes(app);
   registerMessageLogsRoutes(app);
+  
+  // Team management routes
+  app.use("/api/team", teamRoutes);
   
   // User routes for team assignment
   app.get("/api/users", async (req, res) => {

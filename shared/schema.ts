@@ -15,6 +15,52 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Team members table for managing agents and managers
+export const teamMembers = pgTable("team_members", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  phone: text("phone"),
+  role: text("role").notNull().default("agent"), // admin, manager, agent
+  status: text("status").notNull().default("active"), // active, inactive, suspended
+  permissions: jsonb("permissions").default({}), // Granular permissions
+  avatar: text("avatar"),
+  department: text("department"),
+  lastActive: timestamp("last_active"),
+  onlineStatus: text("online_status").default("offline"), // online, away, offline
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Team assignments for conversations
+export const conversationAssignments = pgTable("conversation_assignments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  conversationId: varchar("conversation_id").notNull().references(() => conversations.id, { onDelete: "cascade" }),
+  teamMemberId: varchar("team_member_id").notNull().references(() => teamMembers.id, { onDelete: "cascade" }),
+  assignedBy: varchar("assigned_by").references(() => teamMembers.id),
+  assignedAt: timestamp("assigned_at").defaultNow(),
+  status: text("status").notNull().default("active"), // active, resolved, transferred
+  priority: text("priority").default("normal"), // low, normal, high, urgent
+  notes: text("notes"),
+  resolvedAt: timestamp("resolved_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Team activity logs
+export const teamActivityLogs = pgTable("team_activity_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  teamMemberId: varchar("team_member_id").notNull().references(() => teamMembers.id, { onDelete: "cascade" }),
+  action: text("action").notNull(), // login, logout, message_sent, conversation_assigned, etc.
+  entityType: text("entity_type"), // conversation, message, contact, etc.
+  entityId: varchar("entity_id"),
+  details: jsonb("details").default({}),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const contacts = pgTable("contacts", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   channelId: varchar("channel_id").references(() => channels.id, { onDelete: "cascade" }),
@@ -134,12 +180,12 @@ export const conversations = pgTable("conversations", {
   contactId: varchar("contact_id").references(() => contacts.id, { onDelete: "cascade" }),
   contactPhone: varchar("contact_phone"), // Store phone number for webhook lookups
   contactName: varchar("contact_name"), // Store contact name
-  assignedTo: varchar("assigned_to").references(() => users.id),
-  status: text("status").default("open"), // open, closed, assigned
+  status: text("status").default("open"), // open, closed, assigned, pending
   priority: text("priority").default("normal"), // low, normal, high, urgent
   tags: jsonb("tags").default([]),
   unreadCount: integer("unread_count").default(0), // Track unread messages
   lastMessageAt: timestamp("last_message_at"),
+  lastMessageText: text("last_message_text"), // Cache last message for display
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => ({
@@ -147,7 +193,6 @@ export const conversations = pgTable("conversations", {
   conversationContactIdx: index("conversations_contact_idx").on(table.contactId),
   conversationPhoneIdx: index("conversations_phone_idx").on(table.contactPhone),
   conversationStatusIdx: index("conversations_status_idx").on(table.status),
-  conversationAssignedIdx: index("conversations_assigned_idx").on(table.assignedTo),
 }));
 
 export const messages = pgTable("messages", {
@@ -290,6 +335,9 @@ export const insertWebhookConfigSchema = createInsertSchema(webhookConfigs).omit
 export const insertMessageQueueSchema = createInsertSchema(messageQueue).omit({ id: true, createdAt: true });
 export const insertApiLogSchema = createInsertSchema(apiLogs).omit({ id: true, createdAt: true });
 export const insertCampaignRecipientSchema = createInsertSchema(campaignRecipients).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertTeamMemberSchema = createInsertSchema(teamMembers).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertConversationAssignmentSchema = createInsertSchema(conversationAssignments).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertTeamActivityLogSchema = createInsertSchema(teamActivityLogs).omit({ id: true, createdAt: true });
 
 // Types
 export type User = typeof users.$inferSelect;
@@ -320,6 +368,12 @@ export type ApiLog = typeof apiLogs.$inferSelect;
 export type InsertApiLog = z.infer<typeof insertApiLogSchema>;
 export type CampaignRecipient = typeof campaignRecipients.$inferSelect;
 export type InsertCampaignRecipient = z.infer<typeof insertCampaignRecipientSchema>;
+export type TeamMember = typeof teamMembers.$inferSelect;
+export type InsertTeamMember = z.infer<typeof insertTeamMemberSchema>;
+export type ConversationAssignment = typeof conversationAssignments.$inferSelect;
+export type InsertConversationAssignment = z.infer<typeof insertConversationAssignmentSchema>;
+export type TeamActivityLog = typeof teamActivityLogs.$inferSelect;
+export type InsertTeamActivityLog = z.infer<typeof insertTeamActivityLogSchema>;
 
 // Drizzle Relations for proper joins and queries
 export const channelsRelations = relations(channels, ({ many }) => ({
@@ -378,10 +432,7 @@ export const conversationsRelations = relations(conversations, ({ one, many }) =
     fields: [conversations.contactId],
     references: [contacts.id],
   }),
-  assignedUser: one(users, {
-    fields: [conversations.assignedTo],
-    references: [users.id],
-  }),
+
   messages: many(messages),
 }));
 
@@ -392,6 +443,37 @@ export const messagesRelations = relations(messages, ({ one }) => ({
   }),
 }));
 
-export const usersRelations = relations(users, ({ many }) => ({
-  assignedConversations: many(conversations),
+export const usersRelations = relations(users, ({ many, one }) => ({
+  teamMember: one(teamMembers), // User can have a team member profile
+}));
+
+export const teamMembersRelations = relations(teamMembers, ({ one, many }) => ({
+  user: one(users, {
+    fields: [teamMembers.userId],
+    references: [users.id],
+  }),
+  assignedConversations: many(conversationAssignments),
+  activityLogs: many(teamActivityLogs),
+}));
+
+export const conversationAssignmentsRelations = relations(conversationAssignments, ({ one }) => ({
+  conversation: one(conversations, {
+    fields: [conversationAssignments.conversationId],  
+    references: [conversations.id],
+  }),
+  teamMember: one(teamMembers, {
+    fields: [conversationAssignments.teamMemberId],
+    references: [teamMembers.id],
+  }),
+  assignedByMember: one(teamMembers, {
+    fields: [conversationAssignments.assignedBy],
+    references: [teamMembers.id],
+  }),
+}));
+
+export const teamActivityLogsRelations = relations(teamActivityLogs, ({ one }) => ({
+  teamMember: one(teamMembers, {
+    fields: [teamActivityLogs.teamMemberId],
+    references: [teamMembers.id],
+  }),
 }));

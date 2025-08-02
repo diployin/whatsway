@@ -9,7 +9,8 @@ import {
   BarChart3, 
   Settings,
   Zap,
-  ScrollText
+  ScrollText,
+  UsersRound
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ChannelSwitcher } from "@/components/channel-switcher";
@@ -53,6 +54,12 @@ const navItems: NavItem[] = [
     icon: MessageSquare,
     label: "Team Inbox",
     color: "text-red-600"
+  },
+  {
+    href: "/team",
+    icon: UsersRound,
+    label: "Team",
+    color: "text-cyan-600"
   },
   {
     href: "/automation",

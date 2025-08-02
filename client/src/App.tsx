@@ -14,6 +14,7 @@ import Analytics from "@/pages/analytics";
 import CampaignAnalytics from "@/pages/campaign-analytics";
 import Settings from "@/pages/settings";
 import Logs from "@/pages/logs";
+import Team from "@/pages/team";
 import Sidebar from "@/components/layout/sidebar";
 
 function Router() {
@@ -27,6 +28,7 @@ function Router() {
           <Route path="/campaigns" component={Campaigns} />
           <Route path="/templates" component={Templates} />
           <Route path="/inbox" component={Inbox} />
+          <Route path="/team" component={Team} />
           <Route path="/automation" component={Automation} />
           <Route path="/analytics" component={Analytics} />
           <Route path="/analytics/campaign/:campaignId" component={CampaignAnalytics} />
