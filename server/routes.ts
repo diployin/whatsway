@@ -296,6 +296,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Submit template to WhatsApp for approval
+  app.post("/api/templates/:id/submit", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const template = await storage.getTemplate(id);
+      
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+
+      // Get the first active WhatsApp channel
+      const channels = await storage.getWhatsappChannels();
+      const activeChannel = channels.find(ch => ch.status === "active");
+      
+      if (!activeChannel) {
+        return res.status(400).json({ 
+          message: "No active WhatsApp channel found. Please configure a channel first." 
+        });
+      }
+
+      // Format buttons for WhatsApp API
+      const components = [];
+      if (template.buttons && (template.buttons as any[]).length > 0) {
+        const buttons = (template.buttons as any[]).map(btn => {
+          if (btn.type === "QUICK_REPLY") {
+            return { type: "QUICK_REPLY", text: btn.text };
+          } else if (btn.type === "URL") {
+            return { type: "URL", text: btn.text, url: btn.url };
+          } else if (btn.type === "PHONE_NUMBER") {
+            return { type: "PHONE_NUMBER", text: btn.text, phone_number: btn.phoneNumber };
+          }
+        });
+        
+        components.push({
+          type: "BUTTONS",
+          buttons
+        });
+      }
+
+      // Create template via WhatsApp Business API
+      const apiUrl = `https://graph.facebook.com/${process.env.WHATSAPP_API_VERSION || 'v23.0'}/${activeChannel.wabaId}/message_templates`;
+      
+      const templatePayload = {
+        name: template.name,
+        category: template.category,
+        language: template.language || "en_US",
+        components: [
+          template.header && {
+            type: "HEADER",
+            format: "TEXT",
+            text: template.header
+          },
+          {
+            type: "BODY",
+            text: template.body
+          },
+          template.footer && {
+            type: "FOOTER",
+            text: template.footer
+          },
+          ...components
+        ].filter(Boolean)
+      };
+
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${activeChannel.accessToken}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(templatePayload)
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.id) {
+        // Update template status to pending
+        await storage.updateTemplate(id, { status: "pending" });
+        
+        res.json({ 
+          success: true, 
+          message: "Template submitted to WhatsApp for approval",
+          whatsappTemplateId: result.id
+        });
+      } else {
+        console.error("WhatsApp API error:", result);
+        res.status(400).json({ 
+          success: false,
+          message: "Failed to submit template to WhatsApp",
+          error: result.error?.message || "Unknown error"
+        });
+      }
+    } catch (error) {
+      console.error("Error submitting template:", error);
+      res.status(500).json({ 
+        message: "Failed to submit template",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
   // Conversation endpoints
   app.get("/api/conversations", async (req, res) => {
     try {

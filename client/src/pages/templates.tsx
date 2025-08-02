@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Header from "@/components/layout/header";
 import { Loading } from "@/components/ui/loading";
@@ -33,6 +33,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -50,6 +51,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   FileText, 
   Eye,
@@ -69,28 +71,77 @@ import {
   Link,
   Image,
   Video,
-  FileText as FileIcon
+  FileText as FileIcon,
+  Phone,
+  Globe,
+  X,
+  Send,
+  RefreshCw,
+  User,
+  Building,
+  Lock
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 import type { Template, InsertTemplate } from "@shared/schema";
 import { insertTemplateSchema } from "@shared/schema";
 import { z } from "zod";
+import { format } from "date-fns";
 
-// WhatsApp template form schema matching database structure
-const templateFormSchema = insertTemplateSchema.omit({ 
-  id: true, 
-  createdAt: true, 
-  usage_count: true 
+// Enhanced form schema with buttons and validation
+const templateFormSchema = z.object({
+  name: z.string()
+    .min(1, "Template name is required")
+    .max(512, "Template name must be less than 512 characters")
+    .regex(/^[a-z0-9_]+$/, "Only lowercase letters, numbers, and underscores allowed"),
+  category: z.enum(["MARKETING", "UTILITY", "AUTHENTICATION"]),
+  language: z.string().default("en_US"),
+  header: z.string().max(60, "Header must be less than 60 characters").optional().default(""),
+  body: z.string()
+    .min(1, "Message body is required")
+    .max(1024, "Body must be less than 1024 characters"),
+  footer: z.string().max(60, "Footer must be less than 60 characters").optional().default(""),
+  buttons: z.array(z.object({
+    type: z.enum(["QUICK_REPLY", "URL", "PHONE_NUMBER"]),
+    text: z.string().min(1).max(20, "Button text must be less than 20 characters"),
+    url: z.string().url().optional(),
+    phoneNumber: z.string().optional(),
+  })).max(3, "Maximum 3 buttons allowed").default([]),
+  variables: z.array(z.string()).default([]),
+  status: z.string().default("PENDING"),
 });
 
 type TemplateFormData = z.infer<typeof templateFormSchema>;
 
-// Component for WhatsApp-style preview
-function WhatsAppPreview({ template }: { template: Partial<Template> }) {
+// Sample data for variable replacement
+const SAMPLE_DATA: Record<string, string> = {
+  "{{1}}": "John Doe",
+  "{{2}}": "WhatsWay",
+  "{{3}}": "123-456-7890",
+  "{{4}}": "john@example.com",
+  "{{5}}": "Today",
+  "{{6}}": "$99.99",
+  "{{7}}": "ABC123",
+  "{{8}}": "New York",
+};
+
+// Enhanced WhatsApp preview component
+function WhatsAppPreview({ template, sampleData = SAMPLE_DATA }: { 
+  template: Partial<TemplateFormData>, 
+  sampleData?: Record<string, string> 
+}) {
+  const replaceVariables = (text: string) => {
+    if (!text) return "";
+    return text.replace(/{{(\d+)}}/g, (match) => {
+      return sampleData[match] || match;
+    });
+  };
+
   const renderTextWithVariables = (text: string) => {
     if (!text) return null;
-    const parts = text.split(/({{\d+}})/g);
+    const replacedText = replaceVariables(text);
+    const parts = replacedText.split(/(\{\{\d+\}\})/g);
+    
     return parts.map((part, index) => {
       if (part.match(/^{{\d+}}$/)) {
         return <span key={index} className="font-semibold text-blue-600">{part}</span>;
@@ -99,59 +150,121 @@ function WhatsAppPreview({ template }: { template: Partial<Template> }) {
     });
   };
 
+  const currentTime = format(new Date(), 'h:mm a');
+
   return (
-    <div className="bg-gray-100 p-4 rounded-lg">
+    <div className="bg-gradient-to-b from-teal-900 to-teal-700 p-6 rounded-xl">
       <div className="max-w-sm mx-auto">
         {/* Phone Frame */}
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-          {/* Chat Header */}
-          <div className="bg-green-600 text-white p-3 flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-              <Smartphone className="w-6 h-6" />
+        <div className="bg-black rounded-[2.5rem] p-2">
+          <div className="bg-white rounded-[2rem] overflow-hidden">
+            {/* Status Bar */}
+            <div className="bg-gray-900 text-white px-6 py-1 text-xs flex justify-between items-center">
+              <span>9:41 AM</span>
+              <div className="flex gap-1">
+                <div className="w-4 h-3 bg-white rounded-sm"></div>
+                <div className="w-4 h-3 bg-white rounded-sm"></div>
+                <div className="w-4 h-3 bg-white rounded-sm"></div>
+              </div>
             </div>
-            <div>
-              <p className="font-medium">Business Name</p>
-              <p className="text-xs opacity-80">WhatsApp Business Account</p>
-            </div>
-          </div>
-          
-          {/* Chat Body */}
-          <div className="bg-gray-50 p-4 min-h-[300px]">
-            <div className="bg-white rounded-lg p-3 shadow-sm max-w-[80%]">
-              {/* Header */}
-              {template.header && (
-                <div className="mb-2">
-                  <p className="font-bold text-gray-900">{template.header}</p>
-                </div>
-              )}
-              
-              {/* Body */}
-              {template.body && (
-                <div className="text-gray-700 text-sm whitespace-pre-wrap">
-                  {renderTextWithVariables(template.body)}
-                </div>
-              )}
-              
-              {/* Footer */}
-              {template.footer && (
-                <p className="text-xs text-gray-500 mt-2">{template.footer}</p>
-              )}
-              
-              {/* Buttons */}
-              {template.buttons && Array.isArray(template.buttons) && template.buttons.length > 0 && (
-                <div className="mt-3 space-y-2">
-                  {(template.buttons as any[]).map((button: any, index) => (
-                    <button key={index} className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded text-sm font-medium transition-colors">
-                      {button.text || button}
-                    </button>
-                  ))}
-                </div>
-              )}
+
+            {/* WhatsApp Header */}
+            <div className="bg-[#075e54] text-white p-3 flex items-center gap-3">
+              <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
+                <Building className="w-6 h-6 text-gray-600" />
+              </div>
+              <div className="flex-1">
+                <p className="font-medium">Business Name</p>
+                <p className="text-xs opacity-80">WhatsApp Business Account</p>
+              </div>
+              <Phone className="w-5 h-5" />
+              <Video className="w-5 h-5" />
+              <MoreVertical className="w-5 h-5" />
             </div>
             
-            <p className="text-xs text-gray-500 text-center mt-2">
-              {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </p>
+            {/* Chat Body */}
+            <div 
+              className="bg-[#e5ddd5] p-4 min-h-[400px] relative"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23f0f0f0' fill-opacity='0.3'%3E%3Cpath d='M0 0h20v20H0z'/%3E%3Cpath d='M20 20h20v20H20z'/%3E%3C/g%3E%3C/svg%3E")`,
+                backgroundSize: '40px 40px'
+              }}
+            >
+              {/* Business Info Message */}
+              <div className="text-center mb-4">
+                <div className="bg-[#fdf4c5] text-gray-700 text-xs px-3 py-1 rounded-lg inline-block">
+                  <Lock className="w-3 h-3 inline mr-1" />
+                  Messages are end-to-end encrypted
+                </div>
+              </div>
+
+              {/* Template Message */}
+              <div className="flex gap-2 mb-2">
+                <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Building className="w-5 h-5 text-gray-600" />
+                </div>
+                <div className="max-w-[80%]">
+                  <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+                    {/* Header */}
+                    {template.header && (
+                      <div className="p-3 border-b">
+                        <p className="font-bold text-gray-900">
+                          {renderTextWithVariables(template.header)}
+                        </p>
+                      </div>
+                    )}
+                    
+                    {/* Body */}
+                    <div className="p-3">
+                      <p className="text-gray-800 whitespace-pre-wrap">
+                        {renderTextWithVariables(template.body || "")}
+                      </p>
+                    </div>
+                    
+                    {/* Footer */}
+                    {template.footer && (
+                      <div className="px-3 pb-2">
+                        <p className="text-xs text-gray-500">
+                          {renderTextWithVariables(template.footer)}
+                        </p>
+                      </div>
+                    )}
+                    
+                    {/* Buttons */}
+                    {template.buttons && template.buttons.length > 0 && (
+                      <div className="border-t p-2 space-y-1">
+                        {template.buttons.map((button, index) => (
+                          <button
+                            key={index}
+                            className="w-full p-2 text-center text-blue-600 hover:bg-gray-50 rounded transition-colors flex items-center justify-center gap-2"
+                          >
+                            {button.type === "URL" && <Globe className="w-4 h-4" />}
+                            {button.type === "PHONE_NUMBER" && <Phone className="w-4 h-4" />}
+                            <span className="font-medium">{button.text}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {/* Time */}
+                    <div className="px-3 pb-1 flex items-center justify-end gap-1">
+                      <span className="text-xs text-gray-500">{currentTime}</span>
+                      <CheckCircle className="w-3 h-3 text-blue-500" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Input Bar */}
+            <div className="bg-white border-t p-2 flex items-center gap-2">
+              <div className="flex-1 bg-gray-100 rounded-full px-4 py-2 flex items-center gap-2">
+                <span className="text-gray-500 text-sm">Type a message</span>
+              </div>
+              <div className="w-10 h-10 bg-[#075e54] rounded-full flex items-center justify-center">
+                <Send className="w-5 h-5 text-white" />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -160,17 +273,17 @@ function WhatsAppPreview({ template }: { template: Partial<Template> }) {
 }
 
 export default function Templates() {
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [showPreviewDialog, setShowPreviewDialog] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState<string>("all");
   const [showFormDialog, setShowFormDialog] = useState(false);
+  const [showPreviewDialog, setShowPreviewDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const [templateToDelete, setTemplateToDelete] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
-  // Form for creating/editing templates
   const form = useForm<TemplateFormData>({
     resolver: zodResolver(templateFormSchema),
     defaultValues: {
@@ -186,6 +299,12 @@ export default function Templates() {
     },
   });
 
+  const { fields: buttonFields, append: appendButton, remove: removeButton } = useFieldArray({
+    control: form.control,
+    name: "buttons",
+  });
+
+  // Queries
   const { data: templates = [], isLoading } = useQuery({
     queryKey: ["/api/templates"],
   });
@@ -223,8 +342,8 @@ export default function Templates() {
     },
     onError: (error) => {
       toast({
-        title: "Error creating template",
-        description: error.message,
+        title: "Error",
+        description: "Failed to create template. Please try again.",
         variant: "destructive",
       });
     },
@@ -262,8 +381,8 @@ export default function Templates() {
     },
     onError: (error) => {
       toast({
-        title: "Error updating template",
-        description: error.message,
+        title: "Error",
+        description: "Failed to update template. Please try again.",
         variant: "destructive",
       });
     },
@@ -283,18 +402,51 @@ export default function Templates() {
         description: "The template has been deleted successfully.",
       });
       setShowDeleteDialog(false);
+      setTemplateToDelete(null);
     },
     onError: (error) => {
       toast({
-        title: "Error deleting template",
-        description: error.message,
+        title: "Error",
+        description: "Failed to delete template. Please try again.",
         variant: "destructive",
       });
     },
   });
 
-  const filteredTemplates = templates.filter((template: Template) => {
+  const submitToWhatsAppMutation = useMutation({
+    mutationFn: async (templateId: string) => {
+      const response = await fetch(`/api/templates/${templateId}/submit`, {
+        method: "POST",
+      });
+      if (!response.ok) throw new Error("Failed to submit template");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/templates"] });
+      toast({
+        title: "Template submitted",
+        description: "Template has been submitted to WhatsApp for approval.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to submit template to WhatsApp.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Filter templates
+  const filteredTemplates = (templates as Template[]).filter((template: Template) => {
+    if (searchQuery && !template.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+        !template.body.toLowerCase().includes(searchQuery.toLowerCase())) {
+      return false;
+    }
     if (selectedCategory !== "all" && template.category !== selectedCategory) {
+      return false;
+    }
+    if (selectedLanguage !== "all" && template.language !== selectedLanguage) {
       return false;
     }
     return true;
@@ -325,19 +477,14 @@ export default function Templates() {
       name: template.name,
       body: template.body,
       language: template.language || "en_US",
-      category: template.category,
+      category: template.category as any,
       status: template.status || "PENDING",
       header: template.header || "",
       footer: template.footer || "",
-      buttons: template.buttons || [],
-      variables: template.variables || [],
+      buttons: (template.buttons as any[]) || [],
+      variables: (template.variables as string[]) || [],
     });
     setShowFormDialog(true);
-  };
-
-  const handleDelete = (id: string) => {
-    setTemplateToDelete(id);
-    setShowDeleteDialog(true);
   };
 
   const onSubmit = (data: TemplateFormData) => {
@@ -349,46 +496,29 @@ export default function Templates() {
   };
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "APPROVED":
+    switch (status?.toLowerCase()) {
+      case 'approved':
         return <Badge className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" />Approved</Badge>;
-      case "PENDING":
+      case 'pending':
         return <Badge className="bg-yellow-100 text-yellow-800"><Clock className="w-3 h-3 mr-1" />Pending</Badge>;
-      case "REJECTED":
+      case 'rejected':
         return <Badge className="bg-red-100 text-red-800"><XCircle className="w-3 h-3 mr-1" />Rejected</Badge>;
       default:
-        return <Badge>{status}</Badge>;
+        return <Badge className="bg-gray-100 text-gray-800"><Clock className="w-3 h-3 mr-1" />Draft</Badge>;
     }
   };
 
   const getCategoryBadge = (category: string) => {
-    switch (category) {
-      case "MARKETING":
+    switch (category?.toUpperCase()) {
+      case 'MARKETING':
         return <Badge className="bg-purple-100 text-purple-800">Marketing</Badge>;
-      case "UTILITY":
+      case 'UTILITY':
         return <Badge className="bg-blue-100 text-blue-800">Utility</Badge>;
-      case "AUTHENTICATION":
-        return <Badge className="bg-indigo-100 text-indigo-800">Authentication</Badge>;
+      case 'AUTHENTICATION':
+        return <Badge className="bg-orange-100 text-orange-800">Authentication</Badge>;
       default:
         return <Badge>{category}</Badge>;
     }
-  };
-
-  const renderVariables = (template: Template) => {
-    if (!template.variables || template.variables.length === 0) return null;
-    
-    return (
-      <div className="mt-3">
-        <p className="text-sm font-medium text-gray-700 mb-2">Variables:</p>
-        <div className="flex flex-wrap gap-2">
-          {(template.variables as string[]).map((variable, index) => (
-            <Badge key={index} variant="outline" className="text-xs bg-gray-50">
-              <Hash className="w-3 h-3 mr-1" />{`{{${index + 1}}}`} {variable}
-            </Badge>
-          ))}
-        </div>
-      </div>
-    );
   };
 
   const copyTemplateContent = (template: Template) => {
@@ -401,417 +531,562 @@ export default function Templates() {
 
   if (isLoading) {
     return (
-      <div className="flex-1 dots-bg">
-        <Header title="Templates" subtitle="Loading templates..." />
-        <div className="p-6">
-          <Loading size="lg" text="Loading templates..." />
+      <div className="min-h-screen bg-gray-50">
+        <Header title="Message Templates" />
+        <div className="p-8">
+          <Loading />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 dots-bg min-h-screen">
-      <Header 
-        title="Message Templates" 
-        subtitle="Pre-approved WhatsApp message templates for your campaigns"
-      />
-
-      <main className="p-6 space-y-6">
-        {/* Category Filter and Add Button */}
-        <div className="bg-white rounded-lg shadow-sm p-4">
-          <div className="flex justify-between items-center">
-            <div className="flex gap-4 items-center">
-              <span className="font-medium text-gray-700">Filter by category:</span>
-              <div className="flex gap-2">
-                <Button
-                  variant={selectedCategory === "all" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedCategory("all")}
-                >
-                  All ({templates.length})
-                </Button>
-                <Button
-                  variant={selectedCategory === "MARKETING" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedCategory("MARKETING")}
-                >
-                  Marketing
-                </Button>
-                <Button
-                  variant={selectedCategory === "UTILITY" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedCategory("UTILITY")}
-                >
-                  Utility
-                </Button>
-                <Button
-                  variant={selectedCategory === "AUTHENTICATION" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedCategory("AUTHENTICATION")}
-                >
-                  Authentication
-                </Button>
-              </div>
-            </div>
-            <Button 
-              onClick={openCreateDialog}
-              className="bg-green-600 hover:bg-green-700 text-white"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Template
-            </Button>
+    <div className="min-h-screen bg-gray-50">
+      <Header title="Message Templates" />
+      <div className="p-8">
+        <div className="max-w-7xl mx-auto">
+          {/* Page Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Message Templates</h1>
+            <p className="text-gray-600">Create and manage WhatsApp-approved message templates</p>
           </div>
-        </div>
 
-        {/* Templates Grid */}
-        {filteredTemplates.length === 0 ? (
-          <Card className="shadow-sm">
-            <CardContent>
-              <EmptyState
-                icon={FileText}
-                title="No templates found"
-                description="No templates match your selected filters."
-                className="py-12"
-              />
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredTemplates.map((template) => (
-              <Card key={template.id} className="shadow-sm hover:shadow-md transition-shadow">
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <CardTitle className="text-lg">{template.name}</CardTitle>
-                    <div className="flex gap-2 items-center">
-                      {getCategoryBadge(template.category)}
+          {/* Filters and Search */}
+          <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <Input
+                  placeholder="Search templates..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-full md:w-48">
+                  <SelectValue placeholder="All Categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="MARKETING">Marketing</SelectItem>
+                  <SelectItem value="UTILITY">Utility</SelectItem>
+                  <SelectItem value="AUTHENTICATION">Authentication</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+                <SelectTrigger className="w-full md:w-48">
+                  <SelectValue placeholder="All Languages" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Languages</SelectItem>
+                  <SelectItem value="en_US">English (US)</SelectItem>
+                  <SelectItem value="es">Spanish</SelectItem>
+                  <SelectItem value="pt_BR">Portuguese (BR)</SelectItem>
+                  <SelectItem value="fr">French</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button onClick={openCreateDialog} className="bg-green-600 hover:bg-green-700">
+                <Plus className="w-4 h-4 mr-2" />
+                Create Template
+              </Button>
+            </div>
+          </div>
+
+          {/* Templates Grid */}
+          {filteredTemplates.length === 0 ? (
+            <EmptyState
+              icon={FileText}
+              title="No templates found"
+              description="Create your first template to start sending messages"
+              action={{
+                label: "Create Template",
+                onClick: openCreateDialog
+              }}
+            />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredTemplates.map((template: Template) => (
+                <Card key={template.id} className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <div className="flex justify-between items-start mb-2">
+                      <CardTitle className="text-lg">{template.name}</CardTitle>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreVertical className="h-4 w-4" />
+                          <Button variant="ghost" size="sm">
+                            <MoreVertical className="w-4 h-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => {
+                            setSelectedTemplate(template);
+                            setShowPreviewDialog(true);
+                          }}>
+                            <Eye className="w-4 h-4 mr-2" />
+                            Preview
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openEditDialog(template)}>
                             <Edit className="w-4 h-4 mr-2" />
-                            Edit Template
+                            Edit
                           </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => copyTemplateContent(template)}>
+                            <Copy className="w-4 h-4 mr-2" />
+                            Copy Content
+                          </DropdownMenuItem>
+                          {template.status === 'draft' && (
+                            <DropdownMenuItem onClick={() => submitToWhatsAppMutation.mutate(template.id)}>
+                              <Send className="w-4 h-4 mr-2" />
+                              Submit to WhatsApp
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuItem 
-                            onClick={() => handleDelete(template.id)}
+                            onClick={() => {
+                              setTemplateToDelete(template.id);
+                              setShowDeleteDialog(true);
+                            }}
                             className="text-red-600"
                           >
                             <Trash className="w-4 h-4 mr-2" />
-                            Delete Template
+                            Delete
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2 mt-2">
-                    {getStatusBadge(template.status)}
-                    <Badge variant="outline" className="text-xs">
-                      {template.language}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="bg-gray-50 p-3 rounded-md">
-                    <p className="text-sm text-gray-700 whitespace-pre-wrap line-clamp-3">
-                      {template.body}
-                    </p>
-                  </div>
-                  
-                  {renderVariables(template)}
-                  
-                  <div className="flex gap-2 mt-4">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setSelectedTemplate(template);
-                        setShowPreviewDialog(true);
-                      }}
-                    >
-                      <Eye className="w-4 h-4 mr-1" />
-                      Preview
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => copyTemplateContent(template)}
-                    >
-                      <Copy className="w-4 h-4 mr-1" />
-                      Copy
-                    </Button>
-                    <Button
-                      size="sm"
-                      className="bg-green-600 hover:bg-green-700 text-white"
-                    >
-                      <MessageSquare className="w-4 h-4 mr-1" />
-                      Use
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-      </main>
-
-      {/* Preview Dialog */}
-      <Dialog open={showPreviewDialog} onOpenChange={setShowPreviewDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Template Preview</DialogTitle>
-            <DialogDescription>
-              {selectedTemplate?.name}
-            </DialogDescription>
-          </DialogHeader>
-          {selectedTemplate && (
-            <div className="space-y-4">
-              <div className="flex gap-2">
-                {getCategoryBadge(selectedTemplate.category)}
-                {getStatusBadge(selectedTemplate.status)}
-                <Badge variant="outline" className="text-xs">
-                  {selectedTemplate.language}
-                </Badge>
-              </div>
-              
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm whitespace-pre-wrap">{selectedTemplate.body}</p>
-              </div>
-              
-              {renderVariables(selectedTemplate)}
-              
-              <div className="bg-amber-50 border border-amber-200 p-3 rounded-md">
-                <div className="flex gap-2">
-                  <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm text-amber-800 font-medium">Template Usage</p>
-                    <p className="text-xs text-amber-700 mt-1">
-                      This template has been pre-approved by WhatsApp. When using it, replace the variable placeholders {`{{1}}, {{2}}, etc.`} with actual values in the order shown above.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setShowPreviewDialog(false)}>
-                  Close
-                </Button>
-                <Button onClick={() => copyTemplateContent(selectedTemplate)}>
-                  <Copy className="w-4 h-4 mr-1" />
-                  Copy Content
-                </Button>
-              </div>
+                    <div className="flex gap-2 mb-2">
+                      {getStatusBadge(template.status)}
+                      {getCategoryBadge(template.category)}
+                      <Badge variant="outline">
+                        {template.language}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="bg-gray-50 p-3 rounded-md">
+                      <p className="text-sm text-gray-700 whitespace-pre-wrap line-clamp-3">
+                        {template.body}
+                      </p>
+                    </div>
+                    {(template.variables as string[])?.length > 0 && (
+                      <div className="mt-3 flex items-center gap-2 text-sm text-gray-600">
+                        <Hash className="w-4 h-4" />
+                        <span>{(template.variables as string[]).length} variables</span>
+                      </div>
+                    )}
+                    {(template.buttons as any[])?.length > 0 && (
+                      <div className="mt-2 flex items-center gap-2 text-sm text-gray-600">
+                        <MessageSquare className="w-4 h-4" />
+                        <span>{(template.buttons as any[]).length} buttons</span>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           )}
-        </DialogContent>
-      </Dialog>
+        </div>
 
-      {/* Form Dialog for Create/Edit */}
-      <Dialog open={showFormDialog} onOpenChange={setShowFormDialog}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>{isEditMode ? "Edit Template" : "Create New Template"}</DialogTitle>
-            <DialogDescription>
-              {isEditMode ? "Update your WhatsApp message template" : "Create a pre-approved WhatsApp message template"}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="grid grid-cols-2 gap-6">
-            {/* Form Section */}
-            <div className="space-y-4 overflow-y-auto max-h-[600px] pr-2">
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Template Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g., welcome_message" {...field} />
-                        </FormControl>
-                        <FormDescription>
-                          Use lowercase letters, numbers, and underscores only
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="category"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Category</FormLabel>
-                          <Select value={field.value} onValueChange={field.onChange}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select category" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="MARKETING">Marketing</SelectItem>
-                              <SelectItem value="UTILITY">Utility</SelectItem>
-                              <SelectItem value="AUTHENTICATION">Authentication</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="language"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Language</FormLabel>
-                          <Select value={field.value || "en_US"} onValueChange={field.onChange}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select language" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="en_US">English (US)</SelectItem>
-                              <SelectItem value="es">Spanish</SelectItem>
-                              <SelectItem value="pt_BR">Portuguese (BR)</SelectItem>
-                              <SelectItem value="fr">French</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <FormField
-                    control={form.control}
-                    name="header"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Header (Optional)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g., Welcome to our service!" {...field} />
-                        </FormControl>
-                        <FormDescription>
-                          Displayed as bold text at the top of the message
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="body"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Body Text *</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            placeholder="Hi {{1}}, welcome to {{2}}! We're excited to have you on board."
-                            className="min-h-[120px]"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Use {"{{1}}"}, {"{{2}}"}, etc. for variables that will be replaced with actual values
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="footer"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Footer (Optional)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g., Reply STOP to unsubscribe" {...field} />
-                        </FormControl>
-                        <FormDescription>
-                          Small text displayed at the bottom
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="flex justify-end gap-2 pt-4">
-                    <Button type="button" variant="outline" onClick={() => setShowFormDialog(false)}>
-                      Cancel
-                    </Button>
-                    <Button 
-                      type="submit" 
-                      disabled={createTemplateMutation.isPending || updateTemplateMutation.isPending}
-                      className="bg-green-600 hover:bg-green-700 text-white"
-                    >
-                      {isEditMode 
-                        ? (updateTemplateMutation.isPending ? "Updating..." : "Update Template")
-                        : (createTemplateMutation.isPending ? "Creating..." : "Create Template")
-                      }
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </div>
-
-            {/* Preview Section */}
-            <div className="space-y-4">
-              <h3 className="font-medium text-sm text-gray-700">Live Preview</h3>
-              <WhatsAppPreview template={form.watch()} />
-              
-              <div className="bg-amber-50 border border-amber-200 p-3 rounded-md">
-                <div className="flex gap-2">
-                  <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+        {/* Preview Dialog */}
+        <Dialog open={showPreviewDialog} onOpenChange={setShowPreviewDialog}>
+          <DialogContent className="max-w-4xl">
+            <DialogHeader>
+              <DialogTitle>Template Preview</DialogTitle>
+              <DialogDescription>
+                See how your template will appear in WhatsApp
+              </DialogDescription>
+            </DialogHeader>
+            {selectedTemplate && (
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-4">
                   <div>
-                    <p className="text-sm text-amber-800 font-medium">WhatsApp Guidelines</p>
-                    <ul className="text-xs text-amber-700 mt-1 space-y-1">
-                      <li>• Templates must be approved by WhatsApp before use</li>
-                      <li>• Marketing templates require opt-in consent</li>
-                      <li>• Variables must be replaced with actual values when sending</li>
-                      <li>• Avoid promotional content in utility templates</li>
-                    </ul>
+                    <Label className="text-sm font-medium">Template Details</Label>
+                    <div className="mt-2 space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">Name:</span>
+                        <span className="text-sm font-medium">{selectedTemplate.name}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">Status:</span>
+                        {getStatusBadge(selectedTemplate.status)}
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">Category:</span>
+                        {getCategoryBadge(selectedTemplate.category)}
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">Language:</span>
+                        <Badge variant="outline">{selectedTemplate.language}</Badge>
+                      </div>
+                    </div>
+                  </div>
+
+                  {(selectedTemplate.variables as string[])?.length > 0 && (
+                    <div>
+                      <Label className="text-sm font-medium">Variables</Label>
+                      <div className="mt-2 space-y-1">
+                        {(selectedTemplate.variables as string[]).map((variable: string, index: number) => (
+                          <div key={index} className="flex items-center gap-2 text-sm">
+                            <Badge variant="outline" className="font-mono">
+                              {`{{${index + 1}}}`}
+                            </Badge>
+                            <span className="text-gray-600">→</span>
+                            <span className="font-medium">{SAMPLE_DATA[`{{${index + 1}}}`] || variable}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">WhatsApp Preview</Label>
+                  <WhatsAppPreview 
+                    template={{
+                      name: selectedTemplate.name,
+                      body: selectedTemplate.body,
+                      category: selectedTemplate.category as any,
+                      language: selectedTemplate.language || "en_US",
+                      header: selectedTemplate.header || "",
+                      footer: selectedTemplate.footer || "",
+                      buttons: (selectedTemplate.buttons as any[]) || [],
+                      variables: (selectedTemplate.variables as string[]) || [],
+                      status: selectedTemplate.status || "PENDING"
+                    }} 
+                  />
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Form Dialog */}
+        <Dialog open={showFormDialog} onOpenChange={setShowFormDialog}>
+          <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden">
+            <DialogHeader>
+              <DialogTitle>{isEditMode ? "Edit Template" : "Create New Template"}</DialogTitle>
+              <DialogDescription>
+                {isEditMode ? "Update your WhatsApp message template" : "Create a pre-approved WhatsApp message template"}
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="grid grid-cols-2 gap-6 overflow-y-auto max-h-[calc(90vh-200px)] pr-2">
+              {/* Form Section */}
+              <div className="space-y-4">
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Template Name *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g., welcome_message" {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            Use lowercase letters, numbers, and underscores only
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="category"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Category *</FormLabel>
+                            <Select value={field.value} onValueChange={field.onChange}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select category" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="MARKETING">Marketing</SelectItem>
+                                <SelectItem value="UTILITY">Utility</SelectItem>
+                                <SelectItem value="AUTHENTICATION">Authentication</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="language"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Language *</FormLabel>
+                            <Select value={field.value || "en_US"} onValueChange={field.onChange}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select language" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="en_US">English (US)</SelectItem>
+                                <SelectItem value="es">Spanish</SelectItem>
+                                <SelectItem value="pt_BR">Portuguese (BR)</SelectItem>
+                                <SelectItem value="fr">French</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name="header"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Header (Optional)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="e.g., Welcome to our service!" 
+                              {...field} 
+                              maxLength={60}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Bold text at the top (max 60 chars) - {field.value?.length || 0}/60
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="body"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Message Body *</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Hi {{1}}, welcome to {{2}}! We're excited to have you on board."
+                              className="min-h-[120px]"
+                              {...field}
+                              maxLength={1024}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Use {"{{1}}"}, {"{{2}}"}, etc. for variables (max 1024 chars) - {field.value?.length || 0}/1024
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="footer"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Footer (Optional)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="e.g., Reply STOP to unsubscribe" 
+                              {...field}
+                              maxLength={60}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Small text at the bottom (max 60 chars) - {field.value?.length || 0}/60
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Buttons Section */}
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <Label>Buttons (Optional)</Label>
+                        {buttonFields.length < 3 && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => appendButton({ type: "QUICK_REPLY", text: "", url: "", phoneNumber: "" })}
+                          >
+                            <Plus className="w-4 h-4 mr-1" />
+                            Add Button
+                          </Button>
+                        )}
+                      </div>
+                      
+                      {buttonFields.map((field, index) => (
+                        <div key={field.id} className="p-3 border rounded-lg space-y-3">
+                          <div className="flex justify-between items-center">
+                            <Label className="text-sm">Button {index + 1}</Label>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeButton(index)}
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-3">
+                            <FormField
+                              control={form.control}
+                              name={`buttons.${index}.type`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-xs">Type</FormLabel>
+                                  <Select value={field.value} onValueChange={field.onChange}>
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value="QUICK_REPLY">Quick Reply</SelectItem>
+                                      <SelectItem value="URL">URL</SelectItem>
+                                      <SelectItem value="PHONE_NUMBER">Phone</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <FormField
+                              control={form.control}
+                              name={`buttons.${index}.text`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-xs">Button Text</FormLabel>
+                                  <FormControl>
+                                    <Input {...field} maxLength={20} placeholder="e.g., Learn More" />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          
+                          {form.watch(`buttons.${index}.type`) === "URL" && (
+                            <FormField
+                              control={form.control}
+                              name={`buttons.${index}.url`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-xs">URL</FormLabel>
+                                  <FormControl>
+                                    <Input {...field} placeholder="https://example.com" />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                          )}
+                          
+                          {form.watch(`buttons.${index}.type`) === "PHONE_NUMBER" && (
+                            <FormField
+                              control={form.control}
+                              name={`buttons.${index}.phoneNumber`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-xs">Phone Number</FormLabel>
+                                  <FormControl>
+                                    <Input {...field} placeholder="+1234567890" />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </form>
+                </Form>
+              </div>
+
+              {/* Preview Section */}
+              <div className="space-y-4">
+                <h3 className="font-medium text-sm text-gray-700">Live Preview</h3>
+                <WhatsAppPreview template={form.watch()} />
+                
+                <div className="bg-amber-50 border border-amber-200 p-3 rounded-md">
+                  <div className="flex gap-2">
+                    <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm text-amber-800 font-medium">WhatsApp Guidelines</p>
+                      <ul className="text-xs text-amber-700 mt-1 space-y-1">
+                        <li>• Templates must be approved by WhatsApp before use</li>
+                        <li>• Marketing templates require opt-in consent</li>
+                        <li>• Variables must be replaced with actual values when sending</li>
+                        <li>• Avoid promotional content in utility templates</li>
+                        <li>• Maximum 3 buttons per template</li>
+                      </ul>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Template</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this template? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (templateToDelete) {
-                  deleteTemplateMutation.mutate(templateToDelete);
+            <DialogFooter className="mt-6">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => {
+                  setShowFormDialog(false);
+                  form.reset();
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => form.reset()}
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Reset
+              </Button>
+              <Button 
+                onClick={form.handleSubmit(onSubmit)}
+                disabled={createTemplateMutation.isPending || updateTemplateMutation.isPending}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                {isEditMode 
+                  ? (updateTemplateMutation.isPending ? "Updating..." : "Update Template")
+                  : (createTemplateMutation.isPending ? "Creating..." : "Create Template")
                 }
-              }}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Template</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this template? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  if (templateToDelete) {
+                    deleteTemplateMutation.mutate(templateToDelete);
+                  }
+                }}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
     </div>
   );
 }
