@@ -55,6 +55,14 @@ export const channels = pgTable("channels", {
   whatsappBusinessAccountId: text("whatsapp_business_account_id"),
   phoneNumber: text("phone_number"),
   isActive: boolean("is_active").default(true),
+  // MM Lite configuration
+  mmLiteEnabled: boolean("mm_lite_enabled").default(false),
+  mmLiteApiUrl: text("mm_lite_api_url"),
+  mmLiteApiKey: text("mm_lite_api_key"),
+  // Health status fields
+  healthStatus: text("health_status").default("unknown"), // healthy, warning, error, unknown
+  lastHealthCheck: timestamp("last_health_check"),
+  healthDetails: jsonb("health_details").default({}), // Detailed health information
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

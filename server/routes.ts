@@ -36,6 +36,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Check channel health
+  app.post("/api/channels/:id/health", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const channel = await storage.getChannel(id);
+      
+      if (!channel) {
+        return res.status(404).json({ message: "Channel not found" });
+      }
+
+      let healthStatus = 'unknown';
+      let healthDetails: any = {};
+      let message = '';
+
+      try {
+        // Check WhatsApp Cloud API health
+        const phoneNumberResponse = await fetch(
+          `https://graph.facebook.com/v23.0/${channel.phoneNumberId}?fields=display_phone_number,quality_rating,status,code_verification_status,name_status,throughput`,
+          {
+            headers: {
+              'Authorization': `Bearer ${channel.accessToken}`,
+            },
+          }
+        );
+
+        if (phoneNumberResponse.ok) {
+          const phoneData = await phoneNumberResponse.json();
+          
+          // Determine health status based on response
+          if (phoneData.code_verification_status === 'VERIFIED' && phoneData.quality_rating !== 'RED') {
+            healthStatus = 'healthy';
+            message = 'Channel is working properly';
+          } else if (phoneData.quality_rating === 'YELLOW') {
+            healthStatus = 'warning';
+            message = 'Channel has quality warnings';
+          } else {
+            healthStatus = 'error';
+            message = 'Channel has issues that need attention';
+          }
+
+          healthDetails = {
+            phone_number: phoneData.display_phone_number,
+            quality_rating: phoneData.quality_rating || 'unknown',
+            verification_status: phoneData.code_verification_status,
+            name_status: phoneData.name_status,
+            throughput_level: phoneData.throughput?.level || 'standard',
+            status: phoneData.status
+          };
+
+          // Check MM Lite if enabled
+          if (channel.mmLiteEnabled && channel.mmLiteApiUrl) {
+            try {
+              const mmLiteResponse = await fetch(`${channel.mmLiteApiUrl}/health`, {
+                headers: channel.mmLiteApiKey ? {
+                  'Authorization': `Bearer ${channel.mmLiteApiKey}`,
+                } : {},
+              });
+              
+              healthDetails.mm_lite_status = mmLiteResponse.ok ? 'connected' : 'disconnected';
+            } catch (mmError) {
+              healthDetails.mm_lite_status = 'error';
+            }
+          }
+        } else {
+          const errorData = await phoneNumberResponse.json().catch(() => ({}));
+          healthStatus = 'error';
+          message = errorData.error?.message || 'Failed to connect to WhatsApp API';
+          healthDetails.error = errorData.error || { message: 'Unknown error' };
+        }
+      } catch (error: any) {
+        healthStatus = 'error';
+        message = 'Failed to check channel health';
+        healthDetails.error = { message: error.message };
+      }
+
+      // Update channel health in database
+      await storage.updateChannel(id, {
+        healthStatus,
+        lastHealthCheck: new Date(),
+        healthDetails,
+      });
+
+      res.json({
+        healthStatus,
+        message,
+        healthDetails,
+        lastHealthCheck: new Date(),
+      });
+    } catch (error) {
+      console.error("Failed to check channel health:", error);
+      res.status(500).json({ message: "Failed to check channel health" });
+    }
+  });
+
   app.get("/api/channels/:id", async (req, res) => {
     try {
       const channel = await storage.getChannel(req.params.id);

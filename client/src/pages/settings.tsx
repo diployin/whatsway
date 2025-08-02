@@ -34,7 +34,8 @@ import {
   Activity,
   Edit,
   Info,
-  MessageSquare
+  MessageSquare,
+  HelpCircle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
@@ -78,6 +79,8 @@ const channelFormSchema = z.object({
   accessToken: z.string().min(1, "Access Token is required"),
   businessAccountId: z.string().optional(),
   mmLiteEnabled: z.boolean().default(false),
+  mmLiteApiUrl: z.string().optional(),
+  mmLiteApiKey: z.string().optional(),
 });
 
 const webhookFormSchema = z.object({
@@ -118,6 +121,8 @@ export default function Settings() {
       accessToken: "",
       businessAccountId: "",
       mmLiteEnabled: false,
+      mmLiteApiUrl: "",
+      mmLiteApiKey: "",
     },
   });
 
@@ -135,8 +140,6 @@ export default function Settings() {
   const webhookForm = useForm<z.infer<typeof webhookFormSchema>>({
     resolver: zodResolver(webhookFormSchema),
     defaultValues: {
-      channelId: "",
-      webhookUrl: "",
       verifyToken: generateSecureToken(),
       appSecret: "",
       events: ["messages", "message_status", "message_template_status_update"],
@@ -154,6 +157,9 @@ export default function Settings() {
           phoneNumberId: data.phoneNumberId,
           whatsappBusinessAccountId: data.wabaId,
           accessToken: data.accessToken,
+          mmLiteEnabled: data.mmLiteEnabled,
+          mmLiteApiUrl: data.mmLiteApiUrl || null,
+          mmLiteApiKey: data.mmLiteApiKey || null,
         };
         return await apiRequest("PUT", `/api/channels/${editingChannel.id}`, channelData);
       }
@@ -165,6 +171,9 @@ export default function Settings() {
         whatsappBusinessAccountId: data.wabaId,
         accessToken: data.accessToken,
         isActive: channels.length === 0, // Make first channel active by default
+        mmLiteEnabled: data.mmLiteEnabled,
+        mmLiteApiUrl: data.mmLiteApiUrl || null,
+        mmLiteApiKey: data.mmLiteApiKey || null,
       };
       
       return await apiRequest("POST", "/api/channels", channelData);
@@ -266,7 +275,9 @@ export default function Settings() {
       wabaId: channel.whatsappBusinessAccountId || "",
       accessToken: channel.accessToken,
       businessAccountId: "",
-      mmLiteEnabled: false,
+      mmLiteEnabled: channel.mmLiteEnabled || false,
+      mmLiteApiUrl: channel.mmLiteApiUrl || "",
+      mmLiteApiKey: channel.mmLiteApiKey || "",
     });
     setShowChannelDialog(true);
   };
@@ -291,6 +302,44 @@ export default function Settings() {
       title: "Settings saved",
       description: "Your settings have been updated successfully.",
     });
+  };
+
+  const checkChannelHealth = async (channelId: string) => {
+    try {
+      toast({
+        title: "Checking health...",
+        description: "Verifying channel connection and status",
+      });
+      
+      const response = await apiRequest("POST", `/api/channels/${channelId}/health`);
+      
+      await queryClient.invalidateQueries({ queryKey: ["/api/channels"] });
+      
+      if (response.healthStatus === 'healthy') {
+        toast({
+          title: "Channel is healthy",
+          description: "The WhatsApp channel is working properly",
+        });
+      } else if (response.healthStatus === 'warning') {
+        toast({
+          title: "Channel has warnings", 
+          description: response.message || "Check health details for more information",
+          variant: "default",
+        });
+      } else {
+        toast({
+          title: "Channel has issues",
+          description: response.message || "The channel needs attention",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Health check failed",
+        description: "Could not verify channel status",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -380,7 +429,27 @@ export default function Settings() {
                                   </>
                                 )}
                               </Badge>
-
+                              {channel.mmLiteEnabled && (
+                                <Badge className="bg-purple-100 text-purple-800">
+                                  <Zap className="w-3 h-3 mr-1" />
+                                  MM Lite
+                                </Badge>
+                              )}
+                              {/* Health Status Badge */}
+                              <Badge 
+                                className={
+                                  channel.healthStatus === 'healthy' ? "bg-green-100 text-green-800" :
+                                  channel.healthStatus === 'warning' ? "bg-yellow-100 text-yellow-800" :
+                                  channel.healthStatus === 'error' ? "bg-red-100 text-red-800" :
+                                  "bg-gray-100 text-gray-800"
+                                }
+                              >
+                                {channel.healthStatus === 'healthy' ? <CheckCircle className="w-3 h-3 mr-1" /> :
+                                 channel.healthStatus === 'warning' ? <AlertCircle className="w-3 h-3 mr-1" /> :
+                                 channel.healthStatus === 'error' ? <XCircle className="w-3 h-3 mr-1" /> :
+                                 <HelpCircle className="w-3 h-3 mr-1" />}
+                                {channel.healthStatus === 'unknown' ? 'Health Unknown' : channel.healthStatus}
+                              </Badge>
                             </div>
                             <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
                               <div>
@@ -398,9 +467,38 @@ export default function Settings() {
                               <div>
                                 <strong>Business Account ID:</strong> {channel.whatsappBusinessAccountId}
                               </div>
+                              {channel.lastHealthCheck && (
+                                <div className="col-span-2">
+                                  <strong>Last Health Check:</strong> {new Date(channel.lastHealthCheck).toLocaleString()}
+                                </div>
+                              )}
+                              {channel.healthDetails && Object.keys(channel.healthDetails).length > 0 && (
+                                <div className="col-span-2 mt-2 p-3 bg-gray-50 rounded-md">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <Activity className="w-4 h-4" />
+                                    <strong>Health Details:</strong>
+                                  </div>
+                                  <div className="space-y-1 text-xs">
+                                    {Object.entries(channel.healthDetails).map(([key, value]) => (
+                                      <div key={key} className="flex justify-between">
+                                        <span className="text-gray-600">{key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}:</span>
+                                        <span className="font-medium">{String(value)}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </div>
                           <div className="flex space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => checkChannelHealth(channel.id)}
+                              title="Check channel health"
+                            >
+                              <RefreshCw className="w-4 h-4" />
+                            </Button>
                             <Button
                               variant="outline"
                               size="sm"
@@ -549,6 +647,42 @@ export default function Settings() {
                         </FormItem>
                       )}
                     />
+                    {channelForm.watch("mmLiteEnabled") && (
+                      <div className="space-y-4 pl-8 border-l-2 border-gray-200">
+                        <FormField
+                          control={channelForm.control}
+                          name="mmLiteApiUrl"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>MM Lite API URL</FormLabel>
+                              <FormControl>
+                                <Input placeholder="https://api.mmlite.com/v1" {...field} />
+                              </FormControl>
+                              <FormDescription>
+                                The endpoint URL for your MM Lite API
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={channelForm.control}
+                          name="mmLiteApiKey"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>MM Lite API Key</FormLabel>
+                              <FormControl>
+                                <Input type="password" placeholder="Your MM Lite API Key" {...field} />
+                              </FormControl>
+                              <FormDescription>
+                                API key for authenticating with MM Lite
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    )}
                     <DialogFooter>
                       <Button type="button" variant="outline" onClick={() => setShowChannelDialog(false)}>
                         Cancel
