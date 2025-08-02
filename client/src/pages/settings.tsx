@@ -107,7 +107,7 @@ export default function Settings() {
 
   // Fetch webhook configs
   const { data: webhookConfigs = [], isLoading: webhooksLoading, refetch: refetchWebhookConfigs } = useQuery<WebhookConfig[]>({
-    queryKey: ["/api/whatsapp/webhooks"],
+    queryKey: ["/api/webhook-configs"],
   });
 
   // Channel form
@@ -244,16 +244,24 @@ export default function Settings() {
 
   // Create webhook config mutation
   const createWebhookMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof webhookFormSchema> & { channelId: string }) => {
-      const res = await apiRequest("POST", "/api/whatsapp/webhooks", data);
-      return res.json();
+    mutationFn: async (data: z.infer<typeof webhookFormSchema>) => {
+      // Check if webhook already exists
+      const existingWebhooks = await apiRequest("GET", "/api/webhook-configs");
+      
+      if (existingWebhooks && existingWebhooks.length > 0) {
+        // Update existing webhook
+        return await apiRequest("PUT", `/api/webhook-configs/${existingWebhooks[0].id}`, data);
+      } else {
+        // Create new webhook
+        return await apiRequest("POST", "/api/webhook-configs", data);
+      }
     },
     onSuccess: () => {
       toast({
         title: "Webhook configured",
         description: "Webhook configuration has been saved.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/whatsapp/webhooks"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/webhook-configs"] });
       setShowWebhookDialog(false);
       webhookForm.reset();
     },
@@ -956,25 +964,7 @@ export default function Settings() {
                         Use this single URL for all your WhatsApp Business accounts. Events from all channels will be received here.
                       </p>
                     </div>
-                    <FormField
-                      control={webhookForm.control}
-                      name="webhookUrl"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Webhook URL</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder="https://your-domain.com/webhook" 
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            URL where WhatsApp will send event notifications
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+
                     <FormField
                       control={webhookForm.control}
                       name="verifyToken"

@@ -8,7 +8,8 @@ import {
   Bot, 
   BarChart3, 
   Settings,
-  Zap
+  Zap,
+  ScrollText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ChannelSwitcher } from "@/components/channel-switcher";
@@ -63,6 +64,12 @@ const navItems: NavItem[] = [
     icon: BarChart3,
     label: "Analytics",
     color: "text-pink-600"
+  },
+  {
+    href: "/logs",
+    icon: ScrollText,
+    label: "Message Logs",
+    color: "text-yellow-600"
   },
   {
     href: "/settings",

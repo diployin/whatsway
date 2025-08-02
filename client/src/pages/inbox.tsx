@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Header from "@/components/layout/header";
 import { Loading } from "@/components/ui/loading";
@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   MessageSquare, 
   Search, 
@@ -17,10 +19,18 @@ import {
   MoreVertical,
   Edit,
   User,
-  Clock
+  Clock,
+  Check,
+  CheckCheck,
+  AlertCircle,
+  Phone,
+  Video,
+  Info
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import type { Conversation, Message, Contact } from "@shared/schema";
 
 export default function Inbox() {
@@ -145,294 +155,257 @@ export default function Inbox() {
     );
   }
 
+  // Auto scroll to bottom on new messages
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // Auto-refresh messages
+  useEffect(() => {
+    if (!selectedConversation) return;
+    
+    const interval = setInterval(() => {
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations", selectedConversation.id, "messages"] });
+    }, 5000); // Refresh every 5 seconds
+    
+    return () => clearInterval(interval);
+  }, [selectedConversation, queryClient]);
+
+  const getMessageStatus = (message: Message) => {
+    if (message.status === 'failed') {
+      return <AlertCircle className="w-4 h-4 text-red-500" />;
+    } else if (message.status === 'read') {
+      return <CheckCheck className="w-4 h-4 text-blue-500" />;
+    } else if (message.status === 'delivered') {
+      return <CheckCheck className="w-4 h-4 text-gray-400" />;
+    } else if (message.status === 'sent') {
+      return <Check className="w-4 h-4 text-gray-400" />;
+    }
+    return null;
+  };
+
   return (
     <div className="flex-1 dots-bg min-h-screen">
       <Header 
         title="Team Inbox" 
-        subtitle="Collaborate on customer conversations"
+        subtitle="Real-time customer conversations"
       />
 
-      <main className="p-6 space-y-6">
-        {/* Filter Tabs */}
-        <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
-          {[
-            { value: "all", label: "All Chats" },
-            { value: "open", label: "Open" },
-            { value: "assigned", label: "Assigned to Me" },
-            { value: "closed", label: "Closed" }
-          ].map((filter) => (
-            <Button
-              key={filter.value}
-              variant={filterStatus === filter.value ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setFilterStatus(filter.value)}
-              className={filterStatus === filter.value ? "bg-green-600 text-white" : ""}
-            >
-              {filter.label}
-            </Button>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Chat List */}
-          <Card className="lg:col-span-1">
-            <CardHeader>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <Input
-                  placeholder="Search conversations..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
+      <main className="p-6">
+        <div className="h-[calc(100vh-200px)] flex gap-6">
+          {/* Conversations List */}
+          <Card className="w-96 flex flex-col">
+            <CardHeader className="pb-4">
+              <div className="space-y-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Input
+                    placeholder="Search conversations..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filter conversations" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Conversations</SelectItem>
+                    <SelectItem value="open">Open</SelectItem>
+                    <SelectItem value="assigned">Assigned</SelectItem>
+                    <SelectItem value="closed">Closed</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </CardHeader>
-            <CardContent className="p-0">
-              {!filteredConversations.length ? (
-                <EmptyState
-                  icon={MessageSquare}
-                  title="No conversations"
-                  description="You don't have any conversations yet. Conversations will appear here when customers message you."
-                  className="py-8"
-                />
-              ) : (
-                <div className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
-                  {filteredConversations.map((conversation: Conversation) => {
-                    const contact = getContactInfo(conversation.contactId);
-                    const isSelected = selectedConversation?.id === conversation.id;
-                    
-                    return (
-                      <div
-                        key={conversation.id}
-                        className={`p-4 hover:bg-gray-50 transition-colors cursor-pointer ${
-                          isSelected ? "bg-green-50 border-l-4 border-green-600" : ""
-                        }`}
-                        onClick={() => setSelectedConversation(conversation)}
-                      >
-                        <div className="flex items-start space-x-3">
-                          <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
-                            <span className="text-sm font-medium text-gray-600">
-                              {contact?.name?.charAt(0).toUpperCase() || "?"}
-                            </span>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between">
-                              <p className="text-sm font-medium text-gray-900 truncate">
-                                {contact?.name || "Unknown Contact"}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                {conversation.lastMessageAt 
-                                  ? new Date(conversation.lastMessageAt).toLocaleTimeString('en-US', { 
-                                      hour: '2-digit', 
-                                      minute: '2-digit' 
-                                    })
-                                  : ""
-                                }
-                              </p>
-                            </div>
-                            <p className="text-sm text-gray-600 truncate">
-                              {contact?.phone || "No phone number"}
-                            </p>
-                            <div className="flex items-center justify-between mt-2">
-                              <div className="flex space-x-1">
-                                <Badge 
-                                  variant="outline" 
-                                  className={getPriorityColor(conversation.priority || "normal")}
-                                >
-                                  {conversation.priority || "normal"}
-                                </Badge>
-                                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                                  {conversation.status}
-                                </Badge>
+            <CardContent className="flex-1 p-0 overflow-hidden">
+              <ScrollArea className="h-full">
+                {!filteredConversations.length ? (
+                  <EmptyState
+                    icon={MessageSquare}
+                    title="No conversations"
+                    description="Start chatting when customers message you"
+                    className="py-12"
+                  />
+                ) : (
+                  <div className="divide-y divide-gray-100">
+                    {filteredConversations.map((conversation: Conversation) => {
+                      const contact = getContactInfo(conversation.contactId);
+                      const isSelected = selectedConversation?.id === conversation.id;
+                      
+                      return (
+                        <div
+                          key={conversation.id}
+                          className={cn(
+                            "p-4 hover:bg-gray-50 transition-colors cursor-pointer",
+                            isSelected && "bg-green-50 border-l-4 border-green-500"
+                          )}
+                          onClick={() => setSelectedConversation(conversation)}
+                        >
+                          <div className="flex items-start gap-3">
+                            <Avatar>
+                              <AvatarFallback>
+                                {contact?.name?.charAt(0).toUpperCase() || "?"}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between">
+                                <h3 className="font-medium text-sm truncate">
+                                  {contact?.name || conversation.contactPhone || "Unknown"}
+                                </h3>
+                                <span className="text-xs text-gray-500">
+                                  {conversation.lastMessageAt ? 
+                                    format(new Date(conversation.lastMessageAt), "HH:mm") : ""}
+                                </span>
                               </div>
-                              {conversation.status === "open" && (
-                                <div className="w-2 h-2 bg-red-400 rounded-full"></div>
+                              <p className="text-xs text-gray-500 truncate mt-1">
+                                {conversation.contactPhone}
+                              </p>
+                              {conversation.unreadCount && conversation.unreadCount > 0 && (
+                                <Badge className="mt-1 bg-green-600 text-white text-xs">
+                                  {conversation.unreadCount} new
+                                </Badge>
                               )}
                             </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+                      );
+                    })}
+                  </div>
+                )}
+              </ScrollArea>
             </CardContent>
           </Card>
 
-          {/* Chat Messages */}
-          <Card className="lg:col-span-2 flex flex-col">
-            {selectedConversation ? (
-              <>
-                {/* Chat Header */}
-                <CardHeader className="border-b border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-medium text-gray-600">
-                          {getContactInfo(selectedConversation.contactId)?.name?.charAt(0).toUpperCase() || "?"}
-                        </span>
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-medium text-gray-900">
-                          {getContactInfo(selectedConversation.contactId)?.name || "Unknown Contact"}
-                        </h3>
-                        <p className="text-xs text-gray-500">
-                          {getContactInfo(selectedConversation.contactId)?.phone || "No phone"} • Online
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Select 
-                        value={selectedConversation.assignedTo || ""} 
-                        onValueChange={handleAssignConversation}
-                      >
-                        <SelectTrigger className="w-32">
-                          <SelectValue placeholder="Assign to..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="">Unassigned</SelectItem>
-                          <SelectItem value="admin">Admin</SelectItem>
-                          <SelectItem value="agent1">Agent 1</SelectItem>
-                          <SelectItem value="agent2">Agent 2</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Button variant="ghost" size="sm">
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
+          {/* Chat Interface */}
+          {selectedConversation ? (
+            <Card className="flex-1 flex flex-col">
+              {/* Chat Header */}
+              <CardHeader className="border-b bg-gray-50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Avatar>
+                      <AvatarFallback>
+                        {getContactInfo(selectedConversation.contactId)?.name?.charAt(0).toUpperCase() || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h2 className="font-semibold">
+                        {getContactInfo(selectedConversation.contactId)?.name || selectedConversation.contactPhone}
+                      </h2>
+                      <p className="text-sm text-gray-500">{selectedConversation.contactPhone}</p>
                     </div>
                   </div>
-                </CardHeader>
-
-                {/* Messages Area */}
-                <CardContent className="flex-1 p-4 space-y-4 max-h-96 overflow-y-auto">
-                  {messagesLoading ? (
-                    <Loading text="Loading messages..." />
-                  ) : messages?.length ? (
-                    messages.map((message: Message) => (
-                      <div
-                        key={message.id}
-                        className={`flex items-start space-x-2 ${
-                          message.fromUser ? "justify-end" : ""
-                        }`}
-                      >
-                        {!message.fromUser && (
-                          <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                            <User className="w-4 h-4 text-gray-600" />
-                          </div>
-                        )}
-                        <div
-                          className={`rounded-2xl p-3 max-w-xs ${
-                            message.fromUser
-                              ? "bg-green-600 text-white rounded-tr-sm"
-                              : "bg-gray-100 text-gray-800 rounded-tl-sm"
-                          }`}
-                        >
-                          <p className="text-sm">{message.content}</p>
-                          <p className={`text-xs mt-1 ${
-                            message.fromUser ? "text-green-100" : "text-gray-500"
-                          }`}>
-                            {message.createdAt 
-                              ? new Date(message.createdAt).toLocaleTimeString('en-US', { 
-                                  hour: '2-digit', 
-                                  minute: '2-digit' 
-                                })
-                              : ""
-                            }
-                            {message.fromUser && " ✓✓"}
-                          </p>
-                        </div>
-                        {message.fromUser && (
-                          <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
-                            <span className="text-sm font-medium text-white">A</span>
-                          </div>
-                        )}
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      No messages yet. Start the conversation!
-                    </div>
-                  )}
-                </CardContent>
-
-                {/* Message Input */}
-                <div className="p-4 border-t border-gray-200">
-                  {/* Quick Responses */}
-                  <div className="mb-3 flex flex-wrap gap-2">
-                    {[
-                      "Thank you for contacting us",
-                      "Let me check that for you",
-                      "Is there anything else?"
-                    ].map((quickReply) => (
-                      <Button
-                        key={quickReply}
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setMessageText(quickReply)}
-                        className="text-xs"
-                      >
-                        {quickReply}
-                      </Button>
-                    ))}
-                  </div>
-
-                  <div className="flex items-end space-x-2">
-                    <div className="flex-1">
-                      <Textarea
-                        rows={2}
-                        placeholder="Type your message..."
-                        value={messageText}
-                        onChange={(e) => setMessageText(e.target.value)}
-                        onKeyPress={(e) => {
-                          if (e.key === "Enter" && !e.shiftKey) {
-                            e.preventDefault();
-                            handleSendMessage();
-                          }
-                        }}
-                        className="resize-none"
-                      />
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button variant="ghost" size="sm">
-                        <Paperclip className="w-4 h-4" />
-                      </Button>
-                      <Button 
-                        size="sm"
-                        onClick={handleSendMessage}
-                        disabled={!messageText.trim() || sendMessageMutation.isPending}
-                        className="bg-green-600 hover:bg-green-700"
-                      >
-                        <Send className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Internal Notes */}
-                  <div className="mt-3 pt-3 border-t border-gray-100">
-                    <div className="flex items-center space-x-2">
-                      <Edit className="w-4 h-4 text-gray-400" />
-                      <Input
-                        placeholder="Add internal note..."
-                        className="text-sm"
-                      />
-                      <Button variant="ghost" size="sm" className="text-blue-600">
-                        Add Note
-                      </Button>
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon">
+                      <Phone className="w-4 h-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon">
+                      <Video className="w-4 h-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon">
+                      <Info className="w-4 h-4" />
+                    </Button>
                   </div>
                 </div>
-              </>
-            ) : (
-              <div className="flex-1 flex items-center justify-center">
-                <EmptyState
-                  icon={MessageSquare}
-                  title="Select a conversation"
-                  description="Choose a conversation from the list to start chatting with your customers."
-                  className="py-12"
-                />
+              </CardHeader>
+
+              {/* Messages */}
+              <CardContent className="flex-1 p-0 overflow-hidden">
+                <ScrollArea className="h-full p-4">
+                  {messagesLoading ? (
+                    <Loading text="Loading messages..." />
+                  ) : messages && messages.length > 0 ? (
+                    <div className="space-y-4">
+                      {messages.map((message: Message) => {
+                        const isAgent = message.sender === 'agent';
+                        return (
+                          <div
+                            key={message.id}
+                            className={cn(
+                              "flex",
+                              isAgent ? "justify-end" : "justify-start"
+                            )}
+                          >
+                            <div
+                              className={cn(
+                                "max-w-[70%] rounded-lg px-4 py-2",
+                                isAgent 
+                                  ? "bg-green-500 text-white" 
+                                  : "bg-gray-100 text-gray-900"
+                              )}
+                            >
+                              <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                              <div className={cn(
+                                "flex items-center gap-1 mt-1",
+                                isAgent ? "justify-end" : "justify-start"
+                              )}>
+                                <span className={cn(
+                                  "text-xs",
+                                  isAgent ? "text-green-100" : "text-gray-500"
+                                )}>
+                                  {format(new Date(message.createdAt), "HH:mm")}
+                                </span>
+                                {isAgent && getMessageStatus(message)}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      <div ref={messagesEndRef} />
+                    </div>
+                  ) : (
+                    <EmptyState
+                      icon={MessageSquare}
+                      title="No messages yet"
+                      description="Start a conversation with this contact"
+                      className="h-full"
+                    />
+                  )}
+                </ScrollArea>
+              </CardContent>
+
+              {/* Message Input */}
+              <div className="border-t p-4">
+                <div className="flex items-end gap-2">
+                  <Button variant="ghost" size="icon">
+                    <Paperclip className="w-5 h-5" />
+                  </Button>
+                  <Textarea
+                    value={messageText}
+                    onChange={(e) => setMessageText(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage();
+                      }
+                    }}
+                    placeholder="Type a message..."
+                    className="flex-1 resize-none"
+                    rows={1}
+                  />
+                  <Button 
+                    onClick={handleSendMessage}
+                    disabled={!messageText.trim() || sendMessageMutation.isPending}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    <Send className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
-            )}
-          </Card>
+            </Card>
+          ) : (
+            <Card className="flex-1 flex items-center justify-center">
+              <EmptyState
+                icon={MessageSquare}
+                title="Select a conversation"
+                description="Choose a conversation from the list to start chatting"
+              />
+            </Card>
+          )}
         </div>
       </main>
     </div>

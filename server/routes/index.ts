@@ -15,6 +15,7 @@ import { registerAutomationRoutes } from "./automations.routes";
 import { registerWhatsAppRoutes } from "./whatsapp.routes";
 import { registerWebhookRoutes } from "./webhooks.routes";
 import { registerMessageRoutes } from "./messages.routes";
+import { registerMessageLogsRoutes } from "./messages.logs.routes";
 
 // Import error handler middleware
 import { errorHandler } from "../middlewares/error.middleware";
@@ -33,6 +34,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerWhatsAppRoutes(app);
   registerWebhookRoutes(app);
   registerMessageRoutes(app);
+  registerMessageLogsRoutes(app);
 
   // Create HTTP server
   const httpServer = createServer(app);
