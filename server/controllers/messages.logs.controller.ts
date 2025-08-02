@@ -2,8 +2,9 @@ import type { Request, Response } from 'express';
 import { storage } from '../storage';
 import { AppError, asyncHandler } from '../middlewares/error.middleware';
 import { eq, desc, and, or, like, gte, sql } from 'drizzle-orm';
-import { messages, conversations, contacts } from '@shared/schema';
+import { messageQueue, whatsappChannels } from '@shared/schema';
 import { db } from '../db';
+import { update } from 'drizzle-orm';
 
 export const getMessageLogs = asyncHandler(async (req: Request, res: Response) => {
   const { channelId, status, dateRange, search } = req.query;
@@ -12,7 +13,7 @@ export const getMessageLogs = asyncHandler(async (req: Request, res: Response) =
 
   // Channel filter
   if (channelId) {
-    conditions.push(eq(conversations.channelId, channelId as string));
+    conditions.push(eq(messageQueue.channelId, channelId as string));
   }
 
   // Date range filter
@@ -32,64 +33,81 @@ export const getMessageLogs = asyncHandler(async (req: Request, res: Response) =
         break;
     }
 
-    conditions.push(gte(messages.createdAt, startDate));
+    conditions.push(gte(messageQueue.createdAt, startDate));
   }
 
   // Status filter
   if (status && status !== 'all') {
-    conditions.push(eq(messages.status, status as any));
+    conditions.push(eq(messageQueue.status, status as any));
+  }
+
+  // Add search condition if provided
+  if (search) {
+    conditions.push(
+      or(
+        like(messageQueue.recipientPhone, `%${search}%`),
+        like(messageQueue.templateName, `%${search}%`)
+      )!
+    );
   }
 
   // Build the query
-  const query = db
+  let baseQuery = db
     .select({
-      id: messages.id,
-      channelId: conversations.channelId,
-      phoneNumber: conversations.contactPhone,
-      contactName: conversations.contactName,
-      messageType: sql<string>`CASE WHEN ${messages.templateName} IS NOT NULL THEN 'template' ELSE 'text' END`,
-      content: messages.content,
-      templateName: messages.templateName,
-      status: messages.status,
-      errorCode: messages.errorCode,
-      errorMessage: messages.errorMessage,
-      whatsappMessageId: messages.whatsappMessageId,
-      createdAt: messages.createdAt,
-      updatedAt: messages.updatedAt,
+      id: messageQueue.id,
+      channelId: messageQueue.channelId,
+      phoneNumber: messageQueue.recipientPhone,
+      channelName: whatsappChannels.name,
+      messageType: messageQueue.messageType,
+      templateName: messageQueue.templateName,
+      templateParams: messageQueue.templateParams,
+      status: messageQueue.status,
+      errorCode: messageQueue.errorCode,
+      errorMessage: messageQueue.errorMessage,
+      whatsappMessageId: messageQueue.whatsappMessageId,
+      cost: messageQueue.cost,
+      sentVia: messageQueue.sentVia,
+      processedAt: messageQueue.processedAt,
+      deliveredAt: messageQueue.deliveredAt,
+      readAt: messageQueue.readAt,
+      createdAt: messageQueue.createdAt,
     })
-    .from(messages)
-    .innerJoin(conversations, eq(messages.conversationId, conversations.id))
-    .where(
-      and(
-        ...conditions,
-        eq(messages.sender, 'agent'), // Only show outgoing messages
-        search ? or(
-          like(conversations.contactPhone, `%${search}%`),
-          like(messages.content, `%${search}%`)
-        ) : undefined
-      )
-    )
-    .orderBy(desc(messages.createdAt))
-    .limit(100); // Limit to last 100 messages
+    .from(messageQueue)
+    .leftJoin(whatsappChannels, eq(messageQueue.channelId, whatsappChannels.id));
 
-  const logs = await query;
+  // Apply conditions only if we have any
+  if (conditions.length > 0) {
+    baseQuery = baseQuery.where(and(...conditions));
+  }
+
+  const messageLogs = await baseQuery
+    .orderBy(desc(messageQueue.createdAt))
+    .limit(100); // Limit to last 100 messages
   
-  res.json(logs);
+  res.json(messageLogs);
 });
 
 export const updateMessageStatus = asyncHandler(async (req: Request, res: Response) => {
   const { messageId } = req.params;
   const { status, errorCode, errorMessage } = req.body;
 
-  const message = await storage.updateMessage(messageId, {
-    status,
-    errorCode,
-    errorMessage,
-  });
+  // Update message queue status
+  const [updatedMessage] = await db
+    .update(messageQueue)
+    .set({
+      status,
+      errorCode,
+      errorMessage,
+      processedAt: status === 'sent' ? new Date() : undefined,
+      deliveredAt: status === 'delivered' ? new Date() : undefined,
+      readAt: status === 'read' ? new Date() : undefined,
+    })
+    .where(eq(messageQueue.id, messageId))
+    .returning();
 
-  if (!message) {
+  if (!updatedMessage) {
     throw new AppError(404, 'Message not found');
   }
 
-  res.json(message);
+  res.json(updatedMessage);
 });

@@ -25,6 +25,14 @@ export const createMessage = asyncHandler(async (req: Request, res: Response) =>
     lastMessageAt: new Date()
   });
   
+  // Broadcast new message to WebSocket clients
+  if ((global as any).broadcastToConversation) {
+    (global as any).broadcastToConversation(conversationId, {
+      type: 'new-message',
+      message
+    });
+  }
+  
   res.json(message);
 });
 
@@ -81,13 +89,21 @@ export const sendMessage = asyncHandler(async (req: RequestWithChannel, res: Res
     }
     
     // Create message record
-    await storage.createMessage({
+    const createdMessage = await storage.createMessage({
       conversationId: conversation.id,
       content: message || `Template: ${templateName}`,
       sender: 'business',
       status: 'sent',
       whatsappMessageId: result.messages?.[0]?.id
     });
+    
+    // Broadcast new message to WebSocket clients
+    if ((global as any).broadcastToConversation) {
+      (global as any).broadcastToConversation(conversation.id, {
+        type: 'new-message',
+        message: createdMessage
+      });
+    }
     
     res.json({
       success: true,

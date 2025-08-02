@@ -144,17 +144,6 @@ export default function Inbox() {
     }
   };
 
-  if (conversationsLoading) {
-    return (
-      <div className="flex-1 dots-bg">
-        <Header title="Team Inbox" subtitle="Loading conversations..." />
-        <div className="p-6">
-          <Loading size="lg" text="Loading inbox..." />
-        </div>
-      </div>
-    );
-  }
-
   // Auto scroll to bottom on new messages
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
@@ -162,15 +151,44 @@ export default function Inbox() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Auto-refresh messages
+  // WebSocket connection for real-time messages
   useEffect(() => {
     if (!selectedConversation) return;
     
-    const interval = setInterval(() => {
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations", selectedConversation.id, "messages"] });
-    }, 5000); // Refresh every 5 seconds
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    const socket = new WebSocket(wsUrl);
     
-    return () => clearInterval(interval);
+    socket.onopen = () => {
+      console.log('WebSocket connected');
+      socket.send(JSON.stringify({
+        type: 'join-conversation',
+        conversationId: selectedConversation.id
+      }));
+    };
+    
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'new-message') {
+        // Invalidate messages query to refetch
+        queryClient.invalidateQueries({ 
+          queryKey: ["/api/conversations", selectedConversation.id, "messages"] 
+        });
+        queryClient.invalidateQueries({ 
+          queryKey: ["/api/conversations"] 
+        });
+      }
+    };
+    
+    socket.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+    
+    return () => {
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.close();
+      }
+    };
   }, [selectedConversation, queryClient]);
 
   const getMessageStatus = (message: Message) => {
@@ -185,6 +203,17 @@ export default function Inbox() {
     }
     return null;
   };
+
+  if (conversationsLoading) {
+    return (
+      <div className="flex-1 dots-bg">
+        <Header title="Team Inbox" subtitle="Loading conversations..." />
+        <div className="p-6">
+          <Loading size="lg" text="Loading inbox..." />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 dots-bg min-h-screen">
@@ -321,7 +350,7 @@ export default function Inbox() {
                   ) : messages && messages.length > 0 ? (
                     <div className="space-y-4">
                       {messages.map((message: Message) => {
-                        const isAgent = message.sender === 'agent';
+                        const isAgent = message.fromUser === true;
                         return (
                           <div
                             key={message.id}
@@ -347,7 +376,7 @@ export default function Inbox() {
                                   "text-xs",
                                   isAgent ? "text-green-100" : "text-gray-500"
                                 )}>
-                                  {format(new Date(message.createdAt), "HH:mm")}
+                                  {message.createdAt ? format(new Date(message.createdAt), "HH:mm") : ""}
                                 </span>
                                 {isAgent && getMessageStatus(message)}
                               </div>

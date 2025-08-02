@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { WebSocketServer } from "ws";
+import { WebSocketServer, WebSocket } from "ws";
 
 // Import all route modules
 import { registerChannelRoutes } from "./channels.routes";
@@ -41,18 +41,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Add WebSocket server for real-time features
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  
+  // Store WebSocket connections by conversation ID
+  const conversationClients = new Map<string, Set<WebSocket>>();
 
   wss.on('connection', (ws) => {
     console.log('WebSocket client connected');
+    let currentConversationId: string | null = null;
     
     ws.on('message', (message) => {
-      console.log('Received:', message.toString());
+      try {
+        const data = JSON.parse(message.toString());
+        
+        if (data.type === 'join-conversation') {
+          // Leave previous conversation if any
+          if (currentConversationId && conversationClients.has(currentConversationId)) {
+            conversationClients.get(currentConversationId)!.delete(ws);
+          }
+          
+          // Join new conversation
+          currentConversationId = data.conversationId;
+          if (!conversationClients.has(currentConversationId)) {
+            conversationClients.set(currentConversationId, new Set());
+          }
+          conversationClients.get(currentConversationId)!.add(ws);
+          
+          ws.send(JSON.stringify({ type: 'joined', conversationId: currentConversationId }));
+        }
+      } catch (error) {
+        console.error('WebSocket message error:', error);
+      }
     });
     
     ws.on('close', () => {
+      // Remove from conversation clients
+      if (currentConversationId && conversationClients.has(currentConversationId)) {
+        conversationClients.get(currentConversationId)!.delete(ws);
+        if (conversationClients.get(currentConversationId)!.size === 0) {
+          conversationClients.delete(currentConversationId);
+        }
+      }
       console.log('WebSocket client disconnected');
     });
   });
+
+  // Export broadcast function for use in message routes
+  (global as any).broadcastToConversation = (conversationId: string, data: any) => {
+    const clients = conversationClients.get(conversationId);
+    if (clients) {
+      const message = JSON.stringify(data);
+      clients.forEach(client => {
+        if (client.readyState === client.OPEN) {
+          client.send(message);
+        }
+      });
+    }
+  };
 
   // Error handling middleware - must be registered last
   app.use(errorHandler);

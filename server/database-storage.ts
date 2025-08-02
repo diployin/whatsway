@@ -1,5 +1,6 @@
 import { db } from "./db";
 import { eq, and, desc, sql, gte, gt } from "drizzle-orm";
+import { randomUUID } from "crypto";
 import {
   users,
   contacts,
@@ -384,22 +385,78 @@ export class DatabaseStorage implements IStorage {
 
   // Analytics
   async getAnalytics(days?: number): Promise<Analytics[]> {
-    const startDate = days ? new Date(Date.now() - days * 24 * 60 * 60 * 1000) : undefined;
-    const query = startDate
-      ? db.select().from(analytics).where(gte(analytics.date, startDate))
-      : db.select().from(analytics);
-    return await query.orderBy(analytics.date);
+    const startDate = days ? new Date(Date.now() - days * 24 * 60 * 60 * 1000) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    
+    const result = await db
+      .select({
+        date: sql<Date>`DATE(${messageQueue.createdAt})`,
+        sent: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'sent' THEN 1 END)`,
+        delivered: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'delivered' THEN 1 END)`,
+        read: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'read' THEN 1 END)`,
+        replied: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'replied' THEN 1 END)`,
+        failed: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'failed' THEN 1 END)`,
+      })
+      .from(messageQueue)
+      .where(gte(messageQueue.createdAt, startDate))
+      .groupBy(sql`DATE(${messageQueue.createdAt})`)
+      .orderBy(sql`DATE(${messageQueue.createdAt})`);
+    
+    // Transform results to Analytics format
+    return result.map(row => ({
+      id: randomUUID(),
+      date: row.date,
+      channelId: null,
+      messages: (row.sent + row.delivered + row.read + row.replied + row.failed) || 0,
+      sent: row.sent || 0,
+      delivered: row.delivered || 0,
+      read: row.read || 0,
+      replied: row.replied || 0,
+      failed: row.failed || 0,
+      revenue: 0,
+      cost: 0,
+      conversions: 0,
+      leads: 0,
+      createdAt: new Date(),
+    }));
   }
 
   async getAnalyticsByChannel(channelId: string, days?: number): Promise<Analytics[]> {
-    // Note: Analytics table doesn't have channelId column yet
-    // For now, return all analytics filtered by date only
-    // TODO: Add channelId to analytics table schema
-    const startDate = days ? new Date(Date.now() - days * 24 * 60 * 60 * 1000) : undefined;
-    const query = startDate
-      ? db.select().from(analytics).where(gte(analytics.date, startDate))
-      : db.select().from(analytics);
-    return await query.orderBy(analytics.date);
+    const startDate = days ? new Date(Date.now() - days * 24 * 60 * 60 * 1000) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    
+    const result = await db
+      .select({
+        date: sql<Date>`DATE(${messageQueue.createdAt})`,
+        sent: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'sent' THEN 1 END)`,
+        delivered: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'delivered' THEN 1 END)`,
+        read: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'read' THEN 1 END)`,
+        replied: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'replied' THEN 1 END)`,
+        failed: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'failed' THEN 1 END)`,
+      })
+      .from(messageQueue)
+      .where(and(
+        eq(messageQueue.channelId, channelId),
+        gte(messageQueue.createdAt, startDate)
+      ))
+      .groupBy(sql`DATE(${messageQueue.createdAt})`)
+      .orderBy(sql`DATE(${messageQueue.createdAt})`);
+    
+    // Transform results to Analytics format
+    return result.map(row => ({
+      id: randomUUID(),
+      date: row.date,
+      channelId,
+      messages: (row.sent + row.delivered + row.read + row.replied + row.failed) || 0,
+      sent: row.sent || 0,
+      delivered: row.delivered || 0,
+      read: row.read || 0,
+      replied: row.replied || 0,
+      failed: row.failed || 0,
+      revenue: 0,
+      cost: 0,
+      conversions: 0,
+      leads: 0,
+      createdAt: new Date(),
+    }));
   }
 
   async createAnalytics(insertAnalytics: InsertAnalytics): Promise<Analytics> {
