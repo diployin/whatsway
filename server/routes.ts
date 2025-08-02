@@ -160,6 +160,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create sample templates
+  app.post("/api/templates/seed", async (req, res) => {
+    try {
+      const sampleTemplates = [
+        {
+          name: "hello_world",
+          content: "Hello {{1}}! Thanks for your interest in {{2}}. Reply with STOP to unsubscribe.",
+          category: "MARKETING",
+          status: "APPROVED",
+          language: "en_US",
+          variables: ["customer_name", "business_name"]
+        },
+        {
+          name: "order_confirmation",
+          content: "Hi {{1}}, your order #{{2}} has been confirmed and will be delivered by {{3}}. Track: {{4}}",
+          category: "UTILITY",
+          status: "APPROVED",
+          language: "en_US",
+          variables: ["customer_name", "order_number", "delivery_date", "tracking_link"]
+        },
+        {
+          name: "appointment_reminder",
+          content: "Hi {{1}}, this is a reminder for your appointment on {{2}} at {{3}}. Reply YES to confirm or NO to reschedule.",
+          category: "UTILITY",
+          status: "APPROVED",
+          language: "en_US",
+          variables: ["customer_name", "appointment_date", "appointment_time"]
+        },
+        {
+          name: "welcome_message",
+          content: "Welcome to {{1}}, {{2}}! We're excited to have you. Get started by visiting {{3}} or reply HELP for assistance.",
+          category: "MARKETING",
+          status: "APPROVED",
+          language: "en_US",
+          variables: ["business_name", "customer_name", "website_link"]
+        },
+        {
+          name: "payment_reminder",
+          content: "Hi {{1}}, your payment of {{2}} for invoice #{{3}} is due on {{4}}. Pay now: {{5}}",
+          category: "UTILITY",
+          status: "APPROVED",
+          language: "en_US",
+          variables: ["customer_name", "amount", "invoice_number", "due_date", "payment_link"]
+        },
+        {
+          name: "verification_code",
+          content: "Your {{1}} verification code is {{2}}. This code expires in {{3}} minutes.",
+          category: "AUTHENTICATION",
+          status: "APPROVED",
+          language: "en_US",
+          variables: ["service_name", "otp_code", "expiry_time"]
+        }
+      ];
+
+      const createdTemplates = [];
+      for (const template of sampleTemplates) {
+        try {
+          const created = await storage.createTemplate(template);
+          createdTemplates.push(created);
+        } catch (err) {
+          console.log(`Template ${template.name} already exists, skipping...`);
+        }
+      }
+
+      res.json({ 
+        message: "Sample templates created successfully", 
+        created: createdTemplates.length 
+      });
+    } catch (error) {
+      console.error("Error creating sample templates:", error);
+      res.status(500).json({ message: "Failed to create sample templates" });
+    }
+  });
+
   // Template endpoints
   app.get("/api/templates", async (req, res) => {
     try {
@@ -435,19 +509,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Channel not found" });
       }
 
-      const { to, message } = req.body;
-      if (!to || !message) {
-        return res.status(400).json({ message: "Phone number and message are required" });
+      const { to, type, message, templateName, templateLanguage, templateVariables } = req.body;
+      if (!to || !type) {
+        return res.status(400).json({ message: "Phone number and message type are required" });
       }
       
-      // Send text message
-      const result = await WhatsAppApiService.sendMessage(channel, {
-        to,
-        type: "text",
-        text: {
-          body: message
+      let payload: any;
+      
+      if (type === "template") {
+        if (!templateName || !templateLanguage) {
+          return res.status(400).json({ message: "Template name and language are required for template messages" });
         }
-      });
+        
+        // Build template components
+        const components: any[] = [];
+        
+        if (templateVariables && templateVariables.length > 0) {
+          components.push({
+            type: "body",
+            parameters: templateVariables.map((value: string) => ({
+              type: "text",
+              text: value
+            }))
+          });
+        }
+        
+        payload = {
+          to,
+          type: "template",
+          template: {
+            name: templateName,
+            language: {
+              code: templateLanguage
+            },
+            components: components.length > 0 ? components : undefined
+          }
+        };
+      } else {
+        if (!message) {
+          return res.status(400).json({ message: "Message text is required for text messages" });
+        }
+        
+        payload = {
+          to,
+          type: "text",
+          text: {
+            body: message
+          }
+        };
+      }
+      
+      // Send message
+      const result = await WhatsAppApiService.sendMessage(channel, payload);
 
       if (result.success) {
         res.json({ 

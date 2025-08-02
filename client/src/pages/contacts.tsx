@@ -7,6 +7,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { 
   Dialog, 
   DialogContent, 
@@ -41,13 +48,169 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertContactSchema, type Contact, type InsertContact } from "@shared/schema";
 
+// Edit Contact Form Component
+function EditContactForm({ 
+  contact, 
+  onSuccess, 
+  onCancel 
+}: { 
+  contact: Contact; 
+  onSuccess: () => void; 
+  onCancel: () => void; 
+}) {
+  const form = useForm<InsertContact>({
+    resolver: zodResolver(insertContactSchema),
+    defaultValues: {
+      name: contact.name,
+      email: contact.email || "",
+      phone: contact.phone,
+      groups: contact.groups || [],
+      tags: contact.tags || [],
+      notes: contact.notes || "",
+      status: contact.status,
+    },
+  });
+
+  const updateContactMutation = useMutation({
+    mutationFn: async (data: InsertContact) => {
+      const response = await fetch(`/api/contacts/${contact.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error("Failed to update contact");
+      return response.json();
+    },
+    onSuccess: () => {
+      onSuccess();
+    },
+    onError: () => {
+      // Handle error
+    },
+  });
+
+  const onSubmit = (data: InsertContact) => {
+    updateContactMutation.mutate(data);
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Name</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input {...field} type="email" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="phone"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Phone</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="groups"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Groups</FormLabel>
+              <FormControl>
+                <Input 
+                  {...field} 
+                  placeholder="Enter groups separated by commas"
+                  value={field.value?.join(", ") || ""}
+                  onChange={(e) => {
+                    const groups = e.target.value
+                      .split(",")
+                      .map(g => g.trim())
+                      .filter(g => g.length > 0);
+                    field.onChange(groups);
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="notes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Notes</FormLabel>
+              <FormControl>
+                <Textarea {...field} rows={3} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="flex justify-end space-x-2">
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button 
+            type="submit" 
+            disabled={updateContactMutation.isPending}
+            className="bg-green-600 hover:bg-green-700 text-white"
+          >
+            {updateContactMutation.isPending ? "Updating..." : "Update Contact"}
+          </Button>
+        </div>
+      </form>
+    </Form>
+  );
+}
+
 export default function Contacts() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showMessageDialog, setShowMessageDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showGroupDialog, setShowGroupDialog] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [selectedChannel, setSelectedChannel] = useState("");
   const [messageText, setMessageText] = useState("");
+  const [messageType, setMessageType] = useState("text");
+  const [selectedTemplateId, setSelectedTemplateId] = useState("");
+  const [templateVariables, setTemplateVariables] = useState<Record<string, string>>({});
+  const [contactToDelete, setContactToDelete] = useState<string | null>(null);
+  const [groupName, setGroupName] = useState("");
+  const [groupDescription, setGroupDescription] = useState("");
+  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -78,6 +241,32 @@ export default function Contacts() {
       return await response.json();
     },
   });
+  
+  const { data: availableTemplates = [] } = useQuery({
+    queryKey: ["/api/templates"],
+  });
+
+  // Extract unique groups from all contacts
+  const uniqueGroups = React.useMemo(() => {
+    if (!contacts) return [];
+    const groups = new Set<string>();
+    contacts.forEach((contact: Contact) => {
+      if (Array.isArray(contact.groups)) {
+        contact.groups.forEach((group: string) => groups.add(group));
+      }
+    });
+    return Array.from(groups).sort();
+  }, [contacts]);
+
+  // Filter contacts based on selected group
+  const filteredContacts = React.useMemo(() => {
+    if (!contacts) return [];
+    if (!selectedGroup) return contacts;
+    
+    return contacts.filter((contact: Contact) => 
+      Array.isArray(contact.groups) && contact.groups.includes(selectedGroup)
+    );
+  }, [contacts, selectedGroup]);
 
   const createContactMutation = useMutation({
     mutationFn: async (data: InsertContact) => {
@@ -108,13 +297,20 @@ export default function Contacts() {
   });
 
   const deleteContactMutation = useMutation({
-    mutationFn: (id: string) => api.deleteContact(id),
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/contacts/${id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("Failed to delete contact");
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
       toast({
         title: "Contact deleted",
         description: "The contact has been successfully deleted.",
       });
+      setShowDeleteDialog(false);
+      setContactToDelete(null);
     },
     onError: () => {
       toast({
@@ -126,11 +322,25 @@ export default function Contacts() {
   });
 
   const sendMessageMutation = useMutation({
-    mutationFn: async ({ channelId, phone, message }: { channelId: string; phone: string; message: string }) => {
+    mutationFn: async (data: any) => {
+      const { channelId, phone, type, message, templateName, templateLanguage, templateVariables } = data;
+      
+      const payload = type === "template" ? {
+        to: phone,
+        type: "template",
+        templateName,
+        templateLanguage,
+        templateVariables
+      } : {
+        to: phone,
+        type: "text",
+        message
+      };
+      
       const response = await fetch(`/api/whatsapp/channels/${channelId}/send`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ to: phone, message }),
+        body: JSON.stringify(payload),
       });
       if (!response.ok) throw new Error("Failed to send message");
       return response.json();
@@ -138,24 +348,26 @@ export default function Contacts() {
     onSuccess: () => {
       toast({
         title: "Message sent",
-        description: "Your message has been sent successfully.",
+        description: "Your WhatsApp message has been sent successfully.",
       });
       setShowMessageDialog(false);
       setMessageText("");
+      setMessageType("text");
+      setSelectedTemplateId("");
+      setTemplateVariables({});
     },
     onError: () => {
       toast({
         title: "Error",
-        description: "Failed to send message. Please try again.",
+        description: "Failed to send message. Please check your WhatsApp configuration and template settings.",
         variant: "destructive",
       });
     },
   });
 
   const handleDeleteContact = (id: string) => {
-    if (confirm("Are you sure you want to delete this contact?")) {
-      deleteContactMutation.mutate(id);
-    }
+    setContactToDelete(id);
+    setShowDeleteDialog(true);
   };
 
   if (isLoading) {
@@ -194,10 +406,45 @@ export default function Contacts() {
                   className="pl-10"
                 />
               </div>
-              <Button variant="outline">
-                <Filter className="w-4 h-4 mr-2" />
-                All Groups
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline">
+                    <Filter className="w-4 h-4 mr-2" />
+                    {selectedGroup || "All Groups"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem 
+                    onClick={() => setSelectedGroup(null)}
+                    className={!selectedGroup ? "bg-gray-100" : ""}
+                  >
+                    All Groups
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => setShowGroupDialog(true)}
+                    className="text-green-600"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create New Group
+                  </DropdownMenuItem>
+                  {uniqueGroups.length > 0 && (
+                    <>
+                      <DropdownMenuItem disabled className="py-1">
+                        <span className="text-xs text-gray-500 uppercase">Available Groups</span>
+                      </DropdownMenuItem>
+                      {uniqueGroups.map((group) => (
+                        <DropdownMenuItem 
+                          key={group}
+                          onClick={() => setSelectedGroup(group)}
+                          className={selectedGroup === group ? "bg-gray-100" : ""}
+                        >
+                          {group}
+                        </DropdownMenuItem>
+                      ))}
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
               <Button variant="outline">
                 <Filter className="w-4 h-4 mr-2" />
                 All Status
@@ -213,13 +460,16 @@ export default function Contacts() {
         {/* Contacts List */}
         <Card>
           <CardContent className="p-0">
-            {!contacts?.length ? (
+            {!filteredContacts?.length ? (
               <EmptyState
                 icon={Users}
                 title="No contacts found"
-                description={searchQuery ? 
-                  "No contacts match your search criteria. Try adjusting your search." :
-                  "You haven't added any contacts yet. Import contacts or add them manually to get started."
+                description={
+                  searchQuery ? 
+                    "No contacts match your search criteria. Try adjusting your search." :
+                  selectedGroup ?
+                    `No contacts found in the "${selectedGroup}" group. Try selecting a different group.` :
+                    "You haven't added any contacts yet. Import contacts or add them manually to get started."
                 }
                 action={!searchQuery ? {
                   label: "Add First Contact",
@@ -256,7 +506,7 @@ export default function Contacts() {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {contacts.map((contact: Contact) => (
+                    {filteredContacts.map((contact: Contact) => (
                       <tr key={contact.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4">
                           <input type="checkbox" className="rounded border-gray-300" />
@@ -324,7 +574,14 @@ export default function Contacts() {
                             >
                               <MessageSquare className="w-4 h-4 text-blue-600" />
                             </Button>
-                            <Button variant="ghost" size="sm">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => {
+                                setSelectedContact(contact);
+                                setShowEditDialog(true);
+                              }}
+                            >
                               <Edit className="w-4 h-4" />
                             </Button>
                             <Button 
@@ -335,9 +592,41 @@ export default function Contacts() {
                             >
                               <Trash2 className="w-4 h-4 text-red-600" />
                             </Button>
-                            <Button variant="ghost" size="sm">
-                              <MoreHorizontal className="w-4 h-4" />
-                            </Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                  <MoreHorizontal className="w-4 h-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem 
+                                  onClick={() => {
+                                    setSelectedContact(contact);
+                                    setShowEditDialog(true);
+                                  }}
+                                >
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  Edit Contact
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  onClick={() => {
+                                    setSelectedContact(contact);
+                                    setShowMessageDialog(true);
+                                  }}
+                                  disabled={!channels || channels.length === 0}
+                                >
+                                  <MessageSquare className="h-4 w-4 mr-2" />
+                                  Send Message
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  onClick={() => handleDeleteContact(contact.id)}
+                                  className="text-red-600"
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Delete Contact
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
                         </td>
                       </tr>
@@ -348,12 +637,13 @@ export default function Contacts() {
             )}
 
             {/* Pagination */}
-            {contacts?.length > 0 && (
+            {filteredContacts?.length > 0 && (
               <div className="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
                 <div className="text-sm text-gray-700">
                   Showing <span className="font-medium">1</span> to{" "}
-                  <span className="font-medium">{Math.min(10, contacts.length)}</span> of{" "}
-                  <span className="font-medium">{contacts.length}</span> contacts
+                  <span className="font-medium">{Math.min(10, filteredContacts.length)}</span> of{" "}
+                  <span className="font-medium">{filteredContacts.length}</span> contacts
+                  {selectedGroup && ` in "${selectedGroup}" group`}
                 </div>
                 <div className="flex space-x-2">
                   <Button variant="outline" size="sm" disabled>
@@ -447,7 +737,7 @@ export default function Contacts() {
 
       {/* Send Message Dialog */}
       <Dialog open={showMessageDialog} onOpenChange={setShowMessageDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Send WhatsApp Message</DialogTitle>
             <DialogDescription>
@@ -471,16 +761,87 @@ export default function Contacts() {
                 </select>
               </div>
             )}
+            
             <div className="space-y-2">
-              <label className="text-sm font-medium">Message</label>
-              <textarea
-                className="w-full p-3 border rounded-md resize-none"
-                rows={4}
-                placeholder="Type your message here..."
-                value={messageText}
-                onChange={(e) => setMessageText(e.target.value)}
-              />
+              <label className="text-sm font-medium">Message Type</label>
+              <select 
+                className="w-full p-2 border rounded-md"
+                value={messageType}
+                onChange={(e) => {
+                  setMessageType(e.target.value);
+                  setSelectedTemplateId("");
+                  setTemplateVariables({});
+                }}
+              >
+                <option value="text">Regular Text Message</option>
+                <option value="template">WhatsApp Template</option>
+              </select>
             </div>
+
+            {messageType === "template" ? (
+              <>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Select Template</label>
+                  <select 
+                    className="w-full p-2 border rounded-md"
+                    value={selectedTemplateId}
+                    onChange={(e) => {
+                      setSelectedTemplateId(e.target.value);
+                      const template = availableTemplates?.find((t: any) => t.id === e.target.value);
+                      if (template && template.variables) {
+                        const vars: any = {};
+                        (template.variables as string[]).forEach((v, i) => {
+                          vars[i + 1] = "";
+                        });
+                        setTemplateVariables(vars);
+                      }
+                    }}
+                  >
+                    <option value="">Select a template</option>
+                    {availableTemplates?.filter((t: any) => t.status === "APPROVED").map((template: any) => (
+                      <option key={template.id} value={template.id}>
+                        {template.name} ({template.category})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {selectedTemplateId && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Template Variables</label>
+                    {Object.keys(templateVariables).map((key) => {
+                      const template = availableTemplates?.find((t: any) => t.id === selectedTemplateId);
+                      const variableName = template?.variables?.[parseInt(key) - 1] || `Variable ${key}`;
+                      return (
+                        <div key={key} className="space-y-1">
+                          <label className="text-xs text-gray-600">{`{{${key}}} - ${variableName}`}</label>
+                          <Input
+                            placeholder={`Enter ${variableName}`}
+                            value={templateVariables[key] || ""}
+                            onChange={(e) => setTemplateVariables({
+                              ...templateVariables,
+                              [key]: e.target.value
+                            })}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Message</label>
+                <textarea
+                  className="w-full p-3 border rounded-md resize-none"
+                  rows={4}
+                  placeholder="Type your message here..."
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
+                />
+              </div>
+            )}
+
             <div className="flex justify-end space-x-2">
               <Button 
                 type="button" 
@@ -488,23 +849,177 @@ export default function Contacts() {
                 onClick={() => {
                   setShowMessageDialog(false);
                   setMessageText("");
+                  setMessageType("text");
+                  setSelectedTemplateId("");
+                  setTemplateVariables({});
                 }}
               >
                 Cancel
               </Button>
               <Button 
-                disabled={!messageText || !selectedChannel || sendMessageMutation.isPending}
+                disabled={
+                  !selectedChannel || 
+                  sendMessageMutation.isPending ||
+                  (messageType === "text" && !messageText) ||
+                  (messageType === "template" && (!selectedTemplateId || Object.values(templateVariables).some(v => !v)))
+                }
                 onClick={() => {
                   if (selectedContact && selectedChannel) {
-                    sendMessageMutation.mutate({
-                      channelId: selectedChannel,
-                      phone: selectedContact.phone,
-                      message: messageText,
-                    });
+                    if (messageType === "template" && selectedTemplateId) {
+                      const template = availableTemplates?.find((t: any) => t.id === selectedTemplateId);
+                      if (template) {
+                        sendMessageMutation.mutate({
+                          channelId: selectedChannel,
+                          phone: selectedContact.phone,
+                          type: "template",
+                          templateName: template.name,
+                          templateLanguage: template.language,
+                          templateVariables: Object.values(templateVariables),
+                        });
+                      }
+                    } else {
+                      sendMessageMutation.mutate({
+                        channelId: selectedChannel,
+                        phone: selectedContact.phone,
+                        type: "text",
+                        message: messageText,
+                      });
+                    }
                   }
                 }}
               >
                 {sendMessageMutation.isPending ? "Sending..." : "Send Message"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Contact</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this contact? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end space-x-2 mt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowDeleteDialog(false);
+                setContactToDelete(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive"
+              onClick={() => {
+                if (contactToDelete) {
+                  deleteContactMutation.mutate(contactToDelete);
+                }
+              }}
+              disabled={deleteContactMutation.isPending}
+            >
+              {deleteContactMutation.isPending ? "Deleting..." : "Delete"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Contact Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Contact</DialogTitle>
+            <DialogDescription>
+              Update contact information
+            </DialogDescription>
+          </DialogHeader>
+          {selectedContact && (
+            <EditContactForm
+              contact={selectedContact}
+              onSuccess={() => {
+                queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
+                setShowEditDialog(false);
+                setSelectedContact(null);
+                toast({
+                  title: "Contact updated",
+                  description: "The contact has been successfully updated.",
+                });
+              }}
+              onCancel={() => {
+                setShowEditDialog(false);
+                setSelectedContact(null);
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Group Dialog */}
+      <Dialog open={showGroupDialog} onOpenChange={setShowGroupDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create Contact Group</DialogTitle>
+            <DialogDescription>
+              Create a new group to organize your contacts
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div>
+              <label className="text-sm font-medium">Group Name</label>
+              <Input 
+                placeholder="e.g., VIP Customers, Marketing List" 
+                className="mt-1"
+                value={groupName}
+                onChange={(e) => setGroupName(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Description (Optional)</label>
+              <Textarea 
+                placeholder="Describe the purpose of this group..."
+                className="mt-1"
+                rows={3}
+                value={groupDescription}
+                onChange={(e) => setGroupDescription(e.target.value)}
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setShowGroupDialog(false);
+                  setGroupName("");
+                  setGroupDescription("");
+                }}
+              >
+                Cancel
+              </Button>
+              <Button 
+                className="bg-green-600 hover:bg-green-700 text-white"
+                onClick={() => {
+                  if (groupName.trim()) {
+                    toast({
+                      title: "Group created",
+                      description: `Group "${groupName}" has been created. You can now add contacts to this group.`,
+                    });
+                    setShowGroupDialog(false);
+                    setGroupName("");
+                    setGroupDescription("");
+                  } else {
+                    toast({
+                      title: "Error",
+                      description: "Please enter a group name",
+                      variant: "destructive",
+                    });
+                  }
+                }}
+              >
+                Create Group
               </Button>
             </div>
           </div>

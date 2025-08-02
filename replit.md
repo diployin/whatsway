@@ -126,6 +126,19 @@ The application follows a monorepo structure with shared types and schemas, enab
 
 ## Recent Changes
 
+### Contact Management Enhancement (August 2025)
+- Fixed contact edit functionality with proper form dialog
+- Implemented 3-dots dropdown menu with edit, message, and delete actions
+- Added proper delete confirmation dialog replacing browser confirm
+- Implemented group management features:
+  - Group creation dialog
+  - Extract unique groups from all contacts
+  - Filter contacts by selected group
+  - Dynamic group dropdown menu in filter bar
+  - Group assignment in contact forms
+- Updated pagination to show filtered contact counts
+- Enhanced empty state messages for group filtering
+
 ### WhatsApp API Version Update (January 2025)
 - Updated WhatsApp Cloud API version to v23.0
 - API version is now configurable via WHATSAPP_API_VERSION environment variable

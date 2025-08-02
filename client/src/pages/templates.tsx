@@ -5,110 +5,96 @@ import { Loading } from "@/components/ui/loading";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { 
   FileText, 
-  Edit, 
-  Copy, 
-  Trash2,
   Eye,
   CheckCircle,
   Clock,
   XCircle,
-  Smartphone
+  Hash,
+  AlertCircle,
+  Copy,
+  MessageSquare
 } from "lucide-react";
-import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import type { Template } from "@shared/schema";
-import { TEMPLATE_CATEGORIES, TEMPLATE_STATUS } from "@/lib/constants";
 
 export default function Templates() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [selectedStatus, setSelectedStatus] = useState<string>("all");
-  const [isCreating, setIsCreating] = useState(false);
-  const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
+  const [showPreviewDialog, setShowPreviewDialog] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: templates, isLoading } = useQuery({
+  const { data: templates = [], isLoading } = useQuery({
     queryKey: ["/api/templates"],
-    queryFn: async () => {
-      const response = await api.getTemplates();
-      return await response.json();
-    },
   });
 
-  const createTemplateMutation = useMutation({
-    mutationFn: (data: any) => api.createTemplate(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/templates"] });
-      setIsCreating(false);
-      toast({
-        title: "Template created",
-        description: "Your template has been created successfully.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to create template. Please try again.",
-        variant: "destructive",
-      });
-    },
+  const filteredTemplates = templates.filter((template: Template) => {
+    if (selectedCategory !== "all" && template.category !== selectedCategory) {
+      return false;
+    }
+    return true;
   });
 
-  const deleteTemplateMutation = useMutation({
-    mutationFn: (id: string) => api.deleteTemplate(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/templates"] });
-      toast({
-        title: "Template deleted",
-        description: "The template has been successfully deleted.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to delete template. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleCreateTemplate = (formData: FormData) => {
-    const templateData = {
-      name: formData.get("name") as string,
-      category: formData.get("category") as string,
-      language: formData.get("language") as string || "en_US",
-      header: formData.get("header") as string,
-      body: formData.get("body") as string,
-      footer: formData.get("footer") as string,
-      variables: [],
-      buttons: [],
-    };
-    createTemplateMutation.mutate(templateData);
-  };
-
-  const handleDeleteTemplate = (id: string) => {
-    if (confirm("Are you sure you want to delete this template?")) {
-      deleteTemplateMutation.mutate(id);
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "APPROVED":
+        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" />Approved</Badge>;
+      case "PENDING":
+        return <Badge className="bg-yellow-100 text-yellow-800"><Clock className="w-3 h-3 mr-1" />Pending</Badge>;
+      case "REJECTED":
+        return <Badge className="bg-red-100 text-red-800"><XCircle className="w-3 h-3 mr-1" />Rejected</Badge>;
+      default:
+        return <Badge>{status}</Badge>;
     }
   };
 
-  const filteredTemplates = templates?.filter((template: Template) => {
-    const categoryMatch = selectedCategory === "all" || template.category === selectedCategory;
-    const statusMatch = selectedStatus === "all" || template.status === selectedStatus;
-    return categoryMatch && statusMatch;
-  }) || [];
+  const getCategoryBadge = (category: string) => {
+    switch (category) {
+      case "MARKETING":
+        return <Badge className="bg-purple-100 text-purple-800">Marketing</Badge>;
+      case "UTILITY":
+        return <Badge className="bg-blue-100 text-blue-800">Utility</Badge>;
+      case "AUTHENTICATION":
+        return <Badge className="bg-indigo-100 text-indigo-800">Authentication</Badge>;
+      default:
+        return <Badge>{category}</Badge>;
+    }
+  };
 
-  const categoryStats = {
-    marketing: templates?.filter((t: Template) => t.category === "marketing").length || 0,
-    transactional: templates?.filter((t: Template) => t.category === "transactional").length || 0,
-    authentication: templates?.filter((t: Template) => t.category === "authentication").length || 0,
-    utility: templates?.filter((t: Template) => t.category === "utility").length || 0,
+  const renderVariables = (template: Template) => {
+    if (!template.variables || template.variables.length === 0) return null;
+    
+    return (
+      <div className="mt-3">
+        <p className="text-sm font-medium text-gray-700 mb-2">Variables:</p>
+        <div className="flex flex-wrap gap-2">
+          {(template.variables as string[]).map((variable, index) => (
+            <Badge key={index} variant="outline" className="text-xs bg-gray-50">
+              <Hash className="w-3 h-3 mr-1" />{`{{${index + 1}}}`} {variable}
+            </Badge>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const copyTemplateContent = (template: Template) => {
+    navigator.clipboard.writeText(template.content);
+    toast({
+      title: "Copied!",
+      description: "Template content copied to clipboard",
+    });
   };
 
   if (isLoading) {
@@ -125,417 +111,172 @@ export default function Templates() {
   return (
     <div className="flex-1 dots-bg min-h-screen">
       <Header 
-        title="Template Management" 
-        subtitle="Create and manage WhatsApp message templates"
-        action={{
-          label: "Create Template",
-          onClick: () => setIsCreating(true)
-        }}
+        title="Message Templates" 
+        subtitle="Pre-approved WhatsApp message templates for your campaigns"
       />
 
       <main className="p-6 space-y-6">
-        {/* Template Categories */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="hover-lift">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Marketing</p>
-                  <p className="text-2xl font-bold text-purple-600">{categoryStats.marketing}</p>
-                </div>
-                <div className="p-2 bg-purple-50 rounded-lg">
-                  <FileText className="w-6 h-6 text-purple-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="hover-lift">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Transactional</p>
-                  <p className="text-2xl font-bold text-blue-600">{categoryStats.transactional}</p>
-                </div>
-                <div className="p-2 bg-blue-50 rounded-lg">
-                  <FileText className="w-6 h-6 text-blue-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="hover-lift">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Authentication</p>
-                  <p className="text-2xl font-bold text-orange-600">{categoryStats.authentication}</p>
-                </div>
-                <div className="p-2 bg-orange-50 rounded-lg">
-                  <FileText className="w-6 h-6 text-orange-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="hover-lift">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Utility</p>
-                  <p className="text-2xl font-bold text-green-600">{categoryStats.utility}</p>
-                </div>
-                <div className="p-2 bg-green-50 rounded-lg">
-                  <FileText className="w-6 h-6 text-green-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Category Filter */}
+        <div className="bg-white rounded-lg shadow-sm p-4">
+          <div className="flex gap-4 items-center">
+            <span className="font-medium text-gray-700">Filter by category:</span>
+            <div className="flex gap-2">
+              <Button
+                variant={selectedCategory === "all" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategory("all")}
+              >
+                All ({templates.length})
+              </Button>
+              <Button
+                variant={selectedCategory === "MARKETING" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategory("MARKETING")}
+              >
+                Marketing
+              </Button>
+              <Button
+                variant={selectedCategory === "UTILITY" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategory("UTILITY")}
+              >
+                Utility
+              </Button>
+              <Button
+                variant={selectedCategory === "AUTHENTICATION" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategory("AUTHENTICATION")}
+              >
+                Authentication
+              </Button>
+            </div>
+          </div>
         </div>
 
-        {/* Template Editor & Preview */}
-        {(isCreating || editingTemplate) && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Template Editor */}
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  {editingTemplate ? "Edit Template" : "Create Template"}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={(e) => {
-                  e.preventDefault();
-                  const formData = new FormData(e.currentTarget);
-                  handleCreateTemplate(formData);
-                }} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Template Name
-                    </label>
-                    <Input
-                      name="name"
-                      placeholder="e.g., welcome_message"
-                      defaultValue={editingTemplate?.name || ""}
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Category
-                    </label>
-                    <Select name="category" defaultValue={editingTemplate?.category || "marketing"}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="marketing">Marketing</SelectItem>
-                        <SelectItem value="transactional">Transactional</SelectItem>
-                        <SelectItem value="authentication">Authentication</SelectItem>
-                        <SelectItem value="utility">Utility</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Language
-                    </label>
-                    <Select name="language" defaultValue={editingTemplate?.language || "en_US"}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select language" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="en_US">English (US)</SelectItem>
-                        <SelectItem value="es_ES">Spanish (ES)</SelectItem>
-                        <SelectItem value="pt_BR">Portuguese (BR)</SelectItem>
-                        <SelectItem value="fr_FR">French (FR)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Header (Optional)
-                    </label>
-                    <Input
-                      name="header"
-                      placeholder="Add a header text"
-                      defaultValue={editingTemplate?.header || ""}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Body Message
-                    </label>
-                    <Textarea
-                      name="body"
-                      rows={4}
-                      placeholder="Your message content with {{variables}}"
-                      defaultValue={editingTemplate?.body || ""}
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Footer (Optional)
-                    </label>
-                    <Input
-                      name="footer"
-                      placeholder="Add a footer text"
-                      defaultValue={editingTemplate?.footer || ""}
-                    />
-                  </div>
-
-                  <div className="flex space-x-3">
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      className="flex-1"
-                      onClick={() => {
-                        setIsCreating(false);
-                        setEditingTemplate(null);
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                    <Button 
-                      type="submit" 
-                      className="flex-1 bg-green-600 hover:bg-green-700"
-                      disabled={createTemplateMutation.isPending}
-                    >
-                      {createTemplateMutation.isPending ? "Creating..." : "Create Template"}
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
-
-            {/* WhatsApp Preview */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Smartphone className="w-5 h-5 mr-2" />
-                  WhatsApp Preview
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="mx-auto max-w-sm bg-gray-100 rounded-3xl p-4">
-                  <div className="bg-white rounded-2xl overflow-hidden shadow-lg">
-                    {/* WhatsApp Header */}
-                    <div className="bg-green-600 text-white px-4 py-3 flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-medium">YB</span>
-                      </div>
-                      <div>
-                        <div className="font-semibold text-sm">Your Business</div>
-                        <div className="text-xs opacity-75">Online</div>
-                      </div>
-                    </div>
-                    
-                    {/* Message Preview */}
-                    <div className="p-4">
-                      <div className="bg-gray-100 rounded-2xl rounded-tl-sm p-3 max-w-xs">
-                        <div className="text-sm text-gray-800 space-y-2">
-                          <div className="font-semibold">Sample Header</div>
-                          <div className="leading-relaxed">
-                            Hi there! This is a preview of your template message. 
-                            Variables like {{name}} will be replaced with actual values.
-                          </div>
-                          <div className="text-xs text-gray-500 pt-2 border-t border-gray-200">
-                            Sample footer text
-                          </div>
-                        </div>
-                        <div className="text-xs text-gray-400 mt-2">10:30 AM</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* Templates List */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Your Templates</CardTitle>
-              <div className="flex space-x-2">
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder="All Categories" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
-                    <SelectItem value="marketing">Marketing</SelectItem>
-                    <SelectItem value="transactional">Transactional</SelectItem>
-                    <SelectItem value="authentication">Authentication</SelectItem>
-                    <SelectItem value="utility">Utility</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                  <SelectTrigger className="w-32">
-                    <SelectValue placeholder="All Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="approved">Approved</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="rejected">Rejected</SelectItem>
-                    <SelectItem value="draft">Draft</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            {!filteredTemplates.length ? (
+        {/* Templates Grid */}
+        {filteredTemplates.length === 0 ? (
+          <Card className="shadow-sm">
+            <CardContent>
               <EmptyState
                 icon={FileText}
                 title="No templates found"
-                description="You haven't created any templates yet. Create your first template to start sending structured WhatsApp messages."
-                action={{
-                  label: "Create First Template",
-                  onClick: () => setIsCreating(true)
-                }}
+                description="No templates match your selected filters."
                 className="py-12"
               />
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Template
-                      </th>
-                      <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Category
-                      </th>
-                      <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Language
-                      </th>
-                      <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Usage
-                      </th>
-                      <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Created
-                      </th>
-                      <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredTemplates.map((template: Template) => (
-                      <tr key={template.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4">
-                          <div className="flex items-center">
-                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                              template.category === "marketing" ? "bg-purple-50" :
-                              template.category === "transactional" ? "bg-blue-50" :
-                              template.category === "authentication" ? "bg-orange-50" :
-                              "bg-green-50"
-                            }`}>
-                              <FileText className={`w-5 h-5 ${
-                                template.category === "marketing" ? "text-purple-600" :
-                                template.category === "transactional" ? "text-blue-600" :
-                                template.category === "authentication" ? "text-orange-600" :
-                                "text-green-600"
-                              }`} />
-                            </div>
-                            <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">
-                                {template.name}
-                              </div>
-                              <div className="text-sm text-gray-500 max-w-xs truncate">
-                                {template.body}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <Badge 
-                            variant="outline"
-                            className={
-                              template.category === "marketing" ? "bg-purple-50 text-purple-700 border-purple-200" :
-                              template.category === "transactional" ? "bg-blue-50 text-blue-700 border-blue-200" :
-                              template.category === "authentication" ? "bg-orange-50 text-orange-700 border-orange-200" :
-                              "bg-green-50 text-green-700 border-green-200"
-                            }
-                          >
-                            {template.category}
-                          </Badge>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          {template.language || "en_US"}
-                        </td>
-                        <td className="px-6 py-4">
-                          <Badge 
-                            variant="outline"
-                            className={
-                              template.status === "approved" ? "bg-green-50 text-green-700 border-green-200" :
-                              template.status === "pending" ? "bg-yellow-50 text-yellow-700 border-yellow-200" :
-                              template.status === "rejected" ? "bg-red-50 text-red-700 border-red-200" :
-                              "bg-gray-50 text-gray-700 border-gray-200"
-                            }
-                          >
-                            <div className="flex items-center">
-                              {template.status === "approved" && <CheckCircle className="w-3 h-3 mr-1" />}
-                              {template.status === "pending" && <Clock className="w-3 h-3 mr-1" />}
-                              {template.status === "rejected" && <XCircle className="w-3 h-3 mr-1" />}
-                              {template.status}
-                            </div>
-                          </Badge>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          {template.usage_count || 0} times
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          {template.createdAt 
-                            ? new Date(template.createdAt).toLocaleDateString()
-                            : "Unknown"
-                          }
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex space-x-2">
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              title="Edit Template"
-                              onClick={() => setEditingTemplate(template)}
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm" title="Clone Template">
-                              <Copy className="w-4 h-4 text-orange-600" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              title="Delete Template"
-                              onClick={() => handleDeleteTemplate(template.id)}
-                              disabled={deleteTemplateMutation.isPending}
-                            >
-                              <Trash2 className="w-4 h-4 text-red-600" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredTemplates.map((template) => (
+              <Card key={template.id} className="shadow-sm hover:shadow-md transition-shadow">
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <CardTitle className="text-lg">{template.name}</CardTitle>
+                    <div className="flex gap-2">
+                      {getCategoryBadge(template.category)}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 mt-2">
+                    {getStatusBadge(template.status)}
+                    <Badge variant="outline" className="text-xs">
+                      {template.language}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-gray-50 p-3 rounded-md">
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap line-clamp-3">
+                      {template.content}
+                    </p>
+                  </div>
+                  
+                  {renderVariables(template)}
+                  
+                  <div className="flex gap-2 mt-4">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedTemplate(template);
+                        setShowPreviewDialog(true);
+                      }}
+                    >
+                      <Eye className="w-4 h-4 mr-1" />
+                      Preview
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => copyTemplateContent(template)}
+                    >
+                      <Copy className="w-4 h-4 mr-1" />
+                      Copy
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      <MessageSquare className="w-4 h-4 mr-1" />
+                      Use
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </main>
+
+      {/* Preview Dialog */}
+      <Dialog open={showPreviewDialog} onOpenChange={setShowPreviewDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Template Preview</DialogTitle>
+            <DialogDescription>
+              {selectedTemplate?.name}
+            </DialogDescription>
+          </DialogHeader>
+          {selectedTemplate && (
+            <div className="space-y-4">
+              <div className="flex gap-2">
+                {getCategoryBadge(selectedTemplate.category)}
+                {getStatusBadge(selectedTemplate.status)}
+                <Badge variant="outline" className="text-xs">
+                  {selectedTemplate.language}
+                </Badge>
+              </div>
+              
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-sm whitespace-pre-wrap">{selectedTemplate.content}</p>
+              </div>
+              
+              {renderVariables(selectedTemplate)}
+              
+              <div className="bg-amber-50 border border-amber-200 p-3 rounded-md">
+                <div className="flex gap-2">
+                  <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm text-amber-800 font-medium">Template Usage</p>
+                    <p className="text-xs text-amber-700 mt-1">
+                      This template has been pre-approved by WhatsApp. When using it, replace the variable placeholders {`{{1}}, {{2}}, etc.`} with actual values in the order shown above.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setShowPreviewDialog(false)}>
+                  Close
+                </Button>
+                <Button onClick={() => copyTemplateContent(selectedTemplate)}>
+                  <Copy className="w-4 h-4 mr-1" />
+                  Copy Content
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
