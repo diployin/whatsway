@@ -157,11 +157,11 @@ export class MemStorage implements IStorage {
     // Initialize a default channel for the user to work with
     const defaultChannel: Channel = {
       id: randomUUID(),
-      name: "Default Channel",
+      name: "Main WhatsApp Channel",
       phoneNumberId: "153851404474202", // User's provided phone number ID
-      accessToken: "Bearer token...",
-      whatsappBusinessAccountId: null,
-      phoneNumber: null,
+      accessToken: "Bearer EAAxxxxxxx", // User needs to update this with their actual token
+      whatsappBusinessAccountId: "123456789012345", // User needs to update this with actual WABA ID
+      phoneNumber: "+1234567890", // User needs to update with actual phone number
       isActive: true,
       createdAt: today,
       updatedAt: today,
@@ -330,20 +330,21 @@ export class MemStorage implements IStorage {
       id,
       createdAt: new Date(),
       updatedAt: new Date(),
-      status: insertTemplate.status || null,
+      status: insertTemplate.status || "draft",
       channelId: insertTemplate.channelId || null,
-      language: insertTemplate.language || null,
+      language: insertTemplate.language || "en_US",
       header: insertTemplate.header || null,
       footer: insertTemplate.footer || null,
-      buttons: insertTemplate.buttons || null,
-      variables: insertTemplate.variables || null,
-      tags: insertTemplate.tags || null,
+      buttons: insertTemplate.buttons || [],
+      variables: insertTemplate.variables || [],
+      tags: insertTemplate.tags || [],
       priority: insertTemplate.priority || null,
       whatsappTemplateId: insertTemplate.whatsappTemplateId || null,
       whatsappTemplateName: insertTemplate.whatsappTemplateName || null,
-      mediaType: insertTemplate.mediaType || null,
+      mediaType: insertTemplate.mediaType || "text",
       mediaUrl: insertTemplate.mediaUrl || null,
-      carouselCards: insertTemplate.carouselCards || null,
+      mediaHandle: insertTemplate.mediaHandle || null,
+      carouselCards: insertTemplate.carouselCards || [],
       usage_count: insertTemplate.usage_count ?? 0,
     };
     this.templates.set(id, template);

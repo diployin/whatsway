@@ -66,7 +66,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { WhatsappChannel, WebhookConfig } from "@shared/schema";
+import type { Channel, WebhookConfig } from "@shared/schema";
 import { WebhookFlowDiagram } from "@/components/webhook-flow-diagram";
 
 // Form schemas
@@ -91,7 +91,7 @@ const webhookFormSchema = z.object({
 export default function Settings() {
   const [activeTab, setActiveTab] = useState("whatsapp");
   const [showChannelDialog, setShowChannelDialog] = useState(false);
-  const [editingChannel, setEditingChannel] = useState<WhatsappChannel | null>(null);
+  const [editingChannel, setEditingChannel] = useState<Channel | null>(null);
   const [showWebhookDialog, setShowWebhookDialog] = useState(false);
   const [testPhoneNumber, setTestPhoneNumber] = useState("919310797700");
   const [showTestDialog, setShowTestDialog] = useState(false);
@@ -100,13 +100,13 @@ export default function Settings() {
   const [, navigate] = useLocation();
 
   // Fetch WhatsApp channels
-  const { data: channels = [], isLoading: channelsLoading } = useQuery<WhatsappChannel[]>({
-    queryKey: ["/api/whatsapp/channels"],
+  const { data: channels = [], isLoading: channelsLoading } = useQuery<Channel[]>({
+    queryKey: ["/api/channels"],
   });
 
   // Fetch webhook configs
   const { data: webhookConfigs = [], isLoading: webhooksLoading } = useQuery<WebhookConfig[]>({
-    queryKey: ["/api/whatsapp/webhooks"],
+    queryKey: ["/api/webhooks"],
   });
 
   // Channel form
@@ -149,18 +149,34 @@ export default function Settings() {
   const createChannelMutation = useMutation({
     mutationFn: async (data: z.infer<typeof channelFormSchema>) => {
       if (editingChannel) {
-        const res = await apiRequest("PUT", `/api/whatsapp/channels/${editingChannel.id}`, data);
-        return res.json();
+        // Map form data to channel schema
+        const channelData = {
+          name: data.name,
+          phoneNumber: data.phoneNumber,
+          phoneNumberId: data.phoneNumberId,
+          whatsappBusinessAccountId: data.wabaId,
+          accessToken: data.accessToken,
+        };
+        return await apiRequest("PUT", `/api/channels/${editingChannel.id}`, channelData);
       }
-      const res = await apiRequest("POST", "/api/whatsapp/channels", data);
-      return res.json();
+      // Map form data to channel schema
+      const channelData = {
+        name: data.name,
+        phoneNumber: data.phoneNumber,
+        phoneNumberId: data.phoneNumberId,
+        whatsappBusinessAccountId: data.wabaId,
+        accessToken: data.accessToken,
+        isActive: channels.length === 0, // Make first channel active by default
+      };
+      
+      return await apiRequest("POST", "/api/channels", channelData);
     },
     onSuccess: () => {
       toast({
         title: editingChannel ? "Channel updated" : "Channel added",
         description: "WhatsApp channel has been saved successfully.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/whatsapp/channels"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/channels"] });
       setShowChannelDialog(false);
       setEditingChannel(null);
       channelForm.reset();
@@ -177,7 +193,7 @@ export default function Settings() {
   // Delete channel mutation
   const deleteChannelMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest("DELETE", `/api/whatsapp/channels/${id}`);
+      return apiRequest("DELETE", `/api/channels/${id}`);
     },
     onSuccess: () => {
       toast({
@@ -243,16 +259,16 @@ export default function Settings() {
     },
   });
 
-  const handleEditChannel = (channel: WhatsappChannel) => {
+  const handleEditChannel = (channel: Channel) => {
     setEditingChannel(channel);
     channelForm.reset({
       name: channel.name,
-      phoneNumber: channel.phoneNumber,
+      phoneNumber: channel.phoneNumber || "",
       phoneNumberId: channel.phoneNumberId,
-      wabaId: channel.wabaId,
+      wabaId: channel.whatsappBusinessAccountId || "",
       accessToken: channel.accessToken,
-      businessAccountId: channel.businessAccountId || "",
-      mmLiteEnabled: channel.mmLiteEnabled || false,
+      businessAccountId: "",
+      mmLiteEnabled: false,
     });
     setShowChannelDialog(true);
   };
@@ -351,8 +367,8 @@ export default function Settings() {
                           <div className="flex-1">
                             <div className="flex items-center space-x-2 mb-2">
                               <h3 className="text-lg font-medium text-gray-900">{channel.name}</h3>
-                              <Badge className={channel.status === 'active' ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
-                                {channel.status === 'active' ? (
+                              <Badge className={channel.isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
+                                {channel.isActive ? (
                                   <>
                                     <CheckCircle className="w-3 h-3 mr-1" />
                                     Active
@@ -364,38 +380,23 @@ export default function Settings() {
                                   </>
                                 )}
                               </Badge>
-                              {channel.mmLiteEnabled && (
-                                <Badge className="bg-purple-100 text-purple-800">
-                                  <Zap className="w-3 h-3 mr-1" />
-                                  MM Lite Enabled
-                                </Badge>
-                              )}
-                              {channel.lastHealthCheck && (
-                                <Badge className="bg-blue-100 text-blue-800" title={`Last checked: ${new Date(channel.lastHealthCheck).toLocaleString()}`}>
-                                  <Activity className="w-3 h-3 mr-1" />
-                                  {channel.messagesUsed || 0}/{channel.messageLimit || 1000}
-                                </Badge>
-                              )}
+
                             </div>
                             <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
                               <div>
                                 <strong>Phone:</strong> {channel.phoneNumber}
                               </div>
                               <div>
-                                <strong>Quality Rating:</strong>{' '}
-                                <span className={`font-medium ${
-                                  channel.qualityRating === 'green' ? 'text-green-600' :
-                                  channel.qualityRating === 'yellow' ? 'text-yellow-600' :
-                                  'text-red-600'
-                                }`}>
-                                  {channel.qualityRating?.toUpperCase()}
+                                <strong>Status:</strong>{' '}
+                                <span className={`font-medium ${channel.isActive ? 'text-green-600' : 'text-red-600'}`}>
+                                  {channel.isActive ? 'Active' : 'Inactive'}
                                 </span>
                               </div>
                               <div>
                                 <strong>Phone Number ID:</strong> {channel.phoneNumberId}
                               </div>
                               <div>
-                                <strong>WABA ID:</strong> {channel.wabaId}
+                                <strong>Business Account ID:</strong> {channel.whatsappBusinessAccountId}
                               </div>
                             </div>
                           </div>
@@ -403,43 +404,9 @@ export default function Settings() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => {
-                                setTestingChannelId(channel.id);
-                                setShowTestDialog(true);
-                              }}
-                              disabled={testChannelMutation.isPending}
-                            >
-                              Test Connection
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={async () => {
-                                try {
-                                  const res = await apiRequest("GET", `/api/whatsapp/channels/${channel.id}/health`);
-                                  const data = await res.json();
-                                  toast({
-                                    title: "Health Check Complete",
-                                    description: `Status: ${data.health.status}, Messages: ${data.health.messagesUsed}/${data.health.messageLimit}`,
-                                  });
-                                  queryClient.invalidateQueries({ queryKey: ["/api/whatsapp/channels"] });
-                                } catch (error) {
-                                  toast({
-                                    title: "Health Check Failed",
-                                    description: error instanceof Error ? error.message : "Failed to check health",
-                                    variant: "destructive",
-                                  });
-                                }
-                              }}
-                              title="Check API health"
-                            >
-                              <Activity className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
                               onClick={() => handleEditChannel(channel)}
                             >
+                              <Edit className="w-4 h-4 mr-2" />
                               Edit
                             </Button>
                             <Button
