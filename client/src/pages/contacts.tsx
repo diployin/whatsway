@@ -860,7 +860,7 @@ export default function Contacts() {
                       if (template) {
                         sendMessageMutation.mutate({
                           channelId: selectedChannel,
-                          phone: selectedContact.phone,
+                          to: selectedContact.phone,
                           type: "template",
                           templateName: template.name,
                           templateLanguage: template.language,
@@ -870,7 +870,7 @@ export default function Contacts() {
                     } else {
                       sendMessageMutation.mutate({
                         channelId: selectedChannel,
-                        phone: selectedContact.phone,
+                        to: selectedContact.phone,
                         type: "text",
                         message: messageText,
                       });
