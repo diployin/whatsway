@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes/index";
 import { setupVite, serveStatic, log } from "./vite";
+import { MessageStatusUpdater } from "./services/message-status-updater";
 
 const app = express();
 app.use(express.json());
@@ -67,5 +68,10 @@ app.use((req, res, next) => {
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
+    
+    // Start the message status updater cron job
+    const messageStatusUpdater = new MessageStatusUpdater();
+    messageStatusUpdater.startCronJob(10); // Run every 10 seconds
+    log('Message status updater cron job started');
   });
 })();

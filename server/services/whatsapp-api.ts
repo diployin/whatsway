@@ -216,4 +216,17 @@ export class WhatsAppApiService {
 
     return components;
   }
+
+  async getMessageStatus(whatsappMessageId: string): Promise<any> {
+    // WhatsApp doesn't provide a direct API to get message status by ID
+    // Status updates come through webhooks, so we'll return a mock response
+    // In production, you would store webhook status updates and query from database
+    return {
+      status: 'sent',
+      deliveredAt: null,
+      readAt: null,
+      errorCode: null,
+      errorMessage: null
+    };
+  }
 }
