@@ -1127,7 +1127,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/whatsapp/webhooks", async (req, res) => {
     try {
       const validatedConfig = insertWebhookConfigSchema.parse(req.body);
-      const config = await storage.createWebhookConfig(validatedConfig);
+      
+      // First, deactivate all existing webhooks to ensure only one is active
+      const existingWebhooks = await storage.getWebhookConfigs();
+      for (const webhook of existingWebhooks) {
+        if (webhook.isActive) {
+          await storage.updateWebhookConfig(webhook.id, { isActive: false });
+        }
+      }
+      
+      // Create the new webhook as active
+      const config = await storage.createWebhookConfig({
+        ...validatedConfig,
+        isActive: true
+      });
       res.status(201).json(config);
     } catch (error) {
       console.error("Error creating webhook config:", error);
@@ -1149,7 +1162,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/webhooks/:id", async (req, res) => {
+  app.delete("/api/whatsapp/webhooks/:id", async (req, res) => {
     try {
       const id = req.params.id;
       await storage.deleteWebhookConfig(id);

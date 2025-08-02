@@ -674,7 +674,7 @@ export default function Settings() {
                       </div>
                     </div>
 
-                    {/* Webhook Configuration Status */}
+                    {/* Webhook Configuration Status - Only show button if no active webhook */}
                     {webhookConfigs.length === 0 && (
                       <div className="text-center py-8 border border-gray-200 rounded-lg">
                         <Webhook className="w-10 h-10 mx-auto text-gray-400 mb-3" />
