@@ -16,6 +16,41 @@ export const getGlobalWebhookUrl = asyncHandler(async (req: Request, res: Respon
   res.json({ webhookUrl });
 });
 
+export const createWebhookConfig = asyncHandler(async (req: Request, res: Response) => {
+  const { verifyToken, appSecret, events } = req.body;
+  
+  if (!verifyToken) {
+    throw new AppError(400, 'Verify token is required');
+  }
+  
+  const protocol = req.protocol;
+  const host = req.get('host');
+  const webhookUrl = `${protocol}://${host}/webhook/d420e261-9c12-4cee-9d65-253cda8ab4bc`;
+  
+  const config = await storage.createWebhookConfig({
+    webhookUrl,
+    verifyToken,
+    appSecret: appSecret || '',
+    events: events || ['messages', 'message_status', 'message_template_status_update'],
+    isActive: true,
+    channelId: null // Global webhook
+  });
+  
+  res.json(config);
+});
+
+export const updateWebhookConfig = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const updates = req.body;
+  
+  const config = await storage.updateWebhookConfig(id, updates);
+  if (!config) {
+    throw new AppError(404, 'Webhook config not found');
+  }
+  
+  res.json(config);
+});
+
 export const handleWebhook = asyncHandler(async (req: Request, res: Response) => {
   const { 'hub.mode': mode, 'hub.challenge': challenge, 'hub.verify_token': verifyToken } = req.query;
   
@@ -75,10 +110,21 @@ async function handleMessageChange(value: any) {
     // Find or create conversation
     let conversation = await storage.getConversationByPhone(from);
     if (!conversation) {
-      const contactName = contacts?.find((c: any) => c.wa_id === from)?.profile?.name || from;
+      // Find or create contact first
+      let contact = await storage.getContactByPhone(from);
+      if (!contact) {
+        const contactName = contacts?.find((c: any) => c.wa_id === from)?.profile?.name || from;
+        contact = await storage.createContact({
+          name: contactName,
+          phone: from,
+          channelId: channel.id
+        });
+      }
+      
       conversation = await storage.createConversation({
+        contactId: contact.id,
         contactPhone: from,
-        contactName,
+        contactName: contact.name || from,
         channelId: channel.id,
         unreadCount: 1
       });

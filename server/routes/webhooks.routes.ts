@@ -4,6 +4,12 @@ import * as webhooksController from "../controllers/webhooks.controller";
 export function registerWebhookRoutes(app: Express) {
   // Get webhook configs
   app.get("/api/webhook-configs", webhooksController.getWebhookConfigs);
+  
+  // Create webhook config
+  app.post("/api/webhook-configs", webhooksController.createWebhookConfig);
+  
+  // Update webhook config
+  app.put("/api/webhook-configs/:id", webhooksController.updateWebhookConfig);
 
   // Get global webhook URL
   app.get("/api/webhook/global-url", webhooksController.getGlobalWebhookUrl);
