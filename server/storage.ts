@@ -125,6 +125,7 @@ export interface IStorage {
   getWebhookConfig(channelId: string): Promise<WebhookConfig | undefined>;
   createWebhookConfig(config: InsertWebhookConfig): Promise<WebhookConfig>;
   updateWebhookConfig(id: string, config: Partial<WebhookConfig>): Promise<WebhookConfig | undefined>;
+  deleteWebhookConfig(id: string): Promise<boolean>;
 
   // Message Queue
   getMessageQueueStats(): Promise<Record<string, number>>;
@@ -612,6 +613,10 @@ export class MemStorage implements IStorage {
       return updated;
     }
     return undefined;
+  }
+
+  async deleteWebhookConfig(id: string): Promise<boolean> {
+    return this.webhookConfigs.delete(id);
   }
 
   // Message Queue

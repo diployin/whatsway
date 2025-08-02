@@ -81,7 +81,7 @@ const channelFormSchema = z.object({
 });
 
 const webhookFormSchema = z.object({
-  channelId: z.string().optional(), // Global webhook - not channel-specific
+  channelId: z.string().min(1, "Please select a channel"),
   webhookUrl: z.string().url("Valid URL required").optional(),
   verifyToken: z.string().min(8, "Verify token must be at least 8 characters").max(100, "Verify token must be less than 100 characters"),
   appSecret: z.string().optional(),
@@ -278,13 +278,11 @@ export default function Settings() {
   };
 
   const handleWebhookSubmit = (data: z.infer<typeof webhookFormSchema>) => {
-    // Use global webhook URL for all channels
-    const webhookUrl = `${window.location.origin}/webhook`;
-    const { channelId, ...restData } = data; // Remove channelId from data
+    // Construct the webhook URL based on selected channel
+    const webhookUrl = `${window.location.origin}/webhook/${data.channelId}`;
     createWebhookMutation.mutate({ 
-      ...restData, 
+      ...data, 
       webhookUrl,
-      // No channelId - this is a global webhook for all channels
     });
   };
 
@@ -693,73 +691,100 @@ export default function Settings() {
                       </div>
                     )}
 
-                    {webhookConfigs.map((config) => (
-                      <div key={config.id} className="border border-gray-200 rounded-lg p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-2 mb-2">
-                              <h3 className="text-lg font-medium text-gray-900">
-                                Global Webhook Configuration
-                              </h3>
-                              <Badge className="bg-blue-100 text-blue-800">
-                                <Webhook className="w-3 h-3 mr-1" />
-                                Active for All Channels
-                              </Badge>
+                    {webhookConfigs.map((config) => {
+                      const channel = channels.find(c => c.id === config.channelId);
+                      return (
+                        <div key={config.id} className="border border-gray-200 rounded-lg p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2 mb-2">
+                                <h3 className="text-lg font-medium text-gray-900">
+                                  {channel ? `${channel.name} Webhook` : 'Webhook Configuration'}
+                                </h3>
+                                <Badge className={config.isActive ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>
+                                  <Webhook className="w-3 h-3 mr-1" />
+                                  {config.isActive ? 'Active' : 'Inactive'}
+                                </Badge>
+                              </div>
+                              <div className="space-y-2 text-sm text-gray-600">
+                                <div>
+                                  <strong>Webhook URL:</strong> 
+                                  <code className="ml-2 bg-gray-100 px-2 py-1 rounded text-xs">
+                                    {config.webhookUrl}
+                                  </code>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <strong>Verify Token:</strong>
+                                  <code className="bg-yellow-100 px-2 py-1 rounded text-xs font-mono">
+                                    {config.verifyToken}
+                                  </code>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(config.verifyToken);
+                                      toast({
+                                        title: "Verify token copied!",
+                                        description: "Use this exact token in Facebook Business Manager",
+                                      });
+                                    }}
+                                  >
+                                    <Copy className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                                <div>
+                                  <strong>Events:</strong> {(config.events as string[]).join(', ')}
+                                </div>
+                                <div>
+                                  <strong>Last Ping:</strong> {config.lastPingAt ? new Date(config.lastPingAt).toLocaleString() : 'Never'}
+                                </div>
+                              </div>
                             </div>
-                            <div className="space-y-2 text-sm text-gray-600">
-                              <div>
-                                <strong>Webhook URL:</strong> 
-                                <code className="ml-2 bg-gray-100 px-2 py-1 rounded text-xs">
-                                  {config.webhookUrl}
-                                </code>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <strong>Verify Token:</strong>
-                                <code className="bg-yellow-100 px-2 py-1 rounded text-xs font-mono">
-                                  {config.verifyToken}
-                                </code>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(config.verifyToken);
-                                    toast({
-                                      title: "Verify token copied!",
-                                      description: "Use this exact token in Facebook Business Manager",
-                                    });
-                                  }}
-                                >
-                                  <Copy className="h-3 w-3" />
-                                </Button>
-                              </div>
-                              <div>
-                                <strong>Events:</strong> {(config.events as string[]).join(', ')}
-                              </div>
-                              <div>
-                                <strong>Last Ping:</strong> {config.lastPingAt ? new Date(config.lastPingAt).toLocaleString() : 'Never'}
-                              </div>
+                            <div className="flex space-x-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(config.webhookUrl);
+                                  toast({
+                                    title: "Webhook URL copied",
+                                    description: config.webhookUrl,
+                                  });
+                                }}
+                              >
+                                <Copy className="w-4 h-4 mr-1" />
+                                Copy URL
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => {
+                                  if (confirm('Are you sure you want to delete this webhook configuration?')) {
+                                    fetch(`/api/webhooks/${config.id}`, { method: 'DELETE' })
+                                      .then(() => {
+                                        toast({
+                                          title: "Webhook deleted",
+                                          description: "Webhook configuration has been removed",
+                                        });
+                                        refetchWebhookConfigs();
+                                      })
+                                      .catch(() => {
+                                        toast({
+                                          title: "Error",
+                                          description: "Failed to delete webhook configuration",
+                                          variant: "destructive",
+                                        });
+                                      });
+                                  }
+                                }}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
                             </div>
-                          </div>
-                          <div className="flex space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                const url = `${window.location.origin}/webhook/${config.channelId}`;
-                                navigator.clipboard.writeText(url);
-                                toast({
-                                  title: "Webhook URL copied",
-                                  description: url,
-                                });
-                              }}
-                            >
-                              <Copy className="w-4 h-4 mr-1" />
-                              Copy URL
-                            </Button>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>
@@ -776,24 +801,53 @@ export default function Settings() {
                 </DialogHeader>
                 <Form {...webhookForm}>
                   <form onSubmit={webhookForm.handleSubmit(handleWebhookSubmit)} className="space-y-4">
-                    <div className="bg-blue-50 p-4 rounded-lg">
-                      <p className="text-sm text-gray-700 mb-2">
-                        <strong>Your global webhook URL (for all WhatsApp channels):</strong>
-                      </p>
-                      <code className="bg-white px-3 py-2 rounded text-sm block break-all">
-                        {window.location.origin}/webhook
-                      </code>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="mt-2"
-                        onClick={() => {
-                          const url = `${window.location.origin}/webhook`;
-                          navigator.clipboard.writeText(url);
-                          toast({
-                            title: "Webhook URL copied",
-                            description: "Paste this in Facebook Business Manager",
+                    <FormField
+                      control={webhookForm.control}
+                      name="channelId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Select Channel</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Choose a WhatsApp channel" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {channels.map((channel) => (
+                                <SelectItem key={channel.id} value={channel.id}>
+                                  {channel.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormDescription>
+                            Select the channel you're configuring webhooks for
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    {webhookForm.watch("channelId") && (
+                      <div className="bg-blue-50 p-4 rounded-lg">
+                        <p className="text-sm text-gray-700 mb-2">
+                          <strong>Your webhook URL for this channel:</strong>
+                        </p>
+                        <code className="bg-white px-3 py-2 rounded text-sm block break-all">
+                          {window.location.origin}/webhook/{webhookForm.watch("channelId")}
+                        </code>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="mt-2"
+                          onClick={() => {
+                            const url = `${window.location.origin}/webhook/${webhookForm.watch("channelId")}`;
+                            navigator.clipboard.writeText(url);
+                            toast({
+                              title: "Webhook URL copied",
+                              description: "Paste this in Facebook Business Manager",
                             });
                           }}
                         >
@@ -801,6 +855,7 @@ export default function Settings() {
                           Copy URL
                         </Button>
                       </div>
+                    )}
                     <FormField
                       control={webhookForm.control}
                       name="webhookUrl"

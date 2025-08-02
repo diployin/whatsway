@@ -581,6 +581,11 @@ export class DatabaseStorage implements IStorage {
     return updated || undefined;
   }
 
+  async deleteWebhookConfig(id: string): Promise<boolean> {
+    const result = await db.delete(webhookConfigs).where(eq(webhookConfigs.id, id)).returning();
+    return result.length > 0;
+  }
+
   // Message Queue
   async getMessageQueueStats(): Promise<Record<string, number>> {
     const results = await db
