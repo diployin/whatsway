@@ -73,10 +73,10 @@ import {
   Video,
   FileText as FileIcon,
   Phone,
+  RefreshCw,
   Globe,
   X,
   Send,
-  RefreshCw,
   User,
   Building,
   Lock
@@ -472,6 +472,30 @@ export default function Templates() {
     },
   });
 
+  const syncTemplatesMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch("/api/templates/sync", {
+        method: "POST",
+      });
+      if (!response.ok) throw new Error("Failed to sync templates");
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/templates"] });
+      toast({
+        title: "Templates synced",
+        description: data.message || "Template statuses have been synced with WhatsApp.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to sync templates. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Filter templates
   const filteredTemplates = (templates as Template[]).filter((template: Template) => {
     if (searchQuery && !template.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
@@ -626,6 +650,15 @@ export default function Templates() {
                   <SelectItem value="fr">French</SelectItem>
                 </SelectContent>
               </Select>
+              <Button 
+                onClick={() => syncTemplatesMutation.mutate()}
+                disabled={syncTemplatesMutation.isPending}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className={`w-4 h-4 ${syncTemplatesMutation.isPending ? 'animate-spin' : ''}`} />
+                Sync
+              </Button>
               <Button onClick={openCreateDialog} className="bg-green-600 hover:bg-green-700">
                 <Plus className="w-4 h-4 mr-2" />
                 Create Template

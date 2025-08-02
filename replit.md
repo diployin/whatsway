@@ -185,3 +185,15 @@ The application follows a monorepo structure with shared types and schemas, enab
 - Enhanced database schema changes:
   - Made channelId nullable in webhook_configs table
   - Removed foreign key constraints for global webhook support
+
+### Template Status Synchronization Fix (January 2025)
+- Fixed critical issue where templates approved on Meta were showing as pending in the application
+- Enhanced webhook handler to properly update template statuses in database when receiving webhook events
+- Updated webhook service to route message_template_status_update events to the handler
+- Added manual template sync functionality:
+  - Created /api/templates/sync endpoint to fetch template statuses from WhatsApp API
+  - Added sync button to templates page UI with loading indicator
+  - Sync operation fetches templates from WhatsApp and updates local statuses
+  - Shows success message with count of updated templates
+- Template status events now properly update database records instead of just logging
+- Users can now manually trigger sync to immediately update template statuses without waiting for webhooks

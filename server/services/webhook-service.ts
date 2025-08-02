@@ -107,6 +107,10 @@ export class WebhookService {
       for (const change of entry.changes) {
         if (change.field === "messages") {
           await this.processMessages(change.value, channelId);
+        } else if (change.field === "message_template_status_update") {
+          // Import and use WebhookHandler for template updates
+          const { WebhookHandler } = await import("./webhook-handler");
+          await WebhookHandler.handleTemplateStatusUpdate(change.value);
         }
       }
     }

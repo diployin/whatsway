@@ -670,6 +670,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Sync template statuses from WhatsApp
+  app.post("/api/templates/sync", async (req, res) => {
+    try {
+      const activeChannel = await storage.getActiveChannel();
+      if (!activeChannel) {
+        return res.status(400).json({ message: "No active channel found" });
+      }
+
+      // Fetch templates from WhatsApp API
+      const response = await fetch(
+        `https://graph.facebook.com/v23.0/${activeChannel.whatsappBusinessAccountId}/message_templates?fields=name,status,id,rejection_reason`,
+        {
+          headers: {
+            'Authorization': `Bearer ${activeChannel.accessToken}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        console.error("Failed to fetch templates from WhatsApp:", error);
+        return res.status(500).json({ message: "Failed to fetch templates from WhatsApp" });
+      }
+
+      const whatsappTemplates = await response.json();
+      let updatedCount = 0;
+
+      // Update local templates with WhatsApp status
+      for (const waTemplate of whatsappTemplates.data) {
+        const localTemplates = await storage.getTemplates(activeChannel.id);
+        const localTemplate = localTemplates.find(t => 
+          t.name === waTemplate.name || t.whatsappTemplateId === waTemplate.id
+        );
+
+        if (localTemplate) {
+          const newStatus = waTemplate.status.toLowerCase();
+          if (localTemplate.status !== newStatus) {
+            await storage.updateTemplate(localTemplate.id, {
+              status: newStatus,
+              whatsappTemplateId: waTemplate.id,
+              rejectionReason: waTemplate.rejection_reason || null,
+            });
+            updatedCount++;
+          }
+        }
+      }
+
+      res.json({ 
+        message: `Synced ${updatedCount} template status updates`,
+        totalTemplates: whatsappTemplates.data.length,
+        updatedCount
+      });
+    } catch (error) {
+      console.error("Failed to sync templates:", error);
+      res.status(500).json({ message: "Failed to sync templates" });
+    }
+  });
+
   // Media upload endpoint
   app.post("/api/media/upload-url", async (req, res) => {
     try {

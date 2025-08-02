@@ -1,5 +1,5 @@
 import { db } from "../db";
-import { webhookConfigs, messages, conversations, contacts, messageQueue } from "@shared/schema";
+import { webhookConfigs, messages, conversations, contacts, messageQueue, templates } from "@shared/schema";
 import { eq, and } from "drizzle-orm";
 import crypto from "crypto";
 
@@ -271,7 +271,7 @@ export class WebhookHandler {
   }
 
   // Handle template status updates
-  private static async handleTemplateStatusUpdate(value: any): Promise<void> {
+  static async handleTemplateStatusUpdate(value: any): Promise<void> {
     try {
       const { message_template_id, message_template_name, event, reason } = value;
 
@@ -280,8 +280,53 @@ export class WebhookHandler {
         reason ? `Reason: ${reason}` : ""
       );
 
-      // You can update your templates table here based on the status
-      // For now, we'll just log it
+      // Map WhatsApp event status to our template status
+      let status: string;
+      switch (event) {
+        case "APPROVED":
+          status = "approved";
+          break;
+        case "REJECTED":
+          status = "rejected";
+          break;
+        case "PENDING":
+          status = "pending";
+          break;
+        case "DISABLED":
+          status = "disabled";
+          break;
+        default:
+          console.warn(`Unknown template status event: ${event}`);
+          return;
+      }
+
+      // Update template status in database
+      const updatedTemplates = await db
+        .update(templates)
+        .set({ 
+          status,
+          rejectionReason: reason || null,
+          updatedAt: new Date()
+        })
+        .where(eq(templates.whatsappTemplateId, message_template_id))
+        .returning();
+
+      if (updatedTemplates.length === 0) {
+        // Try to find by name if ID not found
+        const updatedByName = await db
+          .update(templates)
+          .set({ 
+            status,
+            rejectionReason: reason || null,
+            updatedAt: new Date()
+          })
+          .where(eq(templates.name, message_template_name))
+          .returning();
+          
+        if (updatedByName.length === 0) {
+          console.warn(`Template not found for update: ${message_template_name} (${message_template_id})`);
+        }
+      }
     } catch (error) {
       console.error("Error handling template status update:", error);
       throw error;
