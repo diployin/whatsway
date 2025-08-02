@@ -22,6 +22,7 @@ import {
   type MessageQueue,
   type InsertMessageQueue,
   type ApiLog,
+  type InsertApiLog,
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 
@@ -526,6 +527,16 @@ export class MemStorage implements IStorage {
     }
     
     return logs.slice(-limit);
+  }
+
+  async logApiRequest(log: InsertApiLog): Promise<ApiLog> {
+    const apiLog: ApiLog = {
+      ...log,
+      id: Date.now().toString(),
+      createdAt: new Date(),
+    };
+    this.apiLogs.set(apiLog.id, apiLog);
+    return apiLog;
   }
 }
 

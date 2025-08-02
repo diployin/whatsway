@@ -417,6 +417,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test WhatsApp connection
+  app.post("/api/whatsapp/channels/:id/test", async (req, res) => {
+    try {
+      const channel = await storage.getWhatsappChannel(req.params.id);
+      if (!channel) {
+        return res.status(404).json({ message: "Channel not found" });
+      }
+
+      const testPhone = req.body.testPhone || "919310797700"; // Default test number
+      
+      // Test connection by sending hello_world template
+      const result = await WhatsAppService.sendMessage(channel, {
+        to: testPhone,
+        type: "template",
+        template: {
+          name: "hello_world",
+          language: {
+            code: "en_US"
+          }
+        }
+      });
+
+      // Log the API request
+      await storage.logApiRequest({
+        channelId: channel.id,
+        requestType: "test_connection",
+        endpoint: `https://graph.facebook.com/v22.0/${channel.phoneNumberId}/messages`,
+        method: "POST",
+        requestBody: {
+          messaging_product: "whatsapp",
+          to: testPhone,
+          type: "template",
+          template: {
+            name: "hello_world",
+            language: { code: "en_US" }
+          }
+        },
+        responseStatus: result.success ? 200 : 400,
+        responseBody: result.data || result.error,
+        duration: 0
+      });
+
+      if (result.success) {
+        res.json({ 
+          success: true, 
+          message: "Test message sent successfully",
+          messageId: result.data?.messages?.[0]?.id
+        });
+      } else {
+        res.status(400).json({ 
+          success: false, 
+          message: "Failed to send test message",
+          error: result.error 
+        });
+      }
+    } catch (error) {
+      console.error("Error testing WhatsApp connection:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to test connection",
+        error: error.message
+      });
+    }
+  });
+
   // Webhook Configuration endpoints
   app.get("/api/whatsapp/webhooks", async (req, res) => {
     try {

@@ -179,6 +179,29 @@ export default function Settings() {
     },
   });
 
+  // Test channel mutation
+  const testChannelMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return apiRequest(`/api/whatsapp/channels/${id}/test`, {
+        method: "POST",
+        body: JSON.stringify({}),
+      });
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Test successful",
+        description: "WhatsApp message sent successfully. Check your phone!",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Test failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   // Create webhook config mutation
   const createWebhookMutation = useMutation({
     mutationFn: async (data: z.infer<typeof webhookFormSchema> & { channelId: string }) => {
@@ -359,6 +382,18 @@ export default function Settings() {
                             </div>
                           </div>
                           <div className="flex space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => testChannelMutation.mutate(channel.id)}
+                              disabled={testChannelMutation.isPending}
+                            >
+                              {testChannelMutation.isPending ? (
+                                <>Testing...</>
+                              ) : (
+                                <>Test Connection</>
+                              )}
+                            </Button>
                             <Button
                               variant="outline"
                               size="sm"
