@@ -2,13 +2,89 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { z } from "zod";
 import { storage } from "./storage";
-import { insertContactSchema, insertCampaignSchema, insertTemplateSchema, insertConversationSchema, insertMessageSchema, insertAutomationSchema, insertWhatsappChannelSchema, insertWebhookConfigSchema } from "@shared/schema";
+import { insertContactSchema, insertCampaignSchema, insertChannelSchema, insertTemplateSchema, insertConversationSchema, insertMessageSchema, insertAutomationSchema, insertWhatsappChannelSchema, insertWebhookConfigSchema } from "@shared/schema";
 import { WebhookHandler } from "./services/webhook-handler";
 import { MessageQueueService } from "./services/message-queue";
 import { WhatsAppApiService } from "./services/whatsapp-api";
 import { WebhookService } from "./services/webhook-service";
+import { ObjectStorageService } from "./objectStorage";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Channel endpoints
+  app.get("/api/channels", async (req, res) => {
+    try {
+      const channels = await storage.getChannels();
+      res.json(channels);
+    } catch (error) {
+      console.error("Error fetching channels:", error);
+      res.status(500).json({ message: "Failed to fetch channels" });
+    }
+  });
+
+  app.get("/api/channels/active", async (req, res) => {
+    try {
+      const channel = await storage.getActiveChannel();
+      if (!channel) {
+        return res.status(404).json({ message: "No active channel found" });
+      }
+      res.json(channel);
+    } catch (error) {
+      console.error("Error fetching active channel:", error);
+      res.status(500).json({ message: "Failed to fetch active channel" });
+    }
+  });
+
+  app.get("/api/channels/:id", async (req, res) => {
+    try {
+      const channel = await storage.getChannel(req.params.id);
+      if (!channel) {
+        return res.status(404).json({ message: "Channel not found" });
+      }
+      res.json(channel);
+    } catch (error) {
+      console.error("Error fetching channel:", error);
+      res.status(500).json({ message: "Failed to fetch channel" });
+    }
+  });
+
+  app.post("/api/channels", async (req, res) => {
+    try {
+      const validatedChannel = insertChannelSchema.parse(req.body);
+      const channel = await storage.createChannel(validatedChannel);
+      res.status(201).json(channel);
+    } catch (error) {
+      console.error("Error creating channel:", error);
+      res.status(400).json({ message: "Invalid channel data" });
+    }
+  });
+
+  app.put("/api/channels/:id", async (req, res) => {
+    try {
+      const updates = req.body;
+      const channel = await storage.updateChannel(req.params.id, updates);
+      if (!channel) {
+        return res.status(404).json({ message: "Channel not found" });
+      }
+      res.json(channel);
+    } catch (error) {
+      console.error("Error updating channel:", error);
+      res.status(500).json({ message: "Failed to update channel" });
+    }
+  });
+
+  app.delete("/api/channels/:id", async (req, res) => {
+    try {
+      const deleted = await storage.deleteChannel(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Channel not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting channel:", error);
+      res.status(500).json({ message: "Failed to delete channel" });
+    }
+  });
+
   // Dashboard endpoints
   app.get("/api/dashboard/stats", async (req, res) => {
     try {
@@ -261,11 +337,135 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/templates", async (req, res) => {
     try {
       const validatedTemplate = insertTemplateSchema.parse(req.body);
-      const template = await storage.createTemplate(validatedTemplate);
-      res.status(201).json(template);
+      
+      // Get active channel if channelId not provided
+      let channelId = validatedTemplate.channelId;
+      if (!channelId) {
+        const activeChannel = await storage.getActiveChannel();
+        if (!activeChannel) {
+          return res.status(400).json({ 
+            message: "No active channel found. Please configure a channel first." 
+          });
+        }
+        channelId = activeChannel.id;
+      }
+      
+      // Create template in storage first
+      const template = await storage.createTemplate({
+        ...validatedTemplate,
+        channelId,
+        status: "pending"
+      });
+      
+      // Get channel details
+      const channel = await storage.getChannel(channelId);
+      if (!channel) {
+        return res.status(400).json({ message: "Channel not found" });
+      }
+      
+      // Format components for WhatsApp API
+      const components = [];
+      
+      // Handle media header if present
+      if (validatedTemplate.mediaType && validatedTemplate.mediaType !== 'text') {
+        const headerFormat = validatedTemplate.mediaType.toUpperCase();
+        if (validatedTemplate.header) {
+          components.push({
+            type: "HEADER",
+            format: headerFormat,
+            text: validatedTemplate.header,
+            example: validatedTemplate.mediaUrl ? {
+              header_handle: [validatedTemplate.mediaUrl]
+            } : undefined
+          });
+        }
+      } else if (validatedTemplate.header) {
+        components.push({
+          type: "HEADER",
+          format: "TEXT",
+          text: validatedTemplate.header
+        });
+      }
+      
+      // Body component
+      components.push({
+        type: "BODY",
+        text: validatedTemplate.body
+      });
+      
+      // Footer component
+      if (validatedTemplate.footer) {
+        components.push({
+          type: "FOOTER",
+          text: validatedTemplate.footer
+        });
+      }
+      
+      // Buttons component
+      if (validatedTemplate.buttons && (validatedTemplate.buttons as any[]).length > 0) {
+        const buttons = (validatedTemplate.buttons as any[]).map(btn => {
+          if (btn.type === "QUICK_REPLY") {
+            return { type: "QUICK_REPLY", text: btn.text };
+          } else if (btn.type === "URL") {
+            return { type: "URL", text: btn.text, url: btn.url || "" };
+          } else if (btn.type === "PHONE_NUMBER") {
+            return { type: "PHONE_NUMBER", text: btn.text, phone_number: btn.phoneNumber || "" };
+          }
+          return btn;
+        });
+        
+        components.push({
+          type: "BUTTONS",
+          buttons
+        });
+      }
+      
+      // Submit to WhatsApp API
+      const apiUrl = `https://graph.facebook.com/${process.env.WHATSAPP_API_VERSION || 'v23.0'}/${channel.whatsappBusinessAccountId || channel.phoneNumberId}/message_templates`;
+      
+      const templatePayload = {
+        name: template.name.toLowerCase().replace(/[^a-z0-9_]/g, '_'),
+        category: template.category.toUpperCase(),
+        language: template.language || "en_US",
+        components: components
+      };
+      
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${channel.accessToken}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(templatePayload)
+      });
+      
+      const result = await response.json();
+      
+      if (response.ok && result.id) {
+        // Update template with WhatsApp ID
+        await storage.updateTemplate(template.id, { 
+          whatsappTemplateId: result.id,
+          status: "pending" 
+        });
+        
+        res.status(201).json({ 
+          ...template,
+          whatsappTemplateId: result.id,
+          status: "pending"
+        });
+      } else {
+        // Delete template if WhatsApp submission failed
+        await storage.deleteTemplate(template.id);
+        
+        console.error("WhatsApp API error:", result);
+        res.status(400).json({ 
+          message: "Failed to create template in WhatsApp",
+          error: result.error?.message || "Unknown error"
+        });
+      }
     } catch (error) {
       console.error("Error creating template:", error);
-      res.status(400).json({ message: "Invalid template data" });
+      res.status(400).json({ message: "Invalid template data", error: error instanceof Error ? error.message : String(error) });
     }
   });
 
@@ -293,6 +493,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting template:", error);
       res.status(500).json({ message: "Failed to delete template" });
+    }
+  });
+
+  // Media upload endpoint
+  app.post("/api/media/upload-url", async (req, res) => {
+    try {
+      const { contentType } = req.body;
+      const objectStorageService = new ObjectStorageService();
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL(contentType);
+      res.json({ uploadURL });
+    } catch (error) {
+      console.error("Error getting upload URL:", error);
+      res.status(500).json({ message: "Failed to get upload URL" });
     }
   });
 

@@ -5,6 +5,8 @@ import {
   type InsertContact,
   type Campaign,
   type InsertCampaign,
+  type Channel,
+  type InsertChannel,
   type Template,
   type InsertTemplate,
   type Conversation,
@@ -87,6 +89,14 @@ export interface IStorage {
     unreadChats: number;
   }>;
 
+  // Channels
+  getChannels(): Promise<Channel[]>;
+  getChannel(id: string): Promise<Channel | undefined>;
+  createChannel(channel: InsertChannel): Promise<Channel>;
+  updateChannel(id: string, channel: Partial<Channel>): Promise<Channel | undefined>;
+  deleteChannel(id: string): Promise<boolean>;
+  getActiveChannel(): Promise<Channel | undefined>;
+
   // WhatsApp Channels
   getWhatsappChannels(): Promise<WhatsappChannel[]>;
   getWhatsappChannel(id: string): Promise<WhatsappChannel | undefined>;
@@ -113,6 +123,7 @@ export class MemStorage implements IStorage {
   private users: Map<string, User> = new Map();
   private contacts: Map<string, Contact> = new Map();
   private campaigns: Map<string, Campaign> = new Map();
+  private channels: Map<string, Channel> = new Map();
   private templates: Map<string, Template> = new Map();
   private conversations: Map<string, Conversation> = new Map();
   private messages: Map<string, Message> = new Map();
@@ -241,6 +252,51 @@ export class MemStorage implements IStorage {
 
   async deleteCampaign(id: string): Promise<boolean> {
     return this.campaigns.delete(id);
+  }
+
+  // Channels
+  async getChannels(): Promise<Channel[]> {
+    return Array.from(this.channels.values()).sort((a, b) => 
+      (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0)
+    );
+  }
+
+  async getChannel(id: string): Promise<Channel | undefined> {
+    return this.channels.get(id);
+  }
+
+  async getActiveChannel(): Promise<Channel | undefined> {
+    return Array.from(this.channels.values()).find(channel => channel.isActive);
+  }
+
+  async createChannel(insertChannel: InsertChannel): Promise<Channel> {
+    const id = randomUUID();
+    const channel: Channel = {
+      ...insertChannel,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.channels.set(id, channel);
+    return channel;
+  }
+
+  async updateChannel(id: string, updates: Partial<Channel>): Promise<Channel | undefined> {
+    const channel = this.channels.get(id);
+    if (!channel) return undefined;
+
+    const updatedChannel = { ...channel, ...updates, updatedAt: new Date() };
+    this.channels.set(id, updatedChannel);
+    return updatedChannel;
+  }
+
+  async deleteChannel(id: string): Promise<boolean> {
+    return this.channels.delete(id);
+  }
+
+  async getActiveChannel(): Promise<Channel | undefined> {
+    const channels = Array.from(this.channels.values());
+    return channels.find(c => c.isActive) || channels[0];
   }
 
   // Templates

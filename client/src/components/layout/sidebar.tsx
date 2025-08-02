@@ -11,6 +11,7 @@ import {
   Zap
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ChannelSwitcher } from "@/components/channel-switcher";
 
 interface NavItem {
   href: string;
@@ -90,6 +91,11 @@ export default function Sidebar() {
               <p className="text-xs text-gray-500">Business Platform</p>
             </div>
           </div>
+        </div>
+
+        {/* Channel Switcher */}
+        <div className="px-6 py-3 border-b border-gray-100">
+          <ChannelSwitcher />
         </div>
 
         {/* Navigation Menu */}

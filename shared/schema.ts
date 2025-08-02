@@ -44,8 +44,22 @@ export const campaigns = pgTable("campaigns", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// WhatsApp Business Channels for multi-account support
+export const channels = pgTable("channels", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  phoneNumberId: text("phone_number_id").notNull(),
+  accessToken: text("access_token").notNull(),
+  whatsappBusinessAccountId: text("whatsapp_business_account_id"),
+  phoneNumber: text("phone_number"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const templates = pgTable("templates", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  channelId: varchar("channel_id").references(() => channels.id),
   name: text("name").notNull(),
   category: text("category").notNull(), // marketing, transactional, authentication, utility
   language: text("language").default("en_US"),
@@ -55,8 +69,15 @@ export const templates = pgTable("templates", {
   buttons: jsonb("buttons").default([]),
   variables: jsonb("variables").default([]),
   status: text("status").default("draft"), // draft, pending, approved, rejected
+  // Media support fields
+  mediaType: text("media_type").default("text"), // text, image, video, document, carousel
+  mediaUrl: text("media_url"), // URL of uploaded media
+  mediaHandle: text("media_handle"), // WhatsApp media handle after upload
+  carouselCards: jsonb("carousel_cards").default([]), // For carousel templates
+  whatsappTemplateId: text("whatsapp_template_id"), // ID from WhatsApp after creation
   usage_count: integer("usage_count").default(0),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const conversations = pgTable("conversations", {
@@ -188,7 +209,8 @@ export const apiLogs = pgTable("api_logs", {
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
 export const insertContactSchema = createInsertSchema(contacts).omit({ id: true, createdAt: true });
 export const insertCampaignSchema = createInsertSchema(campaigns).omit({ id: true, createdAt: true });
-export const insertTemplateSchema = createInsertSchema(templates).omit({ id: true, createdAt: true });
+export const insertChannelSchema = createInsertSchema(channels).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertTemplateSchema = createInsertSchema(templates).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertConversationSchema = createInsertSchema(conversations).omit({ id: true, createdAt: true });
 export const insertMessageSchema = createInsertSchema(messages).omit({ id: true, createdAt: true });
 export const insertAutomationSchema = createInsertSchema(automations).omit({ id: true, createdAt: true });
@@ -205,6 +227,8 @@ export type Contact = typeof contacts.$inferSelect;
 export type InsertContact = z.infer<typeof insertContactSchema>;
 export type Campaign = typeof campaigns.$inferSelect;
 export type InsertCampaign = z.infer<typeof insertCampaignSchema>;
+export type Channel = typeof channels.$inferSelect;
+export type InsertChannel = z.infer<typeof insertChannelSchema>;
 export type Template = typeof templates.$inferSelect;
 export type InsertTemplate = z.infer<typeof insertTemplateSchema>;
 export type Conversation = typeof conversations.$inferSelect;

@@ -96,6 +96,18 @@ const templateFormSchema = z.object({
     .regex(/^[a-z0-9_]+$/, "Only lowercase letters, numbers, and underscores allowed"),
   category: z.enum(["MARKETING", "UTILITY", "AUTHENTICATION"]),
   language: z.string().default("en_US"),
+  mediaType: z.enum(["text", "image", "video", "carousel"]).default("text"),
+  mediaUrl: z.string().optional(),
+  carouselCards: z.array(z.object({
+    imageUrl: z.string(),
+    title: z.string().max(60),
+    body: z.string().max(160),
+    buttons: z.array(z.object({
+      type: z.enum(["URL", "QUICK_REPLY"]),
+      text: z.string().max(20),
+      url: z.string().optional(),
+    })).max(2),
+  })).optional(),
   header: z.string().max(60, "Header must be less than 60 characters").optional().default(""),
   body: z.string()
     .min(1, "Message body is required")
@@ -205,8 +217,31 @@ function WhatsAppPreview({ template, sampleData = SAMPLE_DATA }: {
                 </div>
                 <div className="max-w-[80%]">
                   <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+                    {/* Media Display */}
+                    {template.mediaType === "image" && template.mediaUrl && (
+                      <div className="relative">
+                        <img 
+                          src={template.mediaUrl} 
+                          alt="Template media" 
+                          className="w-full h-48 object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23e5e7eb'/%3E%3Cpath d='M70 85v30l25-15z' fill='%236b7280'/%3E%3C/svg%3E";
+                          }}
+                        />
+                      </div>
+                    )}
+                    {template.mediaType === "video" && template.mediaUrl && (
+                      <div className="relative bg-gray-900">
+                        <div className="w-full h-48 flex items-center justify-center">
+                          <div className="text-white">
+                            <Video className="w-12 h-12 mx-auto mb-2" />
+                            <p className="text-sm">Video Message</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                     {/* Header */}
-                    {template.header && (
+                    {template.header && template.mediaType === "text" && (
                       <div className="p-3 border-b">
                         <p className="font-bold text-gray-900">
                           {renderTextWithVariables(template.header)}
@@ -466,6 +501,9 @@ export default function Templates() {
       footer: "",
       buttons: [],
       variables: [],
+      mediaType: "text",
+      mediaUrl: undefined,
+      carouselCards: undefined,
     });
     setShowFormDialog(true);
   };
@@ -483,6 +521,9 @@ export default function Templates() {
       footer: template.footer || "",
       buttons: (template.buttons as any[]) || [],
       variables: (template.variables as string[]) || [],
+      mediaType: (template.mediaType as "text" | "image" | "video" | "carousel") || "text",
+      mediaUrl: template.mediaUrl || undefined,
+      carouselCards: (template.carouselCards as any[]) || undefined,
     });
     setShowFormDialog(true);
   };
@@ -838,6 +879,115 @@ export default function Templates() {
                       />
                     </div>
 
+                    {/* Media Type Selection */}
+                    <FormField
+                      control={form.control}
+                      name="mediaType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Media Type *</FormLabel>
+                          <Select value={field.value || "text"} onValueChange={field.onChange}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select media type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="text">
+                                <div className="flex items-center gap-2">
+                                  <Type className="w-4 h-4" />
+                                  <span>Text Only</span>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="image">
+                                <div className="flex items-center gap-2">
+                                  <Image className="w-4 h-4" />
+                                  <span>Image</span>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="video">
+                                <div className="flex items-center gap-2">
+                                  <Video className="w-4 h-4" />
+                                  <span>Video</span>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="carousel">
+                                <div className="flex items-center gap-2">
+                                  <FileIcon className="w-4 h-4" />
+                                  <span>Carousel</span>
+                                </div>
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Media Upload for Image/Video */}
+                    {(form.watch("mediaType") === "image" || form.watch("mediaType") === "video") && (
+                      <FormField
+                        control={form.control}
+                        name="mediaUrl"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Upload {form.watch("mediaType") === "image" ? "Image" : "Video"}</FormLabel>
+                            <FormControl>
+                              <div className="space-y-2">
+                                <Input
+                                  type="file"
+                                  accept={form.watch("mediaType") === "image" ? "image/*" : "video/*"}
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                      try {
+                                        // Get upload URL
+                                        const response = await fetch("/api/media/upload-url", {
+                                          method: "POST",
+                                          headers: { "Content-Type": "application/json" },
+                                          body: JSON.stringify({ contentType: file.type }),
+                                        });
+                                        const { uploadURL } = await response.json();
+
+                                        // Upload file
+                                        await fetch(uploadURL, {
+                                          method: "PUT",
+                                          body: file,
+                                          headers: { "Content-Type": file.type },
+                                        });
+
+                                        // Set the URL in the form
+                                        field.onChange(uploadURL.split("?")[0]);
+                                        toast({
+                                          title: "Upload successful",
+                                          description: `${form.watch("mediaType")} uploaded successfully`,
+                                        });
+                                      } catch (error) {
+                                        toast({
+                                          title: "Upload failed",
+                                          description: "Failed to upload media file",
+                                          variant: "destructive",
+                                        });
+                                      }
+                                    }
+                                  }}
+                                />
+                                {field.value && (
+                                  <div className="mt-2 p-2 bg-gray-50 rounded">
+                                    <p className="text-sm text-gray-600">Media uploaded successfully</p>
+                                  </div>
+                                )}
+                              </div>
+                            </FormControl>
+                            <FormDescription>
+                              Upload {form.watch("mediaType") === "image" ? "an image (JPEG, PNG)" : "a video (MP4)"} for your template
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+
                     <FormField
                       control={form.control}
                       name="header"
@@ -849,10 +999,13 @@ export default function Templates() {
                               placeholder="e.g., Welcome to our service!" 
                               {...field} 
                               maxLength={60}
+                              disabled={form.watch("mediaType") !== "text"}
                             />
                           </FormControl>
                           <FormDescription>
-                            Bold text at the top (max 60 chars) - {field.value?.length || 0}/60
+                            {form.watch("mediaType") !== "text" 
+                              ? "Header text is disabled when using media"
+                              : `Bold text at the top (max 60 chars) - ${field.value?.length || 0}/60`}
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
