@@ -188,7 +188,6 @@ export default function Contacts() {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showGroupDialog, setShowGroupDialog] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
-  const [selectedChannel, setSelectedChannel] = useState("");
   const [messageText, setMessageText] = useState("");
   const [messageType, setMessageType] = useState("text");
   const [selectedTemplateId, setSelectedTemplateId] = useState("");
@@ -224,6 +223,15 @@ export default function Contacts() {
     queryKey: ["/api/whatsapp/channels"],
     queryFn: async () => {
       const response = await fetch("/api/whatsapp/channels");
+      return await response.json();
+    },
+  });
+  
+  const { data: activeChannel } = useQuery({
+    queryKey: ["/api/channels/active"],
+    queryFn: async () => {
+      const response = await fetch("/api/channels/active");
+      if (!response.ok) return null;
       return await response.json();
     },
   });
@@ -313,7 +321,11 @@ export default function Contacts() {
 
   const sendMessageMutation = useMutation({
     mutationFn: async (data: any) => {
-      const { channelId, phone, type, message, templateName, templateLanguage, templateVariables } = data;
+      const { phone, type, message, templateName, templateLanguage, templateVariables } = data;
+      
+      if (!activeChannel?.id) {
+        throw new Error("No active channel selected");
+      }
       
       const payload = type === "template" ? {
         to: phone,
@@ -327,7 +339,7 @@ export default function Contacts() {
         message
       };
       
-      const response = await fetch(`/api/whatsapp/channels/${channelId}/send`, {
+      const response = await fetch(`/api/whatsapp/channels/${activeChannel.id}/send`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -735,20 +747,23 @@ export default function Contacts() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            {channels && channels.length > 0 && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Select WhatsApp Channel</label>
-                <select 
-                  className="w-full p-2 border rounded-md"
-                  onChange={(e) => setSelectedChannel(e.target.value)}
-                >
-                  <option value="">Select a channel</option>
-                  {channels.map((channel: any) => (
-                    <option key={channel.id} value={channel.id}>
-                      {channel.name} ({channel.phoneNumber})
-                    </option>
-                  ))}
-                </select>
+            {activeChannel && (
+              <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
+                <div className="flex items-center gap-2">
+                  <Phone className="w-4 h-4 text-gray-600" />
+                  <div className="text-sm">
+                    <span className="font-medium">Active Channel:</span>{" "}
+                    <span className="text-gray-700">{activeChannel.name}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {!activeChannel && (
+              <div className="p-3 bg-yellow-50 rounded-md border border-yellow-200">
+                <p className="text-sm text-yellow-800">
+                  No active channel selected. Please select a channel from the header to send messages.
+                </p>
               </div>
             )}
             
@@ -848,19 +863,18 @@ export default function Contacts() {
               </Button>
               <Button 
                 disabled={
-                  !selectedChannel || 
+                  !activeChannel || 
                   sendMessageMutation.isPending ||
                   (messageType === "text" && !messageText) ||
                   (messageType === "template" && (!selectedTemplateId || Object.values(templateVariables).some(v => !v)))
                 }
                 onClick={() => {
-                  if (selectedContact && selectedChannel) {
+                  if (selectedContact && activeChannel) {
                     if (messageType === "template" && selectedTemplateId) {
                       const template = availableTemplates?.find((t: any) => t.id === selectedTemplateId);
                       if (template) {
                         sendMessageMutation.mutate({
-                          channelId: selectedChannel,
-                          to: selectedContact.phone,
+                          phone: selectedContact.phone,
                           type: "template",
                           templateName: template.name,
                           templateLanguage: template.language,
@@ -869,8 +883,7 @@ export default function Contacts() {
                       }
                     } else {
                       sendMessageMutation.mutate({
-                        channelId: selectedChannel,
-                        to: selectedContact.phone,
+                        phone: selectedContact.phone,
                         type: "text",
                         message: messageText,
                       });

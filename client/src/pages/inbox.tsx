@@ -31,6 +31,15 @@ export default function Inbox() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  const { data: activeChannel } = useQuery({
+    queryKey: ["/api/channels/active"],
+    queryFn: async () => {
+      const response = await fetch("/api/channels/active");
+      if (!response.ok) return null;
+      return await response.json();
+    },
+  });
+
   const { data: conversations, isLoading: conversationsLoading } = useQuery({
     queryKey: ["/api/conversations"],
     queryFn: async () => {

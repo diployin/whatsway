@@ -66,8 +66,17 @@ export function ChannelSwitcher() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate all queries to refresh data for the new channel
       queryClient.invalidateQueries({ queryKey: ["/api/channels"] });
       queryClient.invalidateQueries({ queryKey: ["/api/channels/active"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/campaigns"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/templates"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/analytics"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/automations"] });
+      
       toast({
         title: "Channel switched",
         description: "Active channel has been updated successfully.",

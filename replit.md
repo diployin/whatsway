@@ -126,6 +126,31 @@ The application follows a monorepo structure with shared types and schemas, enab
 
 ## Recent Changes
 
+### Channel-Specific Data Filtering (August 2025)
+- Implemented comprehensive channel filtering across all sections
+- Channel switcher now auto-refreshes all data when switching channels
+- All queries invalidated on channel switch for immediate data updates
+- Channel-specific filtering implemented for:
+  - Contacts: Only shows contacts for active channel
+  - Templates: Displays templates specific to selected channel
+  - Campaigns: Filters campaigns by active channel
+  - Team Inbox: Shows conversations for active channel only
+  - Analytics: Displays metrics for selected channel
+  - Dashboard: Shows stats specific to active channel
+
+### Send Message Dialog Enhancement (August 2025)
+- Removed channel dropdown from send message dialog
+- Now uses active channel automatically for dedicated channel access
+- Displays active channel name in message dialog
+- Shows warning if no active channel is selected
+- Simplified user experience for channel-specific operations
+
+### Database Schema Updates (August 2025)
+- Made channelId columns nullable in conversations, automations, and analytics tables
+- Migrated existing records to use active channel
+- Fixed SQL syntax errors in channel filtering queries
+- Ensured backward compatibility while supporting multi-channel operations
+
 ### Contact Management Enhancement (August 2025)
 - Fixed contact edit functionality with proper form dialog
 - Implemented 3-dots dropdown menu with edit, message, and delete actions
