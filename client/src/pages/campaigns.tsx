@@ -39,14 +39,34 @@ export function Campaigns() {
 
   // Fetch campaigns
   const { data: campaigns = [], isLoading: campaignsLoading } = useQuery({
-    queryKey: ["/api/campaigns", selectedChannel?.id],
+    queryKey: ["/api/campaigns"],
     enabled: !!selectedChannel,
+    queryFn: async () => {
+      const res = await fetch("/api/campaigns", {
+        credentials: "include",
+        headers: {
+          "x-channel-id": selectedChannel?.id || "",
+        },
+      });
+      if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
+      return res.json();
+    },
   });
 
   // Fetch templates for campaign creation
   const { data: templates = [] } = useQuery({
-    queryKey: ["/api/templates"],
-    enabled: createDialogOpen,
+    queryKey: ["/api/templates", selectedChannel?.id],
+    enabled: createDialogOpen && !!selectedChannel,
+    queryFn: async () => {
+      const res = await fetch("/api/templates", {
+        credentials: "include",
+        headers: {
+          "x-channel-id": selectedChannel?.id || "",
+        },
+      });
+      if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
+      return res.json();
+    },
   });
 
   // Fetch contacts for contacts-based campaigns

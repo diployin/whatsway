@@ -56,8 +56,16 @@ export const handleWebhook = asyncHandler(async (req: Request, res: Response) =>
   
   // Handle webhook verification
   if (mode && challenge) {
-    if (mode === 'subscribe' && verifyToken === process.env.WEBHOOK_VERIFY_TOKEN) {
+    // Get webhook config from database to check verify token
+    const configs = await storage.getWebhookConfigs();
+    const activeConfig = configs.find(c => c.isActive);
+    
+    if (mode === 'subscribe' && activeConfig && verifyToken === activeConfig.verifyToken) {
       console.log('Webhook verified');
+      // Update last ping timestamp
+      await storage.updateWebhookConfig(activeConfig.id, {
+        lastPing: new Date().toISOString()
+      });
       return res.send(challenge);
     }
     throw new AppError(403, 'Verification failed');
@@ -66,6 +74,15 @@ export const handleWebhook = asyncHandler(async (req: Request, res: Response) =>
   // Handle webhook events
   const body = req.body;
   console.log('Webhook received:', JSON.stringify(body, null, 2));
+  
+  // Update last ping timestamp for webhook events
+  const configs = await storage.getWebhookConfigs();
+  const activeConfig = configs.find(c => c.isActive);
+  if (activeConfig) {
+    await storage.updateWebhookConfig(activeConfig.id, {
+      lastPing: new Date().toISOString()
+    });
+  }
   
   if (body.entry) {
     for (const entry of body.entry) {
