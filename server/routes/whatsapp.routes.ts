@@ -137,8 +137,9 @@ export function registerWhatsAppRoutes(app: Express) {
         lastHealthCheck: channel.lastHealthCheck || null,
       } as any;
       
-      // Send message
-      const result = await WhatsAppApiService.sendMessage(whatsappChannel, payload);
+      // Send message using WhatsApp API service instance
+      const whatsappApi = new WhatsAppApiService(channel);
+      const result = await whatsappApi.sendDirectMessage(payload);
 
       if (result.success && result.data) {
         // Save the message to database

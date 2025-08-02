@@ -75,6 +75,11 @@ export function ChannelSwitcher() {
       queryClient.refetchQueries({ queryKey: ["/api/campaigns"] });
       queryClient.refetchQueries({ queryKey: ["/api/templates"] });
       queryClient.refetchQueries({ queryKey: ["/api/conversations"] });
+      queryClient.refetchQueries({ queryKey: ["/api/automations"] });
+      queryClient.refetchQueries({ queryKey: ["/api/dashboard/stats"] });
+      queryClient.refetchQueries({ queryKey: ["/api/analytics"] });
+      queryClient.refetchQueries({ queryKey: ["/api/templates"] });
+      queryClient.refetchQueries({ queryKey: ["/api/conversations"] });
       queryClient.refetchQueries({ queryKey: ["/api/analytics"] });
       queryClient.refetchQueries({ queryKey: ["/api/dashboard/stats"] });
       queryClient.refetchQueries({ queryKey: ["/api/automations"] });

@@ -125,6 +125,30 @@ export class WhatsAppApiService {
     return await response.json();
   }
 
+  async sendDirectMessage(payload: any): Promise<any> {
+    const body = {
+      messaging_product: "whatsapp",
+      ...payload
+    };
+
+    const response = await fetch(
+      `${this.baseUrl}/${this.channel.phoneNumberId}/messages`,
+      {
+        method: 'POST',
+        headers: this.headers,
+        body: JSON.stringify(body)
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || 'Failed to send message');
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+  }
+
   private formatTemplateComponents(templateData: any): any[] {
     const components = [];
     
