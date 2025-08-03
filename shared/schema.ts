@@ -8,37 +8,24 @@ export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
-  email: text("email"),
+  email: text("email").notNull().unique(),
   firstName: text("first_name"),
   lastName: text("last_name"),
-  role: text("role").default("admin"),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
-// Team members table for managing agents and managers
-export const teamMembers = pgTable("team_members", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
-  name: text("name").notNull(),
-  email: text("email").notNull().unique(),
-  phone: text("phone"),
-  role: text("role").notNull().default("agent"), // admin, manager, agent
-  status: text("status").notNull().default("active"), // active, inactive, suspended
-  permissions: jsonb("permissions").default({}), // Granular permissions
+  role: text("role").notNull().default("admin"), // admin, manager, agent
   avatar: text("avatar"),
-  department: text("department"),
-  lastActive: timestamp("last_active"),
-  onlineStatus: text("online_status").default("offline"), // online, away, offline
+  status: text("status").notNull().default("active"), // active, inactive
+  permissions: jsonb("permissions").default({}),
+  lastLogin: timestamp("last_login"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Team assignments for conversations
+// Conversation assignments to users
 export const conversationAssignments = pgTable("conversation_assignments", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   conversationId: varchar("conversation_id").notNull().references(() => conversations.id, { onDelete: "cascade" }),
-  teamMemberId: varchar("team_member_id").notNull().references(() => teamMembers.id, { onDelete: "cascade" }),
-  assignedBy: varchar("assigned_by").references(() => teamMembers.id),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  assignedBy: varchar("assigned_by").references(() => users.id),
   assignedAt: timestamp("assigned_at").defaultNow(),
   status: text("status").notNull().default("active"), // active, resolved, transferred
   priority: text("priority").default("normal"), // low, normal, high, urgent
@@ -48,10 +35,10 @@ export const conversationAssignments = pgTable("conversation_assignments", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Team activity logs
-export const teamActivityLogs = pgTable("team_activity_logs", {
+// User activity logs
+export const userActivityLogs = pgTable("user_activity_logs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  teamMemberId: varchar("team_member_id").notNull().references(() => teamMembers.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   action: text("action").notNull(), // login, logout, message_sent, conversation_assigned, etc.
   entityType: text("entity_type"), // conversation, message, contact, etc.
   entityId: varchar("entity_id"),
@@ -331,8 +318,105 @@ export const apiLogs = pgTable("api_logs", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Permissions type definition
+export const PERMISSIONS = {
+  // Dashboard permissions
+  DASHBOARD_VIEW: 'dashboard:view',
+  DASHBOARD_EXPORT: 'dashboard:export',
+  
+  // Contacts permissions
+  CONTACTS_VIEW: 'contacts:view',
+  CONTACTS_CREATE: 'contacts:create',
+  CONTACTS_EDIT: 'contacts:edit',
+  CONTACTS_DELETE: 'contacts:delete',
+  CONTACTS_IMPORT: 'contacts:import',
+  CONTACTS_EXPORT: 'contacts:export',
+  
+  // Campaigns permissions
+  CAMPAIGNS_VIEW: 'campaigns:view',
+  CAMPAIGNS_CREATE: 'campaigns:create',
+  CAMPAIGNS_EDIT: 'campaigns:edit',
+  CAMPAIGNS_DELETE: 'campaigns:delete',
+  CAMPAIGNS_SEND: 'campaigns:send',
+  CAMPAIGNS_SCHEDULE: 'campaigns:schedule',
+  
+  // Templates permissions
+  TEMPLATES_VIEW: 'templates:view',
+  TEMPLATES_CREATE: 'templates:create',
+  TEMPLATES_EDIT: 'templates:edit',
+  TEMPLATES_DELETE: 'templates:delete',
+  TEMPLATES_SYNC: 'templates:sync',
+  
+  // Inbox permissions
+  INBOX_VIEW: 'inbox:view',
+  INBOX_SEND_MESSAGE: 'inbox:send',
+  INBOX_ASSIGN: 'inbox:assign',
+  INBOX_CLOSE: 'inbox:close',
+  INBOX_DELETE: 'inbox:delete',
+  
+  // Analytics permissions
+  ANALYTICS_VIEW: 'analytics:view',
+  ANALYTICS_EXPORT: 'analytics:export',
+  
+  // Settings permissions
+  SETTINGS_VIEW: 'settings:view',
+  SETTINGS_CHANNELS: 'settings:channels',
+  SETTINGS_WEBHOOK: 'settings:webhook',
+  SETTINGS_TEAM: 'settings:team',
+  SETTINGS_API: 'settings:api',
+  
+  // Team management permissions
+  TEAM_VIEW: 'team:view',
+  TEAM_CREATE: 'team:create',
+  TEAM_EDIT: 'team:edit',
+  TEAM_DELETE: 'team:delete',
+  TEAM_PERMISSIONS: 'team:permissions',
+} as const;
+
+export type Permission = typeof PERMISSIONS[keyof typeof PERMISSIONS];
+
+// Default permissions by role
+export const DEFAULT_PERMISSIONS: Record<string, Permission[]> = {
+  admin: Object.values(PERMISSIONS), // Admin has all permissions
+  manager: [
+    PERMISSIONS.DASHBOARD_VIEW,
+    PERMISSIONS.DASHBOARD_EXPORT,
+    PERMISSIONS.CONTACTS_VIEW,
+    PERMISSIONS.CONTACTS_CREATE,
+    PERMISSIONS.CONTACTS_EDIT,
+    PERMISSIONS.CONTACTS_IMPORT,
+    PERMISSIONS.CONTACTS_EXPORT,
+    PERMISSIONS.CAMPAIGNS_VIEW,
+    PERMISSIONS.CAMPAIGNS_CREATE,
+    PERMISSIONS.CAMPAIGNS_EDIT,
+    PERMISSIONS.CAMPAIGNS_SEND,
+    PERMISSIONS.CAMPAIGNS_SCHEDULE,
+    PERMISSIONS.TEMPLATES_VIEW,
+    PERMISSIONS.TEMPLATES_CREATE,
+    PERMISSIONS.TEMPLATES_EDIT,
+    PERMISSIONS.TEMPLATES_SYNC,
+    PERMISSIONS.INBOX_VIEW,
+    PERMISSIONS.INBOX_SEND_MESSAGE,
+    PERMISSIONS.INBOX_ASSIGN,
+    PERMISSIONS.INBOX_CLOSE,
+    PERMISSIONS.ANALYTICS_VIEW,
+    PERMISSIONS.ANALYTICS_EXPORT,
+    PERMISSIONS.SETTINGS_VIEW,
+    PERMISSIONS.TEAM_VIEW,
+  ],
+  agent: [
+    PERMISSIONS.DASHBOARD_VIEW,
+    PERMISSIONS.CONTACTS_VIEW,
+    PERMISSIONS.CAMPAIGNS_VIEW,
+    PERMISSIONS.TEMPLATES_VIEW,
+    PERMISSIONS.INBOX_VIEW,
+    PERMISSIONS.INBOX_SEND_MESSAGE,
+    PERMISSIONS.ANALYTICS_VIEW,
+  ],
+};
+
 // Insert schemas
-export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
+export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertContactSchema = createInsertSchema(contacts).omit({ id: true, createdAt: true });
 export const insertCampaignSchema = createInsertSchema(campaigns).omit({ id: true, createdAt: true });
 export const insertChannelSchema = createInsertSchema(channels).omit({ id: true, createdAt: true, updatedAt: true });
@@ -346,9 +430,8 @@ export const insertWebhookConfigSchema = createInsertSchema(webhookConfigs).omit
 export const insertMessageQueueSchema = createInsertSchema(messageQueue).omit({ id: true, createdAt: true });
 export const insertApiLogSchema = createInsertSchema(apiLogs).omit({ id: true, createdAt: true });
 export const insertCampaignRecipientSchema = createInsertSchema(campaignRecipients).omit({ id: true, createdAt: true, updatedAt: true });
-export const insertTeamMemberSchema = createInsertSchema(teamMembers).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertConversationAssignmentSchema = createInsertSchema(conversationAssignments).omit({ id: true, createdAt: true, updatedAt: true });
-export const insertTeamActivityLogSchema = createInsertSchema(teamActivityLogs).omit({ id: true, createdAt: true });
+export const insertUserActivityLogSchema = createInsertSchema(userActivityLogs).omit({ id: true, createdAt: true });
 
 // Types
 export type User = typeof users.$inferSelect;
@@ -379,12 +462,10 @@ export type ApiLog = typeof apiLogs.$inferSelect;
 export type InsertApiLog = z.infer<typeof insertApiLogSchema>;
 export type CampaignRecipient = typeof campaignRecipients.$inferSelect;
 export type InsertCampaignRecipient = z.infer<typeof insertCampaignRecipientSchema>;
-export type TeamMember = typeof teamMembers.$inferSelect;
-export type InsertTeamMember = z.infer<typeof insertTeamMemberSchema>;
 export type ConversationAssignment = typeof conversationAssignments.$inferSelect;
 export type InsertConversationAssignment = z.infer<typeof insertConversationAssignmentSchema>;
-export type TeamActivityLog = typeof teamActivityLogs.$inferSelect;
-export type InsertTeamActivityLog = z.infer<typeof insertTeamActivityLogSchema>;
+export type UserActivityLog = typeof userActivityLogs.$inferSelect;
+export type InsertUserActivityLog = z.infer<typeof insertUserActivityLogSchema>;
 
 // Drizzle Relations for proper joins and queries
 export const channelsRelations = relations(channels, ({ many }) => ({
@@ -454,17 +535,9 @@ export const messagesRelations = relations(messages, ({ one }) => ({
   }),
 }));
 
-export const usersRelations = relations(users, ({ many, one }) => ({
-  teamMember: one(teamMembers), // User can have a team member profile
-}));
-
-export const teamMembersRelations = relations(teamMembers, ({ one, many }) => ({
-  user: one(users, {
-    fields: [teamMembers.userId],
-    references: [users.id],
-  }),
+export const usersRelations = relations(users, ({ many }) => ({
   assignedConversations: many(conversationAssignments),
-  activityLogs: many(teamActivityLogs),
+  activityLogs: many(userActivityLogs),
 }));
 
 export const conversationAssignmentsRelations = relations(conversationAssignments, ({ one }) => ({
@@ -472,19 +545,19 @@ export const conversationAssignmentsRelations = relations(conversationAssignment
     fields: [conversationAssignments.conversationId],  
     references: [conversations.id],
   }),
-  teamMember: one(teamMembers, {
-    fields: [conversationAssignments.teamMemberId],
-    references: [teamMembers.id],
+  user: one(users, {
+    fields: [conversationAssignments.userId],
+    references: [users.id],
   }),
-  assignedByMember: one(teamMembers, {
+  assignedByUser: one(users, {
     fields: [conversationAssignments.assignedBy],
-    references: [teamMembers.id],
+    references: [users.id],
   }),
 }));
 
-export const teamActivityLogsRelations = relations(teamActivityLogs, ({ one }) => ({
-  teamMember: one(teamMembers, {
-    fields: [teamActivityLogs.teamMemberId],
-    references: [teamMembers.id],
+export const userActivityLogsRelations = relations(userActivityLogs, ({ one }) => ({
+  user: one(users, {
+    fields: [userActivityLogs.userId],
+    references: [users.id],
   }),
 }));

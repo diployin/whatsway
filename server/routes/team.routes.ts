@@ -1,59 +1,56 @@
 import { Router } from "express";
 import { db } from "../db";
-import { teamMembers, teamActivityLogs, conversationAssignments } from "@shared/schema";
-import { eq, desc, and, sql } from "drizzle-orm";
+import { users, userActivityLogs, conversationAssignments, DEFAULT_PERMISSIONS, Permission } from "@shared/schema";
+import { eq, desc, and, sql, ne } from "drizzle-orm";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { validateRequest } from "../middlewares/validateRequest.middleware";
-import { users } from "@shared/schema";
 
 const router = Router();
 
 // Validation schemas
-const createTeamMemberSchema = z.object({
-  name: z.string().min(1, "Name is required"),
+const createUserSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters"),
   email: z.string().email("Invalid email address"),
-  phone: z.string().optional(),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().optional(),
   role: z.enum(["admin", "manager", "agent"]),
-  department: z.string().optional(),
-  permissions: z.object({
-    canManageContacts: z.boolean().optional(),
-    canManageCampaigns: z.boolean().optional(),
-    canManageTemplates: z.boolean().optional(),
-    canViewAnalytics: z.boolean().optional(),
-    canManageTeam: z.boolean().optional(),
-    canExportData: z.boolean().optional(),
-  }).optional(),
+  permissions: z.array(z.string()).optional(),
+  avatar: z.string().optional(),
 });
 
-const updateTeamMemberSchema = createTeamMemberSchema.partial();
+const updateUserSchema = createUserSchema.partial().omit({ password: true });
+
+const updatePasswordSchema = z.object({
+  currentPassword: z.string(),
+  newPassword: z.string().min(6, "Password must be at least 6 characters"),
+});
 
 const updateStatusSchema = z.object({
-  status: z.enum(["active", "inactive", "suspended"]),
+  status: z.enum(["active", "inactive"]),
 });
 
-// Get all team members
+// Get all team members (users)
 router.get("/members", async (req, res) => {
   try {
     const members = await db
       .select({
-        id: teamMembers.id,
-        userId: teamMembers.userId,
-        name: teamMembers.name,
-        email: teamMembers.email,
-        phone: teamMembers.phone,
-        role: teamMembers.role,
-        status: teamMembers.status,
-        permissions: teamMembers.permissions,
-        avatar: teamMembers.avatar,
-        department: teamMembers.department,
-        lastActive: teamMembers.lastActive,
-        onlineStatus: teamMembers.onlineStatus,
-        createdAt: teamMembers.createdAt,
-        updatedAt: teamMembers.updatedAt,
+        id: users.id,
+        username: users.username,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        role: users.role,
+        status: users.status,
+        permissions: users.permissions,
+        avatar: users.avatar,
+        lastLogin: users.lastLogin,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt,
       })
-      .from(teamMembers)
-      .orderBy(desc(teamMembers.createdAt));
+      .from(users)
+      .orderBy(desc(users.createdAt));
 
     res.json(members);
   } catch (error) {
@@ -67,14 +64,16 @@ router.get("/members/:id", async (req, res) => {
   try {
     const [member] = await db
       .select()
-      .from(teamMembers)
-      .where(eq(teamMembers.id, req.params.id));
+      .from(users)
+      .where(eq(users.id, req.params.id));
 
     if (!member) {
       return res.status(404).json({ error: "Team member not found" });
     }
 
-    res.json(member);
+    // Remove password from response
+    const { password, ...memberData } = member;
+    res.json(memberData);
   } catch (error) {
     console.error("Error fetching team member:", error);
     res.status(500).json({ error: "Failed to fetch team member" });
@@ -84,25 +83,25 @@ router.get("/members/:id", async (req, res) => {
 // Create team member
 router.post(
   "/members",
-  validateRequest(createTeamMemberSchema),
+  validateRequest(createUserSchema),
   async (req, res) => {
     try {
-      const { name, email, phone, role, department, permissions } = req.body;
+      const { username, email, password, firstName, lastName, role, permissions, avatar } = req.body;
 
-      // Check if email already exists
-      const [existingMember] = await db
+      // Check if email or username already exists
+      const [existingUser] = await db
         .select()
-        .from(teamMembers)
-        .where(eq(teamMembers.email, email));
+        .from(users)
+        .where(sql`${users.email} = ${email} OR ${users.username} = ${username}`);
 
-      if (existingMember) {
-        return res.status(400).json({ error: "Email already exists" });
+      if (existingUser) {
+        return res.status(400).json({ error: "Username or email already exists" });
       }
 
-      // Create a user account for the team member
-      const username = email.split("@")[0];
-      const tempPassword = Math.random().toString(36).slice(-8);
-      const hashedPassword = await bcrypt.hash(tempPassword, 10);
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Create user with appropriate permissions
+      const userPermissions = permissions || DEFAULT_PERMISSIONS[role] || [];
 
       const [newUser] = await db
         .insert(users)
@@ -110,40 +109,27 @@ router.post(
           username,
           password: hashedPassword,
           email,
-          firstName: name.split(" ")[0],
-          lastName: name.split(" ").slice(1).join(" "),
+          firstName,
+          lastName,
           role,
-        })
-        .returning();
-
-      // Create team member
-      const [member] = await db
-        .insert(teamMembers)
-        .values({
-          userId: newUser.id,
-          name,
-          email,
-          phone,
-          role,
-          department,
-          permissions: permissions || {},
+          permissions: userPermissions,
+          avatar,
           status: "active",
         })
         .returning();
 
       // Log activity
-      await db.insert(teamActivityLogs).values({
-        teamMemberId: member.id,
-        action: "member_created",
-        entityType: "team_member",
-        entityId: member.id,
+      await db.insert(userActivityLogs).values({
+        userId: newUser.id,
+        action: "user_created",
+        entityType: "user",
+        entityId: newUser.id,
         details: { createdBy: "admin" },
       });
 
-      res.json({
-        ...member,
-        tempPassword, // Send temporary password to admin
-      });
+      // Remove password from response
+      const { password: _, ...userData } = newUser;
+      res.json(userData);
     } catch (error) {
       console.error("Error creating team member:", error);
       res.status(500).json({ error: "Failed to create team member" });
@@ -154,19 +140,19 @@ router.post(
 // Update team member
 router.put(
   "/members/:id",
-  validateRequest(updateTeamMemberSchema),
+  validateRequest(updateUserSchema),
   async (req, res) => {
     try {
       const { id } = req.params;
       const updates = req.body;
 
       const [member] = await db
-        .update(teamMembers)
+        .update(users)
         .set({
           ...updates,
           updatedAt: new Date(),
         })
-        .where(eq(teamMembers.id, id))
+        .where(eq(users.id, id))
         .returning();
 
       if (!member) {
@@ -174,15 +160,17 @@ router.put(
       }
 
       // Log activity
-      await db.insert(teamActivityLogs).values({
-        teamMemberId: id,
-        action: "member_updated",
-        entityType: "team_member",
+      await db.insert(userActivityLogs).values({
+        userId: id,
+        action: "user_updated",
+        entityType: "user",
         entityId: id,
         details: { updates },
       });
 
-      res.json(member);
+      // Remove password from response
+      const { password, ...memberData } = member;
+      res.json(memberData);
     } catch (error) {
       console.error("Error updating team member:", error);
       res.status(500).json({ error: "Failed to update team member" });
@@ -200,12 +188,12 @@ router.patch(
       const { status } = req.body;
 
       const [member] = await db
-        .update(teamMembers)
+        .update(users)
         .set({
           status,
           updatedAt: new Date(),
         })
-        .where(eq(teamMembers.id, id))
+        .where(eq(users.id, id))
         .returning();
 
       if (!member) {
@@ -213,18 +201,74 @@ router.patch(
       }
 
       // Log activity
-      await db.insert(teamActivityLogs).values({
-        teamMemberId: id,
+      await db.insert(userActivityLogs).values({
+        userId: id,
         action: "status_changed",
-        entityType: "team_member",
+        entityType: "user",
         entityId: id,
         details: { newStatus: status },
       });
 
-      res.json(member);
+      // Remove password from response
+      const { password, ...memberData } = member;
+      res.json(memberData);
     } catch (error) {
       console.error("Error updating team member status:", error);
       res.status(500).json({ error: "Failed to update status" });
+    }
+  }
+);
+
+// Update user password
+router.patch(
+  "/members/:id/password",
+  validateRequest(updatePasswordSchema),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { currentPassword, newPassword } = req.body;
+
+      // Get user to verify current password
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, id));
+
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Verify current password
+      const isValidPassword = await bcrypt.compare(currentPassword, user.password);
+      if (!isValidPassword) {
+        return res.status(400).json({ error: "Current password is incorrect" });
+      }
+
+      // Hash new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // Update password
+      await db
+        .update(users)
+        .set({
+          password: hashedPassword,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, id));
+
+      // Log activity
+      await db.insert(userActivityLogs).values({
+        userId: id,
+        action: "password_changed",
+        entityType: "user",
+        entityId: id,
+        details: {},
+      });
+
+      res.json({ message: "Password updated successfully" });
+    } catch (error) {
+      console.error("Error updating password:", error);
+      res.status(500).json({ error: "Failed to update password" });
     }
   }
 );
@@ -234,36 +278,56 @@ router.delete("/members/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Check if member has active assignments
+    // Prevent deleting the last admin
+    const [adminCount] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(users)
+      .where(and(
+        eq(users.role, "admin"),
+        ne(users.id, id)
+      ));
+
+    const [userToDelete] = await db
+      .select({ role: users.role })
+      .from(users)
+      .where(eq(users.id, id));
+
+    if (userToDelete?.role === "admin" && adminCount.count === 0) {
+      return res.status(400).json({
+        error: "Cannot delete the last admin user",
+      });
+    }
+
+    // Check if user has active assignments
     const [hasAssignments] = await db
       .select({ count: sql<number>`count(*)` })
       .from(conversationAssignments)
       .where(
         and(
-          eq(conversationAssignments.teamMemberId, id),
+          eq(conversationAssignments.userId, id),
           eq(conversationAssignments.status, "active")
         )
       );
 
     if (hasAssignments && hasAssignments.count > 0) {
       return res.status(400).json({
-        error: "Cannot delete member with active conversation assignments",
+        error: "Cannot delete user with active conversation assignments",
       });
     }
 
-    const [deletedMember] = await db
-      .delete(teamMembers)
-      .where(eq(teamMembers.id, id))
+    const [deletedUser] = await db
+      .delete(users)
+      .where(eq(users.id, id))
       .returning();
 
-    if (!deletedMember) {
-      return res.status(404).json({ error: "Team member not found" });
+    if (!deletedUser) {
+      return res.status(404).json({ error: "User not found" });
     }
 
-    res.json({ message: "Team member deleted successfully" });
+    res.json({ message: "User deleted successfully" });
   } catch (error) {
-    console.error("Error deleting team member:", error);
-    res.status(500).json({ error: "Failed to delete team member" });
+    console.error("Error deleting user:", error);
+    res.status(500).json({ error: "Failed to delete user" });
   }
 });
 
@@ -272,21 +336,21 @@ router.get("/activity-logs", async (req, res) => {
   try {
     const logs = await db
       .select({
-        id: teamActivityLogs.id,
-        teamMemberId: teamActivityLogs.teamMemberId,
-        memberName: teamMembers.name,
-        memberEmail: teamMembers.email,
-        action: teamActivityLogs.action,
-        entityType: teamActivityLogs.entityType,
-        entityId: teamActivityLogs.entityId,
-        details: teamActivityLogs.details,
-        ipAddress: teamActivityLogs.ipAddress,
-        userAgent: teamActivityLogs.userAgent,
-        createdAt: teamActivityLogs.createdAt,
+        id: userActivityLogs.id,
+        userId: userActivityLogs.userId,
+        userName: users.username,
+        userEmail: users.email,
+        action: userActivityLogs.action,
+        entityType: userActivityLogs.entityType,
+        entityId: userActivityLogs.entityId,
+        details: userActivityLogs.details,
+        ipAddress: userActivityLogs.ipAddress,
+        userAgent: userActivityLogs.userAgent,
+        createdAt: userActivityLogs.createdAt,
       })
-      .from(teamActivityLogs)
-      .leftJoin(teamMembers, eq(teamActivityLogs.teamMemberId, teamMembers.id))
-      .orderBy(desc(teamActivityLogs.createdAt))
+      .from(userActivityLogs)
+      .leftJoin(users, eq(userActivityLogs.userId, users.id))
+      .orderBy(desc(userActivityLogs.createdAt))
       .limit(100);
 
     res.json(logs);
@@ -296,30 +360,40 @@ router.get("/activity-logs", async (req, res) => {
   }
 });
 
-// Update member online status
-router.patch("/members/:id/online-status", async (req, res) => {
+// Update member permissions
+router.patch("/members/:id/permissions", async (req, res) => {
   try {
     const { id } = req.params;
-    const { onlineStatus } = req.body;
+    const { permissions } = req.body;
 
     const [member] = await db
-      .update(teamMembers)
+      .update(users)
       .set({
-        onlineStatus,
-        lastActive: new Date(),
+        permissions,
         updatedAt: new Date(),
       })
-      .where(eq(teamMembers.id, id))
+      .where(eq(users.id, id))
       .returning();
 
     if (!member) {
-      return res.status(404).json({ error: "Team member not found" });
+      return res.status(404).json({ error: "User not found" });
     }
 
-    res.json(member);
+    // Log activity
+    await db.insert(userActivityLogs).values({
+      userId: id,
+      action: "permissions_updated",
+      entityType: "user",
+      entityId: id,
+      details: { permissions },
+    });
+
+    // Remove password from response
+    const { password, ...memberData } = member;
+    res.json(memberData);
   } catch (error) {
-    console.error("Error updating online status:", error);
-    res.status(500).json({ error: "Failed to update online status" });
+    console.error("Error updating permissions:", error);
+    res.status(500).json({ error: "Failed to update permissions" });
   }
 });
 

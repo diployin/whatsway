@@ -69,6 +69,7 @@ import {
   Reply
 } from "lucide-react";
 import { api } from "@/lib/api";
+import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { format, differenceInMinutes, differenceInHours, differenceInDays, isToday, isYesterday } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -242,7 +243,7 @@ const TemplateDialog = ({
     enabled: !!channelId && open,
   });
 
-  const approvedTemplates = templates.filter((t: any) => t.status === "approved");
+  const approvedTemplates = templates.filter((t: any) => t.status === "APPROVED");
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -334,7 +335,9 @@ export default function Inbox() {
     queryFn: async () => {
       if (!selectedConversation?.id) return [];
       const response = await api.getMessages(selectedConversation.id);
-      return await response.json();
+      const data = await response.json();
+      console.log('Fetched messages:', data);
+      return data;
     },
     enabled: !!selectedConversation?.id,
   });
@@ -554,6 +557,87 @@ export default function Inbox() {
     });
   };
 
+  const handleViewContact = () => {
+    if (!selectedConversation || !selectedConversation.contactId) return;
+    window.location.href = `/contacts?id=${selectedConversation.contactId}`;
+  };
+
+  const handleArchiveChat = async () => {
+    if (!selectedConversation) return;
+    
+    try {
+      await apiRequest(`/api/conversations/${selectedConversation.id}`, {
+        method: 'PATCH',
+        body: { status: 'archived' }
+      });
+      
+      toast({
+        title: "Chat Archived",
+        description: "This conversation has been archived",
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      setSelectedConversation(null);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to archive chat",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleBlockContact = async () => {
+    if (!selectedConversation || !selectedConversation.contactId) return;
+    
+    try {
+      await apiRequest(`/api/contacts/${selectedConversation.contactId}`, {
+        method: 'PATCH',
+        body: { status: 'blocked' }
+      });
+      
+      toast({
+        title: "Contact Blocked",
+        description: "This contact has been blocked",
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to block contact",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteChat = async () => {
+    if (!selectedConversation) return;
+    
+    const confirmed = window.confirm("Are you sure you want to delete this chat? This action cannot be undone.");
+    if (!confirmed) return;
+    
+    try {
+      await apiRequest(`/api/conversations/${selectedConversation.id}`, {
+        method: 'DELETE'
+      });
+      
+      toast({
+        title: "Chat Deleted",
+        description: "This conversation has been deleted",
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      setSelectedConversation(null);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete chat",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Filter conversations  
   const filteredConversations = conversations.filter((conv: any) => {
     const matchesSearch = conv.contact?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -674,28 +758,6 @@ export default function Inbox() {
               </div>
 
               <div className="flex items-center gap-2">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-9 w-9">
-                        <Phone className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Voice Call</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-9 w-9">
-                        <Video className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Video Call</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-9 w-9">
@@ -713,20 +775,20 @@ export default function Inbox() {
                       Mark as Resolved
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleViewContact()}>
                       <User className="mr-2 h-4 w-4" />
                       View Contact
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleArchiveChat()}>
                       <Archive className="mr-2 h-4 w-4" />
                       Archive Chat
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleBlockContact()}>
                       <Ban className="mr-2 h-4 w-4" />
                       Block Contact
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-red-600">
+                    <DropdownMenuItem className="text-red-600" onClick={() => handleDeleteChat()}>
                       <Trash2 className="mr-2 h-4 w-4" />
                       Delete Chat
                     </DropdownMenuItem>
@@ -738,33 +800,35 @@ export default function Inbox() {
 
           {/* Messages Area */}
           <ScrollArea className="flex-1 p-4 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImEiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PHBhdGggZD0iTTAgMTBoNDBNMTAgMHY0ME0wIDIwaDQwTTIwIDB2NDBNMCAzMGg0ME0zMCAwdjQwIiBmaWxsPSJub25lIiBzdHJva2U9IiNlMGUwZTAiIG9wYWNpdHk9IjAuMiIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNhKSIvPjwvc3ZnPg==')]">
-            {messagesLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loading />
-              </div>
-            ) : messages.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                No messages yet. Start a conversation!
-              </div>
-            ) : (
-              <div className="space-y-1">
-                {messages.map((message: Message, index: number) => {
-                  const prevMessage = index > 0 ? messages[index - 1] : null;
-                  const showDate = !prevMessage || 
-                    !isToday(new Date(message.createdAt || new Date())) ||
-                    (prevMessage && !isToday(new Date(prevMessage.createdAt || new Date())));
-                  
-                  return (
-                    <MessageItem
-                      key={message.id}
-                      message={message}
-                      showDate={showDate}
-                    />
-                  );
-                })}
-                <div ref={messagesEndRef} />
-              </div>
-            )}
+            <div className="min-h-full">
+              {messagesLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loading />
+                </div>
+              ) : !messages || messages.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  No messages yet. Start a conversation!
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {messages.map((message: Message, index: number) => {
+                    const prevMessage = index > 0 ? messages[index - 1] : null;
+                    const showDate = !prevMessage || 
+                      !isToday(new Date(message.createdAt || new Date())) ||
+                      (prevMessage && !isToday(new Date(prevMessage.createdAt || new Date())));
+                    
+                    return (
+                      <MessageItem
+                        key={message.id}
+                        message={message}
+                        showDate={showDate}
+                      />
+                    );
+                  })}
+                  <div ref={messagesEndRef} />
+                </div>
+              )}
+            </div>
           </ScrollArea>
 
           {/* Message Input */}

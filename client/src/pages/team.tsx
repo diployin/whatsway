@@ -56,14 +56,15 @@ import {
   Activity,
   Clock,
 } from "lucide-react";
-import type { TeamMember } from "@shared/schema";
+import type { User } from "@shared/schema";
 
 interface TeamMemberFormData {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
-  phone?: string;
+  username: string;
+  password?: string;
   role: "admin" | "manager" | "agent";
-  department?: string;
   permissions: {
     canManageContacts?: boolean;
     canManageCampaigns?: boolean;
@@ -77,11 +78,11 @@ interface TeamMemberFormData {
 export default function TeamPage() {
   const { toast } = useToast();
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
+  const [editingMember, setEditingMember] = useState<User | null>(null);
   const [activeTab, setActiveTab] = useState("members");
 
   // Fetch team members
-  const { data: teamMembers = [], isLoading } = useQuery<TeamMember[]>({
+  const { data: teamMembers = [], isLoading } = useQuery<User[]>({
     queryKey: ["/api/team/members"],
   });
 
@@ -164,7 +165,7 @@ export default function TeamPage() {
     },
   });
 
-  const handleOpenDialog = (member?: TeamMember) => {
+  const handleOpenDialog = (member?: User) => {
     if (member) {
       setEditingMember(member);
     }
@@ -252,7 +253,6 @@ export default function TeamPage() {
                   <TableRow>
                     <TableHead>Member</TableHead>
                     <TableHead>Role</TableHead>
-                    <TableHead>Department</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Last Active</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -261,13 +261,13 @@ export default function TeamPage() {
                 <TableBody>
                   {isLoading ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8">
+                      <TableCell colSpan={5} className="text-center py-8">
                         Loading team members...
                       </TableCell>
                     </TableRow>
                   ) : teamMembers.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8">
+                      <TableCell colSpan={5} className="text-center py-8">
                         No team members found. Add your first team member.
                       </TableCell>
                     </TableRow>
@@ -280,8 +280,9 @@ export default function TeamPage() {
                               <Avatar>
                                 <AvatarImage src={member.avatar || undefined} />
                                 <AvatarFallback>
-                                  {member.name
+                                  {`${member.firstName || ""} ${member.lastName || ""}`
                                     .split(" ")
+                                    .filter(n => n)
                                     .map((n) => n[0])
                                     .join("")
                                     .toUpperCase()}
@@ -289,12 +290,12 @@ export default function TeamPage() {
                               </Avatar>
                               <div
                                 className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white ${getOnlineStatusColor(
-                                  member.onlineStatus || "offline"
+                                  "offline"
                                 )}`}
                               />
                             </div>
                             <div>
-                              <div className="font-medium">{member.name}</div>
+                              <div className="font-medium">{`${member.firstName || ""} ${member.lastName || ""}`.trim() || member.username}</div>
                               <div className="text-sm text-muted-foreground">
                                 {member.email}
                               </div>
@@ -306,7 +307,6 @@ export default function TeamPage() {
                             {member.role}
                           </Badge>
                         </TableCell>
-                        <TableCell>{member.department || "-"}</TableCell>
                         <TableCell>
                           <Badge variant={getStatusBadgeVariant(member.status)}>
                             {member.status}
@@ -316,8 +316,8 @@ export default function TeamPage() {
                           <div className="flex items-center gap-1">
                             <Clock className="h-3 w-3 text-muted-foreground" />
                             <span className="text-sm">
-                              {member.lastActive
-                                ? new Date(member.lastActive).toLocaleString()
+                              {member.lastLogin
+                                ? new Date(member.lastLogin).toLocaleString()
                                 : "Never"}
                             </span>
                           </div>
@@ -445,15 +445,16 @@ function TeamMemberDialog({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  member: TeamMember | null;
+  member: User | null;
   onSave: (data: TeamMemberFormData) => void;
 }) {
   const [formData, setFormData] = useState<TeamMemberFormData>({
-    name: member?.name || "",
+    firstName: member?.firstName || "",
+    lastName: member?.lastName || "",
     email: member?.email || "",
-    phone: member?.phone || "",
+    username: member?.username || "",
+    password: "",
     role: (member?.role as "admin" | "manager" | "agent") || "agent",
-    department: member?.department || "",
     permissions: (member?.permissions as any) || {},
   });
 
@@ -489,16 +490,30 @@ function TeamMemberDialog({
           <div className="grid gap-6">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="firstName">First Name</Label>
                 <Input
-                  id="name"
-                  value={formData.name}
+                  id="firstName"
+                  value={formData.firstName}
                   onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
+                    setFormData({ ...formData, firstName: e.target.value })
                   }
                   required
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  id="lastName"
+                  value={formData.lastName}
+                  onChange={(e) =>
+                    setFormData({ ...formData, lastName: e.target.value })
+                  }
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -511,30 +526,33 @@ function TeamMemberDialog({
                   required
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <Input
+                  id="username"
+                  value={formData.username}
+                  onChange={(e) =>
+                    setFormData({ ...formData, username: e.target.value })
+                  }
+                  required
+                />
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            {!member && (
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone (Optional)</Label>
+                <Label htmlFor="password">Password</Label>
                 <Input
-                  id="phone"
-                  value={formData.phone}
+                  id="password"
+                  type="password"
+                  value={formData.password}
                   onChange={(e) =>
-                    setFormData({ ...formData, phone: e.target.value })
+                    setFormData({ ...formData, password: e.target.value })
                   }
+                  required={!member}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="department">Department (Optional)</Label>
-                <Input
-                  id="department"
-                  value={formData.department}
-                  onChange={(e) =>
-                    setFormData({ ...formData, department: e.target.value })
-                  }
-                />
-              </div>
-            </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="role">Role</Label>

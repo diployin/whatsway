@@ -1,4 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
+import session from "express-session";
+import connectPgSimple from "connect-pg-simple";
+import { pool } from "./db";
 import { registerRoutes } from "./routes/index";
 import { setupVite, serveStatic, log } from "./vite";
 import { MessageStatusUpdater } from "./services/message-status-updater";
@@ -6,6 +9,25 @@ import { MessageStatusUpdater } from "./services/message-status-updater";
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Set up session management
+const PostgresSessionStore = connectPgSimple(session);
+app.use(
+  session({
+    store: new PostgresSessionStore({
+      pool,
+      createTableIfMissing: true,
+    }),
+    secret: process.env.SESSION_SECRET || "whatsway-secret-key-change-in-production",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    },
+  })
+);
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -71,7 +93,7 @@ app.use((req, res, next) => {
     
     // Start the message status updater cron job
     const messageStatusUpdater = new MessageStatusUpdater();
-    messageStatusUpdater.startCronJob(10); // Run every 10 seconds
+    messageStatusUpdater.startCronJob(60); // Run every 60 seconds instead of 10
     log('Message status updater cron job started');
     
     // Start channel health monitor

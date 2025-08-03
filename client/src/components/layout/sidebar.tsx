@@ -10,11 +10,21 @@ import {
   Settings,
   Zap,
   ScrollText,
-  UsersRound
+  UsersRound,
+  LogOut
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ChannelSwitcher } from "@/components/channel-switcher";
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/auth-context";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface NavItem {
   href: string;
@@ -56,12 +66,6 @@ const navItems: NavItem[] = [
     color: "text-red-600"
   },
   {
-    href: "/team",
-    icon: UsersRound,
-    label: "Team",
-    color: "text-cyan-600"
-  },
-  {
     href: "/automation",
     icon: Zap,
     label: "Automation",
@@ -80,6 +84,12 @@ const navItems: NavItem[] = [
     color: "text-yellow-600"
   },
   {
+    href: "/team",
+    icon: UsersRound,
+    label: "Team",
+    color: "text-teal-600"
+  },
+  {
     href: "/settings",
     icon: Settings,
     label: "Settings",
@@ -89,15 +99,19 @@ const navItems: NavItem[] = [
 
 export default function Sidebar() {
   const [location] = useLocation();
+  const { user, logout } = useAuth();
   const { data: unreadCount = 0 } = useQuery({
     queryKey: ["/api/conversations/unread-count"],
     queryFn: async () => {
-      const response = await fetch("/api/conversations/unread-count");
+      const response = await fetch("/api/conversations/unread-count", {
+        credentials: "include"
+      });
       if (!response.ok) return 0;
       const data = await response.json();
       return data.count || 0;
     },
-    refetchInterval: 5000, // Refresh every 5 seconds
+    refetchInterval: 30000, // Refresh every 30 seconds instead of 5
+    staleTime: 20000, // Consider data fresh for 20 seconds
   });
 
   return (
@@ -181,18 +195,39 @@ export default function Sidebar() {
 
         {/* User Profile */}
         <div className="p-4 border-t border-gray-100">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-green-600 to-green-500 flex items-center justify-center">
-              <span className="text-sm font-medium text-white">JD</span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">John Doe</p>
-              <p className="text-xs text-gray-500 truncate">Administrator</p>
-            </div>
-            <button className="text-gray-400 hover:text-gray-600 transition-colors">
-              <Settings className="w-4 h-4" />
-            </button>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="w-full flex items-center space-x-3 hover:bg-gray-50 rounded-lg p-2 transition-colors">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-green-600 to-green-500 flex items-center justify-center">
+                  <span className="text-sm font-medium text-white">
+                    {user ? (user.firstName?.[0] || user.username[0]).toUpperCase() : 'U'}
+                  </span>
+                </div>
+                <div className="flex-1 min-w-0 text-left">
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    {user ? (user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.username) : 'User'}
+                  </p>
+                  <p className="text-xs text-gray-500 truncate capitalize">{user?.role || 'User'}</p>
+                </div>
+                <Settings className="w-4 h-4 text-gray-400" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/settings" className="cursor-pointer">
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={logout} className="cursor-pointer text-red-600">
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </div>

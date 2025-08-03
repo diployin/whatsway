@@ -78,4 +78,11 @@ export class ContactRepository {
       );
     return existingContacts.map(c => c.phone);
   }
+
+  async getTotalCount(): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`COUNT(*)`.mapWith(Number) })
+      .from(contacts);
+    return result[0]?.count || 0;
+  }
 }

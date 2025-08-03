@@ -348,4 +348,46 @@ export class DatabaseStorage implements IStorage {
   async createApiLog(insertLog: InsertApiLog): Promise<ApiLog> {
     return this.apiLogRepo.create(insertLog);
   }
+
+  // Analytics
+  async getAnalyticsByChannel(channelId: string, days?: number): Promise<Analytics[]> {
+    return this.analyticsRepo.getAnalyticsByChannel(channelId, days);
+  }
+
+  async getAnalytics(): Promise<Analytics[]> {
+    return this.analyticsRepo.getAnalytics();
+  }
+
+  async createAnalytics(insertAnalytics: InsertAnalytics): Promise<Analytics> {
+    return this.analyticsRepo.createOrUpdate(insertAnalytics);
+  }
+
+  // Dashboard Stats
+  async getDashboardStats(): Promise<any> {
+    const totalContacts = await this.contactRepo.getTotalCount();
+    const totalCampaigns = await this.campaignRepo.getAll().then(c => c.length);
+    const totalTemplates = await this.templateRepo.getAll().then(t => t.length);
+    const messageStats = await this.messageQueueRepo.getMessageStats();
+
+    return {
+      totalContacts,
+      totalCampaigns,
+      totalTemplates,
+      ...messageStats
+    };
+  }
+
+  async getDashboardStatsByChannel(channelId: string): Promise<any> {
+    const totalContacts = await this.contactRepo.getByChannel(channelId).then(c => c.length);
+    const totalCampaigns = await this.campaignRepo.getByChannel(channelId).then(c => c.length);
+    const totalTemplates = await this.templateRepo.getByChannel(channelId).then(t => t.length);
+    const messageStats = await this.messageQueueRepo.getMessageStatsByChannel(channelId);
+
+    return {
+      totalContacts,
+      totalCampaigns,
+      totalTemplates,
+      ...messageStats
+    };
+  }
 }
