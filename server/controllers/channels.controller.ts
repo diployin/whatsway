@@ -36,8 +36,8 @@ export const createChannel = asyncHandler(async (req: Request, res: Response) =>
   // Immediately check channel health after creation
   try {
     const apiVersion = process.env.WHATSAPP_API_VERSION || 'v23.0';
-    // Request all available fields from the API (removed message_template_namespace as it doesn't exist)
-    const fields = 'id,account_mode,account_review_status,analytics,business_verification,certificate,code_verification_status,country,currency,display_phone_number,eligibility_for_api_business_global_search,is_migration_disabled,is_official_business_account,is_pin_enabled,last_onboarded_time,messaging_limit_tier,name_status,new_certificate,new_name_status,official_business_account_name,ownership_type,phone_number,platform_type,quality_rating,quality_score,status,throughput,timezone_id,verified_name,webhook_configuration';
+    // Request only confirmed fields for WhatsAppBusinessPhoneNumber
+    const fields = 'id,account_mode,display_phone_number,is_official_business_account,is_pin_enabled,is_preverified_number,messaging_limit_tier,name_status,new_name_status,platform_type,quality_rating,quality_score,search_visibility,status,throughput,verified_name,code_verification_status,certificate';
     const url = `https://graph.facebook.com/${apiVersion}/${channel.phoneNumberId}?fields=${fields}`;
     const response = await fetch(url, {
       headers: {
@@ -60,15 +60,14 @@ export const createChannel = asyncHandler(async (req: Request, res: Response) =>
         verification_status: data.verified_name?.status || 'NOT_VERIFIED',
         messaging_limit: data.messaging_limit_tier || 'UNKNOWN',
         // Additional fields from Meta API
-        account_review_status: data.account_review_status,
         platform_type: data.platform_type,
-        business_verification_status: data.business_verification?.status,
-        country: data.country,
-        currency: data.currency,
-        timezone_id: data.timezone_id,
         is_official_business_account: data.is_official_business_account,
-        ownership_type: data.ownership_type,
-        quality_score: data.quality_score
+        quality_score: data.quality_score,
+        is_preverified_number: data.is_preverified_number,
+        search_visibility: data.search_visibility,
+        is_pin_enabled: data.is_pin_enabled,
+        code_verification_status: data.code_verification_status,
+        certificate: data.certificate
       };
 
       await storage.updateChannel(channel.id, {
@@ -134,8 +133,8 @@ export const checkChannelHealth = asyncHandler(async (req: Request, res: Respons
 
   try {
     const apiVersion = process.env.WHATSAPP_API_VERSION || 'v23.0';
-    // Request all available fields from the API (removed message_template_namespace as it doesn't exist)
-    const fields = 'id,account_mode,account_review_status,analytics,business_verification,certificate,code_verification_status,country,currency,display_phone_number,eligibility_for_api_business_global_search,is_migration_disabled,is_official_business_account,is_pin_enabled,last_onboarded_time,messaging_limit_tier,name_status,new_certificate,new_name_status,official_business_account_name,ownership_type,phone_number,platform_type,quality_rating,quality_score,status,throughput,timezone_id,verified_name,webhook_configuration';
+    // Request only confirmed fields for WhatsAppBusinessPhoneNumber
+    const fields = 'id,account_mode,display_phone_number,is_official_business_account,is_pin_enabled,is_preverified_number,messaging_limit_tier,name_status,new_name_status,platform_type,quality_rating,quality_score,search_visibility,status,throughput,verified_name,code_verification_status,certificate';
     const url = `https://graph.facebook.com/${apiVersion}/${channel.phoneNumberId}?fields=${fields}`;
     const response = await fetch(url, {
       headers: {
@@ -157,15 +156,14 @@ export const checkChannelHealth = asyncHandler(async (req: Request, res: Respons
         verification_status: data.verified_name?.status || 'NOT_VERIFIED',
         messaging_limit: data.messaging_limit_tier || 'UNKNOWN',
         // Additional fields from Meta API
-        account_review_status: data.account_review_status,
         platform_type: data.platform_type,
-        business_verification_status: data.business_verification?.status,
-        country: data.country,
-        currency: data.currency,
-        timezone_id: data.timezone_id,
         is_official_business_account: data.is_official_business_account,
-        ownership_type: data.ownership_type,
-        quality_score: data.quality_score
+        quality_score: data.quality_score,
+        is_preverified_number: data.is_preverified_number,
+        search_visibility: data.search_visibility,
+        is_pin_enabled: data.is_pin_enabled,
+        code_verification_status: data.code_verification_status,
+        certificate: data.certificate
       };
 
       await storage.updateChannel(id, {

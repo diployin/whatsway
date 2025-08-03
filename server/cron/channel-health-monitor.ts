@@ -46,7 +46,9 @@ export class ChannelHealthMonitor {
       console.log(`[Channel Health Monitor] Checking health for channel: ${channel.name} (${channel.phoneNumber})`);
 
       const apiVersion = process.env.WHATSAPP_API_VERSION || 'v23.0';
-      const url = `https://graph.facebook.com/${apiVersion}/${channel.phoneNumberId}`;
+      // Request only confirmed fields for WhatsAppBusinessPhoneNumber
+      const fields = 'id,account_mode,display_phone_number,is_official_business_account,is_pin_enabled,is_preverified_number,messaging_limit_tier,name_status,new_name_status,platform_type,quality_rating,quality_score,search_visibility,status,throughput,verified_name,code_verification_status,certificate';
+      const url = `https://graph.facebook.com/${apiVersion}/${channel.phoneNumberId}?fields=${fields}`;
       
       const response = await fetch(url, {
         headers: {
@@ -64,7 +66,7 @@ export class ChannelHealthMonitor {
           quality_rating: data.quality_rating || 'UNKNOWN',
           throughput_level: data.throughput?.level || 'STANDARD',
           verification_status: data.verified_name?.status || 'NOT_VERIFIED',
-          messaging_limit: data.messaging_limit || 'UNKNOWN'
+          messaging_limit: data.messaging_limit_tier || 'UNKNOWN'
         };
 
         const previousStatus = channel.healthStatus;

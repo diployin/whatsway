@@ -88,3 +88,7 @@ Preferred communication style: Simple, everyday language.
   - Updated sendTemplateMessage to use /marketing_messages endpoint for marketing campaigns
   - Maintains backward compatibility using /messages endpoint for service/utility/authentication messages
   - Added isMarketing parameter to control endpoint selection
+- Fixed Meta API field validation errors (Jan 3, 2025):
+  - Removed non-existent fields (message_template_namespace, currency) from WhatsAppBusinessPhoneNumber API requests
+  - Updated to use only confirmed valid fields: id, account_mode, display_phone_number, is_official_business_account, is_pin_enabled, is_preverified_number, messaging_limit_tier, name_status, new_name_status, platform_type, quality_rating, quality_score, search_visibility, status, throughput, verified_name, code_verification_status, certificate
+  - Fixed channel health check in controllers and cron job to prevent API errors
