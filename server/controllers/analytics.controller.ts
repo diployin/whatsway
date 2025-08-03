@@ -10,7 +10,7 @@ import * as XLSX from 'xlsx';
 export const getMessageAnalytics = asyncHandler(async (req: Request, res: Response) => {
   const { channelId, days = '30', startDate, endDate } = req.query;
   
-  const daysNum = parseInt(days as string);
+  const daysNum = parseInt(days as string, 10);
   const start = startDate ? new Date(startDate as string) : new Date(Date.now() - daysNum * 24 * 60 * 60 * 1000);
   const end = endDate ? new Date(endDate as string) : new Date();
 

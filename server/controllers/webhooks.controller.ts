@@ -167,7 +167,7 @@ async function handleMessageChange(value: any) {
       direction: 'inbound',
       status: 'received',
       whatsappMessageId,
-      timestamp: new Date(parseInt(timestamp) * 1000)
+      timestamp: new Date(parseInt(timestamp, 10) * 1000)
     });
   }
 }

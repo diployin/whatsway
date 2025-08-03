@@ -27,7 +27,7 @@ export function extractTemplateVariables(template: string): string[] {
   const variables: string[] = [];
   
   matches.forEach((match) => {
-    const num = parseInt(match.replace('{{', '').replace('}}', ''));
+    const num = parseInt(match.replace('{{', '').replace('}}', ''), 10);
     variables[num - 1] = `Variable ${num}`;
   });
   
