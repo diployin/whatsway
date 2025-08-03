@@ -156,6 +156,10 @@ export class DatabaseStorage implements IStorage {
     return this.channelRepo.getActive();
   }
 
+  async getActiveChannel(): Promise<Channel | undefined> {
+    return this.channelRepo.getActive();
+  }
+
   // Templates
   async getTemplates(): Promise<Template[]> {
     return this.templateRepo.getAll();
@@ -283,8 +287,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Webhook Configs
-  async getWebhookConfig(channelId: string, type: string): Promise<WebhookConfig | undefined> {
-    return this.webhookConfigRepo.getByChannelAndType(channelId, type);
+  async getWebhookConfigs(): Promise<WebhookConfig[]> {
+    return this.webhookConfigRepo.getAll();
+  }
+
+  async getWebhookConfig(id: string): Promise<WebhookConfig | undefined> {
+    return this.webhookConfigRepo.getById(id);
   }
 
   async createWebhookConfig(insertConfig: InsertWebhookConfig): Promise<WebhookConfig> {

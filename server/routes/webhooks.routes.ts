@@ -9,7 +9,13 @@ export function registerWebhookRoutes(app: Express) {
   app.post("/api/webhook-configs", webhooksController.createWebhookConfig);
   
   // Update webhook config
-  app.put("/api/webhook-configs/:id", webhooksController.updateWebhookConfig);
+  app.patch("/api/webhook-configs/:id", webhooksController.updateWebhookConfig);
+  
+  // Delete webhook config
+  app.delete("/api/webhook-configs/:id", webhooksController.deleteWebhookConfig);
+  
+  // Test webhook
+  app.post("/api/webhook-configs/:id/test", webhooksController.testWebhook);
 
   // Get global webhook URL
   app.get("/api/webhook/global-url", webhooksController.getGlobalWebhookUrl);

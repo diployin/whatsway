@@ -148,9 +148,22 @@ export function WebhookDialog({ open, onOpenChange, editingWebhook, onSuccess }:
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Verify Token</FormLabel>
-                  <FormControl>
-                    <Input placeholder="my-secure-verify-token" {...field} />
-                  </FormControl>
+                  <div className="flex gap-2">
+                    <FormControl>
+                      <Input placeholder="my-secure-verify-token" {...field} />
+                    </FormControl>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        const token = Math.random().toString(36).substring(2, 15) + 
+                                      Math.random().toString(36).substring(2, 15);
+                        field.onChange(token);
+                      }}
+                    >
+                      Generate
+                    </Button>
+                  </div>
                   <FormDescription>
                     A secret token you'll use when configuring the webhook in Meta
                   </FormDescription>

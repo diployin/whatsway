@@ -51,6 +51,62 @@ export const updateWebhookConfig = asyncHandler(async (req: Request, res: Respon
   res.json(config);
 });
 
+export const deleteWebhookConfig = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  
+  const deleted = await storage.deleteWebhookConfig(id);
+  if (!deleted) {
+    throw new AppError(404, 'Webhook config not found');
+  }
+  
+  res.json({ success: true, message: 'Webhook config deleted' });
+});
+
+export const testWebhook = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  
+  const config = await storage.getWebhookConfig(id);
+  if (!config) {
+    throw new AppError(404, 'Webhook config not found');
+  }
+  
+  // Send a test webhook event
+  const testPayload = {
+    entry: [{
+      id: "test-entry",
+      changes: [{
+        value: {
+          messaging_product: "whatsapp",
+          metadata: {
+            display_phone_number: "15550555555",
+            phone_number_id: "test-phone-id"
+          },
+          test: true
+        },
+        field: "messages"
+      }]
+    }]
+  };
+  
+  try {
+    const response = await fetch(config.webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(testPayload)
+    });
+    
+    if (!response.ok) {
+      throw new AppError(500, `Test webhook failed with status ${response.status}`);
+    }
+    
+    res.json({ success: true, message: 'Test webhook sent successfully' });
+  } catch (error) {
+    throw new AppError(500, `Failed to send test webhook: ${error.message}`);
+  }
+});
+
 export const handleWebhook = asyncHandler(async (req: Request, res: Response) => {
   const { 'hub.mode': mode, 'hub.challenge': challenge, 'hub.verify_token': verifyToken } = req.query;
   

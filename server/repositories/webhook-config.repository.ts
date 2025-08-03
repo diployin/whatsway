@@ -1,5 +1,5 @@
 import { db } from "../db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 import { 
   webhookConfigs, 
   type WebhookConfig, 
@@ -7,6 +7,18 @@ import {
 } from "@shared/schema";
 
 export class WebhookConfigRepository {
+  async getAll(): Promise<WebhookConfig[]> {
+    return await db.select().from(webhookConfigs);
+  }
+
+  async getById(id: string): Promise<WebhookConfig | undefined> {
+    const [config] = await db
+      .select()
+      .from(webhookConfigs)
+      .where(eq(webhookConfigs.id, id));
+    return config || undefined;
+  }
+
   async getByChannelAndType(channelId: string, type: string): Promise<WebhookConfig | undefined> {
     const [config] = await db
       .select()

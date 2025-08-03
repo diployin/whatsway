@@ -126,6 +126,13 @@ export interface IStorage {
 
   // Webhook Configs
   getWebhookConfigs(): Promise<WebhookConfig[]>;
+  getWebhookConfig(id: string): Promise<WebhookConfig | undefined>;
+  createWebhookConfig(config: InsertWebhookConfig): Promise<WebhookConfig>;
+  updateWebhookConfig(id: string, config: Partial<WebhookConfig>): Promise<WebhookConfig | undefined>;
+  deleteWebhookConfig(id: string): Promise<boolean>;
+
+  // Webhook Configs
+  getWebhookConfigs(): Promise<WebhookConfig[]>;
   getWebhookConfig(channelId: string): Promise<WebhookConfig | undefined>;
   createWebhookConfig(config: InsertWebhookConfig): Promise<WebhookConfig>;
   updateWebhookConfig(id: string, config: Partial<InsertWebhookConfig>): Promise<WebhookConfig | undefined>;
