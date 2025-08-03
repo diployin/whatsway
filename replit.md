@@ -64,3 +64,7 @@ Preferred communication style: Simple, everyday language.
 - Enhanced contact import with duplicate detection showing detailed statistics
 - Improved API campaign details display with copy buttons and sample code generation
 - Added phone number formatting utility to ensure proper international format (+countrycode) for WhatsApp API message delivery
+- Enhanced webhook processing to properly capture WhatsApp message status updates (sent, delivered, read, failed)
+- Added comprehensive error details capture in webhook with errorDetails field storing code, title, message, and errorData
+- Updated Message Logs UI to display detailed error information including Meta API error codes and messages
+- Implemented proper message status tracking through webhook status updates for better delivery insights

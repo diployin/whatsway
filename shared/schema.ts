@@ -219,6 +219,8 @@ export const messages = pgTable("messages", {
   readAt: timestamp("read_at"),
   errorCode: varchar("error_code", { length: 50 }),
   errorMessage: text("error_message"),
+  errorDetails: jsonb("error_details"), // Store detailed error information from WhatsApp
+  campaignId: varchar("campaign_id").references(() => campaigns.id, { onDelete: "set null" }), // Link to campaign if sent from campaign
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => ({

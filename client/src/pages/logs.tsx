@@ -36,6 +36,12 @@ interface MessageLog {
   status: 'sent' | 'delivered' | 'read' | 'failed' | 'pending';
   errorCode?: string;
   errorMessage?: string;
+  errorDetails?: {
+    code: string;
+    title: string;
+    message?: string;
+    errorData?: any;
+  };
   deliveredAt?: string;
   readAt?: string;
   whatsappMessageId?: string;
@@ -252,15 +258,20 @@ export default function Logs() {
                           {log.content}
                         </TableCell>
                         <TableCell>
-                          {log.status === "failed" && log.errorCode ? (
+                          {log.status === "failed" && (log.errorCode || log.errorDetails) ? (
                             <div className="text-sm">
                               <div className="flex items-center gap-1 text-red-600">
                                 <AlertCircle className="w-3 h-3" />
-                                Code: {log.errorCode}
+                                {log.errorDetails?.code || log.errorCode ? `Code: ${log.errorDetails?.code || log.errorCode}` : "Error"}
                               </div>
                               <div className="text-xs text-gray-600 mt-1">
-                                {log.errorMessage}
+                                {log.errorDetails?.title || log.errorDetails?.message || log.errorMessage || "Message failed"}
                               </div>
+                              {log.errorDetails?.errorData && (
+                                <div className="text-xs text-gray-500 mt-1">
+                                  {JSON.stringify(log.errorDetails.errorData)}
+                                </div>
+                              )}
                             </div>
                           ) : (
                             "-"

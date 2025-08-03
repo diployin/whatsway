@@ -64,7 +64,7 @@ export const handleWebhook = asyncHandler(async (req: Request, res: Response) =>
       console.log('Webhook verified');
       // Update last ping timestamp
       await storage.updateWebhookConfig(activeConfig.id, {
-        lastPing: new Date().toISOString()
+        lastPingAt: new Date()
       });
       return res.send(challenge);
     }
@@ -80,7 +80,7 @@ export const handleWebhook = asyncHandler(async (req: Request, res: Response) =>
   const activeConfig = configs.find(c => c.isActive);
   if (activeConfig) {
     await storage.updateWebhookConfig(activeConfig.id, {
-      lastPing: new Date().toISOString()
+      lastPingAt: new Date()
     });
   }
   
@@ -102,7 +102,13 @@ export const handleWebhook = asyncHandler(async (req: Request, res: Response) =>
 });
 
 async function handleMessageChange(value: any) {
-  const { messages, contacts, metadata } = value;
+  const { messages, contacts, metadata, statuses } = value;
+  
+  // Handle message status updates (sent, delivered, read, failed)
+  if (statuses && statuses.length > 0) {
+    await handleMessageStatuses(statuses, metadata);
+    return;
+  }
   
   if (!messages || messages.length === 0) {
     return;
@@ -157,10 +163,81 @@ async function handleMessageChange(value: any) {
     await storage.createMessage({
       conversationId: conversation.id,
       content: text?.body || `[${type} message]`,
-      sender: 'contact',
+      fromUser: false,
+      direction: 'inbound',
       status: 'received',
-      whatsappMessageId
+      whatsappMessageId,
+      timestamp: new Date(parseInt(timestamp) * 1000)
     });
+  }
+}
+
+async function handleMessageStatuses(statuses: any[], metadata: any) {
+  const phoneNumberId = metadata?.phone_number_id;
+  if (!phoneNumberId) {
+    console.error('No phone_number_id in webhook status update');
+    return;
+  }
+
+  const channel = await storage.getChannelByPhoneNumberId(phoneNumberId);
+  if (!channel) {
+    console.error(`No channel found for phone_number_id: ${phoneNumberId}`);
+    return;
+  }
+
+  for (const statusUpdate of statuses) {
+    const { id: whatsappMessageId, status, timestamp, errors } = statusUpdate;
+    
+    console.log(`Message status update: ${whatsappMessageId} - ${status}`, errors);
+    
+    // Find the message by WhatsApp ID
+    const message = await storage.getMessageByWhatsAppId(whatsappMessageId);
+    if (!message) {
+      console.log(`Message not found for WhatsApp ID: ${whatsappMessageId}`);
+      continue;
+    }
+
+    // Map WhatsApp status to our status
+    let messageStatus: 'sent' | 'delivered' | 'read' | 'failed' = 'sent';
+    let errorDetails = null;
+    
+    if (status === 'sent') {
+      messageStatus = 'sent';
+    } else if (status === 'delivered') {
+      messageStatus = 'delivered';
+    } else if (status === 'read') {
+      messageStatus = 'read';
+    } else if (status === 'failed' && errors && errors.length > 0) {
+      messageStatus = 'failed';
+      // Capture the error details
+      const error = errors[0];
+      errorDetails = {
+        code: error.code,
+        title: error.title,
+        message: error.message || error.details,
+        errorData: error.error_data
+      };
+      
+      console.error(`Message failed with error:`, errorDetails);
+    }
+
+    // Update message status and error details
+    await storage.updateMessage(message.id, {
+      status: messageStatus,
+      errorDetails: errorDetails ? JSON.stringify(errorDetails) : null,
+      updatedAt: new Date()
+    });
+
+    // If message has a campaign ID, update campaign stats
+    if (message.campaignId) {
+      const campaign = await storage.getCampaign(message.campaignId);
+      if (campaign && messageStatus === 'failed') {
+        await storage.updateCampaign(campaign.id, {
+          failedCount: (campaign.failedCount || 0) + 1,
+          sentCount: Math.max(0, (campaign.sentCount || 0) - 1)
+        });
+      }
+    }
   }
 }
 
