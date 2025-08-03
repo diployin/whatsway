@@ -17,11 +17,15 @@ import { registerWebhookRoutes } from "./webhooks.routes";
 import { registerMessageRoutes } from "./messages.routes";
 import { registerMessageLogsRoutes } from "./messages.logs.routes";
 import teamRoutes from "./team.routes";
+import authRoutes from "./auth.routes";
 
 // Import error handler middleware
 import { errorHandler } from "../middlewares/error.middleware";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Auth routes (no authentication required)
+  app.use("/api/auth", authRoutes);
+  
   // Register all route modules
   registerChannelRoutes(app);
   registerDashboardRoutes(app);
