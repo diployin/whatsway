@@ -1,0 +1,351 @@
+import { IStorage } from "./storage";
+import { UserRepository } from "./repositories/user.repository";
+import { ContactRepository } from "./repositories/contact.repository";
+import { CampaignRepository } from "./repositories/campaign.repository";
+import { ChannelRepository } from "./repositories/channel.repository";
+import { TemplateRepository } from "./repositories/template.repository";
+import { ConversationRepository } from "./repositories/conversation.repository";
+import { MessageRepository } from "./repositories/message.repository";
+import { AutomationRepository } from "./repositories/automation.repository";
+import { AnalyticsRepository } from "./repositories/analytics.repository";
+import { WebhookConfigRepository } from "./repositories/webhook-config.repository";
+import { MessageQueueRepository } from "./repositories/message-queue.repository";
+import { ApiLogRepository } from "./repositories/api-log.repository";
+import { WhatsappChannelRepository } from "./repositories/whatsapp-channel.repository";
+
+import type {
+  User, InsertUser,
+  Contact, InsertContact,
+  Campaign, InsertCampaign,
+  Channel, InsertChannel,
+  Template, InsertTemplate,
+  Conversation, InsertConversation,
+  Message, InsertMessage,
+  Automation, InsertAutomation,
+  Analytics, InsertAnalytics,
+  WhatsappChannel, InsertWhatsappChannel,
+  WebhookConfig, InsertWebhookConfig,
+  MessageQueue, InsertMessageQueue,
+  ApiLog, InsertApiLog,
+} from "@shared/schema";
+
+export class DatabaseStorage implements IStorage {
+  private userRepo = new UserRepository();
+  private contactRepo = new ContactRepository();
+  private campaignRepo = new CampaignRepository();
+  private channelRepo = new ChannelRepository();
+  private templateRepo = new TemplateRepository();
+  private conversationRepo = new ConversationRepository();
+  private messageRepo = new MessageRepository();
+  private automationRepo = new AutomationRepository();
+  private analyticsRepo = new AnalyticsRepository();
+  private webhookConfigRepo = new WebhookConfigRepository();
+  private messageQueueRepo = new MessageQueueRepository();
+  private apiLogRepo = new ApiLogRepository();
+  private whatsappChannelRepo = new WhatsappChannelRepository();
+
+  // Users
+  async getUser(id: string): Promise<User | undefined> {
+    return this.userRepo.getById(id);
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    return this.userRepo.getByUsername(username);
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    return this.userRepo.create(insertUser);
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return this.userRepo.getAll();
+  }
+
+  // Contacts
+  async getContacts(): Promise<Contact[]> {
+    return this.contactRepo.getAll();
+  }
+
+  async getContactsByChannel(channelId: string): Promise<Contact[]> {
+    return this.contactRepo.getByChannel(channelId);
+  }
+
+  async getContact(id: string): Promise<Contact | undefined> {
+    return this.contactRepo.getById(id);
+  }
+
+  async getContactByPhone(phone: string): Promise<Contact | undefined> {
+    return this.contactRepo.getByPhone(phone);
+  }
+
+  async createContact(insertContact: InsertContact): Promise<Contact> {
+    return this.contactRepo.create(insertContact);
+  }
+
+  async updateContact(id: string, contact: Partial<Contact>): Promise<Contact | undefined> {
+    return this.contactRepo.update(id, contact);
+  }
+
+  async deleteContact(id: string): Promise<boolean> {
+    return this.contactRepo.delete(id);
+  }
+
+  async searchContacts(query: string): Promise<Contact[]> {
+    return this.contactRepo.search(query);
+  }
+
+  async createBulkContacts(insertContacts: InsertContact[]): Promise<Contact[]> {
+    return this.contactRepo.createBulk(insertContacts);
+  }
+
+  async checkExistingPhones(phones: string[], channelId: string): Promise<string[]> {
+    return this.contactRepo.checkExistingPhones(phones, channelId);
+  }
+
+  // Campaigns
+  async getCampaigns(): Promise<Campaign[]> {
+    return this.campaignRepo.getAll();
+  }
+
+  async getCampaignsByChannel(channelId: string): Promise<Campaign[]> {
+    return this.campaignRepo.getByChannel(channelId);
+  }
+
+  async getCampaign(id: string): Promise<Campaign | undefined> {
+    return this.campaignRepo.getById(id);
+  }
+
+  async createCampaign(insertCampaign: InsertCampaign): Promise<Campaign> {
+    return this.campaignRepo.create(insertCampaign);
+  }
+
+  async updateCampaign(id: string, campaign: Partial<Campaign>): Promise<Campaign | undefined> {
+    return this.campaignRepo.update(id, campaign);
+  }
+
+  async deleteCampaign(id: string): Promise<boolean> {
+    return this.campaignRepo.delete(id);
+  }
+
+  // Channels
+  async getChannels(): Promise<Channel[]> {
+    return this.channelRepo.getAll();
+  }
+
+  async getChannel(id: string): Promise<Channel | undefined> {
+    return this.channelRepo.getById(id);
+  }
+
+  async getChannelByPhoneNumberId(phoneNumberId: string): Promise<Channel | undefined> {
+    return this.channelRepo.getByPhoneNumberId(phoneNumberId);
+  }
+
+  async createChannel(insertChannel: InsertChannel): Promise<Channel> {
+    return this.channelRepo.create(insertChannel);
+  }
+
+  async updateChannel(id: string, channel: Partial<Channel>): Promise<Channel | undefined> {
+    return this.channelRepo.update(id, channel);
+  }
+
+  async deleteChannel(id: string): Promise<boolean> {
+    return this.channelRepo.delete(id);
+  }
+
+  async getActiveChannel(): Promise<Channel | undefined> {
+    return this.channelRepo.getActive();
+  }
+
+  async getActiveChannel(): Promise<Channel | undefined> {
+    return this.channelRepo.getActive();
+  }
+
+  // Templates
+  async getTemplates(): Promise<Template[]> {
+    return this.templateRepo.getAll();
+  }
+
+  async getTemplatesByChannel(channelId: string): Promise<Template[]> {
+    return this.templateRepo.getByChannel(channelId);
+  }
+
+  async getTemplate(id: string): Promise<Template | undefined> {
+    return this.templateRepo.getById(id);
+  }
+
+  async createTemplate(insertTemplate: InsertTemplate): Promise<Template> {
+    return this.templateRepo.create(insertTemplate);
+  }
+
+  async updateTemplate(id: string, template: Partial<Template>): Promise<Template | undefined> {
+    return this.templateRepo.update(id, template);
+  }
+
+  async deleteTemplate(id: string): Promise<boolean> {
+    return this.templateRepo.delete(id);
+  }
+
+  // Conversations
+  async getConversations(): Promise<Conversation[]> {
+    return this.conversationRepo.getAll();
+  }
+
+  async getConversationsByChannel(channelId: string): Promise<Conversation[]> {
+    return this.conversationRepo.getByChannel(channelId);
+  }
+
+  async getConversation(id: string): Promise<Conversation | undefined> {
+    return this.conversationRepo.getById(id);
+  }
+
+  async getConversationByPhone(phone: string): Promise<Conversation | undefined> {
+    return this.conversationRepo.getByPhone(phone);
+  }
+
+  async createConversation(insertConversation: InsertConversation): Promise<Conversation> {
+    return this.conversationRepo.create(insertConversation);
+  }
+
+  async updateConversation(id: string, conversation: Partial<Conversation>): Promise<Conversation | undefined> {
+    return this.conversationRepo.update(id, conversation);
+  }
+
+  async deleteConversation(id: string): Promise<boolean> {
+    return this.conversationRepo.delete(id);
+  }
+
+  async getUnreadConversationsCount(): Promise<number> {
+    return this.conversationRepo.getUnreadCount();
+  }
+
+  // Messages
+  async getMessages(conversationId: string): Promise<Message[]> {
+    return this.messageRepo.getByConversation(conversationId);
+  }
+
+  async createMessage(insertMessage: InsertMessage): Promise<Message> {
+    return this.messageRepo.create(insertMessage);
+  }
+
+  async updateMessage(id: string, message: Partial<Message>): Promise<Message | undefined> {
+    return this.messageRepo.update(id, message);
+  }
+
+  async getMessageByWhatsAppId(whatsappMessageId: string): Promise<Message | undefined> {
+    return this.messageRepo.getByWhatsAppId(whatsappMessageId);
+  }
+
+  // Automations
+  async getAutomations(): Promise<Automation[]> {
+    return this.automationRepo.getAll();
+  }
+
+  async getAutomationsByChannel(channelId: string): Promise<Automation[]> {
+    return this.automationRepo.getByChannel(channelId);
+  }
+
+  async getAutomation(id: string): Promise<Automation | undefined> {
+    return this.automationRepo.getById(id);
+  }
+
+  async createAutomation(insertAutomation: InsertAutomation): Promise<Automation> {
+    return this.automationRepo.create(insertAutomation);
+  }
+
+  async updateAutomation(id: string, automation: Partial<Automation>): Promise<Automation | undefined> {
+    return this.automationRepo.update(id, automation);
+  }
+
+  async deleteAutomation(id: string): Promise<boolean> {
+    return this.automationRepo.delete(id);
+  }
+
+  // Analytics
+  async getAnalytics(days?: number): Promise<Analytics[]> {
+    return this.analyticsRepo.getAnalytics(days);
+  }
+
+  async createOrUpdateAnalytics(insertAnalytics: InsertAnalytics): Promise<Analytics> {
+    return this.analyticsRepo.createOrUpdate(insertAnalytics);
+  }
+
+  async deleteOldAnalytics(daysToKeep: number): Promise<void> {
+    return this.analyticsRepo.deleteOldAnalytics(daysToKeep);
+  }
+
+  // WhatsApp Channels
+  async getWhatsappChannel(channelId: string): Promise<WhatsappChannel | undefined> {
+    return this.whatsappChannelRepo.getByChannelId(channelId);
+  }
+
+  async createWhatsappChannel(insertChannel: InsertWhatsappChannel): Promise<WhatsappChannel> {
+    return this.whatsappChannelRepo.create(insertChannel);
+  }
+
+  async updateWhatsappChannel(id: string, channel: Partial<WhatsappChannel>): Promise<WhatsappChannel | undefined> {
+    return this.whatsappChannelRepo.update(id, channel);
+  }
+
+  // Webhook Configs
+  async getWebhookConfigs(): Promise<WebhookConfig[]> {
+    return this.webhookConfigRepo.getAll();
+  }
+
+  async getWebhookConfig(id: string): Promise<WebhookConfig | undefined> {
+    return this.webhookConfigRepo.getById(id);
+  }
+
+  async createWebhookConfig(insertConfig: InsertWebhookConfig): Promise<WebhookConfig> {
+    return this.webhookConfigRepo.create(insertConfig);
+  }
+
+  async updateWebhookConfig(id: string, config: Partial<WebhookConfig>): Promise<WebhookConfig | undefined> {
+    return this.webhookConfigRepo.update(id, config);
+  }
+
+  async deleteWebhookConfig(id: string): Promise<boolean> {
+    return this.webhookConfigRepo.delete(id);
+  }
+
+  // Message Queue
+  async getMessageQueueByChannel(channelId: string): Promise<MessageQueue[]> {
+    return this.messageQueueRepo.getByChannel(channelId);
+  }
+
+  async getPendingMessages(): Promise<MessageQueue[]> {
+    return this.messageQueueRepo.getPending();
+  }
+
+  async getMessagesToCheck(): Promise<MessageQueue[]> {
+    return this.messageQueueRepo.getMessagesToCheck();
+  }
+
+  async createMessageQueueItem(insertMessage: InsertMessageQueue): Promise<MessageQueue> {
+    return this.messageQueueRepo.create(insertMessage);
+  }
+
+  async createBulkMessageQueue(insertMessages: InsertMessageQueue[]): Promise<MessageQueue[]> {
+    return this.messageQueueRepo.createBulk(insertMessages);
+  }
+
+  async updateMessageQueueItem(id: string, message: Partial<MessageQueue>): Promise<MessageQueue | undefined> {
+    return this.messageQueueRepo.update(id, message);
+  }
+
+  async updateMessageQueueByWhatsAppId(whatsappMessageId: string, updates: Partial<MessageQueue>): Promise<boolean> {
+    return this.messageQueueRepo.updateByWhatsAppId(whatsappMessageId, updates);
+  }
+
+  async getMessageQueueByCampaign(campaignId: string): Promise<MessageQueue[]> {
+    return this.messageQueueRepo.getByCampaign(campaignId);
+  }
+
+  async getMessagesForRetry(limit: number = 100): Promise<MessageQueue[]> {
+    return this.messageQueueRepo.getForRetry(limit);
+  }
+
+  // API Logs
+  async createApiLog(insertLog: InsertApiLog): Promise<ApiLog> {
+    return this.apiLogRepo.create(insertLog);
+  }
+}

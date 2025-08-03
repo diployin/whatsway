@@ -1,0 +1,490 @@
+import { sql } from "drizzle-orm";
+import { pgTable, text, varchar, timestamp, integer, boolean, jsonb, index, unique } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
+import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod";
+
+export const users = pgTable("users", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+  email: text("email"),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
+  role: text("role").default("admin"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Team members table for managing agents and managers
+export const teamMembers = pgTable("team_members", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  phone: text("phone"),
+  role: text("role").notNull().default("agent"), // admin, manager, agent
+  status: text("status").notNull().default("active"), // active, inactive, suspended
+  permissions: jsonb("permissions").default({}), // Granular permissions
+  avatar: text("avatar"),
+  department: text("department"),
+  lastActive: timestamp("last_active"),
+  onlineStatus: text("online_status").default("offline"), // online, away, offline
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Team assignments for conversations
+export const conversationAssignments = pgTable("conversation_assignments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  conversationId: varchar("conversation_id").notNull().references(() => conversations.id, { onDelete: "cascade" }),
+  teamMemberId: varchar("team_member_id").notNull().references(() => teamMembers.id, { onDelete: "cascade" }),
+  assignedBy: varchar("assigned_by").references(() => teamMembers.id),
+  assignedAt: timestamp("assigned_at").defaultNow(),
+  status: text("status").notNull().default("active"), // active, resolved, transferred
+  priority: text("priority").default("normal"), // low, normal, high, urgent
+  notes: text("notes"),
+  resolvedAt: timestamp("resolved_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Team activity logs
+export const teamActivityLogs = pgTable("team_activity_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  teamMemberId: varchar("team_member_id").notNull().references(() => teamMembers.id, { onDelete: "cascade" }),
+  action: text("action").notNull(), // login, logout, message_sent, conversation_assigned, etc.
+  entityType: text("entity_type"), // conversation, message, contact, etc.
+  entityId: varchar("entity_id"),
+  details: jsonb("details").default({}),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const contacts = pgTable("contacts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  channelId: varchar("channel_id").references(() => channels.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  phone: text("phone").notNull(),
+  email: text("email"),
+  groups: jsonb("groups").default([]),
+  tags: jsonb("tags").default([]),
+  status: text("status").default("active"), // active, blocked, unsubscribed
+  lastContact: timestamp("last_contact"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  contactChannelIdx: index("contacts_channel_idx").on(table.channelId),
+  contactPhoneIdx: index("contacts_phone_idx").on(table.phone),
+  contactStatusIdx: index("contacts_status_idx").on(table.status),
+  contactChannelPhoneUnique: unique("contacts_channel_phone_unique").on(table.channelId, table.phone),
+}));
+
+export const campaigns = pgTable("campaigns", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  channelId: varchar("channel_id").references(() => channels.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  description: text("description"),
+  campaignType: text("campaign_type").notNull(), // contacts, csv, api
+  type: text("type").notNull(), // marketing, transactional
+  apiType: text("api_type").notNull(), // cloud_api, mm_lite
+  templateId: varchar("template_id").references(() => templates.id),
+  templateName: text("template_name"),
+  templateLanguage: text("template_language"),
+  variableMapping: jsonb("variable_mapping").default({}), // Maps template variables to contact/csv fields
+  contactGroups: jsonb("contact_groups").default([]), // For contacts campaign
+  csvData: jsonb("csv_data").default([]), // For CSV campaign
+  apiKey: varchar("api_key"), // For API campaign
+  apiEndpoint: text("api_endpoint"), // For API campaign
+  status: text("status").default("draft"), // draft, scheduled, active, paused, completed
+  scheduledAt: timestamp("scheduled_at"),
+  recipientCount: integer("recipient_count").default(0),
+  sentCount: integer("sent_count").default(0),
+  deliveredCount: integer("delivered_count").default(0),
+  readCount: integer("read_count").default(0),
+  repliedCount: integer("replied_count").default(0),
+  failedCount: integer("failed_count").default(0),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  campaignChannelIdx: index("campaigns_channel_idx").on(table.channelId),
+  campaignStatusIdx: index("campaigns_status_idx").on(table.status),
+  campaignCreatedIdx: index("campaigns_created_idx").on(table.createdAt),
+}));
+
+// Campaign Recipients table for tracking individual recipient status
+export const campaignRecipients = pgTable("campaign_recipients", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  campaignId: varchar("campaign_id").notNull().references(() => campaigns.id, { onDelete: "cascade" }),
+  contactId: varchar("contact_id").references(() => contacts.id, { onDelete: "cascade" }),
+  phone: text("phone").notNull(),
+  name: text("name"),
+  status: text("status").default("pending"), // pending, sent, delivered, read, failed
+  whatsappMessageId: varchar("whatsapp_message_id"),
+  templateParams: jsonb("template_params").default({}),
+  sentAt: timestamp("sent_at"),
+  deliveredAt: timestamp("delivered_at"),
+  readAt: timestamp("read_at"),
+  errorCode: varchar("error_code"),
+  errorMessage: text("error_message"),
+  retryCount: integer("retry_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  recipientCampaignIdx: index("recipients_campaign_idx").on(table.campaignId),
+  recipientStatusIdx: index("recipients_status_idx").on(table.status),
+  recipientPhoneIdx: index("recipients_phone_idx").on(table.phone),
+  campaignPhoneUnique: unique("campaign_phone_unique").on(table.campaignId, table.phone),
+}));
+
+// WhatsApp Business Channels for multi-account support
+export const channels = pgTable("channels", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  phoneNumberId: text("phone_number_id").notNull(),
+  accessToken: text("access_token").notNull(),
+  whatsappBusinessAccountId: text("whatsapp_business_account_id"),
+  phoneNumber: text("phone_number"),
+  isActive: boolean("is_active").default(true),
+  // MM Lite configuration
+  mmLiteEnabled: boolean("mm_lite_enabled").default(false),
+  mmLiteApiUrl: text("mm_lite_api_url"),
+  mmLiteApiKey: text("mm_lite_api_key"),
+  // Health status fields
+  healthStatus: text("health_status").default("unknown"), // healthy, warning, error, unknown
+  lastHealthCheck: timestamp("last_health_check"),
+  healthDetails: jsonb("health_details").default({}), // Detailed health information
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const templates = pgTable("templates", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  channelId: varchar("channel_id").references(() => channels.id),
+  name: text("name").notNull(),
+  category: text("category").notNull(), // marketing, transactional, authentication, utility
+  language: text("language").default("en_US"),
+  header: text("header"),
+  body: text("body").notNull(),
+  footer: text("footer"),
+  buttons: jsonb("buttons").default([]),
+  variables: jsonb("variables").default([]),
+  status: text("status").default("draft"), // draft, pending, approved, rejected
+  rejectionReason: text("rejection_reason"), // Reason for template rejection from WhatsApp
+  // Media support fields
+  mediaType: text("media_type").default("text"), // text, image, video, document, carousel
+  mediaUrl: text("media_url"), // URL of uploaded media
+  mediaHandle: text("media_handle"), // WhatsApp media handle after upload
+  carouselCards: jsonb("carousel_cards").default([]), // For carousel templates
+  whatsappTemplateId: text("whatsapp_template_id"), // ID from WhatsApp after creation
+  usage_count: integer("usage_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const conversations = pgTable("conversations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  channelId: varchar("channel_id").references(() => channels.id, { onDelete: "cascade" }),
+  contactId: varchar("contact_id").references(() => contacts.id, { onDelete: "cascade" }),
+  contactPhone: varchar("contact_phone"), // Store phone number for webhook lookups
+  contactName: varchar("contact_name"), // Store contact name
+  status: text("status").default("open"), // open, closed, assigned, pending
+  priority: text("priority").default("normal"), // low, normal, high, urgent
+  tags: jsonb("tags").default([]),
+  unreadCount: integer("unread_count").default(0), // Track unread messages
+  lastMessageAt: timestamp("last_message_at"),
+  lastMessageText: text("last_message_text"), // Cache last message for display
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  conversationChannelIdx: index("conversations_channel_idx").on(table.channelId),
+  conversationContactIdx: index("conversations_contact_idx").on(table.contactId),
+  conversationPhoneIdx: index("conversations_phone_idx").on(table.contactPhone),
+  conversationStatusIdx: index("conversations_status_idx").on(table.status),
+}));
+
+export const messages = pgTable("messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  conversationId: varchar("conversation_id").notNull().references(() => conversations.id, { onDelete: "cascade" }),
+  whatsappMessageId: varchar("whatsapp_message_id"), // Store WhatsApp message ID
+  fromUser: boolean("from_user").default(false),
+  direction: varchar("direction").default("outbound"), // inbound, outbound
+  content: text("content").notNull(),
+  type: text("type").default("text"), // text, image, document, template
+  messageType: varchar("message_type"), // For WhatsApp message types
+  status: text("status").default("sent"), // sent, delivered, read, failed, received
+  timestamp: timestamp("timestamp"), // WhatsApp timestamp
+  metadata: jsonb("metadata").default({}), // Store additional WhatsApp data
+  deliveredAt: timestamp("delivered_at"),
+  readAt: timestamp("read_at"),
+  errorCode: varchar("error_code", { length: 50 }),
+  errorMessage: text("error_message"),
+  errorDetails: jsonb("error_details"), // Store detailed error information from WhatsApp
+  campaignId: varchar("campaign_id").references(() => campaigns.id, { onDelete: "set null" }), // Link to campaign if sent from campaign
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  messageConversationIdx: index("messages_conversation_idx").on(table.conversationId),
+  messageWhatsappIdx: index("messages_whatsapp_idx").on(table.whatsappMessageId),
+  messageDirectionIdx: index("messages_direction_idx").on(table.direction),
+  messageStatusIdx: index("messages_status_idx").on(table.status),
+  messageTimestampIdx: index("messages_timestamp_idx").on(table.timestamp),
+  messageCreatedIdx: index("messages_created_idx").on(table.createdAt),
+}));
+
+export const automations = pgTable("automations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  channelId: varchar("channel_id"),
+  name: text("name").notNull(),
+  description: text("description"),
+  trigger: jsonb("trigger").notNull(),
+  actions: jsonb("actions").notNull(),
+  conditions: jsonb("conditions").default([]),
+  status: text("status").default("inactive"), // active, inactive, paused
+  executionCount: integer("execution_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const analytics = pgTable("analytics", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  channelId: varchar("channel_id"),
+  date: timestamp("date").notNull(),
+  messagesSent: integer("messages_sent").default(0),
+  messagesDelivered: integer("messages_delivered").default(0),
+  messagesRead: integer("messages_read").default(0),
+  messagesReplied: integer("messages_replied").default(0),
+  newContacts: integer("new_contacts").default(0),
+  activeCampaigns: integer("active_campaigns").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// WhatsApp Channels table
+export const whatsappChannels = pgTable("whatsapp_channels", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  phoneNumber: varchar("phone_number", { length: 20 }).notNull().unique(),
+  phoneNumberId: varchar("phone_number_id", { length: 50 }).notNull(),
+  wabaId: varchar("waba_id", { length: 50 }).notNull(),
+  accessToken: text("access_token").notNull(), // Should be encrypted in production
+  businessAccountId: varchar("business_account_id", { length: 50 }),
+  mmLiteEnabled: boolean("mm_lite_enabled").default(false),
+  rateLimitTier: varchar("rate_limit_tier", { length: 20 }).default("standard"),
+  qualityRating: varchar("quality_rating", { length: 20 }).default("green"), // green, yellow, red
+  status: varchar("status", { length: 20 }).default("inactive"), // active, inactive, error
+  errorMessage: text("error_message"),
+  lastHealthCheck: timestamp("last_health_check"),
+  messageLimit: integer("message_limit"),
+  messagesUsed: integer("messages_used"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Webhook Configuration table
+export const webhookConfigs = pgTable("webhook_configs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  channelId: varchar("channel_id"), // No foreign key - global webhook for all channels
+  webhookUrl: text("webhook_url").notNull(),
+  verifyToken: varchar("verify_token", { length: 100 }).notNull(),
+  appSecret: text("app_secret"), // For signature verification
+  events: jsonb("events").default([]).notNull(), // ['messages', 'message_status', 'message_template_status_update']
+  isActive: boolean("is_active").default(true),
+  lastPingAt: timestamp("last_ping_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Message Queue table for campaign management
+export const messageQueue = pgTable("message_queue", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  campaignId: varchar("campaign_id").references(() => campaigns.id),
+  channelId: varchar("channel_id").references(() => whatsappChannels.id),
+  recipientPhone: varchar("recipient_phone", { length: 20 }).notNull(),
+  templateName: varchar("template_name", { length: 100 }),
+  templateParams: jsonb("template_params").default([]),
+  messageType: varchar("message_type", { length: 20 }).notNull(), // marketing, utility, authentication
+  status: varchar("status", { length: 20 }).default("queued"), // queued, processing, sent, delivered, failed
+  attempts: integer("attempts").default(0),
+  whatsappMessageId: varchar("whatsapp_message_id", { length: 100 }),
+  conversationId: varchar("conversation_id", { length: 100 }),
+  sentVia: varchar("sent_via", { length: 20 }), // cloud_api, mm_lite
+  cost: varchar("cost", { length: 20 }), // Store as string to avoid decimal precision issues
+  errorCode: varchar("error_code", { length: 50 }),
+  errorMessage: text("error_message"),
+  scheduledFor: timestamp("scheduled_for"),
+  processedAt: timestamp("processed_at"),
+  deliveredAt: timestamp("delivered_at"),
+  readAt: timestamp("read_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// API Request Logs for debugging
+export const apiLogs = pgTable("api_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  channelId: varchar("channel_id").references(() => whatsappChannels.id),
+  requestType: varchar("request_type", { length: 50 }).notNull(), // send_message, get_template, webhook_receive
+  endpoint: text("endpoint").notNull(),
+  method: varchar("method", { length: 10 }).notNull(),
+  requestBody: jsonb("request_body"),
+  responseStatus: integer("response_status"),
+  responseBody: jsonb("response_body"),
+  duration: integer("duration"), // in milliseconds
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Insert schemas
+export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
+export const insertContactSchema = createInsertSchema(contacts).omit({ id: true, createdAt: true });
+export const insertCampaignSchema = createInsertSchema(campaigns).omit({ id: true, createdAt: true });
+export const insertChannelSchema = createInsertSchema(channels).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertTemplateSchema = createInsertSchema(templates).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertConversationSchema = createInsertSchema(conversations).omit({ id: true, createdAt: true });
+export const insertMessageSchema = createInsertSchema(messages).omit({ id: true, createdAt: true });
+export const insertAutomationSchema = createInsertSchema(automations).omit({ id: true, createdAt: true });
+export const insertAnalyticsSchema = createInsertSchema(analytics).omit({ id: true, createdAt: true });
+export const insertWhatsappChannelSchema = createInsertSchema(whatsappChannels).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertWebhookConfigSchema = createInsertSchema(webhookConfigs).omit({ id: true, createdAt: true });
+export const insertMessageQueueSchema = createInsertSchema(messageQueue).omit({ id: true, createdAt: true });
+export const insertApiLogSchema = createInsertSchema(apiLogs).omit({ id: true, createdAt: true });
+export const insertCampaignRecipientSchema = createInsertSchema(campaignRecipients).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertTeamMemberSchema = createInsertSchema(teamMembers).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertConversationAssignmentSchema = createInsertSchema(conversationAssignments).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertTeamActivityLogSchema = createInsertSchema(teamActivityLogs).omit({ id: true, createdAt: true });
+
+// Types
+export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type Contact = typeof contacts.$inferSelect;
+export type InsertContact = z.infer<typeof insertContactSchema>;
+export type Campaign = typeof campaigns.$inferSelect;
+export type InsertCampaign = z.infer<typeof insertCampaignSchema>;
+export type Channel = typeof channels.$inferSelect;
+export type InsertChannel = z.infer<typeof insertChannelSchema>;
+export type Template = typeof templates.$inferSelect;
+export type InsertTemplate = z.infer<typeof insertTemplateSchema>;
+export type Conversation = typeof conversations.$inferSelect;
+export type InsertConversation = z.infer<typeof insertConversationSchema>;
+export type Message = typeof messages.$inferSelect;
+export type InsertMessage = z.infer<typeof insertMessageSchema>;
+export type Automation = typeof automations.$inferSelect;
+export type InsertAutomation = z.infer<typeof insertAutomationSchema>;
+export type Analytics = typeof analytics.$inferSelect;
+export type InsertAnalytics = z.infer<typeof insertAnalyticsSchema>;
+export type WhatsappChannel = typeof whatsappChannels.$inferSelect;
+export type InsertWhatsappChannel = z.infer<typeof insertWhatsappChannelSchema>;
+export type WebhookConfig = typeof webhookConfigs.$inferSelect;
+export type InsertWebhookConfig = z.infer<typeof insertWebhookConfigSchema>;
+export type MessageQueue = typeof messageQueue.$inferSelect;
+export type InsertMessageQueue = z.infer<typeof insertMessageQueueSchema>;
+export type ApiLog = typeof apiLogs.$inferSelect;
+export type InsertApiLog = z.infer<typeof insertApiLogSchema>;
+export type CampaignRecipient = typeof campaignRecipients.$inferSelect;
+export type InsertCampaignRecipient = z.infer<typeof insertCampaignRecipientSchema>;
+export type TeamMember = typeof teamMembers.$inferSelect;
+export type InsertTeamMember = z.infer<typeof insertTeamMemberSchema>;
+export type ConversationAssignment = typeof conversationAssignments.$inferSelect;
+export type InsertConversationAssignment = z.infer<typeof insertConversationAssignmentSchema>;
+export type TeamActivityLog = typeof teamActivityLogs.$inferSelect;
+export type InsertTeamActivityLog = z.infer<typeof insertTeamActivityLogSchema>;
+
+// Drizzle Relations for proper joins and queries
+export const channelsRelations = relations(channels, ({ many }) => ({
+  contacts: many(contacts),
+  campaigns: many(campaigns),
+  templates: many(templates),
+  conversations: many(conversations),
+}));
+
+export const contactsRelations = relations(contacts, ({ one, many }) => ({
+  channel: one(channels, {
+    fields: [contacts.channelId],
+    references: [channels.id],
+  }),
+  conversations: many(conversations),
+  campaignRecipients: many(campaignRecipients),
+}));
+
+export const campaignsRelations = relations(campaigns, ({ one, many }) => ({
+  channel: one(channels, {
+    fields: [campaigns.channelId],
+    references: [channels.id],
+  }),
+  template: one(templates, {
+    fields: [campaigns.templateId],
+    references: [templates.id],
+  }),
+  recipients: many(campaignRecipients),
+}));
+
+export const campaignRecipientsRelations = relations(campaignRecipients, ({ one }) => ({
+  campaign: one(campaigns, {
+    fields: [campaignRecipients.campaignId],
+    references: [campaigns.id],
+  }),
+  contact: one(contacts, {
+    fields: [campaignRecipients.contactId],
+    references: [contacts.id],
+  }),
+}));
+
+export const templatesRelations = relations(templates, ({ one, many }) => ({
+  channel: one(channels, {
+    fields: [templates.channelId],
+    references: [channels.id],
+  }),
+  campaigns: many(campaigns),
+}));
+
+export const conversationsRelations = relations(conversations, ({ one, many }) => ({
+  channel: one(channels, {
+    fields: [conversations.channelId],
+    references: [channels.id],
+  }),
+  contact: one(contacts, {
+    fields: [conversations.contactId],
+    references: [contacts.id],
+  }),
+
+  messages: many(messages),
+}));
+
+export const messagesRelations = relations(messages, ({ one }) => ({
+  conversation: one(conversations, {
+    fields: [messages.conversationId],
+    references: [conversations.id],
+  }),
+}));
+
+export const usersRelations = relations(users, ({ many, one }) => ({
+  teamMember: one(teamMembers), // User can have a team member profile
+}));
+
+export const teamMembersRelations = relations(teamMembers, ({ one, many }) => ({
+  user: one(users, {
+    fields: [teamMembers.userId],
+    references: [users.id],
+  }),
+  assignedConversations: many(conversationAssignments),
+  activityLogs: many(teamActivityLogs),
+}));
+
+export const conversationAssignmentsRelations = relations(conversationAssignments, ({ one }) => ({
+  conversation: one(conversations, {
+    fields: [conversationAssignments.conversationId],  
+    references: [conversations.id],
+  }),
+  teamMember: one(teamMembers, {
+    fields: [conversationAssignments.teamMemberId],
+    references: [teamMembers.id],
+  }),
+  assignedByMember: one(teamMembers, {
+    fields: [conversationAssignments.assignedBy],
+    references: [teamMembers.id],
+  }),
+}));
+
+export const teamActivityLogsRelations = relations(teamActivityLogs, ({ one }) => ({
+  teamMember: one(teamMembers, {
+    fields: [teamActivityLogs.teamMemberId],
+    references: [teamMembers.id],
+  }),
+}));

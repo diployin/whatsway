@@ -1,0 +1,20 @@
+import type { Express } from "express";
+import * as dashboardController from "../controllers/dashboard.controller";
+import { extractChannelId } from "../middlewares/channel.middleware";
+
+export function registerDashboardRoutes(app: Express) {
+  // Get dashboard statistics
+  app.get("/api/dashboard/stats",
+    extractChannelId,
+    dashboardController.getDashboardStats
+  );
+
+  // Get analytics data
+  app.get("/api/analytics",
+    extractChannelId,
+    dashboardController.getAnalytics
+  );
+
+  // Create analytics entry
+  app.post("/api/analytics", dashboardController.createAnalytics);
+}
