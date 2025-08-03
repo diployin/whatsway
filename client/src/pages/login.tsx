@@ -33,7 +33,7 @@ export default function LoginPage() {
 
   const loginMutation = useMutation({
     mutationFn: async (data: z.infer<typeof loginSchema>) => {
-      const response = await apiRequest("POST", "/auth/login", data);
+      const response = await apiRequest("POST", "/api/auth/login", data);
       return response;
     },
     onSuccess: () => {
