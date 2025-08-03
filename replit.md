@@ -118,3 +118,17 @@ Preferred communication style: Simple, everyday language.
   - Created comprehensive INSTALL_README.md with detailed installation instructions
   - Created main README.md with project overview and quick start guide
   - Installer features: prerequisite checking, dependency installation, database setup, default admin user creation, webhook configuration guide, automated task scheduling, and systemd service setup option
+- Implemented drag-drop automation flow builder feature (Jan 3, 2025):
+  - Created comprehensive automation database schema with automation_workflows, automation_nodes, automation_executions, and automation_execution_logs tables
+  - Built AutomationRepository with full CRUD operations for workflows, nodes, and execution tracking
+  - Created automation API routes for managing automations with authentication
+  - Designed and built visual drag-drop flow builder UI with modular nodes:
+    - User Reply: Wait for user response with configurable timeout
+    - Time Gap: Delay execution with customizable duration
+    - Send Template: Send WhatsApp templates with variable support
+    - Custom Reply: Send custom text messages
+    - Keyword Catch: Detect keywords and branch flow accordingly
+  - Implemented drag-drop functionality for reordering flow steps
+  - Added real-time flow preview with expandable node configuration
+  - Created automation list view with status toggling and execution statistics
+  - Fixed automation repository methods to support findByChannel with optional filtering
