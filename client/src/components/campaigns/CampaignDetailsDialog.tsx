@@ -1,212 +1,246 @@
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Copy } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, 
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend 
+} from "recharts";
 import { format } from "date-fns";
-import { useToast } from "@/hooks/use-toast";
+import { Link } from "wouter";
+import { MessageSquare, Users, CheckCircle, AlertCircle, Eye, TrendingUp, Clock, BarChart3 } from "lucide-react";
+
+interface Campaign {
+  id: string;
+  name: string;
+  status: string;
+  templateName?: string;
+  recipientCount?: number;
+  sentCount?: number;
+  deliveredCount?: number;
+  readCount?: number;
+  repliedCount?: number;
+  failedCount?: number;
+  createdAt: string;
+  completedAt?: string;
+  scheduledAt?: string;
+}
 
 interface CampaignDetailsDialogProps {
-  campaign: any | null;
+  campaign: Campaign | null;
   onClose: () => void;
 }
 
 export function CampaignDetailsDialog({ campaign, onClose }: CampaignDetailsDialogProps) {
-  const { toast } = useToast();
-
   if (!campaign) return null;
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
-        return "bg-green-100 text-green-800";
-      case "scheduled":
-        return "bg-blue-100 text-blue-800";
-      case "completed":
-        return "bg-gray-100 text-gray-800";
-      case "paused":
-        return "bg-yellow-100 text-yellow-800";
-      case "failed":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
+  const deliveryRate = campaign.sentCount && campaign.sentCount > 0
+    ? Math.round((campaign.deliveredCount || 0) / campaign.sentCount * 100)
+    : 0;
 
-  const copyToClipboard = (text: string, label: string) => {
-    navigator.clipboard.writeText(text).then(() => {
-      toast({
-        title: "Copied!",
-        description: `${label} copied to clipboard`,
-      });
-    });
-  };
+  const readRate = campaign.deliveredCount && campaign.deliveredCount > 0
+    ? Math.round((campaign.readCount || 0) / campaign.deliveredCount * 100)
+    : 0;
 
-  const generateSampleCode = () => {
-    const baseUrl = window.location.origin;
-    return `// Using fetch (JavaScript)
-const response = await fetch('${baseUrl}${campaign.apiEndpoint}', {
-  method: 'POST',
-  headers: {
-    'X-API-Key': '${campaign.apiKey}',
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    to: '+919876543210',
-    variables: {
-      '1': 'John Doe',
-      '2': 'Order #12345'
-    }
-  })
-});
+  const replyRate = campaign.readCount && campaign.readCount > 0
+    ? Math.round((campaign.repliedCount || 0) / campaign.readCount * 100)
+    : 0;
 
-// Using cURL
-curl -X POST ${baseUrl}${campaign.apiEndpoint} \\
-  -H "X-API-Key: ${campaign.apiKey}" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "to": "+919876543210",
-    "variables": {
-      "1": "John Doe",
-      "2": "Order #12345"
-    }
-  }'`;
-  };
+  // Prepare data for pie chart
+  const statusData = [
+    { name: 'Delivered', value: campaign.deliveredCount || 0, color: '#10b981' },
+    { name: 'Read', value: campaign.readCount || 0, color: '#3b82f6' },
+    { name: 'Failed', value: campaign.failedCount || 0, color: '#ef4444' },
+    { name: 'Pending', value: (campaign.sentCount || 0) - (campaign.deliveredCount || 0) - (campaign.failedCount || 0), color: '#6b7280' },
+  ].filter(item => item.value > 0);
 
   return (
-    <Dialog open={!!campaign} onOpenChange={onClose}>
+    <Dialog open={!!campaign} onOpenChange={() => onClose()}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{campaign.name}</DialogTitle>
-          <DialogDescription>Campaign Analytics & Details</DialogDescription>
+          <DialogTitle className="flex items-center justify-between">
+            <span>{campaign.name}</span>
+            <Badge variant={campaign.status === 'active' ? 'success' : 'default'}>
+              {campaign.status}
+            </Badge>
+          </DialogTitle>
         </DialogHeader>
-        
-        <div className="space-y-6">
-          {/* Campaign Metrics */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Sent</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{campaign.sentCount || 0}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Delivered</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{campaign.deliveredCount || 0}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Read</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{campaign.readCount || 0}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Failed</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{campaign.failedCount || 0}</div>
-              </CardContent>
-            </Card>
-          </div>
 
-          {/* Campaign Info */}
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span className="font-medium">Type:</span>
-              <span>{campaign.campaignType}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-medium">Template:</span>
-              <span>{campaign.templateName}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-medium">Status:</span>
-              <Badge className={getStatusColor(campaign.status)}>
-                {campaign.status}
-              </Badge>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-medium">Created:</span>
-              <span>{format(new Date(campaign.createdAt), "PPP")}</span>
-            </div>
-            {campaign.scheduledAt && (
-              <div className="flex justify-between">
-                <span className="font-medium">Scheduled:</span>
-                <span>{format(new Date(campaign.scheduledAt), "PPP p")}</span>
-              </div>
-            )}
-          </div>
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="metrics">Detailed Metrics</TabsTrigger>
+            <TabsTrigger value="report">Full Report</TabsTrigger>
+          </TabsList>
 
-          {/* API Details for API campaigns */}
-          {campaign.campaignType === "api" && campaign.apiEndpoint && (
+          <TabsContent value="overview" className="space-y-4">
+            {/* Summary Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Recipients</p>
+                      <p className="text-xl font-bold">{campaign.recipientCount || 0}</p>
+                    </div>
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Sent</p>
+                      <p className="text-xl font-bold">{campaign.sentCount || 0}</p>
+                    </div>
+                    <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Delivered</p>
+                      <p className="text-xl font-bold text-green-600">{campaign.deliveredCount || 0}</p>
+                    </div>
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Failed</p>
+                      <p className="text-xl font-bold text-destructive">{campaign.failedCount || 0}</p>
+                    </div>
+                    <AlertCircle className="h-4 w-4 text-destructive" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Progress Metrics */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">API Integration Details</CardTitle>
+                <CardTitle>Performance Metrics</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label>Endpoint URL</Label>
-                  <div className="flex gap-2">
-                    <Input value={`${window.location.origin}${campaign.apiEndpoint}`} readOnly />
-                    <Button 
-                      variant="outline" 
-                      size="icon"
-                      onClick={() => copyToClipboard(`${window.location.origin}${campaign.apiEndpoint}`, "Endpoint URL")}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-sm font-medium">Delivery Rate</span>
+                    <span className="text-sm font-bold text-green-600">{deliveryRate}%</span>
                   </div>
+                  <Progress value={deliveryRate} className="h-2" />
                 </div>
-                
+
                 <div>
-                  <Label>API Key</Label>
-                  <div className="flex gap-2">
-                    <Input value={campaign.apiKey} readOnly type="password" />
-                    <Button 
-                      variant="outline" 
-                      size="icon"
-                      onClick={() => copyToClipboard(campaign.apiKey, "API Key")}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-sm font-medium">Read Rate</span>
+                    <span className="text-sm font-bold text-blue-600">{readRate}%</span>
                   </div>
+                  <Progress value={readRate} className="h-2" />
                 </div>
-                
+
                 <div>
-                  <Label>Sample Code</Label>
-                  <div className="relative">
-                    <Textarea 
-                      value={generateSampleCode()} 
-                      readOnly 
-                      className="font-mono text-sm h-64"
-                    />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="absolute top-2 right-2"
-                      onClick={() => copyToClipboard(generateSampleCode(), "Sample code")}
-                    >
-                      <Copy className="h-4 w-4 mr-2" />
-                      Copy Code
-                    </Button>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-sm font-medium">Reply Rate</span>
+                    <span className="text-sm font-bold text-purple-600">{replyRate}%</span>
                   </div>
+                  <Progress value={replyRate} className="h-2" />
                 </div>
               </CardContent>
             </Card>
-          )}
-        </div>
+
+            {/* Campaign Details */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Campaign Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Template</span>
+                  <span className="text-sm font-medium">{campaign.templateName || 'N/A'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Created</span>
+                  <span className="text-sm font-medium">
+                    {format(new Date(campaign.createdAt), 'MMM d, yyyy h:mm a')}
+                  </span>
+                </div>
+                {campaign.completedAt && (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Completed</span>
+                    <span className="text-sm font-medium">
+                      {format(new Date(campaign.completedAt), 'MMM d, yyyy h:mm a')}
+                    </span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="metrics" className="space-y-4">
+            {/* Status Distribution */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Message Status Distribution</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={statusData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={(entry) => `${entry.name}: ${entry.value}`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {statusData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="report" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Full Campaign Report</CardTitle>
+                <CardDescription>
+                  View comprehensive analytics and download detailed reports
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Link href={`/analytics/campaign/${campaign.id}`}>
+                  <Button className="w-full">
+                    <BarChart3 className="mr-2 h-4 w-4" />
+                    View Full Analytics Report
+                  </Button>
+                </Link>
+                <p className="text-sm text-muted-foreground text-center">
+                  Access detailed analytics, timeline, recipient details, and more
+                </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

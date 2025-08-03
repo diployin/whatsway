@@ -1,137 +1,163 @@
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Eye, Pause, Play, Code, Trash2, Clock, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { MoreHorizontal, Eye, Play, Pause, Trash2, TrendingUp, TrendingDown } from "lucide-react";
 import { format } from "date-fns";
 
+interface Campaign {
+  id: string;
+  name: string;
+  status: string;
+  templateName?: string;
+  recipientCount?: number;
+  sentCount?: number;
+  deliveredCount?: number;
+  readCount?: number;
+  repliedCount?: number;
+  failedCount?: number;
+  createdAt: string;
+  completedAt?: string;
+  scheduledAt?: string;
+}
+
 interface CampaignsTableProps {
-  campaigns: any[];
-  onViewCampaign: (campaign: any) => void;
+  campaigns: Campaign[];
+  onViewCampaign: (campaign: Campaign) => void;
   onUpdateStatus: (id: string, status: string) => void;
   onDeleteCampaign: (id: string) => void;
 }
 
 export function CampaignsTable({ campaigns, onViewCampaign, onUpdateStatus, onDeleteCampaign }: CampaignsTableProps) {
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "active":
-        return <Play className="h-4 w-4" />;
-      case "scheduled":
-        return <Clock className="h-4 w-4" />;
-      case "completed":
-        return <CheckCircle className="h-4 w-4" />;
-      case "paused":
-        return <Pause className="h-4 w-4" />;
-      case "failed":
-        return <XCircle className="h-4 w-4" />;
-      default:
-        return <AlertCircle className="h-4 w-4" />;
-    }
+  const getStatusBadge = (status: string) => {
+    const statusConfig: Record<string, { variant: "default" | "secondary" | "success" | "destructive" | "outline"; label: string }> = {
+      active: { variant: "success", label: "Active" },
+      completed: { variant: "default", label: "Completed" },
+      scheduled: { variant: "secondary", label: "Scheduled" },
+      paused: { variant: "outline", label: "Paused" },
+      failed: { variant: "destructive", label: "Failed" },
+    };
+
+    const config = statusConfig[status] || { variant: "outline", label: status };
+    return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
-        return "bg-green-100 text-green-800";
-      case "scheduled":
-        return "bg-blue-100 text-blue-800";
-      case "completed":
-        return "bg-gray-100 text-gray-800";
-      case "paused":
-        return "bg-yellow-100 text-yellow-800";
-      case "failed":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
+  const calculateDeliveryRate = (sent?: number, delivered?: number) => {
+    if (!sent || sent === 0) return 0;
+    return Math.round((delivered || 0) / sent * 100);
   };
+
+  const calculateReadRate = (delivered?: number, read?: number) => {
+    if (!delivered || delivered === 0) return 0;
+    return Math.round((read || 0) / delivered * 100);
+  };
+
+  if (campaigns.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-muted-foreground">No campaigns found. Create your first campaign to get started.</p>
+      </div>
+    );
+  }
 
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Name</TableHead>
-          <TableHead>Type</TableHead>
-          <TableHead>Template</TableHead>
+          <TableHead>Campaign</TableHead>
           <TableHead>Status</TableHead>
+          <TableHead>Template</TableHead>
           <TableHead>Recipients</TableHead>
           <TableHead>Sent</TableHead>
           <TableHead>Delivered</TableHead>
+          <TableHead>Read</TableHead>
+          <TableHead>Delivery Rate</TableHead>
           <TableHead>Created</TableHead>
-          <TableHead>Actions</TableHead>
+          <TableHead className="text-right">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {campaigns.map((campaign: any) => (
-          <TableRow key={campaign.id}>
-            <TableCell className="font-medium">{campaign.name}</TableCell>
-            <TableCell>
-              <Badge variant="outline">{campaign.campaignType}</Badge>
-            </TableCell>
-            <TableCell>{campaign.templateName}</TableCell>
-            <TableCell>
-              <Badge className={getStatusColor(campaign.status)}>
-                <span className="flex items-center gap-1">
-                  {getStatusIcon(campaign.status)}
-                  {campaign.status}
-                </span>
-              </Badge>
-            </TableCell>
-            <TableCell>{campaign.recipientCount || 0}</TableCell>
-            <TableCell>{campaign.sentCount || 0}</TableCell>
-            <TableCell>{campaign.deliveredCount || 0}</TableCell>
-            <TableCell>{format(new Date(campaign.createdAt), "MMM d, yyyy")}</TableCell>
-            <TableCell>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onViewCampaign(campaign)}
-                >
-                  <Eye className="h-4 w-4" />
-                </Button>
-                
-                {campaign.status === "active" && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onUpdateStatus(campaign.id, "paused")}
-                  >
-                    <Pause className="h-4 w-4" />
-                  </Button>
-                )}
-                
-                {campaign.status === "paused" && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onUpdateStatus(campaign.id, "active")}
-                  >
-                    <Play className="h-4 w-4" />
-                  </Button>
-                )}
-                
-                {campaign.campaignType === "api" && (
-                  <Button 
-                    variant="ghost" 
-                    size="icon"
-                    onClick={() => onViewCampaign(campaign)}
-                  >
-                    <Code className="h-4 w-4" />
-                  </Button>
-                )}
-                
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onDeleteCampaign(campaign.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </TableCell>
-          </TableRow>
-        ))}
+        {campaigns.map((campaign) => {
+          const deliveryRate = calculateDeliveryRate(campaign.sentCount, campaign.deliveredCount);
+          const readRate = calculateReadRate(campaign.deliveredCount, campaign.readCount);
+          
+          return (
+            <TableRow key={campaign.id}>
+              <TableCell className="font-medium">{campaign.name}</TableCell>
+              <TableCell>{getStatusBadge(campaign.status)}</TableCell>
+              <TableCell>{campaign.templateName || "-"}</TableCell>
+              <TableCell>{campaign.recipientCount || 0}</TableCell>
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  <span>{campaign.sentCount || 0}</span>
+                  {campaign.failedCount ? (
+                    <span className="text-xs text-destructive">({campaign.failedCount} failed)</span>
+                  ) : null}
+                </div>
+              </TableCell>
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  <span>{campaign.deliveredCount || 0}</span>
+                  {deliveryRate > 0 && (
+                    <span className="text-xs text-muted-foreground">({deliveryRate}%)</span>
+                  )}
+                </div>
+              </TableCell>
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  <span>{campaign.readCount || 0}</span>
+                  {readRate > 0 && (
+                    <span className="text-xs text-muted-foreground">({readRate}%)</span>
+                  )}
+                </div>
+              </TableCell>
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  <Progress value={deliveryRate} className="w-20" />
+                  <span className="text-sm font-medium">{deliveryRate}%</span>
+                </div>
+              </TableCell>
+              <TableCell>
+                {format(new Date(campaign.createdAt), "MMM d, h:mm a")}
+              </TableCell>
+              <TableCell className="text-right">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => onViewCampaign(campaign)}>
+                      <Eye className="mr-2 h-4 w-4" />
+                      View Details
+                    </DropdownMenuItem>
+                    {campaign.status === "active" && (
+                      <DropdownMenuItem onClick={() => onUpdateStatus(campaign.id, "paused")}>
+                        <Pause className="mr-2 h-4 w-4" />
+                        Pause
+                      </DropdownMenuItem>
+                    )}
+                    {campaign.status === "paused" && (
+                      <DropdownMenuItem onClick={() => onUpdateStatus(campaign.id, "active")}>
+                        <Play className="mr-2 h-4 w-4" />
+                        Resume
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem 
+                      onClick={() => onDeleteCampaign(campaign.id)}
+                      className="text-destructive"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
+            </TableRow>
+          );
+        })}
       </TableBody>
     </Table>
   );

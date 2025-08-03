@@ -1,55 +1,122 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Play, Send, CheckCircle } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { MessageSquare, Users, TrendingUp, CheckCircle, AlertCircle } from "lucide-react";
+
+interface Campaign {
+  id: string;
+  status: string;
+  recipientCount?: number;
+  sentCount?: number;
+  deliveredCount?: number;
+  readCount?: number;
+  failedCount?: number;
+}
 
 interface CampaignStatisticsProps {
-  campaigns: any[];
+  campaigns: Campaign[];
 }
 
 export function CampaignStatistics({ campaigns }: CampaignStatisticsProps) {
-  const activeCampaigns = campaigns.filter((c: any) => c.status === "active").length;
-  const totalSent = campaigns.reduce((acc: number, c: any) => acc + (c.sentCount || 0), 0);
-  const totalDelivered = campaigns.reduce((acc: number, c: any) => acc + (c.deliveredCount || 0), 0);
-  const successRate = totalSent > 0 ? Math.round((totalDelivered / totalSent) * 100) : 0;
+  // Calculate aggregate statistics
+  const stats = campaigns.reduce((acc, campaign) => ({
+    totalCampaigns: acc.totalCampaigns + 1,
+    activeCampaigns: acc.activeCampaigns + (campaign.status === 'active' ? 1 : 0),
+    totalRecipients: acc.totalRecipients + (campaign.recipientCount || 0),
+    totalSent: acc.totalSent + (campaign.sentCount || 0),
+    totalDelivered: acc.totalDelivered + (campaign.deliveredCount || 0),
+    totalRead: acc.totalRead + (campaign.readCount || 0),
+    totalFailed: acc.totalFailed + (campaign.failedCount || 0),
+  }), {
+    totalCampaigns: 0,
+    activeCampaigns: 0,
+    totalRecipients: 0,
+    totalSent: 0,
+    totalDelivered: 0,
+    totalRead: 0,
+    totalFailed: 0,
+  });
+
+  const deliveryRate = stats.totalSent > 0 
+    ? Math.round((stats.totalDelivered / stats.totalSent) * 100) 
+    : 0;
+
+  const readRate = stats.totalDelivered > 0 
+    ? Math.round((stats.totalRead / stats.totalDelivered) * 100) 
+    : 0;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Campaigns</CardTitle>
-          <BarChart className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{campaigns.length}</div>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Total Campaigns</p>
+              <p className="text-2xl font-bold">{stats.totalCampaigns}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {stats.activeCampaigns} active
+              </p>
+            </div>
+            <MessageSquare className="h-8 w-8 text-muted-foreground" />
+          </div>
         </CardContent>
       </Card>
-      
+
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Active Campaigns</CardTitle>
-          <Play className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{activeCampaigns}</div>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Total Recipients</p>
+              <p className="text-2xl font-bold">{stats.totalRecipients.toLocaleString()}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {stats.totalSent} sent
+              </p>
+            </div>
+            <Users className="h-8 w-8 text-muted-foreground" />
+          </div>
         </CardContent>
       </Card>
-      
+
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Messages Sent</CardTitle>
-          <Send className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{totalSent}</div>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Delivery Rate</p>
+              <p className="text-2xl font-bold text-green-600">{deliveryRate}%</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {stats.totalDelivered} delivered
+              </p>
+            </div>
+            <CheckCircle className="h-8 w-8 text-green-600" />
+          </div>
         </CardContent>
       </Card>
-      
+
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
-          <CheckCircle className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{successRate}%</div>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Read Rate</p>
+              <p className="text-2xl font-bold text-blue-600">{readRate}%</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {stats.totalRead} read
+              </p>
+            </div>
+            <TrendingUp className="h-8 w-8 text-blue-600" />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Failed Messages</p>
+              <p className="text-2xl font-bold text-destructive">{stats.totalFailed}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {stats.totalSent > 0 ? Math.round((stats.totalFailed / stats.totalSent) * 100) : 0}% failure rate
+              </p>
+            </div>
+            <AlertCircle className="h-8 w-8 text-destructive" />
+          </div>
         </CardContent>
       </Card>
     </div>

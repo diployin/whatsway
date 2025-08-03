@@ -108,14 +108,14 @@ export const getCampaignAnalytics = asyncHandler(async (req: Request, res: Respo
   // Calculate rates in JavaScript
   const campaignsWithRates = campaignStats.map(campaign => ({
     ...campaign,
-    deliveryRate: campaign.sentCount > 0 
-      ? (campaign.deliveredCount / campaign.sentCount) * 100 
+    deliveryRate: (campaign.sentCount && campaign.sentCount > 0)
+      ? ((campaign.deliveredCount || 0) / campaign.sentCount) * 100 
       : 0,
-    readRate: campaign.deliveredCount > 0 
-      ? (campaign.readCount / campaign.deliveredCount) * 100 
+    readRate: (campaign.deliveredCount && campaign.deliveredCount > 0)
+      ? ((campaign.readCount || 0) / campaign.deliveredCount) * 100 
       : 0,
-    replyRate: campaign.readCount > 0 
-      ? (campaign.repliedCount / campaign.readCount) * 100 
+    replyRate: (campaign.readCount && campaign.readCount > 0)
+      ? ((campaign.repliedCount || 0) / campaign.readCount) * 100 
       : 0,
   }));
 
@@ -166,45 +166,45 @@ export const getCampaignAnalyticsById = asyncHandler(async (req: Request, res: R
 
   // Get daily message stats for this campaign
   const endDate = new Date();
-  const startDate = new Date(campaign[0].createdAt);
+  const startDate = new Date(campaign[0].createdAt || new Date());
   
   const dailyStats = await db
     .select({
-      date: sql<string>`DATE(${campaignRecipients.createdAt})`,
-      sent: count(campaignRecipients.id),
-      delivered: sql<number>`COUNT(CASE WHEN ${campaignRecipients.status} = 'delivered' THEN 1 END)`,
-      read: sql<number>`COUNT(CASE WHEN ${campaignRecipients.status} = 'read' THEN 1 END)`,
-      failed: sql<number>`COUNT(CASE WHEN ${campaignRecipients.status} = 'failed' THEN 1 END)`,
+      date: sql<string>`DATE(${messages.timestamp})`,
+      sent: count(messages.id),
+      delivered: sql<number>`COUNT(CASE WHEN ${messages.status} = 'delivered' THEN 1 END)`,
+      read: sql<number>`COUNT(CASE WHEN ${messages.status} = 'read' THEN 1 END)`,
+      failed: sql<number>`COUNT(CASE WHEN ${messages.status} = 'failed' THEN 1 END)`,
     })
-    .from(campaignRecipients)
-    .where(eq(campaignRecipients.campaignId, campaignId))
-    .groupBy(sql`DATE(${campaignRecipients.createdAt})`)
-    .orderBy(sql`DATE(${campaignRecipients.createdAt})`);
+    .from(messages)
+    .where(eq(messages.campaignId, campaignId))
+    .groupBy(sql`DATE(${messages.timestamp})`)
+    .orderBy(sql`DATE(${messages.timestamp})`);
 
   // Get recipient status distribution
   const recipientStats = await db
     .select({
-      status: campaignRecipients.status,
-      count: count(campaignRecipients.id),
+      status: messages.status,
+      count: count(messages.id),
     })
-    .from(campaignRecipients)
-    .where(eq(campaignRecipients.campaignId, campaignId))
-    .groupBy(campaignRecipients.status);
+    .from(messages)
+    .where(eq(messages.campaignId, campaignId))
+    .groupBy(messages.status);
 
   // Get error analysis
   const errorAnalysis = await db
     .select({
-      errorCode: campaignRecipients.errorCode,
-      errorMessage: campaignRecipients.errorMessage,
-      count: count(campaignRecipients.id),
+      errorCode: sql<string>`${messages.errorDetails}->>'code'`,
+      errorMessage: sql<string>`${messages.errorDetails}->>'message'`,
+      count: count(messages.id),
     })
-    .from(campaignRecipients)
+    .from(messages)
     .where(and(
-      eq(campaignRecipients.campaignId, campaignId),
-      eq(campaignRecipients.status, 'failed')
+      eq(messages.campaignId, campaignId),
+      eq(messages.status, 'failed')
     ))
-    .groupBy(campaignRecipients.errorCode, campaignRecipients.errorMessage)
-    .orderBy(desc(count(campaignRecipients.id)));
+    .groupBy(sql`${messages.errorDetails}->>'code'`, sql`${messages.errorDetails}->>'message'`)
+    .orderBy(desc(count(messages.id)));
 
   res.json({
     campaign: campaign[0],
