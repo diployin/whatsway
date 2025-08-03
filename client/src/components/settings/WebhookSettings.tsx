@@ -87,13 +87,13 @@ export function WebhookSettings() {
   };
 
   const getWebhookStatus = (webhook: WebhookConfig) => {
-    if (!webhook.lastEventTime) return { icon: <AlertCircle className="w-4 h-4" />, text: "No events received" };
+    if (!webhook.lastPingAt) return { icon: <AlertCircle className="w-4 h-4" />, text: "No events received" };
     
-    const lastEventDate = new Date(webhook.lastEventTime);
+    const lastPingDate = new Date(webhook.lastPingAt);
     const now = new Date();
-    const hoursSinceLastEvent = (now.getTime() - lastEventDate.getTime()) / (1000 * 60 * 60);
+    const hoursSinceLastPing = (now.getTime() - lastPingDate.getTime()) / (1000 * 60 * 60);
     
-    if (hoursSinceLastEvent < 24) {
+    if (hoursSinceLastPing < 24) {
       return { icon: <CheckCircle className="w-4 h-4 text-green-500" />, text: "Active" };
     } else {
       return { icon: <AlertCircle className="w-4 h-4 text-yellow-500" />, text: "Inactive" };
@@ -185,9 +185,9 @@ export function WebhookSettings() {
                                 ))}
                               </div>
                             </div>
-                            {webhook.lastEventTime && (
+                            {webhook.lastPingAt && (
                               <div className="text-sm text-gray-500">
-                                Last event: {new Date(webhook.lastEventTime).toLocaleString()}
+                                Last event: {new Date(webhook.lastPingAt).toLocaleString()}
                               </div>
                             )}
                           </div>

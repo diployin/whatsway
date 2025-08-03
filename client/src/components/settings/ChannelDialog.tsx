@@ -127,7 +127,7 @@ export function ChannelDialog({ open, onOpenChange, editingChannel, onSuccess }:
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{editingChannel ? "Edit" : "Add New"} WhatsApp Channel</DialogTitle>
           <DialogDescription>
@@ -237,73 +237,6 @@ export function ChannelDialog({ open, onOpenChange, editingChannel, onSuccess }:
                 </FormItem>
               )}
             />
-
-            {/* MM Lite Configuration */}
-            <div className="space-y-4 border-t pt-4">
-              <div className="flex items-center space-x-2">
-                <MessageSquare className="w-5 h-5 text-gray-500" />
-                <h3 className="font-medium">MM Lite Configuration (Optional)</h3>
-              </div>
-              
-              <FormField
-                control={channelForm.control}
-                name="mmLiteEnabled"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-base">Enable MM Lite</FormLabel>
-                      <FormDescription>
-                        Use MM Lite API for high-volume messaging
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              {channelForm.watch("mmLiteEnabled") && (
-                <>
-                  <FormField
-                    control={channelForm.control}
-                    name="mmLiteApiUrl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>MM Lite API URL</FormLabel>
-                        <FormControl>
-                          <Input placeholder="https://api.mmlite.com" {...field} />
-                        </FormControl>
-                        <FormDescription>
-                          The base URL for MM Lite API
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={channelForm.control}
-                    name="mmLiteApiKey"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>MM Lite API Key</FormLabel>
-                        <FormControl>
-                          <Input type="password" placeholder="Your MM Lite API key" {...field} />
-                        </FormControl>
-                        <FormDescription>
-                          Your MM Lite API authentication key
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </>
-              )}
-            </div>
 
             <DialogFooter>
               <Button
