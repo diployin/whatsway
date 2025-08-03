@@ -23,5 +23,8 @@ export function registerChannelRoutes(app: Express) {
   app.delete("/api/channels/:id", channelsController.deleteChannel);
 
   // Check channel health
-  app.get("/api/channels/:id/health", channelsController.checkChannelHealth);
+  app.post("/api/channels/:id/health", channelsController.checkChannelHealth);
+  
+  // Check all channels health
+  app.post("/api/channels/health-check-all", channelsController.checkAllChannelsHealth);
 }

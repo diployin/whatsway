@@ -30,8 +30,54 @@ export const createChannel = asyncHandler(async (req: Request, res: Response) =>
     }
   }
   
+  // Create the channel
   const channel = await storage.createChannel(validatedChannel);
-  res.json(channel);
+  
+  // Immediately check channel health after creation
+  try {
+    const apiVersion = process.env.WHATSAPP_API_VERSION || 'v23.0';
+    const url = `https://graph.facebook.com/${apiVersion}/${channel.phoneNumberId}`;
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${channel.accessToken}`
+      }
+    });
+
+    const data = await response.json();
+    
+    if (response.ok) {
+      const healthDetails = {
+        status: data.account_mode || 'UNKNOWN',
+        name_status: data.name_status || 'UNKNOWN',
+        phone_number: data.display_phone_number || channel.phoneNumber,
+        quality_rating: data.quality_rating || 'UNKNOWN',
+        throughput_level: data.throughput?.level || 'STANDARD',
+        verification_status: data.verified_name?.status || 'NOT_VERIFIED'
+      };
+
+      await storage.updateChannel(channel.id, {
+        healthStatus: 'healthy',
+        lastHealthCheck: new Date(),
+        healthDetails
+      });
+    } else {
+      await storage.updateChannel(channel.id, {
+        healthStatus: 'error',
+        lastHealthCheck: new Date(),
+        healthDetails: { 
+          error: data.error?.message || 'Unknown error',
+          error_code: data.error?.code,
+          error_type: data.error?.type
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Error checking channel health after creation:', error);
+  }
+  
+  // Return the created channel with updated health status
+  const updatedChannel = await storage.getChannel(channel.id);
+  res.json(updatedChannel);
 });
 
 export const updateChannel = asyncHandler(async (req: Request, res: Response) => {
@@ -71,7 +117,8 @@ export const checkChannelHealth = asyncHandler(async (req: Request, res: Respons
   }
 
   try {
-    const url = `https://graph.facebook.com/v23.0/${channel.phoneNumberId}`;
+    const apiVersion = process.env.WHATSAPP_API_VERSION || 'v23.0';
+    const url = `https://graph.facebook.com/${apiVersion}/${channel.phoneNumberId}`;
     const response = await fetch(url, {
       headers: {
         'Authorization': `Bearer ${channel.accessToken}`
@@ -87,7 +134,8 @@ export const checkChannelHealth = asyncHandler(async (req: Request, res: Respons
         phone_number: data.display_phone_number || channel.phoneNumber,
         quality_rating: data.quality_rating || 'UNKNOWN',
         throughput_level: data.throughput?.level || 'STANDARD',
-        verification_status: data.verified_name?.status || 'NOT_VERIFIED'
+        verification_status: data.verified_name?.status || 'NOT_VERIFIED',
+        messaging_limit: data.messaging_limit || 'UNKNOWN'
       };
 
       await storage.updateChannel(id, {
@@ -127,4 +175,13 @@ export const checkChannelHealth = asyncHandler(async (req: Request, res: Respons
       lastCheck: new Date()
     });
   }
+});
+
+export const checkAllChannelsHealth = asyncHandler(async (req: Request, res: Response) => {
+  const { channelHealthMonitor } = await import('../cron/channel-health-monitor');
+  await channelHealthMonitor.runManualCheck();
+  res.json({
+    message: 'Health check triggered for all channels',
+    timestamp: new Date()
+  });
 });

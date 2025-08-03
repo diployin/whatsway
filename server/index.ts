@@ -66,12 +66,16 @@ app.use((req, res, next) => {
     port,
     host: "0.0.0.0",
     reusePort: true,
-  }, () => {
+  }, async () => {
     log(`serving on port ${port}`);
     
     // Start the message status updater cron job
     const messageStatusUpdater = new MessageStatusUpdater();
     messageStatusUpdater.startCronJob(10); // Run every 10 seconds
     log('Message status updater cron job started');
+    
+    // Start channel health monitor
+    const { channelHealthMonitor } = await import('./cron/channel-health-monitor');
+    channelHealthMonitor.start();
   });
 })();
