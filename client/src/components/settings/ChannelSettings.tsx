@@ -5,7 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { 
   Smartphone, Plus, Edit, Trash2, CheckCircle, XCircle, 
-  TestTube, RefreshCw, Info, Activity, MessageSquare 
+  TestTube, RefreshCw, Info, Activity, MessageSquare,
+  Shield, TrendingUp, Gauge, ShieldCheck, Award, Zap
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -177,47 +178,156 @@ export function ChannelSettings() {
                         <p>Phone: {channel.phoneNumber || 'Not set'}</p>
                         <p>Phone Number ID: {channel.phoneNumberId}</p>
                         <p>Business Account ID: {channel.whatsappBusinessAccountId || 'Not set'}</p>
-                        <div className="mt-3 space-y-2">
-                          <div className="flex items-center space-x-2">
-                            <span className="font-medium">Health Status:</span>
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center space-x-2">
+                              <Shield className="w-5 h-5 text-gray-600" />
+                              <span className="font-semibold text-gray-700">Channel Health</span>
+                            </div>
                             {getHealthStatusBadge(channel.healthStatus, channel.lastHealthCheck)}
                           </div>
                           {channel.healthDetails && Object.keys(channel.healthDetails).length > 0 && (
-                            <div className="mt-2 p-3 bg-gray-50 rounded-md space-y-1 text-xs">
+                            <div className="mt-3">
                               {channel.healthDetails.error ? (
-                                <>
-                                  <p className="text-red-600 font-medium">Error: {channel.healthDetails.error}</p>
+                                <div className="p-3 bg-red-50 border border-red-200 rounded-md space-y-1 text-sm">
+                                  <p className="text-red-700 font-medium">Error: {channel.healthDetails.error}</p>
                                   {channel.healthDetails.error_code && (
                                     <p className="text-red-600">Error Code: {channel.healthDetails.error_code}</p>
                                   )}
                                   {channel.healthDetails.error_type && (
                                     <p className="text-red-600">Error Type: {channel.healthDetails.error_type}</p>
                                   )}
-                                </>
+                                </div>
                               ) : (
-                                <>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                                   {channel.healthDetails.status && (
-                                    <p>Account Mode: <span className="font-medium">{channel.healthDetails.status}</span></p>
+                                    <div className={`p-3 rounded-lg border ${
+                                      channel.healthDetails.status === 'LIVE' 
+                                        ? 'bg-green-50 border-green-200' 
+                                        : 'bg-yellow-50 border-yellow-200'
+                                    }`}>
+                                      <div className="flex items-center space-x-2 mb-1">
+                                        <Activity className={`w-4 h-4 ${
+                                          channel.healthDetails.status === 'LIVE' 
+                                            ? 'text-green-600' 
+                                            : 'text-yellow-600'
+                                        }`} />
+                                        <span className="text-xs font-medium text-gray-600">Account Mode</span>
+                                      </div>
+                                      <p className={`font-semibold ${
+                                        channel.healthDetails.status === 'LIVE' 
+                                          ? 'text-green-700' 
+                                          : 'text-yellow-700'
+                                      }`}>{channel.healthDetails.status}</p>
+                                    </div>
                                   )}
+                                  
                                   {channel.healthDetails.quality_rating && (
-                                    <p>Quality Rating: <span className="font-medium capitalize">{channel.healthDetails.quality_rating}</span></p>
+                                    <div className={`p-3 rounded-lg border ${
+                                      channel.healthDetails.quality_rating === 'GREEN' 
+                                        ? 'bg-emerald-50 border-emerald-200'
+                                        : channel.healthDetails.quality_rating === 'YELLOW'
+                                        ? 'bg-amber-50 border-amber-200'
+                                        : 'bg-red-50 border-red-200'
+                                    }`}>
+                                      <div className="flex items-center space-x-2 mb-1">
+                                        <TrendingUp className={`w-4 h-4 ${
+                                          channel.healthDetails.quality_rating === 'GREEN' 
+                                            ? 'text-emerald-600'
+                                            : channel.healthDetails.quality_rating === 'YELLOW'
+                                            ? 'text-amber-600'
+                                            : 'text-red-600'
+                                        }`} />
+                                        <span className="text-xs font-medium text-gray-600">Quality Rating</span>
+                                      </div>
+                                      <p className={`font-semibold ${
+                                        channel.healthDetails.quality_rating === 'GREEN' 
+                                          ? 'text-emerald-700'
+                                          : channel.healthDetails.quality_rating === 'YELLOW'
+                                          ? 'text-amber-700'
+                                          : 'text-red-700'
+                                      }`}>{channel.healthDetails.quality_rating}</p>
+                                    </div>
                                   )}
+                                  
                                   {channel.healthDetails.messaging_limit && (
-                                    <p>Messaging Limit: <span className="font-medium">{channel.healthDetails.messaging_limit}</span></p>
+                                    <div className="p-3 rounded-lg border bg-blue-50 border-blue-200">
+                                      <div className="flex items-center space-x-2 mb-1">
+                                        <Zap className="w-4 h-4 text-blue-600" />
+                                        <span className="text-xs font-medium text-gray-600">Messaging Limit</span>
+                                      </div>
+                                      <p className="font-semibold text-blue-700">{channel.healthDetails.messaging_limit}</p>
+                                    </div>
                                   )}
+                                  
                                   {channel.healthDetails.throughput_level && (
-                                    <p>Throughput: <span className="font-medium capitalize">{channel.healthDetails.throughput_level}</span></p>
+                                    <div className="p-3 rounded-lg border bg-purple-50 border-purple-200">
+                                      <div className="flex items-center space-x-2 mb-1">
+                                        <Gauge className="w-4 h-4 text-purple-600" />
+                                        <span className="text-xs font-medium text-gray-600">Throughput</span>
+                                      </div>
+                                      <p className="font-semibold text-purple-700 capitalize">{channel.healthDetails.throughput_level}</p>
+                                    </div>
                                   )}
+                                  
                                   {channel.healthDetails.verification_status && (
-                                    <p>Verification: <span className="font-medium">{channel.healthDetails.verification_status.replace(/_/g, ' ')}</span></p>
+                                    <div className={`p-3 rounded-lg border ${
+                                      channel.healthDetails.verification_status === 'VERIFIED' 
+                                        ? 'bg-teal-50 border-teal-200'
+                                        : 'bg-gray-50 border-gray-200'
+                                    }`}>
+                                      <div className="flex items-center space-x-2 mb-1">
+                                        <ShieldCheck className={`w-4 h-4 ${
+                                          channel.healthDetails.verification_status === 'VERIFIED' 
+                                            ? 'text-teal-600'
+                                            : 'text-gray-600'
+                                        }`} />
+                                        <span className="text-xs font-medium text-gray-600">Verification</span>
+                                      </div>
+                                      <p className={`font-semibold ${
+                                        channel.healthDetails.verification_status === 'VERIFIED' 
+                                          ? 'text-teal-700'
+                                          : 'text-gray-700'
+                                      }`}>{channel.healthDetails.verification_status.replace(/_/g, ' ')}</p>
+                                    </div>
                                   )}
+                                  
                                   {channel.healthDetails.name_status && (
-                                    <p>Name Status: <span className="font-medium capitalize">{channel.healthDetails.name_status}</span></p>
+                                    <div className={`p-3 rounded-lg border ${
+                                      channel.healthDetails.name_status === 'APPROVED' 
+                                        ? 'bg-indigo-50 border-indigo-200'
+                                        : 'bg-orange-50 border-orange-200'
+                                    }`}>
+                                      <div className="flex items-center space-x-2 mb-1">
+                                        <Award className={`w-4 h-4 ${
+                                          channel.healthDetails.name_status === 'APPROVED' 
+                                            ? 'text-indigo-600'
+                                            : 'text-orange-600'
+                                        }`} />
+                                        <span className="text-xs font-medium text-gray-600">Name Status</span>
+                                      </div>
+                                      <p className={`font-semibold ${
+                                        channel.healthDetails.name_status === 'APPROVED' 
+                                          ? 'text-indigo-700'
+                                          : 'text-orange-700'
+                                      }`}>{channel.healthDetails.name_status}</p>
+                                    </div>
                                   )}
-                                </>
+                                </div>
                               )}
                               {channel.lastHealthCheck && (
-                                <p className="text-gray-500 mt-1">Last checked: {new Date(channel.lastHealthCheck).toLocaleString()}</p>
+                                <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                                  <p className="text-xs text-gray-500">Last checked: {new Date(channel.lastHealthCheck).toLocaleString()}</p>
+                                  <Button 
+                                    onClick={() => checkChannelHealth(channel.id)} 
+                                    variant="ghost" 
+                                    size="sm"
+                                    className="text-xs"
+                                  >
+                                    <RefreshCw className="w-3 h-3 mr-1" />
+                                    Refresh
+                                  </Button>
+                                </div>
                               )}
                             </div>
                           )}
@@ -225,14 +335,6 @@ export function ChannelSettings() {
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => checkChannelHealth(channel.id)}
-                      >
-                        <RefreshCw className="w-4 h-4 mr-1" />
-                        Check Health
-                      </Button>
                       <Button
                         variant="outline"
                         size="sm"
