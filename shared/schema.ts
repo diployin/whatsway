@@ -134,10 +134,6 @@ export const channels = pgTable("channels", {
   whatsappBusinessAccountId: text("whatsapp_business_account_id"),
   phoneNumber: text("phone_number"),
   isActive: boolean("is_active").default(true),
-  // MM Lite configuration
-  mmLiteEnabled: boolean("mm_lite_enabled").default(false),
-  mmLiteApiUrl: text("mm_lite_api_url"),
-  mmLiteApiKey: text("mm_lite_api_key"),
   // Health status fields
   healthStatus: text("health_status").default("unknown"), // healthy, warning, error, unknown
   lastHealthCheck: timestamp("last_health_check"),
@@ -220,18 +216,75 @@ export const messages = pgTable("messages", {
   messageCreatedIdx: index("messages_created_idx").on(table.createdAt),
 }));
 
+// Automation workflows table
 export const automations = pgTable("automations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  channelId: varchar("channel_id"),
+  channelId: varchar("channel_id").references(() => channels.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   description: text("description"),
-  trigger: jsonb("trigger").notNull(),
-  actions: jsonb("actions").notNull(),
-  conditions: jsonb("conditions").default([]),
+  trigger: text("trigger").notNull(), // message_received, keyword, schedule, api_webhook
+  triggerConfig: jsonb("trigger_config").default({}), // Configuration for the trigger
   status: text("status").default("inactive"), // active, inactive, paused
   executionCount: integer("execution_count").default(0),
+  lastExecutedAt: timestamp("last_executed_at"),
+  createdBy: varchar("created_by").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
-});
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  automationChannelIdx: index("automations_channel_idx").on(table.channelId),
+  automationStatusIdx: index("automations_status_idx").on(table.status),
+}));
+
+// Automation flow nodes - each node represents an action or condition in the flow
+export const automationNodes = pgTable("automation_nodes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  automationId: varchar("automation_id").notNull().references(() => automations.id, { onDelete: "cascade" }),
+  nodeId: varchar("node_id").notNull(), // Unique ID within the flow (for visual builder)
+  type: text("type").notNull(), // trigger, action, condition, delay
+  subtype: text("subtype"), // send_template, send_message, wait, keyword_check, etc.
+  position: jsonb("position").default({}), // x, y coordinates for visual builder
+  data: jsonb("data").default({}), // Node-specific configuration
+  connections: jsonb("connections").default([]), // Array of target node IDs
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  nodeAutomationIdx: index("automation_nodes_automation_idx").on(table.automationId),
+  nodeUniqueIdx: unique("automation_nodes_unique_idx").on(table.automationId, table.nodeId),
+}));
+
+// Automation execution history
+export const automationExecutions = pgTable("automation_executions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  automationId: varchar("automation_id").notNull().references(() => automations.id, { onDelete: "cascade" }),
+  contactId: varchar("contact_id").references(() => contacts.id),
+  conversationId: varchar("conversation_id").references(() => conversations.id),
+  triggerData: jsonb("trigger_data").default({}), // Data that triggered the automation
+  status: text("status").notNull(), // running, completed, failed, cancelled
+  currentNodeId: varchar("current_node_id"), // Current node being executed
+  executionPath: jsonb("execution_path").default([]), // Array of executed node IDs
+  variables: jsonb("variables").default({}), // Runtime variables for the execution
+  error: text("error"),
+  startedAt: timestamp("started_at").defaultNow(),
+  completedAt: timestamp("completed_at"),
+}, (table) => ({
+  executionAutomationIdx: index("automation_executions_automation_idx").on(table.automationId),
+  executionStatusIdx: index("automation_executions_status_idx").on(table.status),
+}));
+
+// Automation execution logs - detailed log of each node execution
+export const automationExecutionLogs = pgTable("automation_execution_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  executionId: varchar("execution_id").notNull().references(() => automationExecutions.id, { onDelete: "cascade" }),
+  nodeId: varchar("node_id").notNull(),
+  nodeType: text("node_type").notNull(),
+  status: text("status").notNull(), // started, completed, failed, skipped
+  input: jsonb("input").default({}),
+  output: jsonb("output").default({}),
+  error: text("error"),
+  executedAt: timestamp("executed_at").defaultNow(),
+}, (table) => ({
+  logExecutionIdx: index("automation_execution_logs_execution_idx").on(table.executionId),
+}));
 
 export const analytics = pgTable("analytics", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -255,7 +308,6 @@ export const whatsappChannels = pgTable("whatsapp_channels", {
   wabaId: varchar("waba_id", { length: 50 }).notNull(),
   accessToken: text("access_token").notNull(), // Should be encrypted in production
   businessAccountId: varchar("business_account_id", { length: 50 }),
-  mmLiteEnabled: boolean("mm_lite_enabled").default(false),
   rateLimitTier: varchar("rate_limit_tier", { length: 20 }).default("standard"),
   qualityRating: varchar("quality_rating", { length: 20 }).default("green"), // green, yellow, red
   status: varchar("status", { length: 20 }).default("inactive"), // active, inactive, error
@@ -293,7 +345,7 @@ export const messageQueue = pgTable("message_queue", {
   attempts: integer("attempts").default(0),
   whatsappMessageId: varchar("whatsapp_message_id", { length: 100 }),
   conversationId: varchar("conversation_id", { length: 100 }),
-  sentVia: varchar("sent_via", { length: 20 }), // cloud_api, mm_lite
+  sentVia: varchar("sent_via", { length: 20 }), // cloud_api, marketing_messages
   cost: varchar("cost", { length: 20 }), // Store as string to avoid decimal precision issues
   errorCode: varchar("error_code", { length: 50 }),
   errorMessage: text("error_message"),
@@ -423,7 +475,10 @@ export const insertChannelSchema = createInsertSchema(channels).omit({ id: true,
 export const insertTemplateSchema = createInsertSchema(templates).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertConversationSchema = createInsertSchema(conversations).omit({ id: true, createdAt: true });
 export const insertMessageSchema = createInsertSchema(messages).omit({ id: true, createdAt: true });
-export const insertAutomationSchema = createInsertSchema(automations).omit({ id: true, createdAt: true });
+export const insertAutomationSchema = createInsertSchema(automations).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertAutomationNodeSchema = createInsertSchema(automationNodes).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertAutomationExecutionSchema = createInsertSchema(automationExecutions).omit({ id: true, startedAt: true });
+export const insertAutomationExecutionLogSchema = createInsertSchema(automationExecutionLogs).omit({ id: true, executedAt: true });
 export const insertAnalyticsSchema = createInsertSchema(analytics).omit({ id: true, createdAt: true });
 export const insertWhatsappChannelSchema = createInsertSchema(whatsappChannels).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertWebhookConfigSchema = createInsertSchema(webhookConfigs).omit({ id: true, createdAt: true });
@@ -450,6 +505,12 @@ export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Automation = typeof automations.$inferSelect;
 export type InsertAutomation = z.infer<typeof insertAutomationSchema>;
+export type AutomationNode = typeof automationNodes.$inferSelect;
+export type InsertAutomationNode = z.infer<typeof insertAutomationNodeSchema>;
+export type AutomationExecution = typeof automationExecutions.$inferSelect;
+export type InsertAutomationExecution = z.infer<typeof insertAutomationExecutionSchema>;
+export type AutomationExecutionLog = typeof automationExecutionLogs.$inferSelect;
+export type InsertAutomationExecutionLog = z.infer<typeof insertAutomationExecutionLogSchema>;
 export type Analytics = typeof analytics.$inferSelect;
 export type InsertAnalytics = z.infer<typeof insertAnalyticsSchema>;
 export type WhatsappChannel = typeof whatsappChannels.$inferSelect;
@@ -559,5 +620,48 @@ export const userActivityLogsRelations = relations(userActivityLogs, ({ one }) =
   user: one(users, {
     fields: [userActivityLogs.userId],
     references: [users.id],
+  }),
+}));
+
+export const automationsRelations = relations(automations, ({ one, many }) => ({
+  channel: one(channels, {
+    fields: [automations.channelId],
+    references: [channels.id],
+  }),
+  createdByUser: one(users, {
+    fields: [automations.createdBy],
+    references: [users.id],
+  }),
+  nodes: many(automationNodes),
+  executions: many(automationExecutions),
+}));
+
+export const automationNodesRelations = relations(automationNodes, ({ one }) => ({
+  automation: one(automations, {
+    fields: [automationNodes.automationId],
+    references: [automations.id],
+  }),
+}));
+
+export const automationExecutionsRelations = relations(automationExecutions, ({ one, many }) => ({
+  automation: one(automations, {
+    fields: [automationExecutions.automationId],
+    references: [automations.id],
+  }),
+  contact: one(contacts, {
+    fields: [automationExecutions.contactId],
+    references: [contacts.id],
+  }),
+  conversation: one(conversations, {
+    fields: [automationExecutions.conversationId],
+    references: [conversations.id],
+  }),
+  logs: many(automationExecutionLogs),
+}));
+
+export const automationExecutionLogsRelations = relations(automationExecutionLogs, ({ one }) => ({
+  execution: one(automationExecutions, {
+    fields: [automationExecutionLogs.executionId],
+    references: [automationExecutions.id],
   }),
 }));

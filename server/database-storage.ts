@@ -237,27 +237,30 @@ export class DatabaseStorage implements IStorage {
 
   // Automations
   async getAutomations(): Promise<Automation[]> {
-    return this.automationRepo.getAll();
+    // Get all automations by not filtering by channel
+    return this.automationRepo.findByChannel('');
   }
 
   async getAutomationsByChannel(channelId: string): Promise<Automation[]> {
-    return this.automationRepo.getByChannel(channelId);
+    return this.automationRepo.findByChannel(channelId);
   }
 
   async getAutomation(id: string): Promise<Automation | undefined> {
-    return this.automationRepo.getById(id);
+    return this.automationRepo.findById(id);
   }
 
   async createAutomation(insertAutomation: InsertAutomation): Promise<Automation> {
     return this.automationRepo.create(insertAutomation);
   }
 
-  async updateAutomation(id: string, automation: Partial<Automation>): Promise<Automation | undefined> {
-    return this.automationRepo.update(id, automation);
+  async updateAutomation(id: string, automation: Partial<InsertAutomation>): Promise<Automation | undefined> {
+    const result = await this.automationRepo.update(id, automation);
+    return result || undefined;
   }
 
   async deleteAutomation(id: string): Promise<boolean> {
-    return this.automationRepo.delete(id);
+    await this.automationRepo.delete(id);
+    return true;
   }
 
   // Analytics

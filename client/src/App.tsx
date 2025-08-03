@@ -12,7 +12,7 @@ import Contacts from "@/pages/contacts";
 import Campaigns from "@/pages/campaigns";
 import Templates from "@/pages/templates";
 import Inbox from "@/pages/inbox";
-import Automation from "@/pages/automation";
+import Automations from "@/pages/automations";
 import Analytics from "@/pages/analytics";
 import CampaignAnalytics from "@/pages/campaign-analytics";
 import Settings from "@/pages/settings";
@@ -55,7 +55,7 @@ function ProtectedRoutes() {
           <Route path="/templates" component={Templates} />
           <Route path="/inbox" component={Inbox} />
           <Route path="/team" component={Team} />
-          <Route path="/automation" component={Automation} />
+          <Route path="/automation" component={Automations} />
           <Route path="/analytics" component={Analytics} />
           <Route path="/analytics/campaign/:campaignId" component={CampaignAnalytics} />
           <Route path="/logs" component={Logs} />

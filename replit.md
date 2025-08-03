@@ -55,6 +55,17 @@ Preferred communication style: Simple, everyday language.
 - **ESBuild**: Fast JavaScript bundling for production.
 
 ## Recent Changes
+- Prepared comprehensive documentation for CodeCanyon listing (Jan 3, 2025):
+  - Created DOCUMENTATION.md with full user guide, installation steps, and troubleshooting
+  - Created CODECANYON_README.md for marketplace listing with feature highlights
+  - Created QUICK_START_GUIDE.md for 15-minute setup process
+  - Created PROJECT_STRUCTURE.md documenting complete folder architecture
+  - Created API_DOCUMENTATION.md with complete REST API endpoints and examples
+  - Created DEPLOYMENT_GUIDE.md with production deployment instructions
+  - Created CHANGELOG.md tracking version history
+  - Created LICENSE file for proprietary software licensing
+  - Created .env.example with all required environment variables
+  - Organized code structure for clean CodeCanyon submission
 - Fixed critical campaign message sending issue by implementing actual WhatsAppApiService integration instead of just logging
 - Added static sendTemplateMessage method to WhatsAppApiService for proper campaign execution
 - Enhanced template syncing to fetch complete template data including components, header, body, footer, and buttons
@@ -84,10 +95,12 @@ Preferred communication style: Simple, everyday language.
   - Added request for all available fields including messaging_limit_tier, account_review_status, quality_score
   - Fixed messaging limit display to use messaging_limit_tier field instead of messaging_limit
   - Added console logging for debugging API responses
-- Implemented MM Lite API support for marketing messages (Jan 3, 2025):
+- Corrected MM Lite API implementation (Jan 3, 2025):
+  - MM Lite is not a separate API but uses WhatsApp Cloud API's /marketing_messages endpoint
   - Updated sendTemplateMessage to use /marketing_messages endpoint for marketing campaigns
   - Maintains backward compatibility using /messages endpoint for service/utility/authentication messages
   - Added isMarketing parameter to control endpoint selection
+  - Removed incorrect MM Lite configuration fields from schema and documentation
 - Fixed Meta API field validation errors (Jan 3, 2025):
   - Removed non-existent fields (message_template_namespace, currency) from WhatsAppBusinessPhoneNumber API requests
   - Updated to use only confirmed valid fields: id, account_mode, display_phone_number, is_official_business_account, is_pin_enabled, is_preverified_number, messaging_limit_tier, name_status, new_name_status, platform_type, quality_rating, quality_score, search_visibility, status, throughput, verified_name, code_verification_status, certificate
@@ -118,3 +131,17 @@ Preferred communication style: Simple, everyday language.
   - Created comprehensive INSTALL_README.md with detailed installation instructions
   - Created main README.md with project overview and quick start guide
   - Installer features: prerequisite checking, dependency installation, database setup, default admin user creation, webhook configuration guide, automated task scheduling, and systemd service setup option
+- Implemented drag-drop automation flow builder feature (Jan 3, 2025):
+  - Created comprehensive automation database schema with automation_workflows, automation_nodes, automation_executions, and automation_execution_logs tables
+  - Built AutomationRepository with full CRUD operations for workflows, nodes, and execution tracking
+  - Created automation API routes for managing automations with authentication
+  - Designed and built visual drag-drop flow builder UI with modular nodes:
+    - User Reply: Wait for user response with configurable timeout
+    - Time Gap: Delay execution with customizable duration
+    - Send Template: Send WhatsApp templates with variable support
+    - Custom Reply: Send custom text messages
+    - Keyword Catch: Detect keywords and branch flow accordingly
+  - Implemented drag-drop functionality for reordering flow steps
+  - Added real-time flow preview with expandable node configuration
+  - Created automation list view with status toggling and execution statistics
+  - Fixed automation repository methods to support findByChannel with optional filtering
