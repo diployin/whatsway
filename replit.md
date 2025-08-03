@@ -63,3 +63,4 @@ Preferred communication style: Simple, everyday language.
 - Updated template sync to import all templates from WhatsApp API with proper language handling
 - Enhanced contact import with duplicate detection showing detailed statistics
 - Improved API campaign details display with copy buttons and sample code generation
+- Added phone number formatting utility to ensure proper international format (+countrycode) for WhatsApp API message delivery

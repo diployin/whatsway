@@ -46,15 +46,31 @@ export class WhatsAppApiService {
     return true;
   }
 
+  // Format phone number to international format
+  private formatPhoneNumber(phone: string): string {
+    // Remove all non-numeric characters
+    let cleaned = phone.replace(/\D/g, '');
+    
+    // If number doesn't start with country code, add it
+    // Assuming India code 91 if not specified (based on the test number +919310797700)
+    if (cleaned.length === 10) {
+      // Indian number without country code
+      cleaned = '91' + cleaned;
+    }
+    
+    return cleaned;
+  }
+
   // MM Lite message sending
   private async sendMMliteMessage(to: string, templateName: string, parameters: string[] = [], language: string = "en_US"): Promise<any> {
     if (!this.channel.mmLiteApiUrl || !this.channel.mmLiteApiKey) {
       throw new Error("MM Lite configuration missing");
     }
 
+    const formattedPhone = this.formatPhoneNumber(to);
     const body = {
       messaging_product: "whatsapp",
-      to,
+      to: formattedPhone,
       type: "template",
       template: {
         name: templateName,
@@ -131,9 +147,10 @@ export class WhatsAppApiService {
   }
 
   async sendMessage(to: string, templateName: string, parameters: string[] = []): Promise<any> {
+    const formattedPhone = this.formatPhoneNumber(to);
     const body = {
       messaging_product: "whatsapp",
-      to,
+      to: formattedPhone,
       type: "template",
       template: {
         name: templateName,
@@ -163,9 +180,10 @@ export class WhatsAppApiService {
   }
 
   async sendTextMessage(to: string, text: string): Promise<any> {
+    const formattedPhone = this.formatPhoneNumber(to);
     const body = {
       messaging_product: "whatsapp",
-      to,
+      to: formattedPhone,
       type: "text",
       text: { body: text }
     };
@@ -188,6 +206,11 @@ export class WhatsAppApiService {
   }
 
   async sendDirectMessage(payload: any): Promise<any> {
+    // Format phone number if 'to' field exists
+    if (payload.to) {
+      payload.to = this.formatPhoneNumber(payload.to);
+    }
+    
     const body = {
       messaging_product: "whatsapp",
       ...payload

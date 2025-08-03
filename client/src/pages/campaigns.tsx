@@ -631,12 +631,11 @@ export function Campaigns() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {campaigns.length > 0 
-                ? Math.round(
-                    (campaigns.reduce((acc: number, c: any) => acc + (c.deliveredCount || 0), 0) / 
-                     campaigns.reduce((acc: number, c: any) => acc + (c.sentCount || 1), 1)) * 100
-                  )
-                : 0}%
+              {(() => {
+                const totalSent = campaigns.reduce((acc: number, c: any) => acc + (c.sentCount || 0), 0);
+                const totalDelivered = campaigns.reduce((acc: number, c: any) => acc + (c.deliveredCount || 0), 0);
+                return totalSent > 0 ? Math.round((totalDelivered / totalSent) * 100) : 0;
+              })()}%
             </div>
           </CardContent>
         </Card>
@@ -714,7 +713,11 @@ export function Campaigns() {
                       )}
                       
                       {campaign.campaignType === "api" && (
-                        <Button variant="ghost" size="icon">
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => setSelectedCampaign(campaign)}
+                        >
                           <Code className="h-4 w-4" />
                         </Button>
                       )}
@@ -738,7 +741,7 @@ export function Campaigns() {
       {/* Campaign Details Dialog */}
       {selectedCampaign && (
         <Dialog open={!!selectedCampaign} onOpenChange={() => setSelectedCampaign(null)}>
-          <DialogContent className="max-w-4xl">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{selectedCampaign.name}</DialogTitle>
               <DialogDescription>Campaign Analytics & Details</DialogDescription>
