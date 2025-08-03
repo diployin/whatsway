@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Bot, Play, Pause, Trash2, Edit } from "lucide-react";
 import { format } from "date-fns";
-import AutomationFlowBuilder from "@/components/automation-flow-builder";
+import AutomationFlowBuilder from "@/components/automation-flow-builder-new";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -193,6 +193,12 @@ export default function Automations() {
 
       <Dialog open={showFlowBuilder} onOpenChange={setShowFlowBuilder}>
         <DialogContent className="max-w-[95vw] w-full h-[90vh] p-0">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Automation Flow Builder</DialogTitle>
+            <DialogDescription>
+              Create and edit automation workflows
+            </DialogDescription>
+          </DialogHeader>
           <AutomationFlowBuilder
             automation={selectedAutomation}
             onClose={handleCloseFlowBuilder}
