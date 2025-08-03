@@ -1,59 +1,56 @@
 import { Router } from "express";
 import { db } from "../db";
-import { teamMembers, teamActivityLogs, conversationAssignments } from "@shared/schema";
-import { eq, desc, and, sql } from "drizzle-orm";
+import { users, userActivityLogs, conversationAssignments, DEFAULT_PERMISSIONS, Permission } from "@shared/schema";
+import { eq, desc, and, sql, ne } from "drizzle-orm";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { validateRequest } from "../middlewares/validateRequest.middleware";
-import { users } from "@shared/schema";
 
 const router = Router();
 
 // Validation schemas
-const createTeamMemberSchema = z.object({
-  name: z.string().min(1, "Name is required"),
+const createUserSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters"),
   email: z.string().email("Invalid email address"),
-  phone: z.string().optional(),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().optional(),
   role: z.enum(["admin", "manager", "agent"]),
-  department: z.string().optional(),
-  permissions: z.object({
-    canManageContacts: z.boolean().optional(),
-    canManageCampaigns: z.boolean().optional(),
-    canManageTemplates: z.boolean().optional(),
-    canViewAnalytics: z.boolean().optional(),
-    canManageTeam: z.boolean().optional(),
-    canExportData: z.boolean().optional(),
-  }).optional(),
+  permissions: z.array(z.string()).optional(),
+  avatar: z.string().optional(),
 });
 
-const updateTeamMemberSchema = createTeamMemberSchema.partial();
+const updateUserSchema = createUserSchema.partial().omit({ password: true });
+
+const updatePasswordSchema = z.object({
+  currentPassword: z.string(),
+  newPassword: z.string().min(6, "Password must be at least 6 characters"),
+});
 
 const updateStatusSchema = z.object({
-  status: z.enum(["active", "inactive", "suspended"]),
+  status: z.enum(["active", "inactive"]),
 });
 
-// Get all team members
+// Get all team members (users)
 router.get("/members", async (req, res) => {
   try {
     const members = await db
       .select({
-        id: teamMembers.id,
-        userId: teamMembers.userId,
-        name: teamMembers.name,
-        email: teamMembers.email,
-        phone: teamMembers.phone,
-        role: teamMembers.role,
-        status: teamMembers.status,
-        permissions: teamMembers.permissions,
-        avatar: teamMembers.avatar,
-        department: teamMembers.department,
-        lastActive: teamMembers.lastActive,
-        onlineStatus: teamMembers.onlineStatus,
-        createdAt: teamMembers.createdAt,
-        updatedAt: teamMembers.updatedAt,
+        id: users.id,
+        username: users.username,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        role: users.role,
+        status: users.status,
+        permissions: users.permissions,
+        avatar: users.avatar,
+        lastLogin: users.lastLogin,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt,
       })
-      .from(teamMembers)
-      .orderBy(desc(teamMembers.createdAt));
+      .from(users)
+      .orderBy(desc(users.createdAt));
 
     res.json(members);
   } catch (error) {
