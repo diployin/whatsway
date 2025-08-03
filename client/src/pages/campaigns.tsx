@@ -59,7 +59,7 @@ export default function Campaigns() {
   // Fetch contacts for contacts-based campaigns
   const { data: contacts = [] } = useQuery({
     queryKey: ["/api/contacts"],
-    enabled: createDialogOpen && campaignType === "contacts",
+    enabled: createDialogOpen && !!selectedChannel,
     queryFn: async () => {
       const res = await fetch("/api/contacts", {
         credentials: "include",

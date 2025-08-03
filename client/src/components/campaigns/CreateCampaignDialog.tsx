@@ -156,6 +156,7 @@ export function CreateCampaignDialog({
             autoRetry={autoRetry}
             setAutoRetry={setAutoRetry}
             isCreating={isCreating}
+            onCancel={() => onOpenChange(false)}
           >
             <TabsContent value="contacts" className="space-y-4">
               <div>

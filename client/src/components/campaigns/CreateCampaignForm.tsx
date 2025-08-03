@@ -19,6 +19,7 @@ interface CreateCampaignFormProps {
   autoRetry: boolean;
   setAutoRetry: (retry: boolean) => void;
   isCreating: boolean;
+  onCancel?: () => void;
   children: ReactNode;
 }
 
@@ -35,6 +36,7 @@ export function CreateCampaignForm({
   autoRetry,
   setAutoRetry,
   isCreating,
+  onCancel,
   children
 }: CreateCampaignFormProps) {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -143,7 +145,7 @@ export function CreateCampaignForm({
       {children}
 
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={() => window.dispatchEvent(new Event('closeCampaignDialog'))}>
+        <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
         <Button type="submit" disabled={isCreating}>
