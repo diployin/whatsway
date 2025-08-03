@@ -30,7 +30,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
 import { 
   Type, 
   Image, 
@@ -42,7 +42,7 @@ import {
   Hash,
   Link,
   Phone,
-  X
+  Smartphone
 } from "lucide-react";
 import type { Template } from "@shared/schema";
 
@@ -124,23 +124,23 @@ export function TemplateDialog({
                    headerComponent?.format === "VIDEO" ? "video" : 
                    headerComponent?.format === "DOCUMENT" ? "document" : "text",
         mediaUrl: "",
-        header: headerComponent?.text || template.header || "",
+        header: headerComponent?.format === "TEXT" ? (headerComponent.text || template.header || "") : "",
         body: bodyComponent?.text || template.body,
         footer: footerComponent?.text || template.footer || "",
-        buttons: buttonComponent?.buttons?.map(b => ({
-          type: b.type as any,
-          text: b.text,
-          url: b.url,
-          phoneNumber: b.phone_number,
+        buttons: buttonComponent?.buttons?.map((btn: any) => ({
+          type: btn.type,
+          text: btn.text,
+          url: btn.url || "",
+          phoneNumber: btn.phone_number || "",
         })) || [],
-        variables: extractVariables(bodyComponent?.text || template.body),
+        variables: [],
       });
     } else {
       form.reset();
     }
   }, [template, form]);
 
-  const extractVariables = (text: string): string[] => {
+  const extractVariables = (text: string) => {
     const regex = /\{\{(\d+)\}\}/g;
     const matches = [...new Set([...text.matchAll(regex)].map(match => match[1]))];
     return matches;
@@ -169,9 +169,11 @@ export function TemplateDialog({
     }
   };
 
+  const watchedValues = form.watch();
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden">
+      <DialogContent className="max-w-7xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle>
             {template ? "Edit Template" : "Create New Template"}
@@ -183,15 +185,13 @@ export function TemplateDialog({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-            <div className="overflow-y-auto max-h-[calc(90vh-200px)] px-1">
-              <Tabs defaultValue="basic" className="space-y-4">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="basic">Basic Info</TabsTrigger>
-                  <TabsTrigger value="content">Content</TabsTrigger>
-                  <TabsTrigger value="buttons">Buttons</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="basic" className="space-y-4">
+            <div className="grid grid-cols-2 gap-6">
+              {/* Left side - Form */}
+              <div className="overflow-y-auto max-h-[calc(90vh-200px)] pr-4 space-y-4">
+                {/* Basic Info */}
+                <div className="space-y-4">
+                  <h3 className="font-medium text-sm text-gray-700">Basic Information</h3>
+                  
                   <FormField
                     control={form.control}
                     name="name"
@@ -199,7 +199,11 @@ export function TemplateDialog({
                       <FormItem>
                         <FormLabel>Template Name</FormLabel>
                         <FormControl>
-                          <Input placeholder="welcome_message" {...field} />
+                          <Input 
+                            placeholder="welcome_message" 
+                            {...field} 
+                            disabled={!!template}
+                          />
                         </FormControl>
                         <FormDescription>
                           Use lowercase letters, numbers, and underscores only
@@ -216,7 +220,11 @@ export function TemplateDialog({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Category</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select 
+                            onValueChange={field.onChange} 
+                            defaultValue={field.value}
+                            disabled={!!template}
+                          >
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select category" />
@@ -239,7 +247,11 @@ export function TemplateDialog({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Language</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select 
+                            onValueChange={field.onChange} 
+                            defaultValue={field.value}
+                            disabled={!!template}
+                          >
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select language" />
@@ -260,9 +272,12 @@ export function TemplateDialog({
                       )}
                     />
                   </div>
-                </TabsContent>
+                </div>
 
-                <TabsContent value="content" className="space-y-4">
+                {/* Content */}
+                <div className="space-y-4">
+                  <h3 className="font-medium text-sm text-gray-700">Template Content</h3>
+                  
                   <FormField
                     control={form.control}
                     name="mediaType"
@@ -307,7 +322,7 @@ export function TemplateDialog({
                     )}
                   />
 
-                  {form.watch("mediaType") !== "text" && (
+                  {watchedValues.mediaType !== "text" && (
                     <FormField
                       control={form.control}
                       name="mediaUrl"
@@ -381,11 +396,11 @@ export function TemplateDialog({
                     )}
                   />
 
-                  {form.watch("body") && extractVariables(form.watch("body")).length > 0 && (
+                  {watchedValues.body && extractVariables(watchedValues.body).length > 0 && (
                     <div>
                       <Label className="text-sm font-medium">Detected Variables</Label>
                       <div className="flex flex-wrap gap-2 mt-2">
-                        {extractVariables(form.watch("body")).map((variable) => (
+                        {extractVariables(watchedValues.body).map((variable) => (
                           <Badge key={variable} variant="secondary">
                             <Hash className="w-3 h-3 mr-1" />
                             Variable {variable}
@@ -394,143 +409,220 @@ export function TemplateDialog({
                       </div>
                     </div>
                   )}
-                </TabsContent>
+                </div>
 
-                <TabsContent value="buttons" className="space-y-4">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <Label>Action Buttons</Label>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleAddButton}
-                        disabled={buttonFields.length >= 3}
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Button
-                      </Button>
-                    </div>
+                {/* Buttons */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-medium text-sm text-gray-700">Action Buttons</h3>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleAddButton}
+                      disabled={buttonFields.length >= 3}
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Button
+                    </Button>
+                  </div>
 
-                    {buttonFields.length === 0 ? (
-                      <p className="text-sm text-gray-500 text-center py-4">
-                        No buttons added. Click "Add Button" to create action buttons.
-                      </p>
-                    ) : (
-                      <div className="space-y-4">
-                        {buttonFields.map((field, index) => (
-                          <div key={field.id} className="border rounded-lg p-4 space-y-4">
-                            <div className="flex items-center justify-between">
-                              <Label>Button {index + 1}</Label>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeButton(index)}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
+                  {buttonFields.length === 0 ? (
+                    <p className="text-sm text-gray-500 text-center py-4">
+                      No buttons added. Click "Add Button" to create action buttons.
+                    </p>
+                  ) : (
+                    <div className="space-y-4">
+                      {buttonFields.map((field, index) => (
+                        <div key={field.id} className="border rounded-lg p-4 space-y-4">
+                          <div className="flex items-center justify-between">
+                            <Label>Button {index + 1}</Label>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeButton(index)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
 
-                            <FormField
-                              control={form.control}
-                              name={`buttons.${index}.type`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Button Type</FormLabel>
-                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl>
-                                      <SelectTrigger>
-                                        <SelectValue />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      <SelectItem value="QUICK_REPLY">
-                                        <div className="flex items-center">
-                                          <MessageSquare className="w-4 h-4 mr-2" />
-                                          Quick Reply
-                                        </div>
-                                      </SelectItem>
-                                      <SelectItem value="URL">
-                                        <div className="flex items-center">
-                                          <Link className="w-4 h-4 mr-2" />
-                                          URL
-                                        </div>
-                                      </SelectItem>
-                                      <SelectItem value="PHONE_NUMBER">
-                                        <div className="flex items-center">
-                                          <Phone className="w-4 h-4 mr-2" />
-                                          Phone Number
-                                        </div>
-                                      </SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-
-                            <FormField
-                              control={form.control}
-                              name={`buttons.${index}.text`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Button Text</FormLabel>
+                          <FormField
+                            control={form.control}
+                            name={`buttons.${index}.type`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Button Type</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
                                   <FormControl>
-                                    <Input placeholder="Click me" {...field} />
+                                    <SelectTrigger>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="QUICK_REPLY">
+                                      <div className="flex items-center">
+                                        <MessageSquare className="w-4 h-4 mr-2" />
+                                        Quick Reply
+                                      </div>
+                                    </SelectItem>
+                                    <SelectItem value="URL">
+                                      <div className="flex items-center">
+                                        <Link className="w-4 h-4 mr-2" />
+                                        URL
+                                      </div>
+                                    </SelectItem>
+                                    <SelectItem value="PHONE_NUMBER">
+                                      <div className="flex items-center">
+                                        <Phone className="w-4 h-4 mr-2" />
+                                        Phone Number
+                                      </div>
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name={`buttons.${index}.text`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Button Text</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Click me" {...field} />
+                                </FormControl>
+                                <FormDescription>
+                                  Max 20 characters
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          {watchedValues.buttons?.[index]?.type === "URL" && (
+                            <FormField
+                              control={form.control}
+                              name={`buttons.${index}.url`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>URL</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="https://example.com/{{1}}" {...field} />
                                   </FormControl>
                                   <FormDescription>
-                                    Max 20 characters
+                                    You can use variables like {"{{1}}"} in URLs
                                   </FormDescription>
                                   <FormMessage />
                                 </FormItem>
                               )}
                             />
+                          )}
 
-                            {form.watch(`buttons.${index}.type`) === "URL" && (
-                              <FormField
-                                control={form.control}
-                                name={`buttons.${index}.url`}
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>URL</FormLabel>
-                                    <FormControl>
-                                      <Input placeholder="https://example.com/{{1}}" {...field} />
-                                    </FormControl>
-                                    <FormDescription>
-                                      You can use variables like {"{{1}}"} in URLs
-                                    </FormDescription>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                            )}
+                          {watchedValues.buttons?.[index]?.type === "PHONE_NUMBER" && (
+                            <FormField
+                              control={form.control}
+                              name={`buttons.${index}.phoneNumber`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Phone Number</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="+1234567890" {...field} />
+                                  </FormControl>
+                                  <FormDescription>
+                                    Include country code
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
 
-                            {form.watch(`buttons.${index}.type`) === "PHONE_NUMBER" && (
-                              <FormField
-                                control={form.control}
-                                name={`buttons.${index}.phoneNumber`}
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Phone Number</FormLabel>
-                                    <FormControl>
-                                      <Input placeholder="+1234567890" {...field} />
-                                    </FormControl>
-                                    <FormDescription>
-                                      Include country code
-                                    </FormDescription>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                            )}
-                          </div>
+              {/* Right side - Preview */}
+              <div className="bg-gray-50 rounded-lg p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+                <div className="flex items-center gap-2 mb-4">
+                  <Smartphone className="w-5 h-5" />
+                  <span className="font-medium">WhatsApp Preview</span>
+                  {getMediaIcon(watchedValues.mediaType)}
+                </div>
+
+                <div className="bg-white rounded-lg shadow-sm max-w-sm mx-auto">
+                  {/* Header Media */}
+                  {watchedValues.mediaType !== "text" && (
+                    <div className="bg-gray-200 h-48 rounded-t-lg flex items-center justify-center">
+                      {getMediaIcon(watchedValues.mediaType)}
+                    </div>
+                  )}
+
+                  <div className="p-4 space-y-2">
+                    {/* Header Text */}
+                    {watchedValues.header && (
+                      <h3 className="font-semibold text-base">
+                        {watchedValues.header}
+                      </h3>
+                    )}
+
+                    {/* Body */}
+                    <p className="text-sm whitespace-pre-wrap">
+                      {watchedValues.body || "Template body will appear here..."}
+                    </p>
+
+                    {/* Footer */}
+                    {watchedValues.footer && (
+                      <p className="text-xs text-gray-500 pt-2">
+                        {watchedValues.footer}
+                      </p>
+                    )}
+
+                    {/* Buttons */}
+                    {watchedValues.buttons && watchedValues.buttons.length > 0 && (
+                      <div className="pt-3 space-y-2">
+                        {watchedValues.buttons.map((button, idx) => (
+                          <button
+                            key={idx}
+                            className="w-full py-2 px-4 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 transition-colors"
+                          >
+                            {button.text || "Button text"}
+                            {button.type === "URL" && " →"}
+                            {button.type === "PHONE_NUMBER" && " 📞"}
+                          </button>
                         ))}
                       </div>
                     )}
                   </div>
-                </TabsContent>
-              </Tabs>
+                </div>
+
+                {/* Additional Info */}
+                <div className="mt-6 space-y-4">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="text-sm font-medium text-blue-900 mb-2">Template Guidelines</h4>
+                    <ul className="text-xs text-blue-800 space-y-1">
+                      <li>• Template names must be unique and lowercase</li>
+                      <li>• Marketing templates require explicit opt-in</li>
+                      <li>• Variables are replaced with actual values when sending</li>
+                      <li>• Templates must be approved by WhatsApp before use</li>
+                    </ul>
+                  </div>
+
+                  {watchedValues.category === "MARKETING" && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                      <h4 className="text-sm font-medium text-amber-900 mb-2">Marketing Template Notice</h4>
+                      <p className="text-xs text-amber-800">
+                        Marketing templates can only be sent to users who have opted in to receive promotional messages.
+                        Ensure you have proper consent before sending.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             <DialogFooter>
@@ -538,11 +630,12 @@ export function TemplateDialog({
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
+                disabled={isSubmitting}
               >
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Saving..." : template ? "Update Template" : "Create Template"}
+                {isSubmitting ? "Submitting..." : template ? "Update Template" : "Create Template"}
               </Button>
             </DialogFooter>
           </form>
@@ -550,8 +643,4 @@ export function TemplateDialog({
       </DialogContent>
     </Dialog>
   );
-}
-
-function Label({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={`text-sm font-medium mb-2 ${className || ""}`}>{children}</div>;
 }

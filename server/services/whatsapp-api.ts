@@ -178,6 +178,24 @@ export class WhatsAppApiService {
     return await response.json();
   }
 
+  async deleteTemplate(templateName: string): Promise<any> {
+    // WhatsApp API requires template name to delete
+    const response = await fetch(
+      `${this.baseUrl}/${this.channel.whatsappBusinessAccountId}/message_templates?name=${encodeURIComponent(templateName)}`,
+      {
+        method: 'DELETE',
+        headers: this.headers
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || 'Failed to delete template');
+    }
+
+    return await response.json();
+  }
+
   async getTemplates(): Promise<WhatsAppTemplate[]> {
     const response = await fetch(
       `${this.baseUrl}/${this.channel.whatsappBusinessAccountId}/message_templates?fields=id,status,name,language,category,components&limit=100`,

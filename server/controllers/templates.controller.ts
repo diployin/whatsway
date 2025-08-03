@@ -76,11 +76,82 @@ export const createTemplate = asyncHandler(async (req: RequestWithChannel, res: 
 
 export const updateTemplate = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const template = await storage.updateTemplate(id, req.body);
+  const validatedData = templateRequestSchema.parse(req.body);
+  
+  // Get existing template
+  const existingTemplate = await storage.getTemplate(id);
+  if (!existingTemplate) {
+    throw new AppError(404, 'Template not found');
+  }
+  
+  // Update template in database
+  const template = await storage.updateTemplate(id, validatedData);
   if (!template) {
     throw new AppError(404, 'Template not found');
   }
-  res.json(template);
+  
+  // Get channel for WhatsApp API
+  const channel = await storage.getChannel(template.channelId);
+  if (!channel) {
+    throw new AppError(400, 'Channel not found');
+  }
+  
+  // If template has a WhatsApp ID, delete the old one and create new one
+  // (WhatsApp doesn't allow editing approved templates)
+  if (existingTemplate.whatsappTemplateId) {
+    try {
+      const whatsappApi = new WhatsAppApiService(channel);
+      
+      // Delete old template
+      await whatsappApi.deleteTemplate(existingTemplate.name);
+      
+      // Create new template with updated content
+      const result = await whatsappApi.createTemplate(validatedData);
+      
+      // Update template with new WhatsApp ID
+      if (result.id) {
+        await storage.updateTemplate(template.id, {
+          whatsappTemplateId: result.id,
+          status: result.status || "pending"
+        });
+      }
+      
+      res.json({
+        ...template,
+        message: "Template updated and resubmitted to WhatsApp for approval"
+      });
+    } catch (error) {
+      console.error("WhatsApp API error during update:", error);
+      res.json({
+        ...template,
+        warning: "Template updated locally but failed to resubmit to WhatsApp"
+      });
+    }
+  } else {
+    // Template was never submitted to WhatsApp, just submit it now
+    try {
+      const whatsappApi = new WhatsAppApiService(channel);
+      const result = await whatsappApi.createTemplate(validatedData);
+      
+      if (result.id) {
+        await storage.updateTemplate(template.id, {
+          whatsappTemplateId: result.id,
+          status: result.status || "pending"
+        });
+      }
+      
+      res.json({
+        ...template,
+        message: "Template updated and submitted to WhatsApp for approval"
+      });
+    } catch (error) {
+      console.error("WhatsApp API error:", error);
+      res.json({
+        ...template,
+        warning: "Template updated locally but failed to submit to WhatsApp"
+      });
+    }
+  }
 });
 
 export const deleteTemplate = asyncHandler(async (req: Request, res: Response) => {
@@ -93,7 +164,7 @@ export const deleteTemplate = asyncHandler(async (req: Request, res: Response) =
 });
 
 export const syncTemplates = asyncHandler(async (req: RequestWithChannel, res: Response) => {
-  const channelId = req.body.channelId || req.query.channelId as string || req.channel?.id;
+  let channelId = req.body.channelId || req.query.channelId as string || req.channelId;
   
   if (!channelId) {
     // Get active channel if not provided
