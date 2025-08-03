@@ -21,6 +21,26 @@ interface TemplatePreviewProps {
   onClose: () => void;
 }
 
+// WhatsApp text formatting function
+function formatWhatsAppText(text: string): React.ReactNode {
+  if (!text) return null;
+  
+  // Regular expressions for WhatsApp formatting
+  const patterns = [
+    { regex: /\*([^*]+)\*/g, replacement: '<strong>$1</strong>' }, // Bold
+    { regex: /_([^_]+)_/g, replacement: '<em>$1</em>' }, // Italic
+    { regex: /~([^~]+)~/g, replacement: '<del>$1</del>' }, // Strikethrough
+    { regex: /```([^`]+)```/g, replacement: '<code>$1</code>' }, // Monospace
+  ];
+  
+  let formattedText = text;
+  patterns.forEach(({ regex, replacement }) => {
+    formattedText = formattedText.replace(regex, replacement);
+  });
+  
+  return <span dangerouslySetInnerHTML={{ __html: formattedText }} />;
+}
+
 export function TemplatePreview({ template, onClose }: TemplatePreviewProps) {
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -104,6 +124,15 @@ export function TemplatePreview({ template, onClose }: TemplatePreviewProps) {
               </div>
             </div>
 
+            {/* Rejection Reason */}
+            {template.status === "REJECTED" && template.rejectionReason && (
+              <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-md">
+                <p className="text-sm text-red-800">
+                  <strong>Rejection Reason:</strong> {template.rejectionReason}
+                </p>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-gray-500">Category:</span>
@@ -152,20 +181,20 @@ export function TemplatePreview({ template, onClose }: TemplatePreviewProps) {
                 {/* Header Text */}
                 {headerComponent && headerComponent.format === "TEXT" && (
                   <h3 className="font-semibold text-base">
-                    {headerComponent.text || template.header}
+                    {formatWhatsAppText(headerComponent.text || template.header || "")}
                   </h3>
                 )}
 
                 {/* Body */}
-                <p className="text-sm whitespace-pre-wrap">
-                  {bodyComponent?.text || template.body}
-                </p>
+                <div className="text-sm whitespace-pre-wrap">
+                  {formatWhatsAppText(bodyComponent?.text || template.body)}
+                </div>
 
                 {/* Footer */}
                 {(footerComponent?.text || template.footer) && (
-                  <p className="text-xs text-gray-500 pt-2">
-                    {footerComponent?.text || template.footer}
-                  </p>
+                  <div className="text-xs text-gray-500 pt-2">
+                    {formatWhatsAppText(footerComponent?.text || template.footer || "")}
+                  </div>
                 )}
 
                 {/* Buttons */}

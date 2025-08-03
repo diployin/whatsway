@@ -171,6 +171,7 @@ export const templates = pgTable("templates", {
   buttons: jsonb("buttons").default([]),
   variables: jsonb("variables").default([]),
   status: text("status").default("draft"), // draft, pending, approved, rejected
+  rejectionReason: text("rejection_reason"), // Reason for template rejection from WhatsApp
   // Media support fields
   mediaType: text("media_type").default("text"), // text, image, video, document, carousel
   mediaUrl: text("media_url"), // URL of uploaded media

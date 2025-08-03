@@ -136,7 +136,18 @@ export function TemplateDialog({
         variables: [],
       });
     } else {
-      form.reset();
+      form.reset({
+        name: "",
+        category: "MARKETING",
+        language: "en_US",
+        mediaType: "text",
+        mediaUrl: "",
+        header: "",
+        body: "",
+        footer: "",
+        buttons: [],
+        variables: [],
+      });
     }
   }, [template, form]);
 

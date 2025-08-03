@@ -298,9 +298,9 @@ async function handleMessageStatuses(statuses: any[], metadata: any) {
 }
 
 async function handleTemplateStatusUpdate(value: any) {
-  const { message_template_id, message_template_name, event } = value;
+  const { message_template_id, message_template_name, event, reason } = value;
   
-  console.log(`Template status update: ${message_template_name} - ${event}`);
+  console.log(`Template status update: ${message_template_name} - ${event}${reason ? ` - Reason: ${reason}` : ''}`);
   
   if (message_template_id && event) {
     // Map WhatsApp status to our status
@@ -316,8 +316,13 @@ async function handleTemplateStatusUpdate(value: any) {
     const template = templates.find(t => t.whatsappTemplateId === message_template_id);
     
     if (template) {
-      await storage.updateTemplate(template.id, { status });
-      console.log(`Updated template ${template.name} status to ${status}`);
+      const updateData: any = { status };
+      // If rejected, save the rejection reason
+      if (event === 'REJECTED' && reason) {
+        updateData.rejectionReason = reason;
+      }
+      await storage.updateTemplate(template.id, updateData);
+      console.log(`Updated template ${template.name} status to ${status}${reason ? ` with reason: ${reason}` : ''}`);
     }
   }
 }
