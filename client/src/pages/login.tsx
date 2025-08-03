@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -37,12 +37,8 @@ export default function LoginPage() {
       return response;
     },
     onSuccess: () => {
-      toast({
-        title: "Login successful",
-        description: "Welcome to WhatsWay!",
-      });
-      // Redirect to dashboard
-      setLocation("/");
+      // Force a full page refresh to ensure proper auth state loading
+      window.location.href = "/";
     },
     onError: (error: Error) => {
       const errorMessage = error.message.includes("401") 

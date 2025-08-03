@@ -27,10 +27,10 @@ function ProtectedRoutes() {
   const [location, setLocation] = useLocation();
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated && location !== "/login") {
+    if (!isLoading && !isAuthenticated) {
       setLocation("/login");
     }
-  }, [isAuthenticated, isLoading, location, setLocation]);
+  }, [isAuthenticated, isLoading, setLocation]);
 
   if (isLoading) {
     return (
@@ -41,7 +41,7 @@ function ProtectedRoutes() {
   }
 
   if (!isAuthenticated) {
-    return <LoginPage />;
+    return null; // Router will handle the redirect
   }
 
   return (
