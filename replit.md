@@ -80,3 +80,11 @@ Preferred communication style: Simple, everyday language.
   - Created 13 modular repository classes (User, Contact, Campaign, Channel, Template, Conversation, Message, Automation, Analytics, WebhookConfig, MessageQueue, ApiLog, WhatsappChannel)
   - Improved code maintainability and separation of concerns
   - Fixed all TypeScript errors in repository implementation
+- Enhanced Meta API integration to request comprehensive phone number fields (Jan 3, 2025):
+  - Added request for all available fields including messaging_limit_tier, account_review_status, quality_score
+  - Fixed messaging limit display to use messaging_limit_tier field instead of messaging_limit
+  - Added console logging for debugging API responses
+- Implemented MM Lite API support for marketing messages (Jan 3, 2025):
+  - Updated sendTemplateMessage to use /marketing_messages endpoint for marketing campaigns
+  - Maintains backward compatibility using /messages endpoint for service/utility/authentication messages
+  - Added isMarketing parameter to control endpoint selection

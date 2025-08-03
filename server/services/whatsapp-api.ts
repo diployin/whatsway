@@ -31,13 +31,62 @@ export class WhatsAppApiService {
     templateName: string,
     parameters: string[] = [],
     language: string = "en_US",
-    useMMlite: boolean = true // Always use MM Lite for marketing campaigns
+    isMarketing: boolean = true // Marketing messages use MM Lite API
   ): Promise<any> {
-    const apiService = new WhatsAppApiService(channel);
+    const apiVersion = process.env.WHATSAPP_API_VERSION || 'v23.0';
+    const baseUrl = `https://graph.facebook.com/${apiVersion}`;
     
-    // Always use standard Meta API with marketing messaging (MM Lite)
-    // MM Lite is not a separate endpoint, it's a feature of the standard API
-    return await apiService.sendMessage(to, templateName, parameters);
+    // Format phone number
+    const phoneNumber = to.replace(/\D/g, '');
+    const formattedPhone = phoneNumber.startsWith('+') ? phoneNumber.substring(1) : phoneNumber;
+    
+    const body = {
+      messaging_product: "whatsapp",
+      to: formattedPhone,
+      type: "template",
+      template: {
+        name: templateName,
+        language: { code: language },
+        components: parameters.length > 0 ? [{
+          type: "body",
+          parameters: parameters.map(text => ({ type: "text", text }))
+        }] : undefined
+      }
+    };
+
+    console.log('Sending WhatsApp template message:', {
+      to: formattedPhone,
+      templateName,
+      language,
+      parameters,
+      phoneNumberId: channel.phoneNumberId,
+      isMarketing,
+      usingMMLite: isMarketing
+    });
+
+    // Use MM Lite API endpoint for marketing messages
+    const endpoint = isMarketing 
+      ? `${baseUrl}/${channel.phoneNumberId}/marketing_messages`
+      : `${baseUrl}/${channel.phoneNumberId}/messages`;
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${channel.accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+
+    const responseData = await response.json();
+
+    if (!response.ok) {
+      console.error('WhatsApp API Error:', responseData);
+      throw new Error(responseData.error?.message || 'Failed to send template message');
+    }
+
+    console.log('WhatsApp message sent successfully:', responseData);
+    return responseData;
   }
 
   // Static method for checking rate limits

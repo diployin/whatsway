@@ -36,7 +36,9 @@ export const createChannel = asyncHandler(async (req: Request, res: Response) =>
   // Immediately check channel health after creation
   try {
     const apiVersion = process.env.WHATSAPP_API_VERSION || 'v23.0';
-    const url = `https://graph.facebook.com/${apiVersion}/${channel.phoneNumberId}`;
+    // Request all available fields from the API
+    const fields = 'id,account_mode,account_review_status,analytics,business_verification,certificate,code_verification_status,country,currency,display_phone_number,eligibility_for_api_business_global_search,is_migration_disabled,is_official_business_account,is_pin_enabled,last_onboarded_time,message_template_namespace,messaging_limit_tier,name_status,new_certificate,new_name_status,official_business_account_name,ownership_type,phone_number,platform_type,quality_rating,quality_score,status,throughput,timezone_id,verified_name,webhook_configuration';
+    const url = `https://graph.facebook.com/${apiVersion}/${channel.phoneNumberId}?fields=${fields}`;
     const response = await fetch(url, {
       headers: {
         'Authorization': `Bearer ${channel.accessToken}`
@@ -46,13 +48,28 @@ export const createChannel = asyncHandler(async (req: Request, res: Response) =>
     const data = await response.json();
     
     if (response.ok) {
+      console.log('Channel health data:', JSON.stringify(data, null, 2));
+      
       const healthDetails = {
+        // Core fields
         status: data.account_mode || 'UNKNOWN',
         name_status: data.name_status || 'UNKNOWN',
         phone_number: data.display_phone_number || channel.phoneNumber,
         quality_rating: data.quality_rating || 'UNKNOWN',
         throughput_level: data.throughput?.level || 'STANDARD',
-        verification_status: data.verified_name?.status || 'NOT_VERIFIED'
+        verification_status: data.verified_name?.status || 'NOT_VERIFIED',
+        messaging_limit: data.messaging_limit_tier || 'UNKNOWN',
+        // Additional fields from Meta API
+        account_review_status: data.account_review_status,
+        platform_type: data.platform_type,
+        business_verification_status: data.business_verification?.status,
+        country: data.country,
+        currency: data.currency,
+        timezone_id: data.timezone_id,
+        message_template_namespace: data.message_template_namespace,
+        is_official_business_account: data.is_official_business_account,
+        ownership_type: data.ownership_type,
+        quality_score: data.quality_score
       };
 
       await storage.updateChannel(channel.id, {
@@ -118,7 +135,9 @@ export const checkChannelHealth = asyncHandler(async (req: Request, res: Respons
 
   try {
     const apiVersion = process.env.WHATSAPP_API_VERSION || 'v23.0';
-    const url = `https://graph.facebook.com/${apiVersion}/${channel.phoneNumberId}`;
+    // Request all available fields from the API
+    const fields = 'id,account_mode,account_review_status,analytics,business_verification,certificate,code_verification_status,country,currency,display_phone_number,eligibility_for_api_business_global_search,is_migration_disabled,is_official_business_account,is_pin_enabled,last_onboarded_time,message_template_namespace,messaging_limit_tier,name_status,new_certificate,new_name_status,official_business_account_name,ownership_type,phone_number,platform_type,quality_rating,quality_score,status,throughput,timezone_id,verified_name,webhook_configuration';
+    const url = `https://graph.facebook.com/${apiVersion}/${channel.phoneNumberId}?fields=${fields}`;
     const response = await fetch(url, {
       headers: {
         'Authorization': `Bearer ${channel.accessToken}`
@@ -128,6 +147,8 @@ export const checkChannelHealth = asyncHandler(async (req: Request, res: Respons
     const data = await response.json();
     
     if (response.ok) {
+      console.log('Channel health API response:', JSON.stringify(data, null, 2));
+      
       const healthDetails = {
         status: data.account_mode || 'UNKNOWN',
         name_status: data.name_status || 'UNKNOWN',
@@ -135,7 +156,18 @@ export const checkChannelHealth = asyncHandler(async (req: Request, res: Respons
         quality_rating: data.quality_rating || 'UNKNOWN',
         throughput_level: data.throughput?.level || 'STANDARD',
         verification_status: data.verified_name?.status || 'NOT_VERIFIED',
-        messaging_limit: data.messaging_limit || 'UNKNOWN'
+        messaging_limit: data.messaging_limit_tier || 'UNKNOWN',
+        // Additional fields from Meta API
+        account_review_status: data.account_review_status,
+        platform_type: data.platform_type,
+        business_verification_status: data.business_verification?.status,
+        country: data.country,
+        currency: data.currency,
+        timezone_id: data.timezone_id,
+        message_template_namespace: data.message_template_namespace,
+        is_official_business_account: data.is_official_business_account,
+        ownership_type: data.ownership_type,
+        quality_score: data.quality_score
       };
 
       await storage.updateChannel(id, {
