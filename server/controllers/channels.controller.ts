@@ -36,8 +36,8 @@ export const createChannel = asyncHandler(async (req: Request, res: Response) =>
   // Immediately check channel health after creation
   try {
     const apiVersion = process.env.WHATSAPP_API_VERSION || 'v23.0';
-    // Request all available fields from the API
-    const fields = 'id,account_mode,account_review_status,analytics,business_verification,certificate,code_verification_status,country,currency,display_phone_number,eligibility_for_api_business_global_search,is_migration_disabled,is_official_business_account,is_pin_enabled,last_onboarded_time,message_template_namespace,messaging_limit_tier,name_status,new_certificate,new_name_status,official_business_account_name,ownership_type,phone_number,platform_type,quality_rating,quality_score,status,throughput,timezone_id,verified_name,webhook_configuration';
+    // Request all available fields from the API (removed message_template_namespace as it doesn't exist)
+    const fields = 'id,account_mode,account_review_status,analytics,business_verification,certificate,code_verification_status,country,currency,display_phone_number,eligibility_for_api_business_global_search,is_migration_disabled,is_official_business_account,is_pin_enabled,last_onboarded_time,messaging_limit_tier,name_status,new_certificate,new_name_status,official_business_account_name,ownership_type,phone_number,platform_type,quality_rating,quality_score,status,throughput,timezone_id,verified_name,webhook_configuration';
     const url = `https://graph.facebook.com/${apiVersion}/${channel.phoneNumberId}?fields=${fields}`;
     const response = await fetch(url, {
       headers: {
@@ -66,7 +66,6 @@ export const createChannel = asyncHandler(async (req: Request, res: Response) =>
         country: data.country,
         currency: data.currency,
         timezone_id: data.timezone_id,
-        message_template_namespace: data.message_template_namespace,
         is_official_business_account: data.is_official_business_account,
         ownership_type: data.ownership_type,
         quality_score: data.quality_score
@@ -135,8 +134,8 @@ export const checkChannelHealth = asyncHandler(async (req: Request, res: Respons
 
   try {
     const apiVersion = process.env.WHATSAPP_API_VERSION || 'v23.0';
-    // Request all available fields from the API
-    const fields = 'id,account_mode,account_review_status,analytics,business_verification,certificate,code_verification_status,country,currency,display_phone_number,eligibility_for_api_business_global_search,is_migration_disabled,is_official_business_account,is_pin_enabled,last_onboarded_time,message_template_namespace,messaging_limit_tier,name_status,new_certificate,new_name_status,official_business_account_name,ownership_type,phone_number,platform_type,quality_rating,quality_score,status,throughput,timezone_id,verified_name,webhook_configuration';
+    // Request all available fields from the API (removed message_template_namespace as it doesn't exist)
+    const fields = 'id,account_mode,account_review_status,analytics,business_verification,certificate,code_verification_status,country,currency,display_phone_number,eligibility_for_api_business_global_search,is_migration_disabled,is_official_business_account,is_pin_enabled,last_onboarded_time,messaging_limit_tier,name_status,new_certificate,new_name_status,official_business_account_name,ownership_type,phone_number,platform_type,quality_rating,quality_score,status,throughput,timezone_id,verified_name,webhook_configuration';
     const url = `https://graph.facebook.com/${apiVersion}/${channel.phoneNumberId}?fields=${fields}`;
     const response = await fetch(url, {
       headers: {
@@ -164,7 +163,6 @@ export const checkChannelHealth = asyncHandler(async (req: Request, res: Respons
         country: data.country,
         currency: data.currency,
         timezone_id: data.timezone_id,
-        message_template_namespace: data.message_template_namespace,
         is_official_business_account: data.is_official_business_account,
         ownership_type: data.ownership_type,
         quality_score: data.quality_score
