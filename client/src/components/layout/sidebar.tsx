@@ -11,12 +11,17 @@ import {
   Zap,
   ScrollText,
   UsersRound,
-  LogOut
+  LogOut,
+  Menu,
+  X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ChannelSwitcher } from "@/components/channel-switcher";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/auth-context";
+import { useTranslation } from "@/lib/i18n";
+import { LanguageSelector } from "@/components/language-selector";
+import { useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,7 +34,7 @@ import {
 interface NavItem {
   href: string;
   icon: React.ComponentType<{ className?: string }>;
-  label: string;
+  labelKey: string;
   badge?: string | number;
   color?: string;
 }
@@ -38,61 +43,61 @@ const navItems: NavItem[] = [
   {
     href: "/",
     icon: LayoutDashboard,
-    label: "Dashboard",
+    labelKey: "navigation.dashboard",
     color: "text-green-600"
   },
   {
     href: "/contacts",
     icon: Users,
-    label: "Contacts",
+    labelKey: "navigation.contacts",
     color: "text-blue-600"
   },
   {
     href: "/campaigns",
     icon: Megaphone,
-    label: "Campaigns",
+    labelKey: "navigation.campaigns",
     color: "text-orange-600"
   },
   {
     href: "/templates",
     icon: FileText,
-    label: "Templates",
+    labelKey: "navigation.templates",
     color: "text-purple-600"
   },
   {
     href: "/inbox",
     icon: MessageSquare,
-    label: "Team Inbox",
+    labelKey: "navigation.inbox",
     color: "text-red-600"
   },
   {
     href: "/automation",
     icon: Zap,
-    label: "Automation",
+    labelKey: "navigation.automations",
     color: "text-indigo-600"
   },
   {
     href: "/analytics",
     icon: BarChart3,
-    label: "Analytics",
+    labelKey: "navigation.analytics",
     color: "text-pink-600"
   },
   {
     href: "/logs",
     icon: ScrollText,
-    label: "Message Logs",
+    labelKey: "navigation.messageLogs",
     color: "text-yellow-600"
   },
   {
     href: "/team",
     icon: UsersRound,
-    label: "Team",
+    labelKey: "navigation.team",
     color: "text-teal-600"
   },
   {
     href: "/settings",
     icon: Settings,
-    label: "Settings",
+    labelKey: "navigation.settings",
     color: "text-gray-600"
   }
 ];
@@ -100,6 +105,9 @@ const navItems: NavItem[] = [
 export default function Sidebar() {
   const [location] = useLocation();
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  
   const { data: unreadCount = 0 } = useQuery({
     queryKey: ["/api/conversations/unread-count"],
     queryFn: async () => {
@@ -115,22 +123,51 @@ export default function Sidebar() {
   });
 
   return (
-    <div className="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg border-r border-gray-100">
-      <div className="flex flex-col h-full">
-        {/* Logo Header */}
-        <div className="flex items-center px-6 py-4 border-b border-gray-100">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.891 3.426"/>
-              </svg>
+    <>
+      {/* Mobile menu button */}
+      <button
+        onClick={() => setIsMobileOpen(true)}
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-md hover:bg-gray-50"
+        data-testid="button-open-sidebar"
+      >
+        <Menu className="w-6 h-6" />
+      </button>
+
+      {/* Mobile backdrop */}
+      {isMobileOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+          onClick={() => setIsMobileOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div className={cn(
+        "fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg border-r border-gray-100 transform transition-transform duration-300",
+        isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+      )}>
+        <div className="flex flex-col h-full">
+          {/* Logo Header */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.891 3.426"/>
+                </svg>
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">WhatsWay</h1>
+                <p className="text-xs text-gray-500">Business Platform</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">WhatsWay</h1>
-              <p className="text-xs text-gray-500">Business Platform</p>
-            </div>
+            <button
+              onClick={() => setIsMobileOpen(false)}
+              className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
+              data-testid="button-close-sidebar"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
-        </div>
 
         {/* Channel Switcher */}
         <div className="px-6 py-3 border-b border-gray-100">
@@ -154,6 +191,8 @@ export default function Sidebar() {
                     ? "bg-green-50 text-green-700 border-l-4 border-green-600"
                     : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
                 )}
+                onClick={() => setIsMobileOpen(false)}
+                data-testid={`link-nav-${item.href.replace('/', '') || 'dashboard'}`}
               >
                 <Icon 
                   className={cn(
@@ -161,7 +200,7 @@ export default function Sidebar() {
                     isActive ? "text-green-600" : item.color
                   )} 
                 />
-                {item.label}
+                {t(item.labelKey)}
                 {item.badge && (
                   <span className="ml-auto bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
                     {item.badge}
@@ -177,6 +216,11 @@ export default function Sidebar() {
           })}
         </nav>
 
+        {/* Language Selector */}
+        <div className="px-6 py-3 border-t border-gray-100">
+          <LanguageSelector />
+        </div>
+
         {/* AI Bot Status */}
         <div className="p-4 border-t border-gray-100">
           <div className="flex items-center space-x-3 p-3 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg">
@@ -184,10 +228,10 @@ export default function Sidebar() {
               <Bot className="w-4 h-4 text-white" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-900">AI Assistant</p>
+              <p className="text-sm font-medium text-gray-900">{t('common.aiAssistant')}</p>
               <div className="flex items-center space-x-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full pulse-gentle"></div>
-                <span className="text-xs text-gray-600">Active</span>
+                <span className="text-xs text-gray-600">{t('common.active')}</span>
               </div>
             </div>
           </div>
@@ -213,23 +257,24 @@ export default function Sidebar() {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuLabel>{t('common.myAccount')}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link href="/settings" className="cursor-pointer">
                   <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
+                  <span>{t('navigation.settings')}</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={logout} className="cursor-pointer text-red-600">
                 <LogOut className="mr-2 h-4 w-4" />
-                <span>Log out</span>
+                <span>{t('common.logout')}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
     </div>
+    </>
   );
 }
