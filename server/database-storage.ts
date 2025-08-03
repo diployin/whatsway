@@ -673,12 +673,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateWebhookConfig(id: string, config: Partial<InsertWebhookConfig>): Promise<WebhookConfig | undefined> {
+    // Convert lastPing string to Date if provided
+    const updateData: any = { ...config };
+    if (config.lastPing) {
+      updateData.lastPingAt = new Date(config.lastPing);
+      delete updateData.lastPing;
+    }
+    
     const [updated] = await db
       .update(webhookConfigs)
-      .set({
-        ...config,
-        updatedAt: new Date()
-      })
+      .set(updateData)
       .where(eq(webhookConfigs.id, id))
       .returning();
     return updated || undefined;

@@ -267,8 +267,11 @@ export const campaignsController = {
 
 // Helper function to execute campaign
 async function startCampaignExecution(campaignId: string) {
+  console.log("Starting campaign execution for:", campaignId);
+  
   const campaign = await storage.getCampaign(campaignId);
   if (!campaign || campaign.status !== "active") {
+    console.log("Campaign not found or not active:", campaignId);
     return;
   }
 
@@ -283,6 +286,15 @@ async function startCampaignExecution(campaignId: string) {
     console.error("Template not found for campaign:", campaignId);
     return;
   }
+  
+  console.log("Campaign details:", {
+    campaignId,
+    channelId: channel.id,
+    templateId: template.id,
+    templateName: template.name,
+    campaignType: campaign.campaignType,
+    contactGroups: campaign.contactGroups
+  });
 
   // Get contacts for the campaign
   let contacts: Contact[] = [];
@@ -295,9 +307,13 @@ async function startCampaignExecution(campaignId: string) {
     }
   }
 
+  console.log(`Found ${contacts.length} contacts for campaign`);
+  
   // Process each contact
   for (const contact of contacts) {
     try {
+      console.log(`Processing contact: ${contact.name} (${contact.phone})`);
+      
       // Prepare template parameters based on variable mapping
       const templateParams: any[] = [];
       if (campaign.variableMapping && Object.keys(campaign.variableMapping).length > 0) {
@@ -317,6 +333,12 @@ async function startCampaignExecution(campaignId: string) {
           templateParams.push({ type: "text", text: value });
         });
       }
+
+      console.log("Sending message with params:", {
+        phone: contact.phone,
+        template: template.name,
+        parameters: templateParams.map(p => p.text)
+      });
 
       // Send template message - always use MM Lite for marketing campaigns
       const response = await WhatsAppApiService.sendTemplateMessage(

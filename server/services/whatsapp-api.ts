@@ -162,6 +162,13 @@ export class WhatsAppApiService {
       }
     };
 
+    console.log('Sending WhatsApp message:', {
+      to: formattedPhone,
+      templateName,
+      parameters,
+      phoneNumberId: this.channel.phoneNumberId
+    });
+
     const response = await fetch(
       `${this.baseUrl}/${this.channel.phoneNumberId}/messages`,
       {
@@ -171,12 +178,15 @@ export class WhatsAppApiService {
       }
     );
 
+    const responseData = await response.json();
+    
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error?.message || 'Failed to send message');
+      console.error('WhatsApp API Error:', responseData);
+      throw new Error(responseData.error?.message || 'Failed to send message');
     }
 
-    return await response.json();
+    console.log('WhatsApp message sent successfully:', responseData);
+    return responseData;
   }
 
   async sendTextMessage(to: string, text: string): Promise<any> {
