@@ -69,21 +69,21 @@ export function ChannelSettings() {
       
       await queryClient.invalidateQueries({ queryKey: ["/api/channels"] });
       
-      if (response.healthStatus === 'healthy') {
+      if (response.status === 'healthy') {
         toast({
           title: "Channel is healthy",
           description: "The WhatsApp channel is working properly",
         });
-      } else if (response.healthStatus === 'warning') {
+      } else if (response.status === 'warning') {
         toast({
           title: "Channel has warnings", 
-          description: response.message || "Check health details for more information",
+          description: response.error || "Check health details for more information",
           variant: "default",
         });
-      } else {
+      } else if (response.status === 'error') {
         toast({
           title: "Channel has issues",
-          description: response.message || "The channel needs attention",
+          description: response.error || "The channel needs attention",
           variant: "destructive",
         });
       }
@@ -111,16 +111,13 @@ export function ChannelSettings() {
 
   const getHealthStatusBadge = (status?: string, lastChecked?: string) => {
     const variant = status === 'healthy' ? 'success' : status === 'warning' ? 'warning' : status === 'error' ? 'destructive' : 'secondary';
+    const displayStatus = status === 'error' ? 'Error' : status || 'Unknown';
+    
     return (
       <div className="flex items-center space-x-2">
         <Badge variant={variant as any} className="capitalize">
-          {status || 'unknown'}
+          {displayStatus}
         </Badge>
-        {lastChecked && (
-          <span className="text-xs text-gray-500">
-            Last checked: {new Date(lastChecked).toLocaleString()}
-          </span>
-        )}
       </div>
     );
   };
@@ -180,9 +177,50 @@ export function ChannelSettings() {
                         <p>Phone: {channel.phoneNumber || 'Not set'}</p>
                         <p>Phone Number ID: {channel.phoneNumberId}</p>
                         <p>Business Account ID: {channel.whatsappBusinessAccountId || 'Not set'}</p>
-                        <div className="flex items-center space-x-4 mt-2">
-                          <span>Health Status:</span>
-                          {getHealthStatusBadge(channel.healthStatus, channel.lastHealthCheck)}
+                        <div className="mt-3 space-y-2">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-medium">Health Status:</span>
+                            {getHealthStatusBadge(channel.healthStatus, channel.lastHealthCheck)}
+                          </div>
+                          {channel.healthDetails && Object.keys(channel.healthDetails).length > 0 && (
+                            <div className="mt-2 p-3 bg-gray-50 rounded-md space-y-1 text-xs">
+                              {channel.healthDetails.error ? (
+                                <>
+                                  <p className="text-red-600 font-medium">Error: {channel.healthDetails.error}</p>
+                                  {channel.healthDetails.error_code && (
+                                    <p className="text-red-600">Error Code: {channel.healthDetails.error_code}</p>
+                                  )}
+                                  {channel.healthDetails.error_type && (
+                                    <p className="text-red-600">Error Type: {channel.healthDetails.error_type}</p>
+                                  )}
+                                </>
+                              ) : (
+                                <>
+                                  {channel.healthDetails.status && (
+                                    <p>Account Mode: <span className="font-medium">{channel.healthDetails.status}</span></p>
+                                  )}
+                                  {channel.healthDetails.quality_rating && (
+                                    <p>Quality Rating: <span className="font-medium capitalize">{channel.healthDetails.quality_rating}</span></p>
+                                  )}
+                                  {channel.healthDetails.messaging_limit && (
+                                    <p>Messaging Limit: <span className="font-medium">{channel.healthDetails.messaging_limit}</span></p>
+                                  )}
+                                  {channel.healthDetails.throughput_level && (
+                                    <p>Throughput: <span className="font-medium capitalize">{channel.healthDetails.throughput_level}</span></p>
+                                  )}
+                                  {channel.healthDetails.verification_status && (
+                                    <p>Verification: <span className="font-medium">{channel.healthDetails.verification_status.replace(/_/g, ' ')}</span></p>
+                                  )}
+                                  {channel.healthDetails.name_status && (
+                                    <p>Name Status: <span className="font-medium capitalize">{channel.healthDetails.name_status}</span></p>
+                                  )}
+                                </>
+                              )}
+                              {channel.lastHealthCheck && (
+                                <p className="text-gray-500 mt-1">Last checked: {new Date(channel.lastHealthCheck).toLocaleString()}</p>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>

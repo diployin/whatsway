@@ -104,12 +104,30 @@ export function ChannelDialog({ open, onOpenChange, editingChannel, onSuccess }:
         return await apiRequest("POST", "/api/channels", payload);
       }
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/channels"] });
-      toast({
-        title: editingChannel ? "Channel updated" : "Channel created",
-        description: editingChannel ? "Your channel has been updated successfully." : "Your new channel has been added successfully.",
-      });
+      
+      // Check if the channel creation included health check results
+      if (!editingChannel && data.healthStatus) {
+        if (data.healthStatus === 'healthy') {
+          toast({
+            title: "Channel created successfully",
+            description: "Your channel is connected and healthy!",
+          });
+        } else if (data.healthStatus === 'error') {
+          toast({
+            title: "Channel created with issues",
+            description: data.healthDetails?.error || "Channel was created but has connection issues. Please check your credentials.",
+            variant: "destructive",
+          });
+        }
+      } else {
+        toast({
+          title: editingChannel ? "Channel updated" : "Channel created",
+          description: editingChannel ? "Your channel has been updated successfully." : "Your new channel has been added successfully.",
+        });
+      }
+      
       onSuccess();
     },
     onError: (error) => {
