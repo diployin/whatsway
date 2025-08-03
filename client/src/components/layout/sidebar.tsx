@@ -66,12 +66,6 @@ const navItems: NavItem[] = [
     color: "text-red-600"
   },
   {
-    href: "/team",
-    icon: UsersRound,
-    label: "Team",
-    color: "text-cyan-600"
-  },
-  {
     href: "/automation",
     icon: Zap,
     label: "Automation",
@@ -103,12 +97,15 @@ export default function Sidebar() {
   const { data: unreadCount = 0 } = useQuery({
     queryKey: ["/api/conversations/unread-count"],
     queryFn: async () => {
-      const response = await fetch("/api/conversations/unread-count");
+      const response = await fetch("/api/conversations/unread-count", {
+        credentials: "include"
+      });
       if (!response.ok) return 0;
       const data = await response.json();
       return data.count || 0;
     },
-    refetchInterval: 5000, // Refresh every 5 seconds
+    refetchInterval: 30000, // Refresh every 30 seconds instead of 5
+    staleTime: 20000, // Consider data fresh for 20 seconds
   });
 
   return (

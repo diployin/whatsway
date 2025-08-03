@@ -93,7 +93,7 @@ app.use((req, res, next) => {
     
     // Start the message status updater cron job
     const messageStatusUpdater = new MessageStatusUpdater();
-    messageStatusUpdater.startCronJob(10); // Run every 10 seconds
+    messageStatusUpdater.startCronJob(60); // Run every 60 seconds instead of 10
     log('Message status updater cron job started');
     
     // Start channel health monitor

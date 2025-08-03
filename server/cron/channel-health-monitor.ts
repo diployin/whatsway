@@ -129,12 +129,12 @@ export class ChannelHealthMonitor {
     // Store notification in database for UI display
     await storage.createApiLog({
       channelId: channel.id,
+      requestType: 'health_check',
       endpoint: 'HEALTH_CHECK',
-      method: 'MONITOR',
-      status: 'warning',
-      responseData: details,
-      errorMessage: `Channel health degraded: ${details.status}`,
-      timestamp: new Date()
+      method: 'GET',
+      responseStatus: 200,
+      responseBody: details,
+      duration: 0
     });
   }
 
@@ -149,12 +149,12 @@ export class ChannelHealthMonitor {
     // Store error notification in database for UI display
     await storage.createApiLog({
       channelId: channel.id,
+      requestType: 'health_check',
       endpoint: 'HEALTH_CHECK',
-      method: 'MONITOR',
-      status: 'error',
-      responseData: { error: errorMessage },
-      errorMessage: `Channel health check failed: ${errorMessage}`,
-      timestamp: new Date()
+      method: 'GET',
+      responseStatus: 500,
+      responseBody: { error: errorMessage },
+      duration: 0
     });
   }
 

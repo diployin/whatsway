@@ -1,5 +1,5 @@
 import { db } from "../db";
-import { eq, and, gte, isNull, desc, lt } from "drizzle-orm";
+import { eq, and, gte, isNull, desc, lt, sql } from "drizzle-orm";
 import { 
   messageQueue, 
   type MessageQueue, 
@@ -93,5 +93,32 @@ export class MessageQueueRepository {
       )
       .limit(limit)
       .orderBy(messageQueue.createdAt);
+  }
+
+  async getMessageStats(): Promise<any> {
+    const result = await db
+      .select({
+        messagesSent: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'sent' THEN 1 END)`.mapWith(Number),
+        messagesDelivered: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'delivered' THEN 1 END)`.mapWith(Number),
+        messagesFailed: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'failed' THEN 1 END)`.mapWith(Number),
+        messagesRead: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'read' THEN 1 END)`.mapWith(Number),
+      })
+      .from(messageQueue);
+    
+    return result[0] || { messagesSent: 0, messagesDelivered: 0, messagesFailed: 0, messagesRead: 0 };
+  }
+
+  async getMessageStatsByChannel(channelId: string): Promise<any> {
+    const result = await db
+      .select({
+        messagesSent: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'sent' THEN 1 END)`.mapWith(Number),
+        messagesDelivered: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'delivered' THEN 1 END)`.mapWith(Number),
+        messagesFailed: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'failed' THEN 1 END)`.mapWith(Number),
+        messagesRead: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'read' THEN 1 END)`.mapWith(Number),
+      })
+      .from(messageQueue)
+      .where(eq(messageQueue.channelId, channelId));
+    
+    return result[0] || { messagesSent: 0, messagesDelivered: 0, messagesFailed: 0, messagesRead: 0 };
   }
 }
