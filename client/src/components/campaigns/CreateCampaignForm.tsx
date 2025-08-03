@@ -43,6 +43,7 @@ export function CreateCampaignForm({
     const campaignData = {
       name: formData.get("name") as string,
       description: formData.get("description") as string,
+      variableMapping: variableMapping,
     };
     onSubmit(campaignData);
   };

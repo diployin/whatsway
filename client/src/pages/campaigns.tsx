@@ -14,6 +14,7 @@ import { CreateCampaignDialog } from "@/components/campaigns/CreateCampaignDialo
 export default function Campaigns() {
   const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [campaignType, setCampaignType] = useState<string>("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { selectedChannel } = useChannelContext();
@@ -59,6 +60,16 @@ export default function Campaigns() {
   const { data: contacts = [] } = useQuery({
     queryKey: ["/api/contacts"],
     enabled: createDialogOpen && campaignType === "contacts",
+    queryFn: async () => {
+      const res = await fetch("/api/contacts", {
+        credentials: "include",
+        headers: {
+          "x-channel-id": selectedChannel?.id || "",
+        },
+      });
+      if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
+      return res.json();
+    },
   });
 
   // Create campaign mutation
@@ -168,6 +179,9 @@ export default function Campaigns() {
       recipientCount,
       type: "marketing",
       apiType: "mm_lite",
+      campaignType: campaignType,
+      variableMapping: campaignData.variableMapping || {},
+      autoRetry: autoRetry
     };
 
     createCampaignMutation.mutate(finalCampaignData);
