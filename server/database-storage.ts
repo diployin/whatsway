@@ -1,752 +1,343 @@
-import { db } from "./db";
-import { eq, and, desc, sql, gte, gt } from "drizzle-orm";
-import { randomUUID } from "crypto";
-import {
-  users,
-  contacts,
-  campaigns,
-  channels,
-  templates,
-  conversations,
-  messages,
-  automations,
-  analytics,
-  whatsappChannels,
-  webhookConfigs,
-  messageQueue,
-  apiLogs,
-  type User,
-  type InsertUser,
-  type Contact,
-  type InsertContact,
-  type Campaign,
-  type InsertCampaign,
-  type Channel,
-  type InsertChannel,
-  type Template,
-  type InsertTemplate,
-  type Conversation,
-  type InsertConversation,
-  type Message,
-  type InsertMessage,
-  type Automation,
-  type InsertAutomation,
-  type Analytics,
-  type InsertAnalytics,
-  type WhatsappChannel,
-  type InsertWhatsappChannel,
-  type WebhookConfig,
-  type InsertWebhookConfig,
-  type MessageQueue,
-  type InsertMessageQueue,
-  type ApiLog,
-  type InsertApiLog,
-} from "@shared/schema";
 import { IStorage } from "./storage";
+import { UserRepository } from "./repositories/user.repository";
+import { ContactRepository } from "./repositories/contact.repository";
+import { CampaignRepository } from "./repositories/campaign.repository";
+import { ChannelRepository } from "./repositories/channel.repository";
+import { TemplateRepository } from "./repositories/template.repository";
+import { ConversationRepository } from "./repositories/conversation.repository";
+import { MessageRepository } from "./repositories/message.repository";
+import { AutomationRepository } from "./repositories/automation.repository";
+import { AnalyticsRepository } from "./repositories/analytics.repository";
+import { WebhookConfigRepository } from "./repositories/webhook-config.repository";
+import { MessageQueueRepository } from "./repositories/message-queue.repository";
+import { ApiLogRepository } from "./repositories/api-log.repository";
+import { WhatsappChannelRepository } from "./repositories/whatsapp-channel.repository";
+
+import type {
+  User, InsertUser,
+  Contact, InsertContact,
+  Campaign, InsertCampaign,
+  Channel, InsertChannel,
+  Template, InsertTemplate,
+  Conversation, InsertConversation,
+  Message, InsertMessage,
+  Automation, InsertAutomation,
+  Analytics, InsertAnalytics,
+  WhatsappChannel, InsertWhatsappChannel,
+  WebhookConfig, InsertWebhookConfig,
+  MessageQueue, InsertMessageQueue,
+  ApiLog, InsertApiLog,
+} from "@shared/schema";
 
 export class DatabaseStorage implements IStorage {
+  private userRepo = new UserRepository();
+  private contactRepo = new ContactRepository();
+  private campaignRepo = new CampaignRepository();
+  private channelRepo = new ChannelRepository();
+  private templateRepo = new TemplateRepository();
+  private conversationRepo = new ConversationRepository();
+  private messageRepo = new MessageRepository();
+  private automationRepo = new AutomationRepository();
+  private analyticsRepo = new AnalyticsRepository();
+  private webhookConfigRepo = new WebhookConfigRepository();
+  private messageQueueRepo = new MessageQueueRepository();
+  private apiLogRepo = new ApiLogRepository();
+  private whatsappChannelRepo = new WhatsappChannelRepository();
+
   // Users
   async getUser(id: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user || undefined;
+    return this.userRepo.getById(id);
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user || undefined;
+    return this.userRepo.getByUsername(username);
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(insertUser)
-      .returning();
-    return user;
+    return this.userRepo.create(insertUser);
   }
 
   async getAllUsers(): Promise<User[]> {
-    return await db.select().from(users).orderBy(desc(users.createdAt));
+    return this.userRepo.getAll();
   }
 
   // Contacts
   async getContacts(): Promise<Contact[]> {
-    return await db.select().from(contacts).orderBy(desc(contacts.createdAt));
+    return this.contactRepo.getAll();
   }
 
   async getContactsByChannel(channelId: string): Promise<Contact[]> {
-    return await db
-      .select()
-      .from(contacts)
-      .where(eq(contacts.channelId, channelId))
-      .orderBy(desc(contacts.createdAt));
+    return this.contactRepo.getByChannel(channelId);
   }
 
   async getContact(id: string): Promise<Contact | undefined> {
-    const [contact] = await db.select().from(contacts).where(eq(contacts.id, id));
-    return contact || undefined;
+    return this.contactRepo.getById(id);
   }
 
   async getContactByPhone(phone: string): Promise<Contact | undefined> {
-    const [contact] = await db.select().from(contacts).where(eq(contacts.phone, phone));
-    return contact || undefined;
+    return this.contactRepo.getByPhone(phone);
   }
 
   async createContact(insertContact: InsertContact): Promise<Contact> {
-    const [contact] = await db
-      .insert(contacts)
-      .values(insertContact)
-      .returning();
-    return contact;
+    return this.contactRepo.create(insertContact);
   }
 
   async updateContact(id: string, contact: Partial<Contact>): Promise<Contact | undefined> {
-    const [updated] = await db
-      .update(contacts)
-      .set(contact)
-      .where(eq(contacts.id, id))
-      .returning();
-    return updated || undefined;
+    return this.contactRepo.update(id, contact);
   }
 
   async deleteContact(id: string): Promise<boolean> {
-    const result = await db.delete(contacts).where(eq(contacts.id, id)).returning();
-    return result.length > 0;
+    return this.contactRepo.delete(id);
   }
 
   async searchContacts(query: string): Promise<Contact[]> {
-    const searchPattern = `%${query}%`;
-    return await db
-      .select()
-      .from(contacts)
-      .where(
-        sql`${contacts.name} ILIKE ${searchPattern} OR ${contacts.phone} ILIKE ${searchPattern} OR ${contacts.email} ILIKE ${searchPattern}`
-      );
+    return this.contactRepo.search(query);
   }
 
-  async searchContactsByChannel(channelId: string, query: string): Promise<Contact[]> {
-    const searchPattern = `%${query}%`;
-    return await db
-      .select()
-      .from(contacts)
-      .where(
-        and(
-          eq(contacts.channelId, channelId),
-          sql`${contacts.name} ILIKE ${searchPattern} OR ${contacts.phone} ILIKE ${searchPattern} OR ${contacts.email} ILIKE ${searchPattern}`
-        )
-      );
+  async createBulkContacts(insertContacts: InsertContact[]): Promise<Contact[]> {
+    return this.contactRepo.createBulk(insertContacts);
+  }
+
+  async checkExistingPhones(phones: string[], channelId: string): Promise<string[]> {
+    return this.contactRepo.checkExistingPhones(phones, channelId);
   }
 
   // Campaigns
   async getCampaigns(): Promise<Campaign[]> {
-    return await db.select().from(campaigns).orderBy(desc(campaigns.createdAt));
+    return this.campaignRepo.getAll();
   }
 
   async getCampaignsByChannel(channelId: string): Promise<Campaign[]> {
-    return await db
-      .select()
-      .from(campaigns)
-      .where(eq(campaigns.channelId, channelId))
-      .orderBy(desc(campaigns.createdAt));
+    return this.campaignRepo.getByChannel(channelId);
   }
 
   async getCampaign(id: string): Promise<Campaign | undefined> {
-    const [campaign] = await db.select().from(campaigns).where(eq(campaigns.id, id));
-    return campaign || undefined;
+    return this.campaignRepo.getById(id);
   }
 
   async createCampaign(insertCampaign: InsertCampaign): Promise<Campaign> {
-    const [campaign] = await db
-      .insert(campaigns)
-      .values(insertCampaign)
-      .returning();
-    return campaign;
+    return this.campaignRepo.create(insertCampaign);
   }
 
   async updateCampaign(id: string, campaign: Partial<Campaign>): Promise<Campaign | undefined> {
-    const [updated] = await db
-      .update(campaigns)
-      .set(campaign)
-      .where(eq(campaigns.id, id))
-      .returning();
-    return updated || undefined;
+    return this.campaignRepo.update(id, campaign);
   }
 
   async deleteCampaign(id: string): Promise<boolean> {
-    const result = await db.delete(campaigns).where(eq(campaigns.id, id)).returning();
-    return result.length > 0;
+    return this.campaignRepo.delete(id);
   }
 
   // Channels
   async getChannels(): Promise<Channel[]> {
-    return await db.select().from(channels).orderBy(desc(channels.createdAt));
+    return this.channelRepo.getAll();
   }
 
   async getChannel(id: string): Promise<Channel | undefined> {
-    const [channel] = await db.select().from(channels).where(eq(channels.id, id));
-    return channel || undefined;
+    return this.channelRepo.getById(id);
   }
 
   async getChannelByPhoneNumberId(phoneNumberId: string): Promise<Channel | undefined> {
-    const [channel] = await db
-      .select()
-      .from(channels)
-      .where(eq(channels.phoneNumberId, phoneNumberId));
-    return channel || undefined;
+    return this.channelRepo.getByPhoneNumberId(phoneNumberId);
   }
 
   async createChannel(insertChannel: InsertChannel): Promise<Channel> {
-    const [channel] = await db
-      .insert(channels)
-      .values(insertChannel)
-      .returning();
-    return channel;
+    return this.channelRepo.create(insertChannel);
   }
 
   async updateChannel(id: string, channel: Partial<Channel>): Promise<Channel | undefined> {
-    const [updated] = await db
-      .update(channels)
-      .set(channel)
-      .where(eq(channels.id, id))
-      .returning();
-    return updated || undefined;
+    return this.channelRepo.update(id, channel);
   }
 
   async deleteChannel(id: string): Promise<boolean> {
-    const result = await db.delete(channels).where(eq(channels.id, id)).returning();
-    return result.length > 0;
+    return this.channelRepo.delete(id);
   }
 
   async getActiveChannel(): Promise<Channel | undefined> {
-    const [channel] = await db
-      .select()
-      .from(channels)
-      .where(eq(channels.isActive, true))
-      .orderBy(desc(channels.createdAt));
-    return channel || undefined;
+    return this.channelRepo.getActive();
   }
 
   // Templates
   async getTemplates(): Promise<Template[]> {
-    return await db.select().from(templates).orderBy(desc(templates.createdAt));
+    return this.templateRepo.getAll();
   }
 
   async getTemplatesByChannel(channelId: string): Promise<Template[]> {
-    return await db
-      .select()
-      .from(templates)
-      .where(eq(templates.channelId, channelId))
-      .orderBy(desc(templates.createdAt));
+    return this.templateRepo.getByChannel(channelId);
   }
 
   async getTemplate(id: string): Promise<Template | undefined> {
-    const [template] = await db.select().from(templates).where(eq(templates.id, id));
-    return template || undefined;
+    return this.templateRepo.getById(id);
   }
 
   async createTemplate(insertTemplate: InsertTemplate): Promise<Template> {
-    const [template] = await db
-      .insert(templates)
-      .values(insertTemplate)
-      .returning();
-    return template;
+    return this.templateRepo.create(insertTemplate);
   }
 
   async updateTemplate(id: string, template: Partial<Template>): Promise<Template | undefined> {
-    const [updated] = await db
-      .update(templates)
-      .set(template)
-      .where(eq(templates.id, id))
-      .returning();
-    return updated || undefined;
+    return this.templateRepo.update(id, template);
   }
 
   async deleteTemplate(id: string): Promise<boolean> {
-    const result = await db.delete(templates).where(eq(templates.id, id)).returning();
-    return result.length > 0;
+    return this.templateRepo.delete(id);
   }
 
   // Conversations
   async getConversations(): Promise<Conversation[]> {
-    const result = await db
-      .select({
-        conversation: conversations,
-        contact: contacts,
-      })
-      .from(conversations)
-      .leftJoin(contacts, eq(conversations.contactId, contacts.id))
-      .orderBy(desc(conversations.lastMessageAt));
-    
-    return result.map(row => ({
-      ...row.conversation,
-      contact: row.contact,
-    }));
+    return this.conversationRepo.getAll();
   }
 
   async getConversationsByChannel(channelId: string): Promise<Conversation[]> {
-    const result = await db
-      .select({
-        conversation: conversations,
-        contact: contacts,
-      })
-      .from(conversations)
-      .leftJoin(contacts, eq(conversations.contactId, contacts.id))
-      .where(eq(conversations.channelId, channelId))
-      .orderBy(desc(conversations.lastMessageAt));
-    
-    return result.map(row => ({
-      ...row.conversation,
-      contact: row.contact,
-    }));
+    return this.conversationRepo.getByChannel(channelId);
   }
 
   async getConversation(id: string): Promise<Conversation | undefined> {
-    const [conversation] = await db.select().from(conversations).where(eq(conversations.id, id));
-    return conversation || undefined;
+    return this.conversationRepo.getById(id);
   }
 
   async getConversationByPhone(phone: string): Promise<Conversation | undefined> {
-    const [conversation] = await db
-      .select()
-      .from(conversations)
-      .where(eq(conversations.contactPhone, phone));
-    return conversation || undefined;
+    return this.conversationRepo.getByPhone(phone);
   }
 
   async createConversation(insertConversation: InsertConversation): Promise<Conversation> {
-    const [conversation] = await db
-      .insert(conversations)
-      .values(insertConversation)
-      .returning();
-    return conversation;
+    return this.conversationRepo.create(insertConversation);
   }
 
   async updateConversation(id: string, conversation: Partial<Conversation>): Promise<Conversation | undefined> {
-    const [updated] = await db
-      .update(conversations)
-      .set(conversation)
-      .where(eq(conversations.id, id))
-      .returning();
-    return updated || undefined;
+    return this.conversationRepo.update(id, conversation);
   }
 
   async deleteConversation(id: string): Promise<boolean> {
-    const result = await db.delete(conversations).where(eq(conversations.id, id)).returning();
-    return result.length > 0;
+    return this.conversationRepo.delete(id);
+  }
+
+  async getUnreadConversationsCount(): Promise<number> {
+    return this.conversationRepo.getUnreadCount();
   }
 
   // Messages
   async getMessages(conversationId: string): Promise<Message[]> {
-    return await db
-      .select()
-      .from(messages)
-      .where(eq(messages.conversationId, conversationId))
-      .orderBy(messages.createdAt);
+    return this.messageRepo.getByConversation(conversationId);
   }
 
   async createMessage(insertMessage: InsertMessage): Promise<Message> {
-    const [message] = await db
-      .insert(messages)
-      .values(insertMessage)
-      .returning();
-    return message;
+    return this.messageRepo.create(insertMessage);
   }
 
   async updateMessage(id: string, message: Partial<Message>): Promise<Message | undefined> {
-    const [updated] = await db
-      .update(messages)
-      .set(message)
-      .where(eq(messages.id, id))
-      .returning();
-    return updated || undefined;
+    return this.messageRepo.update(id, message);
   }
 
   async getMessageByWhatsAppId(whatsappMessageId: string): Promise<Message | undefined> {
-    const [message] = await db
-      .select()
-      .from(messages)
-      .where(eq(messages.whatsappMessageId, whatsappMessageId));
-    return message || undefined;
+    return this.messageRepo.getByWhatsAppId(whatsappMessageId);
   }
 
   // Automations
   async getAutomations(): Promise<Automation[]> {
-    return await db.select().from(automations).orderBy(desc(automations.createdAt));
+    return this.automationRepo.getAll();
   }
 
   async getAutomationsByChannel(channelId: string): Promise<Automation[]> {
-    return await db
-      .select()
-      .from(automations)
-      .where(eq(automations.channelId, channelId))
-      .orderBy(desc(automations.createdAt));
+    return this.automationRepo.getByChannel(channelId);
   }
 
   async getAutomation(id: string): Promise<Automation | undefined> {
-    const [automation] = await db.select().from(automations).where(eq(automations.id, id));
-    return automation || undefined;
+    return this.automationRepo.getById(id);
   }
 
   async createAutomation(insertAutomation: InsertAutomation): Promise<Automation> {
-    const [automation] = await db
-      .insert(automations)
-      .values(insertAutomation)
-      .returning();
-    return automation;
+    return this.automationRepo.create(insertAutomation);
   }
 
   async updateAutomation(id: string, automation: Partial<Automation>): Promise<Automation | undefined> {
-    const [updated] = await db
-      .update(automations)
-      .set(automation)
-      .where(eq(automations.id, id))
-      .returning();
-    return updated || undefined;
+    return this.automationRepo.update(id, automation);
   }
 
   async deleteAutomation(id: string): Promise<boolean> {
-    const result = await db.delete(automations).where(eq(automations.id, id)).returning();
-    return result.length > 0;
+    return this.automationRepo.delete(id);
   }
 
   // Analytics
   async getAnalytics(days?: number): Promise<Analytics[]> {
-    const startDate = days ? new Date(Date.now() - days * 24 * 60 * 60 * 1000) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-    
-    const result = await db
-      .select({
-        date: sql<Date>`DATE(${messageQueue.createdAt})`,
-        sent: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'sent' THEN 1 END)`,
-        delivered: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'delivered' THEN 1 END)`,
-        read: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'read' THEN 1 END)`,
-        replied: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'replied' THEN 1 END)`,
-        failed: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'failed' THEN 1 END)`,
-      })
-      .from(messageQueue)
-      .where(gte(messageQueue.createdAt, startDate))
-      .groupBy(sql`DATE(${messageQueue.createdAt})`)
-      .orderBy(sql`DATE(${messageQueue.createdAt})`);
-    
-    // Transform results to Analytics format
-    return result.map(row => ({
-      id: randomUUID(),
-      date: row.date,
-      channelId: null,
-      messages: (row.sent + row.delivered + row.read + row.replied + row.failed) || 0,
-      sent: row.sent || 0,
-      delivered: row.delivered || 0,
-      read: row.read || 0,
-      replied: row.replied || 0,
-      failed: row.failed || 0,
-      revenue: 0,
-      cost: 0,
-      conversions: 0,
-      leads: 0,
-      createdAt: new Date(),
-    }));
+    return this.analyticsRepo.getAnalytics(days);
   }
 
-  async getAnalyticsByChannel(channelId: string, days?: number): Promise<Analytics[]> {
-    const startDate = days ? new Date(Date.now() - days * 24 * 60 * 60 * 1000) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-    
-    const result = await db
-      .select({
-        date: sql<Date>`DATE(${messageQueue.createdAt})`,
-        sent: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'sent' THEN 1 END)`,
-        delivered: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'delivered' THEN 1 END)`,
-        read: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'read' THEN 1 END)`,
-        replied: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'replied' THEN 1 END)`,
-        failed: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'failed' THEN 1 END)`,
-      })
-      .from(messageQueue)
-      .where(and(
-        eq(messageQueue.channelId, channelId),
-        gte(messageQueue.createdAt, startDate)
-      ))
-      .groupBy(sql`DATE(${messageQueue.createdAt})`)
-      .orderBy(sql`DATE(${messageQueue.createdAt})`);
-    
-    // Transform results to Analytics format
-    return result.map(row => ({
-      id: randomUUID(),
-      date: row.date,
-      channelId,
-      messages: (row.sent + row.delivered + row.read + row.replied + row.failed) || 0,
-      sent: row.sent || 0,
-      delivered: row.delivered || 0,
-      read: row.read || 0,
-      replied: row.replied || 0,
-      failed: row.failed || 0,
-      revenue: 0,
-      cost: 0,
-      conversions: 0,
-      leads: 0,
-      createdAt: new Date(),
-    }));
+  async createOrUpdateAnalytics(insertAnalytics: InsertAnalytics): Promise<Analytics> {
+    return this.analyticsRepo.createOrUpdate(insertAnalytics);
   }
 
-  async createAnalytics(insertAnalytics: InsertAnalytics): Promise<Analytics> {
-    const [analytic] = await db
-      .insert(analytics)
-      .values(insertAnalytics)
-      .returning();
-    return analytic;
-  }
-
-  async getDashboardStats(): Promise<{
-    totalMessages: number;
-    activeCampaigns: number;
-    deliveryRate: number;
-    newLeads: number;
-    messagesGrowth: number;
-    campaignsRunning: number;
-    unreadChats: number;
-  }> {
-    // Get total messages count
-    const [messageCountResult] = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(messages);
-    const totalMessages = Number(messageCountResult?.count || 0);
-
-    // Get active campaigns count
-    const [activeCampaignResult] = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(campaigns)
-      .where(eq(campaigns.status, "active"));
-    const activeCampaigns = Number(activeCampaignResult?.count || 0);
-    const campaignsRunning = activeCampaigns;
-
-    // Get unread chats count
-    const [unreadChatsResult] = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(conversations)
-      .where(gt(conversations.unreadCount, 0));
-    const unreadChats = Number(unreadChatsResult?.count || 0);
-
-    // Calculate delivery rate (mock for now, would need message status tracking)
-    const deliveryRate = totalMessages > 0 ? 92 : 0;
-
-    // Calculate new leads (contacts created in last 7 days)
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    const [newLeadsResult] = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(contacts)
-      .where(gte(contacts.createdAt, sevenDaysAgo));
-    const newLeads = Number(newLeadsResult?.count || 0);
-
-    // Calculate growth (mock for now)
-    const messagesGrowth = 12.5;
-
-    return {
-      totalMessages,
-      activeCampaigns,
-      deliveryRate,
-      newLeads,
-      messagesGrowth,
-      campaignsRunning,
-      unreadChats,
-    };
-  }
-
-  async getDashboardStatsByChannel(channelId: string): Promise<{
-    totalMessages: number;
-    activeCampaigns: number;
-    deliveryRate: number;
-    newLeads: number;
-    messagesGrowth: number;
-    campaignsRunning: number;
-    unreadChats: number;
-  }> {
-    // Get total messages count for this channel (join through conversations)
-    const [messageCountResult] = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(messages)
-      .innerJoin(conversations, eq(messages.conversationId, conversations.id))
-      .where(eq(conversations.channelId, channelId));
-    const totalMessages = Number(messageCountResult?.count || 0);
-
-    // Get active campaigns count for this channel
-    const [activeCampaignResult] = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(campaigns)
-      .where(
-        and(
-          eq(campaigns.channelId, channelId),
-          eq(campaigns.status, "active")
-        )
-      );
-    const activeCampaigns = Number(activeCampaignResult?.count || 0);
-    const campaignsRunning = activeCampaigns;
-
-    // Get unread chats count for this channel
-    const [unreadChatsResult] = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(conversations)
-      .where(
-        and(
-          eq(conversations.channelId, channelId),
-          gt(conversations.unreadCount, 0)
-        )
-      );
-    const unreadChats = Number(unreadChatsResult?.count || 0);
-
-    // Calculate delivery rate (mock for now, would need message status tracking)
-    const deliveryRate = totalMessages > 0 ? 92 : 0;
-
-    // Calculate new leads for this channel (contacts created in last 7 days)
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    const [newLeadsResult] = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(contacts)
-      .where(
-        and(
-          eq(contacts.channelId, channelId),
-          gte(contacts.createdAt, sevenDaysAgo)
-        )
-      );
-    const newLeads = Number(newLeadsResult?.count || 0);
-
-    // Calculate growth (mock for now)
-    const messagesGrowth = 12.5;
-
-    return {
-      totalMessages,
-      activeCampaigns,
-      deliveryRate,
-      newLeads,
-      messagesGrowth,
-      campaignsRunning,
-      unreadChats,
-    };
+  async deleteOldAnalytics(daysToKeep: number): Promise<void> {
+    return this.analyticsRepo.deleteOldAnalytics(daysToKeep);
   }
 
   // WhatsApp Channels
-  async getWhatsappChannels(): Promise<WhatsappChannel[]> {
-    return await db.select().from(whatsappChannels).orderBy(desc(whatsappChannels.createdAt));
-  }
-
-  async getWhatsappChannel(id: string): Promise<WhatsappChannel | undefined> {
-    const [channel] = await db.select().from(whatsappChannels).where(eq(whatsappChannels.id, id));
-    return channel || undefined;
+  async getWhatsappChannel(channelId: string): Promise<WhatsappChannel | undefined> {
+    return this.whatsappChannelRepo.getByChannelId(channelId);
   }
 
   async createWhatsappChannel(insertChannel: InsertWhatsappChannel): Promise<WhatsappChannel> {
-    const [channel] = await db
-      .insert(whatsappChannels)
-      .values(insertChannel)
-      .returning();
-    return channel;
+    return this.whatsappChannelRepo.create(insertChannel);
   }
 
   async updateWhatsappChannel(id: string, channel: Partial<WhatsappChannel>): Promise<WhatsappChannel | undefined> {
-    const [updated] = await db
-      .update(whatsappChannels)
-      .set({
-        ...channel,
-        updatedAt: new Date(),
-      })
-      .where(eq(whatsappChannels.id, id))
-      .returning();
-    return updated || undefined;
-  }
-
-  async deleteWhatsappChannel(id: string): Promise<boolean> {
-    const result = await db.delete(whatsappChannels).where(eq(whatsappChannels.id, id)).returning();
-    return result.length > 0;
+    return this.whatsappChannelRepo.update(id, channel);
   }
 
   // Webhook Configs
-  async getWebhookConfigs(): Promise<WebhookConfig[]> {
-    return await db.select().from(webhookConfigs).orderBy(desc(webhookConfigs.createdAt));
-  }
-
-  async getWebhookConfig(channelId: string): Promise<WebhookConfig | undefined> {
-    const [config] = await db.select().from(webhookConfigs).where(eq(webhookConfigs.channelId, channelId));
-    return config || undefined;
+  async getWebhookConfig(channelId: string, type: string): Promise<WebhookConfig | undefined> {
+    return this.webhookConfigRepo.getByChannelAndType(channelId, type);
   }
 
   async createWebhookConfig(insertConfig: InsertWebhookConfig): Promise<WebhookConfig> {
-    const [config] = await db
-      .insert(webhookConfigs)
-      .values(insertConfig)
-      .returning();
-    return config;
+    return this.webhookConfigRepo.create(insertConfig);
   }
 
-  async updateWebhookConfig(id: string, config: Partial<InsertWebhookConfig>): Promise<WebhookConfig | undefined> {
-    // Convert lastPing string to Date if provided
-    const updateData: any = { ...config };
-    if (config.lastPing) {
-      updateData.lastPingAt = new Date(config.lastPing);
-      delete updateData.lastPing;
-    }
-    
-    const [updated] = await db
-      .update(webhookConfigs)
-      .set(updateData)
-      .where(eq(webhookConfigs.id, id))
-      .returning();
-    return updated || undefined;
+  async updateWebhookConfig(id: string, config: Partial<WebhookConfig>): Promise<WebhookConfig | undefined> {
+    return this.webhookConfigRepo.update(id, config);
   }
 
   async deleteWebhookConfig(id: string): Promise<boolean> {
-    const result = await db.delete(webhookConfigs).where(eq(webhookConfigs.id, id)).returning();
-    return result.length > 0;
+    return this.webhookConfigRepo.delete(id);
   }
 
   // Message Queue
-  async getMessageQueueStats(): Promise<Record<string, number>> {
-    const results = await db
-      .select({
-        status: messageQueue.status,
-        count: sql<number>`count(*)`,
-      })
-      .from(messageQueue)
-      .groupBy(messageQueue.status);
-    
-    const stats: Record<string, number> = {};
-    results.forEach(({ status, count }) => {
-      if (status) stats[status] = Number(count);
-    });
-    return stats;
+  async getMessageQueueByChannel(channelId: string): Promise<MessageQueue[]> {
+    return this.messageQueueRepo.getByChannel(channelId);
   }
 
-  async getQueuedMessages(limit?: number): Promise<MessageQueue[]> {
-    const query = db
-      .select()
-      .from(messageQueue)
-      .where(eq(messageQueue.status, "queued"))
-      .orderBy(messageQueue.createdAt);
-    
-    if (limit) {
-      return await query.limit(limit);
-    }
-    return await query;
+  async getPendingMessages(): Promise<MessageQueue[]> {
+    return this.messageQueueRepo.getPending();
+  }
+
+  async getMessagesToCheck(): Promise<MessageQueue[]> {
+    return this.messageQueueRepo.getMessagesToCheck();
+  }
+
+  async createMessageQueueItem(insertMessage: InsertMessageQueue): Promise<MessageQueue> {
+    return this.messageQueueRepo.create(insertMessage);
+  }
+
+  async createBulkMessageQueue(insertMessages: InsertMessageQueue[]): Promise<MessageQueue[]> {
+    return this.messageQueueRepo.createBulk(insertMessages);
+  }
+
+  async updateMessageQueueItem(id: string, message: Partial<MessageQueue>): Promise<MessageQueue | undefined> {
+    return this.messageQueueRepo.update(id, message);
+  }
+
+  async updateMessageQueueByWhatsAppId(whatsappMessageId: string, updates: Partial<MessageQueue>): Promise<boolean> {
+    return this.messageQueueRepo.updateByWhatsAppId(whatsappMessageId, updates);
+  }
+
+  async getMessageQueueByCampaign(campaignId: string): Promise<MessageQueue[]> {
+    return this.messageQueueRepo.getByCampaign(campaignId);
+  }
+
+  async getMessagesForRetry(limit: number = 100): Promise<MessageQueue[]> {
+    return this.messageQueueRepo.getForRetry(limit);
   }
 
   // API Logs
-  async getApiLogs(channelId?: string, limit?: number): Promise<ApiLog[]> {
-    const query = channelId
-      ? db.select().from(apiLogs).where(eq(apiLogs.channelId, channelId))
-      : db.select().from(apiLogs);
-    
-    const orderedQuery = query.orderBy(desc(apiLogs.createdAt));
-    
-    if (limit) {
-      return await orderedQuery.limit(limit);
-    }
-    return await orderedQuery;
-  }
-
-  async logApiRequest(log: InsertApiLog): Promise<ApiLog | null> {
-    try {
-      const [apiLog] = await db
-        .insert(apiLogs)
-        .values(log)
-        .returning();
-      return apiLog;
-    } catch (error) {
-      console.error("Failed to log API request to database:", error);
-      return null;
-    }
+  async createApiLog(insertLog: InsertApiLog): Promise<ApiLog> {
+    return this.apiLogRepo.create(insertLog);
   }
 }
