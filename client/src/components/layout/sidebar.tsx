@@ -84,6 +84,12 @@ const navItems: NavItem[] = [
     color: "text-yellow-600"
   },
   {
+    href: "/team",
+    icon: UsersRound,
+    label: "Team",
+    color: "text-teal-600"
+  },
+  {
     href: "/settings",
     icon: Settings,
     label: "Settings",
