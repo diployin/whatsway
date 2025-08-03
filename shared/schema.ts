@@ -134,10 +134,6 @@ export const channels = pgTable("channels", {
   whatsappBusinessAccountId: text("whatsapp_business_account_id"),
   phoneNumber: text("phone_number"),
   isActive: boolean("is_active").default(true),
-  // MM Lite configuration
-  mmLiteEnabled: boolean("mm_lite_enabled").default(false),
-  mmLiteApiUrl: text("mm_lite_api_url"),
-  mmLiteApiKey: text("mm_lite_api_key"),
   // Health status fields
   healthStatus: text("health_status").default("unknown"), // healthy, warning, error, unknown
   lastHealthCheck: timestamp("last_health_check"),
@@ -312,7 +308,6 @@ export const whatsappChannels = pgTable("whatsapp_channels", {
   wabaId: varchar("waba_id", { length: 50 }).notNull(),
   accessToken: text("access_token").notNull(), // Should be encrypted in production
   businessAccountId: varchar("business_account_id", { length: 50 }),
-  mmLiteEnabled: boolean("mm_lite_enabled").default(false),
   rateLimitTier: varchar("rate_limit_tier", { length: 20 }).default("standard"),
   qualityRating: varchar("quality_rating", { length: 20 }).default("green"), // green, yellow, red
   status: varchar("status", { length: 20 }).default("inactive"), // active, inactive, error
@@ -350,7 +345,7 @@ export const messageQueue = pgTable("message_queue", {
   attempts: integer("attempts").default(0),
   whatsappMessageId: varchar("whatsapp_message_id", { length: 100 }),
   conversationId: varchar("conversation_id", { length: 100 }),
-  sentVia: varchar("sent_via", { length: 20 }), // cloud_api, mm_lite
+  sentVia: varchar("sent_via", { length: 20 }), // cloud_api, marketing_messages
   cost: varchar("cost", { length: 20 }), // Store as string to avoid decimal precision issues
   errorCode: varchar("error_code", { length: 50 }),
   errorMessage: text("error_message"),

@@ -121,22 +121,6 @@ export function registerWhatsAppRoutes(app: Express) {
         };
       }
       
-      // Create WhatsApp channel object from regular channel
-      const whatsappChannel = {
-        id: channel.id,
-        name: channel.name,
-        phoneNumber: channel.phoneNumber || "",
-        phoneNumberId: channel.phoneNumberId,
-        wabaId: channel.whatsappBusinessAccountId || "",
-        accessToken: channel.accessToken,
-        businessAccountId: channel.whatsappBusinessAccountId,
-        mmLiteEnabled: channel.mmLiteEnabled || false,
-        mmLiteEndpoint: (channel as any).mmLiteEndpoint || null,
-        qualityRating: "green",
-        status: "active",
-        lastHealthCheck: channel.lastHealthCheck || null,
-      } as any;
-      
       // Send message using WhatsApp API service instance
       const whatsappApi = new WhatsAppApiService(channel);
       const result = await whatsappApi.sendDirectMessage(payload);
@@ -219,33 +203,15 @@ export function registerWhatsAppRoutes(app: Express) {
 
       const testPhone = req.body.testPhone || "919310797700"; // Default test number
       
-      // Create WhatsApp channel object from regular channel
-      const whatsappChannel = {
-        id: channel.id,
-        name: channel.name,
-        phoneNumber: channel.phoneNumber || "",
-        phoneNumberId: channel.phoneNumberId,
-        wabaId: channel.whatsappBusinessAccountId || "",
-        accessToken: channel.accessToken,
-        businessAccountId: channel.whatsappBusinessAccountId,
-        mmLiteEnabled: channel.mmLiteEnabled || false,
-        mmLiteEndpoint: (channel as any).mmLiteEndpoint || null,
-        qualityRating: "green",
-        status: "active",
-        lastHealthCheck: channel.lastHealthCheck || null,
-      } as any;
-      
       // Test connection by sending hello_world template
-      const result = await WhatsAppApiService.sendMessage(whatsappChannel, {
-        to: testPhone,
-        type: "template",
-        template: {
-          name: "hello_world",
-          language: {
-            code: "en_US"
-          }
-        }
-      });
+      const result = await WhatsAppApiService.sendTemplateMessage(
+        channel,
+        testPhone,
+        "hello_world",
+        [],
+        "en_US",
+        false // not marketing
+      );
 
       // Log the API request
       await storage.logApiRequest({
@@ -262,16 +228,12 @@ export function registerWhatsAppRoutes(app: Express) {
             language: { code: "en_US" }
           }
         },
-        responseStatus: result.success ? 200 : 400,
-        responseBody: result.data || { error: result.error },
-        errorMessage: result.error
+        responseStatus: 200,
+        responseBody: result,
+        errorMessage: null
       });
 
-      if (result.success) {
-        res.json({ success: true, message: "Test message sent successfully" });
-      } else {
-        res.status(400).json({ success: false, message: result.error || "Test failed" });
-      }
+      res.json({ success: true, message: "Test message sent successfully", result });
     } catch (error) {
       console.error("Error testing WhatsApp connection:", error);
       res.status(500).json({ message: "Failed to test WhatsApp connection" });

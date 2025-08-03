@@ -112,9 +112,9 @@ WHATSAPP_BUSINESS_ACCOUNT_ID=your_business_account_id
 WHATSAPP_ACCESS_TOKEN=your_permanent_access_token
 WHATSAPP_WEBHOOK_VERIFY_TOKEN=your_webhook_verify_token
 
-# MM Lite Configuration (Optional)
-MM_LITE_API_KEY=your_mm_lite_api_key
-MM_LITE_API_URL=https://api.mmlite.com
+# MM Lite Configuration 
+# Note: MM Lite uses the same WhatsApp Cloud API with /marketing_messages endpoint
+# No separate configuration needed - automatically used for marketing campaigns
 
 # Application URL
 APP_URL=https://your-domain.com
@@ -219,11 +219,9 @@ server {
    - Verify business
    - Generate permanent access token
 
-### MM Lite API Setup (Optional)
+### MM Lite API (Marketing Messages)
 
-1. Register at MM Lite provider
-2. Get API credentials
-3. Configure in environment variables
+MM Lite is automatically enabled for marketing campaigns. It uses the same WhatsApp Cloud API credentials but routes marketing messages through the `/marketing_messages` endpoint for higher throughput. No additional configuration is needed.
 
 ## Features Overview
 

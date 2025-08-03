@@ -1,5 +1,5 @@
 import { db } from "../db";
-import { messageQueue, whatsappChannels, campaigns } from "@shared/schema";
+import { messageQueue, channels, campaigns } from "@shared/schema";
 import { eq, and, lte, isNull, sql } from "drizzle-orm";
 import { WhatsAppApiService } from "./whatsapp-api";
 
@@ -77,8 +77,8 @@ export class MessageQueueService {
       // Get the channel
       const [channel] = await db
         .select()
-        .from(whatsappChannels)
-        .where(eq(whatsappChannels.id, message.channelId))
+        .from(channels)
+        .where(eq(channels.id, message.channelId))
         .limit(1);
 
       if (!channel) {
@@ -99,10 +99,9 @@ export class MessageQueueService {
         return;
       }
 
-      // Determine if we should use MM Lite
-      const useMMlite = message.messageType === "marketing" && 
-                       channel.mmLiteEnabled === true && 
-                       message.sentVia !== "cloud_api"; // Allow forcing standard API
+      // Determine if we should use marketing_messages endpoint
+      const isMarketing = message.messageType === "marketing" && 
+                         message.sentVia !== "cloud_api"; // Allow forcing standard API
 
       // Send the message
       let response;
@@ -113,7 +112,7 @@ export class MessageQueueService {
           message.templateName,
           message.templateParams || [],
           "en_US",
-          useMMlite
+          isMarketing
         );
       } else {
         // For non-template messages (future implementation)
@@ -126,7 +125,7 @@ export class MessageQueueService {
         .set({
           status: "sent",
           whatsappMessageId: response.messages?.[0]?.id,
-          sentVia: useMMlite ? "mm_lite" : "cloud_api",
+          sentVia: isMarketing ? "marketing_messages" : "cloud_api",
           attempts: message.attempts + 1
         })
         .where(eq(messageQueue.id, message.id));

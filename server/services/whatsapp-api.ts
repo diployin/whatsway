@@ -110,45 +110,17 @@ export class WhatsAppApiService {
     return cleaned;
   }
 
-  // MM Lite message sending
+  // Deprecated - MM Lite now uses marketing_messages endpoint in sendTemplateMessage
+  // Keeping for backward compatibility but routes to sendTemplateMessage
   private async sendMMliteMessage(to: string, templateName: string, parameters: string[] = [], language: string = "en_US"): Promise<any> {
-    if (!this.channel.mmLiteApiUrl || !this.channel.mmLiteApiKey) {
-      throw new Error("MM Lite configuration missing");
-    }
-
-    const formattedPhone = this.formatPhoneNumber(to);
-    const body = {
-      messaging_product: "whatsapp",
-      to: formattedPhone,
-      type: "template",
-      template: {
-        name: templateName,
-        language: { code: language },
-        components: parameters.length > 0 ? [{
-          type: "body",
-          parameters: parameters.map(text => ({ type: "text", text }))
-        }] : undefined
-      }
-    };
-
-    const response = await fetch(
-      `${this.channel.mmLiteApiUrl}/messages`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.channel.mmLiteApiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-      }
+    return WhatsAppApiService.sendTemplateMessage(
+      this.channel,
+      to,
+      templateName,
+      parameters,
+      language,
+      true // isMarketing = true for MM Lite
     );
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error?.message || 'Failed to send MM Lite message');
-    }
-
-    return await response.json();
   }
 
   async createTemplate(templateData: any): Promise<any> {
