@@ -61,15 +61,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Store WebSocket connections by conversation ID
   const conversationClients = new Map<string, Set<WebSocket>>();
 
+  // Store all connected clients for broadcasting
+  const allClients = new Set<WebSocket>();
+
   wss.on('connection', (ws) => {
     console.log('WebSocket client connected');
+    allClients.add(ws);
     let currentConversationId: string | null = null;
+    let joinedAllConversations = false;
     
     ws.on('message', (message) => {
       try {
         const data = JSON.parse(message.toString());
         
-        if (data.type === 'join-conversation') {
+        if (data.type === 'join-all-conversations') {
+          // Mark this client as listening to all conversations
+          joinedAllConversations = true;
+          ws.send(JSON.stringify({ type: 'joined-all' }));
+        } else if (data.type === 'join-conversation') {
           // Leave previous conversation if any
           if (currentConversationId && conversationClients.has(currentConversationId)) {
             conversationClients.get(currentConversationId)!.delete(ws);
@@ -77,10 +86,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Join new conversation
           currentConversationId = data.conversationId;
-          if (!conversationClients.has(currentConversationId)) {
-            conversationClients.set(currentConversationId, new Set());
+          if (currentConversationId) {
+            if (!conversationClients.has(currentConversationId)) {
+              conversationClients.set(currentConversationId, new Set());
+            }
+            conversationClients.get(currentConversationId)!.add(ws);
           }
-          conversationClients.get(currentConversationId)!.add(ws);
           
           ws.send(JSON.stringify({ type: 'joined', conversationId: currentConversationId }));
         }
@@ -90,6 +101,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
     
     ws.on('close', () => {
+      // Remove from all clients
+      allClients.delete(ws);
+      
       // Remove from conversation clients
       if (currentConversationId && conversationClients.has(currentConversationId)) {
         conversationClients.get(currentConversationId)!.delete(ws);
@@ -103,15 +117,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Export broadcast function for use in message routes
   (global as any).broadcastToConversation = (conversationId: string, data: any) => {
+    const message = JSON.stringify({ ...data, conversationId });
+    
+    // Send to clients joined to this specific conversation
     const clients = conversationClients.get(conversationId);
     if (clients) {
-      const message = JSON.stringify(data);
       clients.forEach(client => {
-        if (client.readyState === client.OPEN) {
+        if (client.readyState === WebSocket.OPEN) {
           client.send(message);
         }
       });
     }
+    
+    // Also send to all clients that joined all conversations
+    allClients.forEach(client => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(message);
+      }
+    });
   };
 
   // Error handling middleware - must be registered last

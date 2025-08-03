@@ -216,7 +216,7 @@ async function handleMessageChange(value: any) {
     }
     
     // Create message
-    await storage.createMessage({
+    const newMessage = await storage.createMessage({
       conversationId: conversation.id,
       content: text?.body || `[${type} message]`,
       fromUser: false,
@@ -225,6 +225,14 @@ async function handleMessageChange(value: any) {
       whatsappMessageId,
       timestamp: new Date(parseInt(timestamp, 10) * 1000)
     });
+    
+    // Broadcast new message via WebSocket
+    if ((global as any).broadcastToConversation) {
+      (global as any).broadcastToConversation(conversation.id, {
+        type: 'new-message',
+        message: newMessage
+      });
+    }
   }
 }
 

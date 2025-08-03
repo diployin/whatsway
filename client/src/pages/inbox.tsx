@@ -232,13 +232,17 @@ const TemplateDialog = ({
   onSelectTemplate: (template: any) => void;
 }) => {
   const [open, setOpen] = useState(false);
-  const { data: templates = [] } = useQuery({
+  const { data: templates = [], isLoading: templatesLoading } = useQuery({
     queryKey: ["/api/templates", channelId],
-    queryFn: () => api.getTemplates(channelId),
+    queryFn: async () => {
+      const response = await api.getTemplates(channelId);
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
+    },
     enabled: !!channelId && open,
   });
 
-  const approvedTemplates = (templates as any[]).filter((t: any) => t.status === "approved");
+  const approvedTemplates = templates.filter((t: any) => t.status === "approved");
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -256,7 +260,11 @@ const TemplateDialog = ({
         </DialogHeader>
         
         <ScrollArea className="h-[400px] pr-4">
-          {approvedTemplates.length === 0 ? (
+          {templatesLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loading />
+            </div>
+          ) : approvedTemplates.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               No approved templates available
             </div>
@@ -295,6 +303,8 @@ export default function Inbox() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterTab, setFilterTab] = useState("all");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const wsRef = useRef<WebSocket | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -340,6 +350,62 @@ export default function Inbox() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // WebSocket connection for real-time updates
+  useEffect(() => {
+    // Create WebSocket connection immediately
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    const ws = new WebSocket(wsUrl);
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      console.log('WebSocket connected');
+      // Join all conversations for updates
+      ws.send(JSON.stringify({
+        type: 'join-all-conversations'
+      }));
+    };
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      
+      if (data.type === 'new-message') {
+        // Refresh conversations list to update unread counts
+        queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+        
+        // If the message is for the selected conversation, refresh messages
+        if (selectedConversation && data.conversationId === selectedConversation.id) {
+          queryClient.invalidateQueries({ queryKey: ["/api/conversations", selectedConversation.id, "messages"] });
+        }
+      }
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
+    ws.onclose = () => {
+      console.log('WebSocket disconnected');
+    };
+
+    return () => {
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        wsRef.current.close();
+      }
+    };
+  }, [queryClient]);
+
+  // Join specific conversation when selected
+  useEffect(() => {
+    if (!selectedConversation || !wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
+    
+    // Join the specific conversation for detailed updates
+    wsRef.current.send(JSON.stringify({
+      type: 'join-conversation',
+      conversationId: selectedConversation.id
+    }));
+  }, [selectedConversation]);
+
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (data: { conversationId: string; content: string }) => {
@@ -360,6 +426,38 @@ export default function Inbox() {
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", selectedConversation?.id, "messages"] });
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
       setMessageText("");
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update conversation status mutation
+  const updateStatusMutation = useMutation({
+    mutationFn: async (data: { conversationId: string; status: string }) => {
+      const response = await fetch(`/api/conversations/${data.conversationId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: data.status }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to update status");
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      toast({
+        title: "Success",
+        description: "Conversation status updated",
+      });
     },
     onError: (error: Error) => {
       toast({
@@ -426,6 +524,33 @@ export default function Inbox() {
       conversationId: selectedConversation.id,
       templateName: template.name,
       phoneNumber: selectedConversation.contactPhone || "",
+    });
+  };
+
+  const handleFileAttachment = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // For now, show a message that attachments are coming soon
+    toast({
+      title: "Coming Soon",
+      description: "File attachments will be available in the next update",
+    });
+    
+    // Reset the input
+    event.target.value = '';
+  };
+
+  const updateConversationStatus = (status: string) => {
+    if (!selectedConversation) return;
+    
+    updateStatusMutation.mutate({
+      conversationId: selectedConversation.id,
+      status: status,
     });
   };
 
@@ -531,9 +656,17 @@ export default function Inbox() {
                 </Avatar>
                 
                 <div>
-                  <h3 className="font-semibold text-gray-900">
-                    {(selectedConversation as any).contact?.name || selectedConversation.contactPhone || "Unknown"}
-                  </h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold text-gray-900">
+                      {(selectedConversation as any).contact?.name || selectedConversation.contactPhone || "Unknown"}
+                    </h3>
+                    <Badge 
+                      variant={selectedConversation.status === 'resolved' ? 'secondary' : 'default'}
+                      className="text-xs"
+                    >
+                      {selectedConversation.status || 'open'}
+                    </Badge>
+                  </div>
                   <p className="text-sm text-gray-500">
                     {(selectedConversation as any).contact?.phone || selectedConversation.contactPhone || ""}
                   </p>
@@ -570,6 +703,16 @@ export default function Inbox() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Status</DropdownMenuLabel>
+                    <DropdownMenuItem onClick={() => updateConversationStatus('open')}>
+                      <MessageCircle className="mr-2 h-4 w-4" />
+                      Mark as Open
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => updateConversationStatus('resolved')}>
+                      <Check className="mr-2 h-4 w-4" />
+                      Mark as Resolved
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem>
                       <User className="mr-2 h-4 w-4" />
                       View Contact
@@ -643,13 +786,21 @@ export default function Inbox() {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-9 w-9">
+                      <Button variant="ghost" size="icon" className="h-9 w-9" onClick={handleFileAttachment}>
                         <Paperclip className="h-4 w-4" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>Attach File</TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
+                
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  hidden
+                  onChange={handleFileChange}
+                  accept="image/*,video/*,audio/*,.pdf,.doc,.docx"
+                />
 
                 <TemplateDialog
                   channelId={activeChannel?.id}

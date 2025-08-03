@@ -47,4 +47,24 @@ export function registerConversationRoutes(app: Express) {
 
   // Mark conversation as read
   app.put("/api/conversations/:id/read", conversationsController.markAsRead);
+
+  // Update conversation status
+  app.patch("/api/conversations/:id/status", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      if (!['open', 'resolved', 'closed'].includes(status)) {
+        return res.status(400).json({ 
+          message: 'Invalid status. Must be open, resolved, or closed' 
+        });
+      }
+      
+      await storage.updateConversation(id, { status });
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error updating conversation status:', error);
+      res.status(500).json({ message: 'Failed to update conversation status' });
+    }
+  });
 }
