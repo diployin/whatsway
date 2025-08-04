@@ -479,37 +479,32 @@ interface I18nState {
   translations: Translations;
 }
 
-export const useI18n = create<I18nState>()(
-  persist(
-    (set, get) => ({
-      language: 'en',
-      translations: translations.en,
-      setLanguage: (language: Language) => {
-        set({ 
-          language, 
-          translations: translations[language] 
-        });
-        // Update document direction for RTL languages
-        document.documentElement.dir = languages[language].direction;
-        document.documentElement.lang = language;
-      },
-      t: (path: string) => {
-        const { translations } = get();
-        const keys = path.split('.');
-        let value: any = translations;
-        
-        for (const key of keys) {
-          value = value?.[key];
-        }
-        
-        return value || path;
-      },
-    }),
-    {
-      name: 'whatsway-language',
+export const useI18n = create<I18nState>()((set, get) => ({
+  language: 'en',
+  translations: translations.en,
+  setLanguage: (language: Language) => {
+    set({ 
+      language, 
+      translations: translations[language] 
+    });
+    // Update document direction for RTL languages
+    document.documentElement.dir = languages[language].direction;
+    document.documentElement.lang = language;
+  },
+  t: (path: string) => {
+    const state = get();
+    const currentTranslations = state.translations || translations[state.language || 'en'] || translations.en;
+    const keys = path.split('.');
+    let value: any = currentTranslations;
+    
+    for (const key of keys) {
+      value = value?.[key];
+      if (!value) break;
     }
-  )
-);
+    
+    return value || path;
+  },
+}));
 
 // Helper hook for translations
 export function useTranslation() {

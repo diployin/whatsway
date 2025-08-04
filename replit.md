@@ -55,6 +55,12 @@ Preferred communication style: Simple, everyday language.
 - **ESBuild**: Fast JavaScript bundling for production.
 
 ## Recent Changes
+- Fixed critical dashboard translation system issues (Jan 4, 2025):
+  - Resolved i18n store not loading translations properly by removing persistence layer
+  - Fixed TypeScript interface mismatches between translation files and i18n.ts
+  - Temporarily disabled non-English/Spanish translation files to ensure stable functionality
+  - Dashboard now displays all text correctly instead of showing translation keys
+  - All navigation items, dashboard cards, and UI elements show proper English/Spanish text
 - Made Team Inbox mobile-responsive with hide/show functionality and back button (Jan 3, 2025):
   - Updated conversations list to hide on mobile when a conversation is selected
   - Added back button to chat header for mobile navigation
