@@ -61,7 +61,7 @@ import {
   X,
   Users,
   UserPlus,
-  User,
+  User as UserIcon,
   ChevronDown,
   Calendar,
   Tag,
@@ -73,7 +73,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { format, differenceInMinutes, differenceInHours, differenceInDays, isToday, isYesterday } from "date-fns";
 import { cn } from "@/lib/utils";
-import type { Conversation, Message, Contact, TeamMember } from "@shared/schema";
+import type { Conversation, Message, Contact, User } from "@shared/schema";
 
 // Helper functions
 const formatLastSeen = (date: Date | string | null) => {
@@ -566,10 +566,7 @@ export default function Inbox() {
     if (!selectedConversation) return;
     
     try {
-      await apiRequest(`/api/conversations/${selectedConversation.id}`, {
-        method: 'PATCH',
-        body: { status: 'archived' }
-      });
+      await apiRequest('PATCH', `/api/conversations/${selectedConversation.id}`, { status: 'archived' });
       
       toast({
         title: "Chat Archived",
@@ -591,10 +588,7 @@ export default function Inbox() {
     if (!selectedConversation || !selectedConversation.contactId) return;
     
     try {
-      await apiRequest(`/api/contacts/${selectedConversation.contactId}`, {
-        method: 'PATCH',
-        body: { status: 'blocked' }
-      });
+      await apiRequest('PATCH', `/api/contacts/${selectedConversation.contactId}`, { status: 'blocked' });
       
       toast({
         title: "Contact Blocked",
@@ -618,9 +612,7 @@ export default function Inbox() {
     if (!confirmed) return;
     
     try {
-      await apiRequest(`/api/conversations/${selectedConversation.id}`, {
-        method: 'DELETE'
-      });
+      await apiRequest('DELETE', `/api/conversations/${selectedConversation.id}`);
       
       toast({
         title: "Chat Deleted",
@@ -680,7 +672,10 @@ export default function Inbox() {
       <div className="flex-1 flex bg-gray-50 overflow-hidden">
       
       {/* Conversations List */}
-      <div className="w-96 bg-white border-r border-gray-200 flex flex-col">
+      <div className={cn(
+        "bg-white border-r border-gray-200 flex flex-col",
+        selectedConversation ? "hidden md:flex md:w-80 lg:w-96" : "w-full md:w-80 lg:w-96"
+      )}>
         {/* Search and Filter */}
         <div className="p-4 border-b border-gray-200">
           <div className="relative mb-3">
@@ -730,9 +725,18 @@ export default function Inbox() {
       {selectedConversation ? (
         <div className="flex-1 flex flex-col">
           {/* Chat Header */}
-          <div className="bg-white border-b border-gray-200 px-6 py-4">
+          <div className="bg-white border-b border-gray-200 px-4 md:px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="md:hidden h-9 w-9"
+                  onClick={() => setSelectedConversation(null)}
+                  data-testid="button-back-conversations"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
                 <Avatar className="h-10 w-10">
                   <AvatarFallback className="bg-gray-200">
                     {(selectedConversation as any).contact?.name?.[0]?.toUpperCase() || "?"}
@@ -776,7 +780,7 @@ export default function Inbox() {
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => handleViewContact()}>
-                      <User className="mr-2 h-4 w-4" />
+                      <UserIcon className="mr-2 h-4 w-4" />
                       View Contact
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => handleArchiveChat()}>
@@ -832,7 +836,7 @@ export default function Inbox() {
           </ScrollArea>
 
           {/* Message Input */}
-          <div className="bg-white border-t border-gray-200 p-4">
+          <div className="bg-white border-t border-gray-200 p-3 md:p-4">
             {is24HourWindowExpired && (
               <div className="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <div className="flex items-start gap-2">
@@ -845,12 +849,12 @@ export default function Inbox() {
               </div>
             )}
 
-            <div className="flex items-end gap-2">
+            <div className="flex items-end gap-1 md:gap-2">
               <div className="flex gap-1">
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-9 w-9" onClick={handleFileAttachment}>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 md:h-9 md:w-9" onClick={handleFileAttachment}>
                         <Paperclip className="h-4 w-4" />
                       </Button>
                     </TooltipTrigger>
@@ -890,7 +894,8 @@ export default function Inbox() {
                 onClick={handleSendMessage}
                 disabled={!messageText.trim() || is24HourWindowExpired || sendMessageMutation.isPending}
                 size="icon"
-                className="h-9 w-9 bg-green-600 hover:bg-green-700"
+                className="h-8 w-8 md:h-9 md:w-9 bg-green-600 hover:bg-green-700"
+                data-testid="button-send-message"
               >
                 <Send className="h-4 w-4" />
               </Button>
@@ -898,7 +903,7 @@ export default function Inbox() {
           </div>
         </div>
       ) : (
-        <div className="flex-1 flex items-center justify-center bg-gray-50">
+        <div className="hidden md:flex flex-1 items-center justify-center bg-gray-50">
           <div className="text-center">
             <MessageCircle className="h-16 w-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">Select a conversation</h3>

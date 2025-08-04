@@ -55,6 +55,22 @@ Preferred communication style: Simple, everyday language.
 - **ESBuild**: Fast JavaScript bundling for production.
 
 ## Recent Changes
+- Fixed critical dashboard translation system issues (Jan 4, 2025):
+  - Resolved i18n store not loading translations properly by removing persistence layer
+  - Fixed TypeScript interface mismatches between translation files and i18n.ts
+  - Temporarily disabled non-English/Spanish translation files to ensure stable functionality
+  - Dashboard now displays all text correctly instead of showing translation keys
+  - All navigation items, dashboard cards, and UI elements show proper English/Spanish text
+- Made Team Inbox mobile-responsive with hide/show functionality and back button (Jan 3, 2025):
+  - Updated conversations list to hide on mobile when a conversation is selected
+  - Added back button to chat header for mobile navigation
+  - Fixed TypeScript errors by renaming User import from lucide-react to UserIcon
+  - Fixed apiRequest method calls to use correct parameter order
+- Created dashboard hooks for dynamic data fetching (Jan 3, 2025):
+  - Created useDashboardStats and useAnalytics hooks in use-dashboard.ts
+  - Hooks fetch real data from API endpoints with channel filtering
+  - Added 30-second auto-refresh for dashboard stats
+- Started implementing dynamic dashboard with real data integration
 - Prepared comprehensive documentation for CodeCanyon listing (Jan 3, 2025):
   - Created DOCUMENTATION.md with full user guide, installation steps, and troubleshooting
   - Created CODECANYON_README.md for marketplace listing with feature highlights
