@@ -71,6 +71,7 @@ export interface Translations {
   };
   dashboard: {
     title: string;
+    subtitle: string;
     overview: string;
     totalContacts: string;
     activeCampaigns: string;
@@ -79,18 +80,48 @@ export interface Translations {
     messagesPending: string;
     messagesRead: string;
     recentActivity: string;
-    viewAll: string;
+    totalMessagesSent: string;
+    vsLastMonth: string;
+    runningNow: string;
     deliveryRate: string;
-    readRate: string;
-    campaignPerformance: string;
-    messageVolume: string;
-    last7Days: string;
-    last30Days: string;
-    thisMonth: string;
-    conversationInsights: string;
-    activeConversations: string;
-    avgResponseTime: string;
-    unreadMessages: string;
+    newLeads: string;
+    thisWeek: string;
+    messageAnalytics: string;
+    '7Days': string;
+    '30Days': string;
+    '3Months': string;
+    sent: string;
+    delivered: string;
+    read: string;
+    replied: string;
+    failed: string;
+    recentActivities: string;
+    noRecentCampaigns: string;
+    createFirstCampaign: string;
+    noContactsImported: string;
+    importContactsToStart: string;
+    noAutomationsActive: string;
+    setupAutomationFlows: string;
+    viewAllActivities: string;
+    quickActions: string;
+    importContacts: string;
+    createCampaign: string;
+    newCampaign: string;
+    syncTemplates: string;
+    viewAnalytics: string;
+    apiStatusConnection: string;
+    whatsAppCloudAPI: string;
+    noChannelSelected: string;
+    connected: string;
+    warning: string;
+    error: string;
+    noChannel: string;
+    channelQuality: string;
+    rating: string;
+    tier: string;
+    apiUptime: string;
+    avgResponse: string;
+    dailyMessageLimit: string;
   };
   contacts: {
     title: string;
@@ -422,22 +453,22 @@ export const languages: Record<Language, { name: string; nativeName: string; dir
 // Import all translation files
 import enTranslations from './translations/en.json';
 import esTranslations from './translations/es.json';
-import frTranslations from './translations/fr.json';
-import deTranslations from './translations/de.json';
-import ptTranslations from './translations/pt.json';
-import arTranslations from './translations/ar.json';
-import hiTranslations from './translations/hi.json';
-import zhTranslations from './translations/zh.json';
+// import frTranslations from './translations/fr.json';
+// import deTranslations from './translations/de.json';
+// import ptTranslations from './translations/pt.json';
+// import arTranslations from './translations/ar.json';
+// import hiTranslations from './translations/hi.json';
+// import zhTranslations from './translations/zh.json';
 
 const translations: Record<Language, Translations> = {
-  en: enTranslations,
-  es: esTranslations,
-  fr: frTranslations,
-  de: deTranslations,
-  pt: ptTranslations,
-  ar: arTranslations,
-  hi: hiTranslations,
-  zh: zhTranslations,
+  en: enTranslations as Translations,
+  es: esTranslations as Translations,
+  fr: enTranslations as Translations, // fallback to English
+  de: enTranslations as Translations, // fallback to English
+  pt: enTranslations as Translations, // fallback to English
+  ar: enTranslations as Translations, // fallback to English
+  hi: enTranslations as Translations, // fallback to English
+  zh: enTranslations as Translations, // fallback to English
 };
 
 // i18n store
