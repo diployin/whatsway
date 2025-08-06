@@ -1,13 +1,11 @@
 /**
- * Plesk Node.js Application Entry Point
- * This file is specifically for Plesk Phusion Passenger
- * Must be CommonJS format for Plesk compatibility
+ * WhatsWay Entry Point for Plesk
+ * This file is specifically for Plesk Node.js Application support
+ * It uses CommonJS format for compatibility
  */
 
-// Load the server.cjs file directly
-const app = require('./server.cjs');
+// Load environment variables
+require('dotenv').config();
 
-// Export for Plesk Passenger
-module.exports = app;
-
-console.log('WhatsWay app.js loaded for Plesk');
+// Start the application
+require('./server/index.js');

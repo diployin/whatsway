@@ -1,281 +1,244 @@
-# WhatsWay - Technical Documentation
+# WhatsWay Technical Documentation
+*Version 1.0 - January 2025*
 
 ## Table of Contents
-1. [Executive Summary](#executive-summary)
-2. [System Architecture](#system-architecture)
+1. [Introduction](#introduction)
+2. [Architecture Overview](#architecture-overview)
 3. [Technology Stack](#technology-stack)
-4. [Core Features](#core-features)
-5. [Application Flow](#application-flow)
+4. [Project Structure](#project-structure)
+5. [Core Components](#core-components)
 6. [Database Design](#database-design)
-7. [API Architecture](#api-architecture)
-8. [Security Implementation](#security-implementation)
-9. [Integration Points](#integration-points)
-10. [Performance Optimization](#performance-optimization)
-11. [Deployment Architecture](#deployment-architecture)
-12. [Monitoring & Maintenance](#monitoring--maintenance)
+7. [API Documentation](#api-documentation)
+8. [Frontend Guide](#frontend-guide)
+9. [Backend Guide](#backend-guide)
+10. [Customization Guide](#customization-guide)
+11. [File Reference](#file-reference)
+12. [Common Modifications](#common-modifications)
+13. [Troubleshooting](#troubleshooting)
 
 ---
 
-## Executive Summary
+## Introduction
 
-WhatsWay is an enterprise-grade WhatsApp Business messaging platform designed to streamline customer communication, marketing automation, and team collaboration. Built with modern web technologies, it provides businesses with powerful tools to manage WhatsApp communications at scale while maintaining compliance with Meta's WhatsApp Business API standards.
+### What is WhatsWay?
+WhatsWay is a comprehensive WhatsApp Business messaging platform that helps businesses manage their WhatsApp communications efficiently. It provides tools for:
+- 📊 Dashboard analytics and real-time statistics
+- 👥 Contact and group management
+- 📢 Campaign creation and management
+- 💬 Team inbox for customer conversations
+- 🤖 Automation workflows
+- 📝 Template management
+- 👨‍👩‍👧‍👦 Team collaboration
 
-### Key Capabilities
-- **Multi-channel WhatsApp Business management**
-- **Advanced marketing campaign automation**
-- **Real-time team collaboration**
-- **Template-based messaging system**
-- **Comprehensive analytics and reporting**
-- **Visual automation workflow builder**
-- **Enterprise-grade security and scalability**
+### Who is this for?
+- **Business Owners**: Manage customer communications
+- **Marketing Teams**: Run WhatsApp campaigns
+- **Support Teams**: Handle customer inquiries
+- **Developers**: Customize and extend the platform
 
 ---
 
-## System Architecture
+## Architecture Overview
 
-### High-Level Architecture
-
+### System Design
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                         Frontend Layer                       │
-│  React 18 + TypeScript + Tailwind CSS + Radix UI           │
-└─────────────────┬───────────────────────────────────────────┘
-                  │ HTTPS/WSS
-┌─────────────────▼───────────────────────────────────────────┐
-│                      Application Layer                       │
-│     Node.js + Express.js + WebSocket Server                 │
-│              MVC Architecture Pattern                        │
-└─────────────────┬───────────────────────────────────────────┘
-                  │
-┌─────────────────▼───────────────────────────────────────────┐
-│                       Data Layer                            │
-│    PostgreSQL (Neon) + Drizzle ORM + Redis (Optional)      │
-└─────────────────┬───────────────────────────────────────────┘
-                  │
-┌─────────────────▼───────────────────────────────────────────┐
-│                    External Services                        │
-│   WhatsApp Cloud API + Meta Marketing API + Webhooks       │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────┐
+│                     FRONTEND (React)                     │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐│
+│  │Dashboard │  │Campaigns │  │   Inbox   │  │Templates ││
+│  └──────────┘  └──────────┘  └──────────┘  └──────────┘│
+└─────────────────────────────────────────────────────────┘
+                           │
+                    API Requests
+                           ▼
+┌─────────────────────────────────────────────────────────┐
+│                   BACKEND (Node.js)                      │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐│
+│  │  Routes  │  │Controllers│  │ Services │  │Middleware││
+│  └──────────┘  └──────────┘  └──────────┘  └──────────┘│
+└─────────────────────────────────────────────────────────┘
+                           │
+                    Database Queries
+                           ▼
+┌─────────────────────────────────────────────────────────┐
+│                 DATABASE (PostgreSQL)                    │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐│
+│  │ Channels │  │ Contacts │  │Campaigns │  │ Messages ││
+│  └──────────┘  └──────────┘  └──────────┘  └──────────┘│
+└─────────────────────────────────────────────────────────┘
+                           │
+                   WhatsApp Cloud API
+                           ▼
+┌─────────────────────────────────────────────────────────┐
+│                    WHATSAPP BUSINESS                     │
+└─────────────────────────────────────────────────────────┘
 ```
 
-### Component Architecture
-
-1. **Presentation Layer**
-   - Single Page Application (SPA) with React
-   - Responsive design with mobile-first approach
-   - Real-time updates via WebSocket connections
-   - Component-based UI with Shadcn/UI library
-
-2. **Business Logic Layer**
-   - RESTful API endpoints
-   - WebSocket handlers for real-time features
-   - Background job processing (cron jobs)
-   - Message queue management
-
-3. **Data Access Layer**
-   - Repository pattern implementation
-   - Type-safe database queries with Drizzle ORM
-   - Connection pooling with Neon serverless
-   - Session management with PostgreSQL storage
-
-4. **Integration Layer**
-   - WhatsApp Business Cloud API integration
-   - Webhook event processing
-   - Third-party service connectors
+### Key Design Patterns
+- **MVC Architecture**: Model-View-Controller for code organization
+- **Service Layer**: Business logic separated from controllers
+- **Repository Pattern**: Database operations abstracted
+- **Middleware Pattern**: Request processing pipeline
+- **Component-Based UI**: Reusable React components
 
 ---
 
 ## Technology Stack
 
 ### Frontend Technologies
-
-| Technology | Version | Purpose |
+| Technology | Purpose | Version |
 |------------|---------|---------|
-| React | 18.x | UI framework |
-| TypeScript | 5.x | Type safety |
-| Vite | 5.x | Build tool & dev server |
-| Tailwind CSS | 3.x | Utility-first CSS |
-| Radix UI | Latest | Accessible UI components |
-| Shadcn/UI | Latest | Component library |
-| TanStack Query | 5.x | Server state management |
-| Wouter | 3.x | Client-side routing |
-| Zustand | 4.x | Client state management |
-| React Hook Form | 7.x | Form management |
-| Zod | 3.x | Schema validation |
-| Lucide React | Latest | Icon library |
-| Recharts | 2.x | Data visualization |
-| Framer Motion | 11.x | Animations |
+| **React** | UI Framework | 18.x |
+| **TypeScript** | Type Safety | 5.x |
+| **Vite** | Build Tool | Latest |
+| **Tailwind CSS** | Styling | 3.x |
+| **Shadcn/UI** | Component Library | Latest |
+| **TanStack Query** | Server State | 5.x |
+| **Wouter** | Routing | Latest |
+| **Lucide Icons** | Icons | Latest |
 
 ### Backend Technologies
-
-| Technology | Version | Purpose |
+| Technology | Purpose | Version |
 |------------|---------|---------|
-| Node.js | 20.x | Runtime environment |
-| Express.js | 4.x | Web framework |
-| TypeScript | 5.x | Type safety |
-| Drizzle ORM | Latest | Database ORM |
-| PostgreSQL | 15.x | Primary database |
-| Neon Database | Latest | Serverless PostgreSQL |
-| WebSocket (ws) | 8.x | Real-time communication |
-| Passport.js | 0.7.x | Authentication |
-| bcrypt.js | 2.x | Password hashing |
-| node-cron | 3.x | Task scheduling |
-| Express Session | 1.x | Session management |
-| Connect-pg-simple | 9.x | PostgreSQL session store |
+| **Node.js** | Runtime | 18+ |
+| **Express.js** | Web Framework | 4.x |
+| **TypeScript** | Type Safety | 5.x |
+| **PostgreSQL** | Database | Latest |
+| **Drizzle ORM** | Database ORM | Latest |
+| **Zod** | Validation | Latest |
+| **Passport** | Authentication | Latest |
 
-### Development & Build Tools
-
-| Tool | Purpose |
-|------|---------|
-| TSX | TypeScript execution |
-| ESBuild | Fast bundling |
-| PostCSS | CSS processing |
-| Autoprefixer | CSS compatibility |
-| Drizzle Kit | Database migrations |
+### External Services
+- **WhatsApp Business Cloud API**: Messaging service
+- **Neon Database**: Serverless PostgreSQL hosting
+- **Meta/Facebook**: OAuth and API integration
 
 ---
 
-## Core Features
+## Project Structure
 
-### 1. Dashboard & Analytics
-- **Real-time Statistics**: Live metrics for messages, campaigns, and contacts
-- **Performance Metrics**: Delivery rates, read rates, response rates
-- **Visual Analytics**: Charts and graphs for data visualization
-- **Custom Date Ranges**: Flexible reporting periods
-- **Export Capabilities**: Data export in multiple formats
+### Directory Layout
+```
+whatsway/
+├── client/                    # Frontend application
+│   ├── src/
+│   │   ├── components/       # Reusable UI components
+│   │   ├── pages/           # Page components
+│   │   ├── hooks/           # Custom React hooks
+│   │   ├── lib/             # Utility functions
+│   │   └── App.tsx          # Main application file
+│   └── index.html           # HTML entry point
+│
+├── server/                   # Backend application
+│   ├── controllers/         # Request handlers
+│   ├── services/           # Business logic
+│   ├── repositories/       # Database operations
+│   ├── routes/            # API endpoints
+│   ├── middlewares/       # Request processing
+│   ├── utils/            # Helper functions
+│   ├── cron/             # Scheduled tasks
+│   └── index.ts          # Server entry point
+│
+├── shared/                  # Shared code
+│   └── schema.ts           # Database schema & types
+│
+├── scripts/                 # Utility scripts
+│   ├── installer.sh        # Installation script
+│   └── seed.ts            # Database seeding
+│
+├── attached_assets/         # Static assets
+├── package.json            # Dependencies
+├── tsconfig.json          # TypeScript config
+├── vite.config.ts         # Vite configuration
+├── tailwind.config.ts     # Tailwind CSS config
+├── drizzle.config.ts      # Database config
+└── .env.example           # Environment variables
+```
+
+---
+
+## Core Components
+
+### 1. Dashboard System
+**Purpose**: Provides real-time analytics and insights
+
+**Key Files**:
+- `client/src/pages/dashboard.tsx` - Dashboard UI
+- `server/controllers/dashboard.controller.ts` - Data processing
+- `server/services/analytics.service.ts` - Analytics logic
+
+**Features**:
+- Message statistics
+- Campaign performance
+- Contact growth
+- Channel health monitoring
 
 ### 2. Contact Management
-- **Smart Import**: CSV import with duplicate detection
-- **Contact Groups**: Organize contacts into segments
-- **Custom Fields**: Extensible contact properties
-- **Search & Filter**: Advanced search capabilities
-- **Bulk Operations**: Mass update and delete functions
-- **Activity History**: Complete contact interaction log
+**Purpose**: Manage customer contacts and groups
 
-### 3. Campaign Management
+**Key Files**:
+- `client/src/pages/contacts.tsx` - Contacts UI
+- `server/controllers/contacts.controller.ts` - Contact operations
+- `server/repositories/contact.repository.ts` - Database operations
 
-#### Campaign Types
-1. **Contact-based Campaigns**
-   - Target specific contact groups
-   - Personalized messaging
-   - Scheduled delivery
+**Features**:
+- Import/export contacts
+- Group management
+- Contact tagging
+- Duplicate prevention
 
-2. **CSV-based Campaigns**
-   - Bulk import recipients
-   - Data mapping capabilities
-   - Validation and preview
+### 3. Campaign System
+**Purpose**: Create and manage marketing campaigns
 
-3. **API-based Campaigns**
-   - Programmatic access
-   - Dynamic recipient lists
-   - Real-time triggering
+**Key Files**:
+- `client/src/pages/campaigns/` - Campaign UI components
+- `server/controllers/campaigns.controller.ts` - Campaign logic
+- `server/services/campaign.service.ts` - Campaign processing
 
-#### Campaign Features
-- **Template Selection**: Pre-approved message templates
-- **Variable Substitution**: Dynamic content insertion
-- **Scheduling**: Time-based and timezone-aware delivery
-- **Throttling**: Rate limiting for compliance
-- **Retry Logic**: Automatic failure handling
-- **A/B Testing**: Campaign variant testing
+**Campaign Types**:
+- **Instant**: Send immediately
+- **Scheduled**: Send at specific time
+- **API-Based**: Trigger via API
 
-### 4. Template Management
-- **Multi-language Support**: Templates in multiple languages
-- **Media Support**: Images, videos, documents
-- **Interactive Elements**: Buttons, quick replies
-- **Version Control**: Template history tracking
-- **Approval Status**: Meta approval tracking
-- **Preview System**: Real-time template preview
+### 4. Team Inbox
+**Purpose**: Manage customer conversations
 
-### 5. Team Inbox
-- **Unified Conversations**: All channels in one place
-- **Assignment System**: Conversation routing to agents
-- **Status Management**: Open, pending, resolved states
-- **Quick Replies**: Canned responses
-- **Conversation Tags**: Categorization system
-- **Search & Filter**: Find conversations quickly
-- **24-hour Window**: WhatsApp messaging compliance
+**Key Files**:
+- `client/src/pages/inbox.tsx` - Inbox UI
+- `server/controllers/conversations.controller.ts` - Message handling
+- `server/services/whatsapp-api.ts` - WhatsApp integration
 
-### 6. Automation Builder
-- **Visual Flow Designer**: Drag-and-drop interface
-- **Node Types**:
-  - User Reply: Wait for responses
-  - Time Gap: Delay execution
-  - Send Template: Message sending
-  - Custom Reply: Dynamic responses
-  - Keyword Catch: Conditional branching
-- **Trigger Types**: Message, keyword, time-based
-- **Execution Tracking**: Flow analytics
-- **Testing Mode**: Sandbox environment
+**Features**:
+- Real-time messaging
+- Conversation assignment
+- Message templates
+- 24-hour window enforcement
 
-### 7. Multi-Channel Management
-- **Channel Configuration**: Multiple WhatsApp numbers
-- **Health Monitoring**: Real-time status checks
-- **Quality Scoring**: Meta quality metrics
-- **Messaging Limits**: Tier management
-- **Channel Switching**: Quick context switching
+### 5. Template Management
+**Purpose**: Create and manage message templates
 
-### 8. Webhook Management
-- **Event Processing**: Real-time message events
-- **Signature Verification**: Security validation
-- **Event Types**:
-  - Message received
-  - Message status updates
-  - Template status changes
-- **Retry Logic**: Failed webhook handling
-- **Event Logging**: Complete audit trail
+**Key Files**:
+- `client/src/pages/templates.tsx` - Template UI
+- `server/controllers/templates.controller.ts` - Template operations
 
-### 9. Team Management
-- **Role-based Access**: Admin, Manager, Agent roles
-- **Permission System**: Granular access control
-- **Activity Logging**: User action tracking
-- **Team Analytics**: Performance metrics
-- **Shift Management**: Working hours configuration
+**Template Types**:
+- Text templates
+- Media templates (images, documents)
+- Interactive templates (buttons, lists)
 
-### 10. API Integration
-- **RESTful Endpoints**: Standard HTTP methods
-- **Authentication**: Token-based security
-- **Rate Limiting**: API throttling
-- **Documentation**: Interactive API docs
-- **SDKs**: Client libraries
-- **Webhooks**: Event notifications
+### 6. Automation Flows
+**Purpose**: Create automated conversation workflows
 
----
+**Key Files**:
+- `client/src/pages/flows.tsx` - Flow builder UI
+- `server/controllers/flows.controller.ts` - Flow execution
 
-## Application Flow
-
-### 1. Authentication Flow
-```
-User Login → Validate Credentials → Create Session → 
-Generate Token → Store in PostgreSQL → Return User Data
-```
-
-### 2. Message Sending Flow
-```
-Create Message → Validate Template → Check Rate Limits → 
-Queue Message → Send via WhatsApp API → Update Status → 
-Process Webhook → Update Database → Notify UI
-```
-
-### 3. Campaign Execution Flow
-```
-Create Campaign → Select Recipients → Choose Template → 
-Schedule/Execute → Batch Processing → Rate Limiting → 
-API Calls → Status Updates → Analytics Collection
-```
-
-### 4. Webhook Processing Flow
-```
-Receive Webhook → Verify Signature → Parse Payload → 
-Route to Handler → Process Event → Update Database → 
-Emit WebSocket Event → Update UI
-```
-
-### 5. Automation Workflow
-```
-Trigger Event → Load Workflow → Execute Nodes → 
-Wait for Conditions → Process Actions → Log Execution → 
-Update Status → Continue/Complete
-```
+**Node Types**:
+- Start node
+- Send message
+- Wait for reply
+- Conditional logic
+- Time delays
 
 ---
 
@@ -283,363 +246,739 @@ Update Status → Continue/Complete
 
 ### Core Tables
 
-1. **users**
-   - User authentication and profile
-   - Role and permission management
-   - Activity tracking
+#### 1. Users Table
+```sql
+users (
+  id            UUID PRIMARY KEY
+  username      VARCHAR UNIQUE
+  email         VARCHAR UNIQUE
+  password      VARCHAR
+  role          ENUM (admin, manager, agent)
+  permissions   JSONB
+  created_at    TIMESTAMP
+)
+```
 
-2. **contacts**
-   - Customer information
-   - Custom fields
-   - Interaction history
+#### 2. WhatsApp Channels
+```sql
+whatsapp_channels (
+  id              UUID PRIMARY KEY
+  name            VARCHAR
+  phone_number    VARCHAR
+  phone_number_id VARCHAR
+  waba_id         VARCHAR
+  access_token    VARCHAR (encrypted)
+  webhook_token   VARCHAR
+  status          ENUM (active, inactive, error)
+)
+```
 
-3. **campaigns**
-   - Campaign configuration
-   - Scheduling information
-   - Performance metrics
+#### 3. Contacts
+```sql
+contacts (
+  id          UUID PRIMARY KEY
+  phone       VARCHAR
+  name        VARCHAR
+  email       VARCHAR
+  tags        TEXT[]
+  attributes  JSONB
+  channel_id  UUID REFERENCES whatsapp_channels
+)
+```
 
-4. **templates**
-   - Message templates
-   - Multi-language support
-   - Approval status
+#### 4. Campaigns
+```sql
+campaigns (
+  id              UUID PRIMARY KEY
+  name            VARCHAR
+  type            ENUM (instant, scheduled, api)
+  status          ENUM (draft, active, completed)
+  template_id     UUID
+  recipient_count INTEGER
+  sent_count      INTEGER
+  delivered_count INTEGER
+)
+```
 
-5. **conversations**
-   - Thread management
-   - Assignment tracking
-   - Status management
-
-6. **messages**
-   - Individual messages
-   - Status tracking
-   - Meta message IDs
-
-7. **whatsapp_channels**
-   - Channel configuration
-   - API credentials
-   - Health metrics
-
-8. **webhook_configs**
-   - Webhook URLs
-   - Verification tokens
-   - Event subscriptions
+#### 5. Messages
+```sql
+messages (
+  id              UUID PRIMARY KEY
+  conversation_id UUID
+  campaign_id     UUID
+  type            ENUM (text, image, document)
+  content         TEXT
+  status          ENUM (sent, delivered, read, failed)
+  created_at      TIMESTAMP
+)
+```
 
 ### Relationships
-- Users ↔ Campaigns (many-to-many)
-- Contacts ↔ Conversations (one-to-many)
-- Conversations ↔ Messages (one-to-many)
-- Templates ↔ Campaigns (many-to-many)
-- Channels ↔ Conversations (one-to-many)
+- One channel → Many contacts
+- One campaign → Many messages
+- One conversation → Many messages
+- One user → Many assigned conversations
 
 ---
 
-## API Architecture
+## API Documentation
 
-### RESTful Endpoints
+### Authentication Endpoints
 
-#### Authentication
-- `POST /api/auth/login` - User login
-- `POST /api/auth/logout` - User logout
-- `GET /api/auth/me` - Current user info
+#### POST /api/auth/login
+**Purpose**: User login
+```json
+Request:
+{
+  "username": "admin",
+  "password": "password123"
+}
 
-#### Contacts
-- `GET /api/contacts` - List contacts
-- `POST /api/contacts` - Create contact
-- `PUT /api/contacts/:id` - Update contact
-- `DELETE /api/contacts/:id` - Delete contact
-- `POST /api/contacts/import` - Bulk import
+Response:
+{
+  "token": "jwt-token",
+  "user": { "id": "...", "role": "admin" }
+}
+```
 
-#### Campaigns
-- `GET /api/campaigns` - List campaigns
-- `POST /api/campaigns` - Create campaign
-- `PUT /api/campaigns/:id` - Update campaign
-- `POST /api/campaigns/:id/execute` - Run campaign
-- `GET /api/campaigns/:id/stats` - Campaign analytics
+#### POST /api/auth/logout
+**Purpose**: User logout
 
-#### Templates
-- `GET /api/templates` - List templates
-- `POST /api/templates/sync` - Sync with Meta
-- `GET /api/templates/:id` - Get template
-- `PUT /api/templates/:id` - Update template
+### Channel Management
 
-#### Messages
-- `POST /api/messages/send` - Send message
-- `GET /api/messages` - List messages
-- `PUT /api/messages/:id/status` - Update status
+#### GET /api/channels
+**Purpose**: List all WhatsApp channels
 
-#### Webhooks
-- `GET /api/webhook` - Webhook verification
-- `POST /api/webhook` - Process webhook events
+#### POST /api/channels
+**Purpose**: Add new WhatsApp channel
+```json
+Request:
+{
+  "name": "Business Channel",
+  "phoneNumber": "+1234567890",
+  "accessToken": "EAAI...",
+  "phoneNumberId": "123456"
+}
+```
 
-### WebSocket Events
+### Contact Operations
 
-#### Client → Server
-- `join_conversation` - Join conversation room
-- `send_message` - Send new message
-- `mark_read` - Mark messages as read
-- `typing_start/stop` - Typing indicators
+#### GET /api/contacts
+**Purpose**: List contacts with pagination
 
-#### Server → Client
-- `new_message` - New message received
-- `message_status` - Status update
-- `conversation_update` - Conversation changes
-- `user_activity` - Agent activity
+#### POST /api/contacts/import
+**Purpose**: Import contacts from CSV
 
----
+### Campaign Management
 
-## Security Implementation
+#### POST /api/campaigns
+**Purpose**: Create new campaign
 
-### 1. Authentication & Authorization
-- **Session-based Authentication**: Secure session management
-- **Password Security**: Scrypt hashing with salt
-- **Role-based Access Control**: Granular permissions
-- **Session Storage**: PostgreSQL-backed sessions
-- **Token Expiration**: Automatic session timeout
+#### GET /api/campaigns/:id
+**Purpose**: Get campaign details
 
-### 2. API Security
-- **Rate Limiting**: Request throttling
-- **Input Validation**: Zod schema validation
-- **SQL Injection Prevention**: Parameterized queries
-- **XSS Protection**: Content sanitization
-- **CSRF Protection**: Token validation
+#### POST /api/campaigns/:id/send
+**Purpose**: Send campaign messages
 
-### 3. WhatsApp Integration Security
-- **Webhook Signature Verification**: HMAC validation
-- **Access Token Management**: Secure storage
-- **API Key Rotation**: Regular key updates
-- **Audit Logging**: Complete API trail
+### Message Operations
 
-### 4. Data Protection
-- **Encryption at Rest**: Database encryption
-- **Encryption in Transit**: HTTPS/TLS
-- **PII Protection**: Data masking
-- **Backup Security**: Encrypted backups
-- **Access Logging**: Data access audit
+#### POST /api/messages/send
+**Purpose**: Send individual message
+
+#### GET /api/conversations
+**Purpose**: List conversations
+
+### Template Management
+
+#### GET /api/templates
+**Purpose**: List message templates
+
+#### POST /api/templates/sync
+**Purpose**: Sync templates from WhatsApp
 
 ---
 
-## Integration Points
+## Frontend Guide
 
-### 1. WhatsApp Business Cloud API
-- **Version**: v23.0 (configurable)
-- **Endpoints**:
-  - `/messages` - Standard messaging
-  - `/marketing_messages` - Marketing campaigns
-  - `/templates` - Template management
-  - `/phone_numbers` - Number management
+### Component Structure
 
-### 2. Meta Marketing API
-- **Campaign Management**: Marketing message delivery
-- **Analytics**: Performance metrics
-- **Quality Scoring**: Number health monitoring
+#### Layout Components
+- `MainLayout.tsx` - Main application layout
+- `Sidebar.tsx` - Navigation sidebar
+- `Header.tsx` - Top header bar
 
-### 3. Webhook Integration
-- **Event Types**: Messages, status updates, templates
-- **Real-time Processing**: Immediate event handling
-- **Retry Logic**: Failed webhook recovery
+#### Page Components
+Located in `client/src/pages/`:
+- `dashboard.tsx` - Analytics dashboard
+- `contacts.tsx` - Contact management
+- `campaigns/` - Campaign pages
+- `inbox.tsx` - Team inbox
+- `templates.tsx` - Template management
+- `flows.tsx` - Automation flows
+- `settings.tsx` - Application settings
 
-### 4. External Services (Optional)
-- **SMTP**: Email notifications
-- **Redis**: Caching layer
-- **Sentry**: Error tracking
-- **Analytics**: Usage tracking
+#### Reusable Components
+Located in `client/src/components/`:
+- `ui/` - Basic UI components (buttons, inputs, etc.)
+- `DataTable.tsx` - Reusable data table
+- `FileUpload.tsx` - File upload component
+- `PhoneInput.tsx` - Phone number input
+
+### State Management
+
+#### Server State (TanStack Query)
+```typescript
+// Fetching data
+const { data, isLoading } = useQuery({
+  queryKey: ['/api/contacts'],
+});
+
+// Mutations
+const mutation = useMutation({
+  mutationFn: createContact,
+  onSuccess: () => {
+    queryClient.invalidateQueries(['/api/contacts']);
+  },
+});
+```
+
+#### Local State (Zustand)
+Used for:
+- Active channel selection
+- UI preferences
+- Temporary form data
+
+### Styling System
+
+#### Tailwind CSS Classes
+```jsx
+// Example component styling
+<div className="flex items-center justify-between p-4 bg-white rounded-lg shadow">
+  <h2 className="text-lg font-semibold">Title</h2>
+  <Button variant="primary">Action</Button>
+</div>
+```
+
+#### Theme Customization
+Edit `tailwind.config.ts`:
+```javascript
+theme: {
+  extend: {
+    colors: {
+      primary: '#25D366',  // WhatsApp green
+      secondary: '#075E54',
+    }
+  }
+}
+```
+
+---
+
+## Backend Guide
+
+### Controller Pattern
+Controllers handle HTTP requests and responses:
+
+```typescript
+// server/controllers/example.controller.ts
+export const getItems = asyncHandler(async (req, res) => {
+  const items = await itemService.findAll();
+  res.json(items);
+});
+```
+
+### Service Layer
+Services contain business logic:
+
+```typescript
+// server/services/example.service.ts
+export class ExampleService {
+  async processData(data: any) {
+    // Business logic here
+    return processedData;
+  }
+}
+```
+
+### Repository Pattern
+Repositories handle database operations:
+
+```typescript
+// server/repositories/example.repository.ts
+export class ExampleRepository {
+  async findById(id: string) {
+    return await db.select()
+      .from(table)
+      .where(eq(table.id, id));
+  }
+}
+```
+
+### Middleware
+Request processing pipeline:
+
+```typescript
+// Authentication middleware
+export const authenticate = (req, res, next) => {
+  // Verify token
+  next();
+};
+
+// Validation middleware
+export const validate = (schema) => (req, res, next) => {
+  // Validate request
+  next();
+};
+```
+
+### Background Jobs
+Located in `server/cron/`:
+- `message-status-updater.ts` - Updates message delivery status
+- `channel-health-monitor.ts` - Monitors channel health
+- `campaign-scheduler.ts` - Schedules campaign sending
+
+---
+
+## Customization Guide
+
+### 1. Changing Brand Colors
+
+Edit `client/src/index.css`:
+```css
+:root {
+  --primary: 37 211 102;     /* Change primary color */
+  --primary-foreground: 255 255 255;
+  --secondary: 7 94 84;       /* Change secondary color */
+}
+```
+
+### 2. Adding New Pages
+
+**Step 1**: Create page component
+```typescript
+// client/src/pages/custom-page.tsx
+export default function CustomPage() {
+  return <div>Your content</div>;
+}
+```
+
+**Step 2**: Add route in `App.tsx`
+```typescript
+<Route path="/custom" component={CustomPage} />
+```
+
+**Step 3**: Add navigation in sidebar
+```typescript
+{ label: 'Custom Page', href: '/custom', icon: IconName }
+```
+
+### 3. Adding API Endpoints
+
+**Step 1**: Create controller
+```typescript
+// server/controllers/custom.controller.ts
+export const customAction = asyncHandler(async (req, res) => {
+  // Your logic
+  res.json({ success: true });
+});
+```
+
+**Step 2**: Add route
+```typescript
+// server/routes/custom.routes.ts
+router.post('/custom', authenticate, customAction);
+```
+
+**Step 3**: Register route
+```typescript
+// server/routes/index.ts
+app.use('/api', customRoutes);
+```
+
+### 4. Modifying Database Schema
+
+**Step 1**: Update schema
+```typescript
+// shared/schema.ts
+export const customTable = pgTable('custom', {
+  id: uuid('id').primaryKey(),
+  name: varchar('name', { length: 255 }),
+});
+```
+
+**Step 2**: Run migration
+```bash
+npm run db:push
+```
+
+### 5. Customizing WhatsApp Integration
+
+Edit `server/services/whatsapp-api.ts`:
+- Modify message formatting
+- Add custom headers
+- Change API endpoints
+- Implement custom webhooks
+
+### 6. Adding Custom Reports
+
+**Step 1**: Create analytics service
+```typescript
+// server/services/custom-analytics.service.ts
+export async function getCustomReport(filters) {
+  // Query database
+  return data;
+}
+```
+
+**Step 2**: Add controller endpoint
+**Step 3**: Create frontend component
+
+---
+
+## File Reference
+
+### Critical Configuration Files
+
+#### `.env` - Environment Variables
+```bash
+# Database
+DATABASE_URL=postgresql://user:pass@host/db
+
+# WhatsApp API
+WHATSAPP_API_VERSION=v21.0
+WHATSAPP_WEBHOOK_VERIFY_TOKEN=your-token
+
+# Authentication
+SESSION_SECRET=your-secret-key
+
+# Server
+PORT=5000
+NODE_ENV=production
+```
+
+#### `package.json` - Dependencies
+Contains all project dependencies and scripts:
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run db:push` - Update database schema
+- `npm run seed` - Seed database
+
+#### `tsconfig.json` - TypeScript Configuration
+TypeScript compiler options and path aliases
+
+#### `vite.config.ts` - Build Configuration
+Frontend build settings and optimizations
+
+### Frontend Files
+
+#### Core Application Files
+- `client/src/App.tsx` - Main app component with routing
+- `client/src/main.tsx` - Application entry point
+- `client/src/index.css` - Global styles
+
+#### Hooks (`client/src/hooks/`)
+- `use-auth.tsx` - Authentication hook
+- `use-toast.tsx` - Toast notifications
+- `use-channel.tsx` - Active channel management
+
+#### Libraries (`client/src/lib/`)
+- `queryClient.ts` - API client configuration
+- `utils.ts` - Utility functions
+- `constants.ts` - Application constants
+
+### Backend Files
+
+#### Controllers (`server/controllers/`)
+- `auth.controller.ts` - Authentication
+- `channels.controller.ts` - Channel management
+- `contacts.controller.ts` - Contact operations
+- `campaigns.controller.ts` - Campaign management
+- `conversations.controller.ts` - Messaging
+- `templates.controller.ts` - Template operations
+- `dashboard.controller.ts` - Analytics
+- `webhook.controller.ts` - WhatsApp webhooks
+
+#### Services (`server/services/`)
+- `whatsapp-api.ts` - WhatsApp API integration
+- `campaign.service.ts` - Campaign processing
+- `analytics.service.ts` - Analytics calculations
+- `export.service.ts` - Data export
+
+#### Middleware (`server/middlewares/`)
+- `auth.middleware.ts` - Authentication checks
+- `error.middleware.ts` - Error handling
+- `validateRequest.middleware.ts` - Input validation
+
+#### Database (`server/db/`)
+- `index.ts` - Database connection
+- `migrate.ts` - Migration runner
+
+---
+
+## Common Modifications
+
+### 1. Change Login Credentials
+Default: `username: whatsway, password: Admin@123`
+
+To change:
+1. Login with default credentials
+2. Go to Settings → Profile
+3. Update username/password
+4. Or modify in database directly
+
+### 2. Add Custom Fields to Contacts
+```typescript
+// shared/schema.ts
+export const contacts = pgTable('contacts', {
+  // ... existing fields
+  customField: varchar('custom_field', { length: 255 }),
+});
+```
+
+### 3. Modify Message Templates
+1. Go to Templates page
+2. Click "Create Template"
+3. Design your template
+4. Submit for WhatsApp approval
+
+### 4. Customize Dashboard Widgets
+Edit `client/src/pages/dashboard.tsx`:
+```typescript
+const widgets = [
+  { title: 'Custom Metric', value: customValue },
+  // Add more widgets
+];
+```
+
+### 5. Change API Rate Limits
+Edit `server/middlewares/rateLimiter.ts`:
+```typescript
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit requests
+});
+```
+
+### 6. Add Email Notifications
+```typescript
+// server/services/notification.service.ts
+export async function sendEmail(to, subject, body) {
+  // Implement email sending
+}
+```
+
+### 7. Implement Custom Webhooks
+```typescript
+// server/controllers/webhook.controller.ts
+export const customWebhook = async (req, res) => {
+  const event = req.body;
+  // Process custom webhook
+};
+```
+
+---
+
+## Troubleshooting
+
+### Common Issues and Solutions
+
+#### 1. Database Connection Error
+**Problem**: Cannot connect to database
+**Solution**:
+- Check `DATABASE_URL` in `.env`
+- Ensure PostgreSQL is running
+- Verify network connectivity
+
+#### 2. WhatsApp API Token Expired
+**Problem**: API calls failing with 401 error
+**Solution**:
+- Generate new access token from Meta Business
+- Update token in Channels settings
+- Restart the application
+
+#### 3. Messages Not Sending
+**Problem**: Campaign messages stuck in queue
+**Possible Causes**:
+- Invalid phone numbers
+- Template not approved
+- Rate limiting
+- 24-hour window expired
+
+**Solution**:
+- Check error logs in Messages tab
+- Verify template approval status
+- Check WhatsApp Business account status
+
+#### 4. Webhook Not Receiving Messages
+**Problem**: Incoming messages not appearing
+**Solution**:
+- Verify webhook URL in Meta dashboard
+- Check webhook verification token
+- Ensure HTTPS is enabled
+- Check server logs for errors
+
+#### 5. Import Contacts Failing
+**Problem**: CSV import not working
+**Solution**:
+- Ensure CSV format is correct
+- Check for duplicate phone numbers
+- Verify phone number format (+country code)
+- Check file size limits
+
+#### 6. Frontend Not Loading
+**Problem**: Blank page or loading error
+**Solution**:
+```bash
+# Clear cache and rebuild
+npm run clean
+npm install
+npm run build
+npm run dev
+```
+
+#### 7. Performance Issues
+**Problem**: Slow dashboard or queries
+**Solution**:
+- Check database indexes
+- Optimize large queries
+- Enable caching
+- Increase server resources
+
+### Debug Mode
+Enable debug logging:
+```bash
+# .env
+DEBUG=true
+LOG_LEVEL=debug
+```
+
+### Log Files
+Check logs for errors:
+- Server logs: Console output
+- Database logs: PostgreSQL logs
+- API logs: `api_logs` table
+
+### Health Check Endpoint
+```bash
+curl http://localhost:5000/api/health
+```
+
+---
+
+## Security Considerations
+
+### 1. Authentication
+- Session-based authentication
+- Bcrypt password hashing
+- Role-based access control (RBAC)
+
+### 2. Data Protection
+- Input validation with Zod
+- SQL injection prevention (Drizzle ORM)
+- XSS protection (React)
+- CSRF tokens
+
+### 3. API Security
+- Rate limiting
+- Request validation
+- Webhook signature verification
+- Token encryption
+
+### 4. Best Practices
+- Keep dependencies updated
+- Use HTTPS in production
+- Secure environment variables
+- Regular security audits
+- Implement logging and monitoring
 
 ---
 
 ## Performance Optimization
 
-### 1. Database Optimization
-- **Connection Pooling**: Efficient connection management
-- **Query Optimization**: Indexed queries
-- **Batch Operations**: Bulk inserts/updates
-- **Lazy Loading**: On-demand data fetching
+### Database Optimization
+- Proper indexing on frequently queried columns
+- Query optimization
+- Connection pooling
+- Caching strategies
 
-### 2. Caching Strategy
-- **Query Caching**: Frequent query results
-- **Session Caching**: User session data
-- **Template Caching**: Message templates
-- **Static Asset Caching**: Frontend resources
+### Frontend Optimization
+- Code splitting
+- Lazy loading
+- Image optimization
+- Bundle size reduction
 
-### 3. Frontend Optimization
-- **Code Splitting**: Dynamic imports
-- **Bundle Optimization**: Tree shaking
-- **Image Optimization**: Lazy loading
-- **Virtual Scrolling**: Large list rendering
-
-### 4. Backend Optimization
-- **Async Operations**: Non-blocking I/O
-- **Worker Threads**: CPU-intensive tasks
-- **Queue Management**: Message batching
-- **Rate Limiting**: API throttling
+### Backend Optimization
+- Async operations
+- Parallel processing
+- Queue management
+- Memory management
 
 ---
 
-## Deployment Architecture
+## Deployment Guide
 
-### 1. Development Environment
-- **Local Development**: Vite dev server
-- **Database**: Local PostgreSQL or Neon
-- **Hot Reload**: Automatic refresh
-- **Debug Tools**: Source maps, logging
+### Requirements
+- Node.js 18+
+- PostgreSQL database
+- 2GB RAM minimum
+- SSL certificate (for webhooks)
 
-### 2. Production Environment
-- **Server Requirements**:
-  - Node.js 20+
-  - PostgreSQL 15+
-  - 2GB+ RAM
-  - 10GB+ Storage
+### Deployment Steps
+1. Clone repository
+2. Install dependencies: `npm install`
+3. Configure environment variables
+4. Run database migrations: `npm run db:push`
+5. Build frontend: `npm run build`
+6. Start server: `npm start`
 
-### 3. Deployment Options
-
-#### Option A: Traditional VPS
-- Ubuntu/Debian Linux
-- Nginx reverse proxy
-- PM2 process manager
-- Let's Encrypt SSL
-
-#### Option B: Cloud Platforms
-- AWS EC2/RDS
-- Google Cloud Platform
-- Microsoft Azure
-- DigitalOcean
-
-#### Option C: Serverless
-- Vercel (Frontend)
-- Railway (Backend)
-- Neon (Database)
-- Cloudflare Workers
-
-#### Option D: Containerized
-- Docker containers
-- Kubernetes orchestration
-- Docker Compose for local
-
-### 4. Environment Variables
-```env
-DATABASE_URL          # PostgreSQL connection
-SESSION_SECRET        # Session encryption
-WHATSAPP_API_VERSION  # API version
-WHATSAPP_ACCESS_TOKEN # Meta access token
-WHATSAPP_PHONE_NUMBER_ID # Phone number ID
-WHATSAPP_WEBHOOK_VERIFY_TOKEN # Webhook token
-```
+### Production Checklist
+- [ ] SSL certificate configured
+- [ ] Environment variables set
+- [ ] Database backed up
+- [ ] Monitoring configured
+- [ ] Error tracking enabled
+- [ ] Rate limiting configured
+- [ ] Security headers added
 
 ---
 
-## Monitoring & Maintenance
+## Support and Resources
 
-### 1. Health Monitoring
-- **Channel Health Checks**: Daily automated checks
-- **API Status Monitoring**: Endpoint availability
-- **Database Health**: Connection pool monitoring
-- **Message Queue**: Queue depth tracking
+### Getting Help
+- Check this documentation
+- Review error logs
+- Search existing issues
+- Contact support team
 
-### 2. Logging
-- **Application Logs**: Error and info logging
-- **API Logs**: Request/response tracking
-- **Audit Logs**: User activity tracking
-- **Performance Logs**: Response time metrics
+### Useful Resources
+- [WhatsApp Business API Docs](https://developers.facebook.com/docs/whatsapp)
+- [React Documentation](https://react.dev)
+- [Express.js Guide](https://expressjs.com)
+- [PostgreSQL Documentation](https://www.postgresql.org/docs)
 
-### 3. Backup Strategy
-- **Database Backups**: Daily automated backups
-- **Configuration Backups**: Settings export
-- **Template Backups**: Message template backup
-- **Disaster Recovery**: Restoration procedures
-
-### 4. Maintenance Tasks
-- **Database Cleanup**: Old message purging
-- **Session Cleanup**: Expired session removal
-- **Log Rotation**: Log file management
-- **Cache Clearing**: Cache invalidation
-
-### 5. Performance Metrics
-- **Response Times**: API latency
-- **Throughput**: Messages per second
-- **Error Rates**: Failed message percentage
-- **Uptime**: System availability
+### Updates and Maintenance
+- Regular dependency updates
+- Security patches
+- Feature enhancements
+- Bug fixes
 
 ---
 
-## Troubleshooting Guide
+## Conclusion
 
-### Common Issues
+WhatsWay is a powerful, customizable WhatsApp Business platform built with modern technologies. This documentation provides everything you need to understand, customize, and maintain the application.
 
-1. **Channel Health Warnings**
-   - Check API credentials
-   - Verify phone number status
-   - Review quality score
+Remember:
+- Always backup before making changes
+- Test in development first
+- Keep dependencies updated
+- Monitor application logs
+- Follow security best practices
 
-2. **Message Delivery Failures**
-   - Check template approval
-   - Verify rate limits
-   - Review recipient status
-
-3. **Webhook Issues**
-   - Verify webhook URL
-   - Check signature verification
-   - Review SSL certificates
-
-4. **Performance Issues**
-   - Check database indexes
-   - Review query performance
-   - Monitor memory usage
-
----
-
-## Compliance & Standards
-
-### 1. WhatsApp Business Policy
-- 24-hour messaging window
-- Template approval requirements
-- Opt-in/opt-out management
-- Quality rating maintenance
-
-### 2. Data Privacy
-- GDPR compliance ready
-- Data retention policies
-- User consent management
-- Right to deletion
-
-### 3. Security Standards
-- OWASP compliance
-- SSL/TLS encryption
-- Regular security updates
-- Vulnerability scanning
-
----
-
-## Version History
-
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0.0 | Jan 2025 | Initial release |
-| 1.1.0 | Jan 2025 | Added automation builder |
-| 1.2.0 | Jan 2025 | Multi-language support |
-| 1.3.0 | Jan 2025 | Enhanced team management |
-
----
-
-## Support & Resources
-
-### Documentation
-- Technical Documentation (this document)
-- API Documentation
-- User Guide
-- Setup Guide
-
-### Community
-- GitHub Repository
-- Discord Server
-- Support Forum
-- Video Tutorials
-
-### Professional Support
-- Email: support@whatsway.com
-- Response Time: 24-48 hours
-- Priority Support: Available
-- Custom Development: On request
+For additional support or custom development, please refer to the support channels provided with your license.
 
 ---
 
 *Last Updated: January 2025*
-*Version: 1.3.0*
-*© 2025 WhatsWay - Enterprise WhatsApp Business Platform*
+*Version: 1.0*
+*© WhatsWay - Professional WhatsApp Business Platform*

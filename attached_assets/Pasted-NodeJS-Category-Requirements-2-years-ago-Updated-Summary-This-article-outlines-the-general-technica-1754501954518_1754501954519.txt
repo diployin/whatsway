@@ -1,3 +1,11 @@
+NodeJS Category Requirements
+2 years ago Updated
+Summary: This article outlines the general technical requirements and recommended workflow for items within the NodeJS category.
+
+Technical Requirements
+
+Workflow
+
 Technical Requirements
 Use Error objects (or subclasses) for all errors and implement the Error contract.
 A function may deliver operational errors synchronously (e.g. by throwing) or asynchronously (by passing them to a callback or emitting error on an EventEmitter), but it should not do both.
@@ -28,3 +36,6 @@ Workflow
 Every item should have documentation explaining the installation process as well as a clear description detailing specific dependencies/modules/server settings for the item.
 Double check any specific file/directory permissions as well as version numbers.
 Use Litmus or a related service to make sure the item’s stated cross-browser functionality is intact.
+Run the code through the following [part of requirements above]:
+http://sucuri.net/ (If live preview is present)
+http://www.jshint.com/
