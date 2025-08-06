@@ -1,0 +1,136 @@
+12:33:42 PM [express] serving on port 5000
+[MessageStatusUpdater] Starting cron job with 60s interval
+12:33:42 PM [express] Message status updater cron job started
+[Channel Health Monitor] Starting health check for all channels...
+[Channel Health Monitor] Started - will run daily at 2 AM
+[MessageStatusUpdater] Error in updatePendingMessageStatuses: ErrorEvent {
+  [Symbol(kTarget)]: WebSocket {
+    _events: [Object: null prototype] {
+      error: [Function],
+      message: [Function],
+      close: [Function],
+      open: [Function]
+    },
+    _eventsCount: 4,
+    _maxListeners: undefined,
+    _binaryType: 'arraybuffer',
+    _closeCode: 1006,
+    _closeFrameReceived: false,
+    _closeFrameSent: false,
+    _closeMessage: <Buffer >,
+    _closeTimer: null,
+    _errorEmitted: true,
+    _extensions: {},
+    _paused: false,
+    _protocol: '',
+    _readyState: 3,
+    _receiver: null,
+    _sender: null,
+    _socket: null,
+    _bufferedAmount: 0,
+    _isServer: false,
+    _redirects: 0,
+    _autoPong: true,
+    _url: 'wss://localhost/v2',
+    _req: null,
+    [Symbol(shapeMode)]: false,
+    [Symbol(kCapture)]: false
+  },
+  [Symbol(kType)]: 'error',
+  [Symbol(kError)]: Error [ERR_TLS_CERT_ALTNAME_INVALID]: Hostname/IP does not match certificate's altnames: Host: localhost. is not in the cert's altnames: DNS:whatsway.diploy.in
+      at Object.checkServerIdentity (node:tls:386:12)
+      at TLSSocket.onConnectSecure (node:_tls_wrap:1689:27)
+      at TLSSocket.emit (node:events:518:28)
+      at TLSSocket._finishInit (node:_tls_wrap:1078:8)
+      at ssl.onhandshakedone (node:_tls_wrap:864:12) {
+    code: 'ERR_TLS_CERT_ALTNAME_INVALID',
+    reason: "Host: localhost. is not in the cert's altnames: DNS:whatsway.diploy.in",
+    host: 'localhost',
+    cert: {
+      subject: [Object: null prototype],
+      issuer: [Object: null prototype],
+      subjectaltname: 'DNS:whatsway.diploy.in',
+      infoAccess: [Object: null prototype],
+      ca: false,
+      bits: 256,
+      pubkey: <Buffer 04 b8 2e 90 13 71 02 2c 39 91 76 db d5 1a 59 29 4c c6 37 e2 f0 19 96 a0 7b ea 91 14 7d 00 ab 76 0d a3 8d bc 00 cf bc c3 49 ef 3d 21 17 50 a3 22 46 b4 ... 15 more bytes>,
+      asn1Curve: 'prime256v1',
+      nistCurve: 'P-256',
+      valid_from: 'Aug  6 11:06:28 2025 GMT',
+      valid_to: 'Nov  4 11:06:27 2025 GMT',
+      fingerprint: 'B2:E5:69:24:27:54:73:33:7A:AA:66:0A:67:FB:8C:B7:44:EF:B8:77',
+      fingerprint256: '27:47:7B:D3:AC:E1:20:4E:97:C1:D0:47:CD:F8:05:66:DC:EC:3F:90:5A:C7:2D:DC:98:82:F3:7E:F8:A5:4E:D8',
+      fingerprint512: '31:EC:F6:C7:B7:A3:B8:B4:5D:07:BA:72:8E:07:79:94:EF:6A:E1:E3:9A:1D:35:64:F4:DE:26:C8:F0:01:0C:CD:C9:6A:93:B3:4E:91:67:FA:05:8B:2C:9B:D1:58:58:F3:76:85:C5:06:86:5E:F8:EB:00:11:DB:B7:39:D0:A0:C7',
+      ext_key_usage: [Array],
+      serialNumber: '062BB571BE6B5D7D2EFED28E99C16AB4C8A4',
+      raw: <Buffer 30 82 03 91 30 82 03 18 a0 03 02 01 02 02 12 06 2b b5 71 be 6b 5d 7d 2e fe d2 8e 99 c1 6a b4 c8 a4 30 0a 06 08 2a 86 48 ce 3d 04 03 03 30 32 31 0b 30 ... 867 more bytes>,
+      issuerCertificate: [Object]
+    }
+  },
+  [Symbol(kMessage)]: "Hostname/IP does not match certificate's altnames: Host: localhost. is not in the cert's altnames: DNS:whatsway.diploy.in"
+}
+[Channel Health Monitor] Error checking channels health: ErrorEvent {
+  [Symbol(kTarget)]: WebSocket {
+    _events: [Object: null prototype] {
+      error: [Function],
+      message: [Function],
+      close: [Function],
+      open: [Function]
+    },
+    _eventsCount: 4,
+    _maxListeners: undefined,
+    _binaryType: 'arraybuffer',
+    _closeCode: 1006,
+    _closeFrameReceived: false,
+    _closeFrameSent: false,
+    _closeMessage: <Buffer >,
+    _closeTimer: null,
+    _errorEmitted: true,
+    _extensions: {},
+    _paused: false,
+    _protocol: '',
+    _readyState: 3,
+    _receiver: null,
+    _sender: null,
+    _socket: null,
+    _bufferedAmount: 0,
+    _isServer: false,
+    _redirects: 0,
+    _autoPong: true,
+    _url: 'wss://localhost/v2',
+    _req: null,
+    [Symbol(shapeMode)]: false,
+    [Symbol(kCapture)]: false
+  },
+  [Symbol(kType)]: 'error',
+  [Symbol(kError)]: Error [ERR_TLS_CERT_ALTNAME_INVALID]: Hostname/IP does not match certificate's altnames: Host: localhost. is not in the cert's altnames: DNS:whatsway.diploy.in
+      at Object.checkServerIdentity (node:tls:386:12)
+      at TLSSocket.onConnectSecure (node:_tls_wrap:1689:27)
+      at TLSSocket.emit (node:events:518:28)
+      at TLSSocket._finishInit (node:_tls_wrap:1078:8)
+      at ssl.onhandshakedone (node:_tls_wrap:864:12) {
+    code: 'ERR_TLS_CERT_ALTNAME_INVALID',
+    reason: "Host: localhost. is not in the cert's altnames: DNS:whatsway.diploy.in",
+    host: 'localhost',
+    cert: {
+      subject: [Object: null prototype],
+      issuer: [Object: null prototype],
+      subjectaltname: 'DNS:whatsway.diploy.in',
+      infoAccess: [Object: null prototype],
+      ca: false,
+      bits: 256,
+      pubkey: <Buffer 04 b8 2e 90 13 71 02 2c 39 91 76 db d5 1a 59 29 4c c6 37 e2 f0 19 96 a0 7b ea 91 14 7d 00 ab 76 0d a3 8d bc 00 cf bc c3 49 ef 3d 21 17 50 a3 22 46 b4 ... 15 more bytes>,
+      asn1Curve: 'prime256v1',
+      nistCurve: 'P-256',
+      valid_from: 'Aug  6 11:06:28 2025 GMT',
+      valid_to: 'Nov  4 11:06:27 2025 GMT',
+      fingerprint: 'B2:E5:69:24:27:54:73:33:7A:AA:66:0A:67:FB:8C:B7:44:EF:B8:77',
+      fingerprint256: '27:47:7B:D3:AC:E1:20:4E:97:C1:D0:47:CD:F8:05:66:DC:EC:3F:90:5A:C7:2D:DC:98:82:F3:7E:F8:A5:4E:D8',
+      fingerprint512: '31:EC:F6:C7:B7:A3:B8:B4:5D:07:BA:72:8E:07:79:94:EF:6A:E1:E3:9A:1D:35:64:F4:DE:26:C8:F0:01:0C:CD:C9:6A:93:B3:4E:91:67:FA:05:8B:2C:9B:D1:58:58:F3:76:85:C5:06:86:5E:F8:EB:00:11:DB:B7:39:D0:A0:C7',
+      ext_key_usage: [Array],
+      serialNumber: '062BB571BE6B5D7D2EFED28E99C16AB4C8A4',
+      raw: <Buffer 30 82 03 91 30 82 03 18 a0 03 02 01 02 02 12 06 2b b5 71 be 6b 5d 7d 2e fe d2 8e 99 c1 6a b4 c8 a4 30 0a 06 08 2a 86 48 ce 3d 04 03 03 30 32 31 0b 30 ... 867 more bytes>,
+      issuerCertificate: [Object]
+    }
+  },
+  [Symbol(kMessage)]: "Hostname/IP does not match certificate's altnames: Host: localhost. is not in the cert's altnames: DNS:whatsway.diploy.in"

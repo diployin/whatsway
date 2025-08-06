@@ -79,25 +79,42 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || '5000', 10);
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, async () => {
-    log(`serving on port ${port}`);
+  // Check if running under Plesk Passenger
+  const isPassenger = process.env.PASSENGER_APP_ENV || false;
+  
+  if (isPassenger) {
+    // For Plesk Passenger, just export the app
+    // Passenger will handle the port binding
+    log('Running under Plesk Passenger');
     
-    // Start the message status updater cron job
+    // Start background services
     const messageStatusUpdater = new MessageStatusUpdater();
-    messageStatusUpdater.startCronJob(60); // Run every 60 seconds instead of 10
+    messageStatusUpdater.startCronJob(60);
     log('Message status updater cron job started');
     
-    // Start channel health monitor
     const { channelHealthMonitor } = await import('./cron/channel-health-monitor');
     channelHealthMonitor.start();
-  });
+  } else {
+    // Normal server startup for development or standalone production
+    const port = parseInt(process.env.PORT || '5000', 10);
+    server.listen({
+      port,
+      host: "0.0.0.0",
+      reusePort: true,
+    }, async () => {
+      log(`serving on port ${port}`);
+      
+      // Start the message status updater cron job
+      const messageStatusUpdater = new MessageStatusUpdater();
+      messageStatusUpdater.startCronJob(60); // Run every 60 seconds instead of 10
+      log('Message status updater cron job started');
+      
+      // Start channel health monitor
+      const { channelHealthMonitor } = await import('./cron/channel-health-monitor');
+      channelHealthMonitor.start();
+    });
+  }
 })();
+
+// Export the app for Plesk Passenger
+export default app;
