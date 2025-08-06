@@ -1,0 +1,558 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsWay - Premium WhatsApp Business Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        whatsapp: {
+                            50: '#F0FDF5',
+                            100: '#DCFCE7',
+                            500: '#128C7E',
+                            600: '#0F766E',
+                            700: '#0D9488',
+                            900: '#064E3B'
+                        }
+                    },
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .glassmorphism {
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .glassmorphism-dark {
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            background: rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .hover-lift:hover {
+            transform: translateY(-2px);
+            transition: all 0.3s ease;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #128C7E 0%, #10B981 100%);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-inter">
+    <!-- @COMPONENT: MainLayout -->
+    <div class="flex h-screen overflow-hidden">
+        <!-- @COMPONENT: Sidebar -->
+        <div class="w-64 bg-white shadow-xl border-r border-gray-200 flex flex-col">
+            <!-- Logo Section -->
+            <div class="p-6 border-b border-gray-100">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 gradient-bg rounded-lg flex items-center justify-center">
+                        <i class="fab fa-whatsapp text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-900">WhatsWay</h1>
+                        <p class="text-xs text-gray-500">Business Platform</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Menu -->
+            <nav class="flex-1 p-4 space-y-2">
+                <a href="#" class="flex items-center space-x-3 px-4 py-3 bg-whatsapp-50 text-whatsapp-600 rounded-lg font-medium">
+                    <i class="fas fa-chart-line w-5"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                    <i class="fas fa-users w-5"></i>
+                    <span>Contacts</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                    <i class="fas fa-paper-plane w-5"></i>
+                    <span>Campaigns</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                    <i class="fas fa-comments w-5"></i>
+                    <span>Team Inbox</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                    <i class="fas fa-robot w-5"></i>
+                    <span>Automation</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                    <i class="fas fa-file-alt w-5"></i>
+                    <span>Templates</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                    <i class="fas fa-chart-bar w-5"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                    <i class="fas fa-cog w-5"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+
+            <!-- User Profile Section -->
+            <div class="p-4 border-t border-gray-100">
+                <div class="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer">
+                    <!-- Profile image showing a professional business person -->
+                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=40&h=40" alt="User Avatar" class="w-10 h-10 rounded-full object-cover" data-mock="true">
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-900" data-bind="user.name" data-mock="true">John Smith</p>
+                        <p class="text-xs text-gray-500" data-bind="user.role" data-mock="true">Admin</p>
+                    </div>
+                    <i class="fas fa-chevron-up text-gray-400 text-sm"></i>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: Sidebar -->
+
+        <!-- @COMPONENT: MainContent -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- @COMPONENT: TopBar -->
+            <header class="bg-white border-b border-gray-200 px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900">Dashboard Overview</h2>
+                        <p class="text-gray-500 text-sm">Welcome back! Here's what's happening with your WhatsApp business.</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <!-- Dark/Light Mode Toggle -->
+                        <button class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors" data-implementation="Toggle dark/light mode">
+                            <i class="fas fa-moon"></i>
+                        </button>
+                        <!-- Notifications -->
+                        <button class="relative p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">
+                            <i class="fas fa-bell"></i>
+                            <span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+                        </button>
+                        <!-- Quick Actions -->
+                        <button class="px-4 py-2 bg-whatsapp-500 text-white rounded-lg hover:bg-whatsapp-600 transition-colors font-medium" data-event="click:openQuickActions">
+                            <i class="fas fa-plus mr-2"></i>
+                            New Campaign
+                        </button>
+                    </div>
+                </div>
+            </header>
+            <!-- @END_COMPONENT: TopBar -->
+
+            <!-- @COMPONENT: DashboardContent -->
+            <main class="flex-1 overflow-y-auto p-6">
+                <!-- KPI Cards Section -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <!-- @MAP: kpiCards.map(card => ( -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover-lift">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600" data-mock="true">Total Messages</p>
+                                <p class="text-3xl font-bold text-gray-900 mt-2" data-bind="kpi.totalMessages" data-mock="true">124,567</p>
+                                <div class="flex items-center mt-2">
+                                    <span class="text-sm text-green-600 font-medium" data-mock="true">+12.5%</span>
+                                    <span class="text-xs text-gray-500 ml-2" data-mock="true">vs last month</span>
+                                </div>
+                            </div>
+                            <div class="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-paper-plane text-blue-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover-lift">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600" data-mock="true">Active Campaigns</p>
+                                <p class="text-3xl font-bold text-gray-900 mt-2" data-bind="kpi.activeCampaigns" data-mock="true">23</p>
+                                <div class="flex items-center mt-2">
+                                    <span class="text-sm text-green-600 font-medium" data-mock="true">+8.3%</span>
+                                    <span class="text-xs text-gray-500 ml-2" data-mock="true">vs last month</span>
+                                </div>
+                            </div>
+                            <div class="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-bullhorn text-green-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover-lift">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600" data-mock="true">Delivery Rate</p>
+                                <p class="text-3xl font-bold text-gray-900 mt-2" data-bind="kpi.deliveryRate" data-mock="true">98.7%</p>
+                                <div class="flex items-center mt-2">
+                                    <span class="text-sm text-green-600 font-medium" data-mock="true">+2.1%</span>
+                                    <span class="text-xs text-gray-500 ml-2" data-mock="true">vs last month</span>
+                                </div>
+                            </div>
+                            <div class="w-12 h-12 bg-whatsapp-50 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-check-circle text-whatsapp-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover-lift">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600" data-mock="true">New Leads</p>
+                                <p class="text-3xl font-bold text-gray-900 mt-2" data-bind="kpi.newLeads" data-mock="true">1,247</p>
+                                <div class="flex items-center mt-2">
+                                    <span class="text-sm text-green-600 font-medium" data-mock="true">+18.9%</span>
+                                    <span class="text-xs text-gray-500 ml-2" data-mock="true">vs last month</span>
+                                </div>
+                            </div>
+                            <div class="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-user-plus text-purple-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_MAP )) -->
+                </div>
+
+                <!-- Charts and Analytics Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <!-- Message Analytics Chart -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-semibold text-gray-900">Message Analytics</h3>
+                            <select class="text-sm border-gray-300 rounded-lg focus:ring-whatsapp-500 focus:border-whatsapp-500">
+                                <option data-mock="true">Last 7 days</option>
+                                <option data-mock="true">Last 30 days</option>
+                                <option data-mock="true">Last 90 days</option>
+                            </select>
+                        </div>
+                        <!-- Chart placeholder - would use Chart.js or similar -->
+                        <div class="h-64 bg-gray-50 rounded-lg flex items-center justify-center" data-implementation="Use Chart.js for line chart showing message volume over time">
+                            <div class="text-center">
+                                <i class="fas fa-chart-line text-4xl text-gray-300 mb-4"></i>
+                                <p class="text-gray-500">Interactive message analytics chart</p>
+                                <p class="text-sm text-gray-400">Chart.js implementation</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Campaign Performance -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-semibold text-gray-900">Campaign Performance</h3>
+                            <button class="text-sm text-whatsapp-600 hover:text-whatsapp-700 font-medium">View All</button>
+                        </div>
+                        <!-- Donut chart placeholder -->
+                        <div class="h-64 bg-gray-50 rounded-lg flex items-center justify-center" data-implementation="Use Chart.js for donut chart showing campaign performance breakdown">
+                            <div class="text-center">
+                                <i class="fas fa-chart-pie text-4xl text-gray-300 mb-4"></i>
+                                <p class="text-gray-500">Campaign performance breakdown</p>
+                                <p class="text-sm text-gray-400">Donut chart with interactive legends</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activities and Team Inbox Preview -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <!-- Recent Activities -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                        <div class="p-6 border-b border-gray-100">
+                            <h3 class="text-lg font-semibold text-gray-900">Recent Activities</h3>
+                        </div>
+                        <div class="p-6 space-y-4 max-h-80 overflow-y-auto">
+                            <!-- @MAP: activities.map(activity => ( -->
+                            <div class="flex items-start space-x-4" data-mock="true">
+                                <div class="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
+                                <div class="flex-1">
+                                    <p class="text-sm text-gray-900 font-medium">Campaign "Summer Sale 2024" completed</p>
+                                    <p class="text-xs text-gray-500">Delivered to 2,847 contacts • 5 minutes ago</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-4" data-mock="true">
+                                <div class="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                                <div class="flex-1">
+                                    <p class="text-sm text-gray-900 font-medium">New template approved by WhatsApp</p>
+                                    <p class="text-xs text-gray-500">"Welcome Message v2" • 12 minutes ago</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-4" data-mock="true">
+                                <div class="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
+                                <div class="flex-1">
+                                    <p class="text-sm text-gray-900 font-medium">AI Bot resolved 15 queries</p>
+                                    <p class="text-xs text-gray-500">Auto-resolution rate: 87% • 25 minutes ago</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-4" data-mock="true">
+                                <div class="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
+                                <div class="flex-1">
+                                    <p class="text-sm text-gray-900 font-medium">Contact import completed</p>
+                                    <p class="text-xs text-gray-500">1,234 new contacts added • 1 hour ago</p>
+                                </div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                        </div>
+                    </div>
+
+                    <!-- Team Inbox Preview -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                        <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-gray-900">Team Inbox</h3>
+                            <div class="flex items-center space-x-2">
+                                <span class="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium" data-mock="true">5 Pending</span>
+                                <button class="text-sm text-whatsapp-600 hover:text-whatsapp-700 font-medium">View All</button>
+                            </div>
+                        </div>
+                        <div class="p-6 space-y-4 max-h-80 overflow-y-auto">
+                            <!-- @MAP: inboxMessages.map(message => ( -->
+                            <div class="flex items-center space-x-4 p-3 hover:bg-gray-50 rounded-lg cursor-pointer" data-mock="true">
+                                <!-- Customer profile image -->
+                                <img src="https://pixabay.com/get/g8a62a222bc4ca3dd3dfc301d1d3e151f04fe541a11055877132594e90102b55dfc4183b8f60a30d4fc71e6f3588338acd3beb1f0bde4e1c6ea4791ba00df9dfe_1280.jpg" alt="Customer" class="w-10 h-10 rounded-full object-cover">
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between">
+                                        <p class="text-sm font-medium text-gray-900">Sarah Johnson</p>
+                                        <span class="text-xs text-gray-500">2m ago</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 truncate">Hi, I need help with my recent order...</p>
+                                    <div class="flex items-center mt-1">
+                                        <span class="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs">Urgent</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-4 p-3 hover:bg-gray-50 rounded-lg cursor-pointer" data-mock="true">
+                                <!-- Customer profile image -->
+                                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=40&h=40" alt="Customer" class="w-10 h-10 rounded-full object-cover">
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between">
+                                        <p class="text-sm font-medium text-gray-900">Mike Chen</p>
+                                        <span class="text-xs text-gray-500">5m ago</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 truncate">Thank you for the quick response!</p>
+                                    <div class="flex items-center mt-1">
+                                        <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">Resolved</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-4 p-3 hover:bg-gray-50 rounded-lg cursor-pointer" data-mock="true">
+                                <!-- Customer profile image -->
+                                <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=40&h=40" alt="Customer" class="w-10 h-10 rounded-full object-cover">
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between">
+                                        <p class="text-sm font-medium text-gray-900">Emma Wilson</p>
+                                        <span class="text-xs text-gray-500">8m ago</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 truncate">Can you send me the product catalog?</p>
+                                    <div class="flex items-center mt-1">
+                                        <span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs">In Progress</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions and API Status -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <!-- Quick Actions -->
+                    <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6">Quick Actions</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <button class="flex flex-col items-center p-4 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors" data-event="click:createCampaign">
+                                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-3">
+                                    <i class="fas fa-paper-plane text-blue-600 text-xl"></i>
+                                </div>
+                                <span class="text-sm font-medium text-gray-900">New Campaign</span>
+                            </button>
+                            <button class="flex flex-col items-center p-4 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors" data-event="click:importContacts">
+                                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-3">
+                                    <i class="fas fa-users text-green-600 text-xl"></i>
+                                </div>
+                                <span class="text-sm font-medium text-gray-900">Import Contacts</span>
+                            </button>
+                            <button class="flex flex-col items-center p-4 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors" data-event="click:createTemplate">
+                                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-3">
+                                    <i class="fas fa-file-alt text-purple-600 text-xl"></i>
+                                </div>
+                                <span class="text-sm font-medium text-gray-900">New Template</span>
+                            </button>
+                            <button class="flex flex-col items-center p-4 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors" data-event="click:createAutomation">
+                                <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-3">
+                                    <i class="fas fa-robot text-orange-600 text-xl"></i>
+                                </div>
+                                <span class="text-sm font-medium text-gray-900">Automation</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- API Status -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6">API Status</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between" data-mock="true">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                                    <span class="text-sm font-medium text-gray-900">WhatsApp Cloud API</span>
+                                </div>
+                                <span class="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">Online</span>
+                            </div>
+                            <div class="flex items-center justify-between" data-mock="true">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                                    <span class="text-sm font-medium text-gray-900">MM Lite API</span>
+                                </div>
+                                <span class="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">Online</span>
+                            </div>
+                            <div class="flex items-center justify-between" data-mock="true">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                                    <span class="text-sm font-medium text-gray-900">OpenAI GPT</span>
+                                </div>
+                                <span class="text-xs text-yellow-600 bg-yellow-50 px-2 py-1 rounded-full">Limited</span>
+                            </div>
+                            <div class="flex items-center justify-between" data-mock="true">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                                    <span class="text-sm font-medium text-gray-900">Webhooks</span>
+                                </div>
+                                <span class="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">Active</span>
+                            </div>
+                        </div>
+                        <button class="w-full mt-4 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm font-medium" data-event="click:testConnection">
+                            Test All Connections
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Advanced Analytics Section -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold text-gray-900">Advanced Analytics</h3>
+                        <div class="flex items-center space-x-2">
+                            <button class="px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors">Export</button>
+                            <button class="px-3 py-2 text-sm bg-whatsapp-500 hover:bg-whatsapp-600 text-white rounded-lg transition-colors">View Report</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Analytics Metrics Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                        <div class="text-center" data-mock="true">
+                            <div class="text-2xl font-bold text-gray-900">96.2%</div>
+                            <div class="text-sm text-gray-500">Open Rate</div>
+                            <div class="text-xs text-green-600 mt-1">+3.2% vs avg</div>
+                        </div>
+                        <div class="text-center" data-mock="true">
+                            <div class="text-2xl font-bold text-gray-900">23.7%</div>
+                            <div class="text-sm text-gray-500">Response Rate</div>
+                            <div class="text-xs text-green-600 mt-1">+5.8% vs avg</div>
+                        </div>
+                        <div class="text-center" data-mock="true">
+                            <div class="text-2xl font-bold text-gray-900">2.3m</div>
+                            <div class="text-sm text-gray-500">Average Response Time</div>
+                            <div class="text-xs text-red-600 mt-1">-15% vs target</div>
+                        </div>
+                        <div class="text-center" data-mock="true">
+                            <div class="text-2xl font-bold text-gray-900">$24.6k</div>
+                            <div class="text-sm text-gray-500">Revenue Generated</div>
+                            <div class="text-xs text-green-600 mt-1">+28% vs last month</div>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Chart Placeholder -->
+                    <div class="h-80 bg-gray-50 rounded-lg flex items-center justify-center" data-implementation="Use Chart.js for advanced multi-line chart with conversion funnel">
+                        <div class="text-center">
+                            <i class="fas fa-chart-area text-4xl text-gray-300 mb-4"></i>
+                            <p class="text-gray-500">Advanced conversion funnel analytics</p>
+                            <p class="text-sm text-gray-400">Multi-dimensional chart with real-time updates</p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            <!-- @END_COMPONENT: DashboardContent -->
+        </div>
+        <!-- @END_COMPONENT: MainContent -->
+    </div>
+    <!-- @END_COMPONENT: MainLayout -->
+
+    <!-- @FUNCTIONALITY: Real-time updates should be implemented using WebSocket connections -->
+    <!-- @STATE: darkMode:boolean = false -->
+    <!-- @STATE: notifications:array = [] -->
+    <!-- @STATE: dashboardData:object = {} -->
+
+    <script>
+        // TODO: Implement real-time dashboard updates using WebSocket
+        // TODO: Add chart interactions using Chart.js library
+        // TODO: Implement dark mode toggle functionality
+        // TODO: Add notification system with real-time alerts
+        // TODO: Implement quick action handlers
+        // TODO: Add responsive mobile navigation
+        
+        (function() {
+            // Animation initialization
+            const cards = document.querySelectorAll('.hover-lift');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-4px)';
+                    this.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)';
+                });
+            });
+
+            // Smooth fade-in animations
+            const animateElements = document.querySelectorAll('.animate-fade-in');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            });
+
+            animateElements.forEach(el => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(20px)';
+                el.style.transition = 'all 0.6s ease-out';
+                observer.observe(el);
+            });
+
+            // Real-time data simulation
+            function updateMetrics() {
+                // TODO: Replace with actual WebSocket implementation
+                const metrics = document.querySelectorAll('[data-bind]');
+                metrics.forEach(metric => {
+                    // Simulate real-time updates
+                    const currentValue = metric.textContent;
+                    // Add subtle pulse effect for updates
+                    metric.style.transition = 'all 0.3s ease';
+                    metric.style.transform = 'scale(1.05)';
+                    setTimeout(() => {
+                        metric.style.transform = 'scale(1)';
+                    }, 300);
+                });
+            }
+
+            // Simulate real-time updates every 30 seconds
+            setInterval(updateMetrics, 30000);
+        })();
+    </script>
+</body>
+</html>

@@ -19,19 +19,30 @@ router.post("/login", validateRequest(loginSchema), async (req, res) => {
   try {
     const { username, password } = req.body;
 
+    console.log("Login request body:", req.body);
+
     // Find user by username
-    const [user] = await db
+    const results = await db
       .select()
       .from(users)
       .where(eq(users.username, username));
 
+    const user = results[0];
+
     if (!user) {
+      console.warn("User not found:", username);
       return res.status(401).json({ error: "Invalid username or password" });
     }
 
     // Check if user is active
     if (user.status !== "active") {
       return res.status(403).json({ error: "Account is inactive. Please contact administrator." });
+    }
+
+    // Ensure password field exists
+    if (!user.password) {
+      console.error("User has no password in DB:", user.id);
+      return res.status(500).json({ error: "User record is invalid. Contact support." });
     }
 
     // Verify password
@@ -50,20 +61,29 @@ router.post("/login", validateRequest(loginSchema), async (req, res) => {
       .where(eq(users.id, user.id));
 
     // Log activity
-    await db.insert(userActivityLogs).values({
-      userId: user.id,
-      action: "login",
-      entityType: "user",
-      entityId: user.id,
-      details: {
+    try {
+      await db.insert(userActivityLogs).values({
+        userId: user.id,
+        action: "login",
+        entityType: "user",
+        entityId: user.id,
+        details: JSON.stringify({
+          ipAddress: req.ip,
+          userAgent: req.get("user-agent"),
+        }),
         ipAddress: req.ip,
         userAgent: req.get("user-agent"),
-      },
-      ipAddress: req.ip,
-      userAgent: req.get("user-agent"),
-    });
+      });
+    } catch (logError) {
+      console.error("Failed to log login activity:", logError);
+    }
 
     // Store user in session
+    if (!(req as any).session) {
+      console.error("Session not initialized");
+      return res.status(500).json({ error: "Session not initialized" });
+    }
+
     (req as any).session.user = {
       id: user.id,
       username: user.username,
@@ -75,7 +95,7 @@ router.post("/login", validateRequest(loginSchema), async (req, res) => {
       avatar: user.avatar,
     };
 
-    // Remove password from response
+    // Remove password before sending back
     const { password: _, ...userData } = user;
 
     res.json({
@@ -83,10 +103,11 @@ router.post("/login", validateRequest(loginSchema), async (req, res) => {
       user: userData,
     });
   } catch (error) {
-    console.error("Error during login:", error);
-    res.status(500).json({ error: "Login failed" });
+    console.log("Error during login:", error);
+    res.status(500).json({ error: "Login failed", message: (error as Error).message });
   }
 });
+
 
 // Logout endpoint
 router.post("/logout", (req, res) => {

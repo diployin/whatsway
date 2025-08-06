@@ -1,0 +1,1365 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsWay - WhatsApp Business Management Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        whatsapp: {
+                            50: '#f0f9f4',
+                            100: '#dcf4e6',
+                            200: '#bce9d1',
+                            300: '#8dd8b1',
+                            400: '#56c088',
+                            500: '#25D366',
+                            600: '#128C7E',
+                            700: '#0d6d5d',
+                            800: '#0c574b',
+                            900: '#0a483e',
+                        }
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        .chat-bubble-sent {
+            background: #25D366;
+            color: white;
+            border-radius: 18px 18px 4px 18px;
+        }
+        .chat-bubble-received {
+            background: #F1F5F9;
+            color: #1F2937;
+            border-radius: 18px 18px 18px 4px;
+        }
+        .sidebar-item:hover {
+            background-color: #f0f9f4;
+            border-right: 3px solid #25D366;
+        }
+        .sidebar-item.active {
+            background-color: #dcf4e6;
+            border-right: 3px solid #25D366;
+            color: #128C7E;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- @COMPONENT: AppLayout -->
+    <div class="flex h-screen bg-gray-50">
+        <!-- @COMPONENT: Sidebar -->
+        <div class="w-64 bg-white shadow-lg flex flex-col">
+            <!-- Logo Section -->
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-whatsapp-500 rounded-lg flex items-center justify-center">
+                        <i class="fab fa-whatsapp text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-900">WhatsWay</h1>
+                        <p class="text-sm text-gray-500">Business Platform</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 p-4 space-y-2">
+                <a href="#" class="sidebar-item active flex items-center space-x-3 p-3 rounded-lg transition-colors" data-section="dashboard">
+                    <i class="fas fa-chart-line text-lg"></i>
+                    <span class="font-medium">Dashboard</span>
+                </a>
+                <a href="#" class="sidebar-item flex items-center space-x-3 p-3 rounded-lg transition-colors" data-section="contacts">
+                    <i class="fas fa-address-book text-lg"></i>
+                    <span class="font-medium">Contacts</span>
+                </a>
+                <a href="#" class="sidebar-item flex items-center space-x-3 p-3 rounded-lg transition-colors" data-section="campaigns">
+                    <i class="fas fa-bullhorn text-lg"></i>
+                    <span class="font-medium">Campaigns</span>
+                </a>
+                <a href="#" class="sidebar-item flex items-center space-x-3 p-3 rounded-lg transition-colors" data-section="templates">
+                    <i class="fas fa-file-alt text-lg"></i>
+                    <span class="font-medium">Templates</span>
+                </a>
+                <a href="#" class="sidebar-item flex items-center space-x-3 p-3 rounded-lg transition-colors" data-section="chat">
+                    <i class="fas fa-comments text-lg"></i>
+                    <span class="font-medium">Chat Inbox</span>
+                </a>
+                <a href="#" class="sidebar-item flex items-center space-x-3 p-3 rounded-lg transition-colors" data-section="automation">
+                    <i class="fas fa-robot text-lg"></i>
+                    <span class="font-medium">Automation</span>
+                </a>
+                <a href="#" class="sidebar-item flex items-center space-x-3 p-3 rounded-lg transition-colors" data-section="analytics">
+                    <i class="fas fa-chart-bar text-lg"></i>
+                    <span class="font-medium">Analytics</span>
+                </a>
+                <a href="#" class="sidebar-item flex items-center space-x-3 p-3 rounded-lg transition-colors" data-section="settings">
+                    <i class="fas fa-cog text-lg"></i>
+                    <span class="font-medium">Settings</span>
+                </a>
+            </nav>
+
+            <!-- User Profile -->
+            <div class="p-4 border-t border-gray-200">
+                <div class="flex items-center space-x-3">
+                    <!-- Profile image with rounded design and proper object-fit handling -->
+                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&h=100" alt="User Profile" class="w-10 h-10 rounded-full object-cover" data-mock="true" />
+                    <div class="flex-1">
+                        <p class="font-medium text-gray-900" data-bind="user.name">John Smith</p>
+                        <p class="text-sm text-gray-500">Admin</p>
+                    </div>
+                    <button class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: Sidebar -->
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- @COMPONENT: Header -->
+            <header class="bg-white shadow-sm border-b border-gray-200 p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900" id="page-title">Dashboard</h2>
+                        <p class="text-gray-600 mt-1" id="page-subtitle">Welcome back! Here's what's happening with your WhatsApp campaigns.</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button class="relative p-2 text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-bell text-xl"></i>
+                            <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">3</span>
+                        </button>
+                        <button class="bg-whatsapp-500 hover:bg-whatsapp-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                            <i class="fas fa-plus mr-2"></i>New Campaign
+                        </button>
+                    </div>
+                </div>
+            </header>
+            <!-- @END_COMPONENT: Header -->
+
+            <!-- @COMPONENT: MainContent -->
+            <main class="flex-1 overflow-y-auto p-6">
+                <!-- Dashboard Section -->
+                <div id="dashboard-section" class="section active">
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-600 text-sm">Total Messages</p>
+                                    <p class="text-3xl font-bold text-gray-900" data-bind="stats.totalMessages">12,546</p>
+                                    <p class="text-whatsapp-600 text-sm mt-1">
+                                        <i class="fas fa-arrow-up mr-1"></i>23% from last month
+                                    </p>
+                                </div>
+                                <div class="w-12 h-12 bg-whatsapp-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-paper-plane text-whatsapp-600 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-600 text-sm">Active Campaigns</p>
+                                    <p class="text-3xl font-bold text-gray-900" data-bind="stats.activeCampaigns">8</p>
+                                    <p class="text-blue-600 text-sm mt-1">
+                                        <i class="fas fa-arrow-up mr-1"></i>2 new this week
+                                    </p>
+                                </div>
+                                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-bullhorn text-blue-600 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-600 text-sm">Delivery Rate</p>
+                                    <p class="text-3xl font-bold text-gray-900" data-bind="stats.deliveryRate">94.2%</p>
+                                    <p class="text-green-600 text-sm mt-1">
+                                        <i class="fas fa-arrow-up mr-1"></i>1.2% improvement
+                                    </p>
+                                </div>
+                                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-600 text-sm">New Leads</p>
+                                    <p class="text-3xl font-bold text-gray-900" data-bind="stats.newLeads">247</p>
+                                    <p class="text-purple-600 text-sm mt-1">
+                                        <i class="fas fa-arrow-up mr-1"></i>18% this week
+                                    </p>
+                                </div>
+                                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-users text-purple-600 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts and Recent Activity -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Analytics Chart -->
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Message Activity (Last 7 Days)</h3>
+                            <div class="h-64 flex items-end justify-between space-x-2">
+                                <!-- Mock chart bars -->
+                                <div class="flex flex-col items-center space-y-2">
+                                    <div class="w-8 h-24 bg-whatsapp-200 rounded-t"></div>
+                                    <span class="text-xs text-gray-600">Mon</span>
+                                </div>
+                                <div class="flex flex-col items-center space-y-2">
+                                    <div class="w-8 h-32 bg-whatsapp-300 rounded-t"></div>
+                                    <span class="text-xs text-gray-600">Tue</span>
+                                </div>
+                                <div class="flex flex-col items-center space-y-2">
+                                    <div class="w-8 h-20 bg-whatsapp-200 rounded-t"></div>
+                                    <span class="text-xs text-gray-600">Wed</span>
+                                </div>
+                                <div class="flex flex-col items-center space-y-2">
+                                    <div class="w-8 h-40 bg-whatsapp-500 rounded-t"></div>
+                                    <span class="text-xs text-gray-600">Thu</span>
+                                </div>
+                                <div class="flex flex-col items-center space-y-2">
+                                    <div class="w-8 h-36 bg-whatsapp-400 rounded-t"></div>
+                                    <span class="text-xs text-gray-600">Fri</span>
+                                </div>
+                                <div class="flex flex-col items-center space-y-2">
+                                    <div class="w-8 h-16 bg-whatsapp-200 rounded-t"></div>
+                                    <span class="text-xs text-gray-600">Sat</span>
+                                </div>
+                                <div class="flex flex-col items-center space-y-2">
+                                    <div class="w-8 h-12 bg-whatsapp-200 rounded-t"></div>
+                                    <span class="text-xs text-gray-600">Sun</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Activities -->
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Activities</h3>
+                            <div class="space-y-4">
+                                <div class="flex items-start space-x-3" data-mock="true">
+                                    <div class="w-8 h-8 bg-whatsapp-100 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-paper-plane text-whatsapp-600 text-sm"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="font-medium text-gray-900">Campaign "Black Friday Sale" sent</p>
+                                        <p class="text-sm text-gray-600">2,847 messages delivered successfully</p>
+                                        <p class="text-xs text-gray-500 mt-1">2 hours ago</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-3" data-mock="true">
+                                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-user-plus text-blue-600 text-sm"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="font-medium text-gray-900">127 new contacts imported</p>
+                                        <p class="text-sm text-gray-600">From CSV upload: leads_november.csv</p>
+                                        <p class="text-xs text-gray-500 mt-1">4 hours ago</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-3" data-mock="true">
+                                    <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-check text-green-600 text-sm"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="font-medium text-gray-900">Template approved by Meta</p>
+                                        <p class="text-sm text-gray-600">"Welcome Message" is now ready to use</p>
+                                        <p class="text-xs text-gray-500 mt-1">6 hours ago</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contacts Section -->
+                <div id="contacts-section" class="section hidden">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                        <!-- Contacts Header -->
+                        <div class="p-6 border-b border-gray-200">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-xl font-semibold text-gray-900">Contact Management</h3>
+                                <div class="flex space-x-3">
+                                    <button class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors">
+                                        <i class="fas fa-upload mr-2"></i>Import CSV
+                                    </button>
+                                    <button class="bg-whatsapp-500 hover:bg-whatsapp-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                                        <i class="fas fa-plus mr-2"></i>Add Contact
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Search and Filter -->
+                            <div class="flex space-x-4">
+                                <div class="flex-1 relative">
+                                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                    <input type="text" placeholder="Search contacts..." class="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-whatsapp-500 focus:border-transparent">
+                                </div>
+                                <select class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-whatsapp-500 focus:border-transparent">
+                                    <option>All Groups</option>
+                                    <option>VIP Customers</option>
+                                    <option>Newsletter</option>
+                                    <option>Prospects</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Contacts Table -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <input type="checkbox" class="rounded border-gray-300">
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Groups</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Message</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <!-- @MAP: contacts.map(contact => ( -->
+                                    <tr data-mock="true">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <input type="checkbox" class="rounded border-gray-300">
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <img class="h-10 w-10 rounded-full object-cover" src="https://images.unsplash.com/photo-1494790108755-2616b612b884?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&h=100" alt="Sarah Johnson">
+                                                <div class="ml-4">
+                                                    <div class="text-sm font-medium text-gray-900">Sarah Johnson</div>
+                                                    <div class="text-sm text-gray-500">sarah.j@email.com</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">+1 (555) 123-4567</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-whatsapp-100 text-whatsapp-800">VIP Customer</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2 days ago</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                <span class="w-1.5 h-1.5 bg-green-400 rounded-full mr-1.5"></span>
+                                                Active
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <button class="text-whatsapp-600 hover:text-whatsapp-900 mr-3">Edit</button>
+                                            <button class="text-red-600 hover:text-red-900">Delete</button>
+                                        </td>
+                                    </tr>
+                                    <tr data-mock="true">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <input type="checkbox" class="rounded border-gray-300">
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <img class="h-10 w-10 rounded-full object-cover" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&h=100" alt="Michael Chen">
+                                                <div class="ml-4">
+                                                    <div class="text-sm font-medium text-gray-900">Michael Chen</div>
+                                                    <div class="text-sm text-gray-500">m.chen@company.com</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">+1 (555) 987-6543</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Newsletter</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">1 week ago</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                <span class="w-1.5 h-1.5 bg-yellow-400 rounded-full mr-1.5"></span>
+                                                Pending
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <button class="text-whatsapp-600 hover:text-whatsapp-900 mr-3">Edit</button>
+                                            <button class="text-red-600 hover:text-red-900">Delete</button>
+                                        </td>
+                                    </tr>
+                                    <!-- @END_MAP )) -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        <div class="px-6 py-3 border-t border-gray-200 flex items-center justify-between">
+                            <div class="text-sm text-gray-700">
+                                Showing <span class="font-medium">1</span> to <span class="font-medium">10</span> of <span class="font-medium">247</span> contacts
+                            </div>
+                            <div class="flex space-x-2">
+                                <button class="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50">Previous</button>
+                                <button class="px-3 py-1 bg-whatsapp-500 text-white rounded text-sm">1</button>
+                                <button class="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50">2</button>
+                                <button class="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50">3</button>
+                                <button class="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50">Next</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Campaigns Section -->
+                <div id="campaigns-section" class="section hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Campaign Form -->
+                        <div class="lg:col-span-2">
+                            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                                <h3 class="text-xl font-semibold text-gray-900 mb-6">Create New Campaign</h3>
+                                
+                                <form class="space-y-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Campaign Name</label>
+                                        <input type="text" placeholder="Enter campaign name..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-whatsapp-500 focus:border-transparent">
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Select Recipients</label>
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <button type="button" class="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-whatsapp-500 transition-colors">
+                                                <div class="text-center">
+                                                    <i class="fas fa-upload text-2xl text-gray-400 mb-2"></i>
+                                                    <p class="text-sm font-medium">Upload CSV</p>
+                                                </div>
+                                            </button>
+                                            <button type="button" class="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-whatsapp-500 transition-colors">
+                                                <div class="text-center">
+                                                    <i class="fas fa-users text-2xl text-gray-400 mb-2"></i>
+                                                    <p class="text-sm font-medium">Select Groups</p>
+                                                </div>
+                                            </button>
+                                            <button type="button" class="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-whatsapp-500 transition-colors">
+                                                <div class="text-center">
+                                                    <i class="fas fa-user-check text-2xl text-gray-400 mb-2"></i>
+                                                    <p class="text-sm font-medium">Pick Contacts</p>
+                                                </div>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">API Selection</label>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div class="border border-gray-300 rounded-lg p-4 cursor-pointer hover:border-whatsapp-500 transition-colors">
+                                                <div class="flex items-center space-x-3">
+                                                    <input type="radio" name="api" value="cloud" class="text-whatsapp-500">
+                                                    <div>
+                                                        <h4 class="font-medium text-gray-900">Cloud API</h4>
+                                                        <p class="text-sm text-gray-600">Two-way chat, transactional messages</p>
+                                                        <p class="text-xs text-blue-600 mt-1">Ideal for customer support & interactions</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="border border-gray-300 rounded-lg p-4 cursor-pointer hover:border-whatsapp-500 transition-colors">
+                                                <div class="flex items-center space-x-3">
+                                                    <input type="radio" name="api" value="mmlite" class="text-whatsapp-500">
+                                                    <div>
+                                                        <h4 class="font-medium text-gray-900">MM Lite API</h4>
+                                                        <p class="text-sm text-gray-600">Bulk marketing campaigns</p>
+                                                        <p class="text-xs text-green-600 mt-1">9% higher delivery, 10% cost savings</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Message Content</label>
+                                        <textarea rows="4" placeholder="Type your message here..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-whatsapp-500 focus:border-transparent"></textarea>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Schedule</label>
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <div class="flex items-center space-x-2">
+                                                <input type="radio" name="schedule" value="now" class="text-whatsapp-500" checked>
+                                                <label class="text-sm">Send Now</label>
+                                            </div>
+                                            <div class="flex items-center space-x-2">
+                                                <input type="radio" name="schedule" value="later" class="text-whatsapp-500">
+                                                <label class="text-sm">Schedule Later</label>
+                                            </div>
+                                            <div class="flex items-center space-x-2">
+                                                <input type="radio" name="schedule" value="recurring" class="text-whatsapp-500">
+                                                <label class="text-sm">Recurring</label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex space-x-4">
+                                        <button type="button" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-lg font-medium transition-colors">
+                                            Save as Draft
+                                        </button>
+                                        <button type="submit" class="flex-1 bg-whatsapp-500 hover:bg-whatsapp-600 text-white py-3 rounded-lg font-medium transition-colors">
+                                            Send Campaign
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Campaign History -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Campaigns</h3>
+                            <div class="space-y-4">
+                                <div class="border border-gray-200 rounded-lg p-4" data-mock="true">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h4 class="font-medium text-gray-900">Black Friday Sale</h4>
+                                        <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Completed</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 mb-2">2,847 recipients • 94.2% delivered</p>
+                                    <div class="flex items-center justify-between text-xs text-gray-500">
+                                        <span>MM Lite API</span>
+                                        <span>2 hours ago</span>
+                                    </div>
+                                </div>
+                                <div class="border border-gray-200 rounded-lg p-4" data-mock="true">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h4 class="font-medium text-gray-900">Product Updates</h4>
+                                        <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">Sending</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 mb-2">1,245 recipients • 67% delivered</p>
+                                    <div class="flex items-center justify-between text-xs text-gray-500">
+                                        <span>Cloud API</span>
+                                        <span>1 hour ago</span>
+                                    </div>
+                                </div>
+                                <div class="border border-gray-200 rounded-lg p-4" data-mock="true">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h4 class="font-medium text-gray-900">Welcome Series</h4>
+                                        <span class="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full">Draft</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 mb-2">0 recipients • Not sent</p>
+                                    <div class="flex items-center justify-between text-xs text-gray-500">
+                                        <span>Cloud API</span>
+                                        <span>1 day ago</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Templates Section -->
+                <div id="templates-section" class="section hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Template Creation -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-6">Create WhatsApp Template</h3>
+                            
+                            <form class="space-y-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Template Name</label>
+                                    <input type="text" placeholder="template_name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-whatsapp-500 focus:border-transparent">
+                                    <p class="text-xs text-gray-500 mt-1">Use lowercase letters, numbers, and underscores only</p>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                                    <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-whatsapp-500 focus:border-transparent">
+                                        <option>Marketing</option>
+                                        <option>Utility</option>
+                                        <option>Authentication</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Language</label>
+                                    <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-whatsapp-500 focus:border-transparent">
+                                        <option>English (US)</option>
+                                        <option>Spanish</option>
+                                        <option>French</option>
+                                        <option>German</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Template Content</label>
+                                    <textarea rows="4" placeholder="Hello {{1}}, welcome to our service! Your order {{2}} is being processed." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-whatsapp-500 focus:border-transparent"></textarea>
+                                    <p class="text-xs text-gray-500 mt-1">Use {{1}}, {{2}}, etc. for dynamic variables</p>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Sample Values (for preview)</label>
+                                    <input type="text" placeholder="John, ORD-12345" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-whatsapp-500 focus:border-transparent">
+                                    <p class="text-xs text-gray-500 mt-1">Comma-separated values for variables</p>
+                                </div>
+
+                                <button type="submit" class="w-full bg-whatsapp-500 hover:bg-whatsapp-600 text-white py-3 rounded-lg font-medium transition-colors">
+                                    Submit for Approval
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- WhatsApp Preview -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">WhatsApp Preview</h3>
+                            
+                            <!-- Mock WhatsApp Interface -->
+                            <div class="bg-whatsapp-500 rounded-t-lg p-4">
+                                <div class="flex items-center space-x-3 text-white">
+                                    <i class="fas fa-arrow-left"></i>
+                                    <img src="https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&h=100" alt="Business Profile" class="w-8 h-8 rounded-full object-cover">
+                                    <div>
+                                        <p class="font-medium">Your Business</p>
+                                        <p class="text-xs opacity-75">online</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-gray-100 h-96 p-4 overflow-y-auto">
+                                <!-- Mock message -->
+                                <div class="flex justify-start mb-4">
+                                    <div class="chat-bubble-received max-w-xs px-4 py-2">
+                                        <p class="text-sm">Hello John, welcome to our service! Your order ORD-12345 is being processed.</p>
+                                        <p class="text-xs text-gray-500 mt-1">2:30 PM</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Template List -->
+                    <div class="mt-6 bg-white rounded-xl shadow-sm border border-gray-200">
+                        <div class="p-6 border-b border-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-900">Template Library</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Template Name</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Language</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <tr data-mock="true">
+                                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">welcome_message</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Marketing</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">English (US)</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Approved</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <button class="text-whatsapp-600 hover:text-whatsapp-900 mr-3">Edit</button>
+                                            <button class="text-blue-600 hover:text-blue-900">Use</button>
+                                        </td>
+                                    </tr>
+                                    <tr data-mock="true">
+                                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">order_confirmation</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Utility</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">English (US)</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pending</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <button class="text-whatsapp-600 hover:text-whatsapp-900 mr-3">Edit</button>
+                                            <button class="text-gray-400 cursor-not-allowed">Use</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Section -->
+                <div id="chat-section" class="section hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-200px)]">
+                        <!-- Chat List -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                            <div class="p-4 border-b border-gray-200">
+                                <h3 class="font-semibold text-gray-900">Active Chats</h3>
+                                <div class="mt-3 relative">
+                                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"></i>
+                                    <input type="text" placeholder="Search chats..." class="pl-9 pr-3 py-2 w-full text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-whatsapp-500 focus:border-transparent">
+                                </div>
+                            </div>
+                            <div class="overflow-y-auto flex-1">
+                                <!-- Chat items -->
+                                <div class="p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer" data-mock="true">
+                                    <div class="flex items-start space-x-3">
+                                        <img src="https://pixabay.com/get/g025ab89c32e0e603b42444e621585a8d1ee0b73736490e589a4c74653e43748b846eb8892e9c94fe102329ff352d1b186cbea44d44f154e3ff425bab4f7ed936_1280.jpg" alt="Contact" class="w-10 h-10 rounded-full object-cover">
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center justify-between">
+                                                <p class="font-medium text-gray-900 truncate">Sarah Johnson</p>
+                                                <span class="text-xs text-gray-500">2m ago</span>
+                                            </div>
+                                            <p class="text-sm text-gray-600 truncate">Thanks for the quick response!</p>
+                                            <div class="flex items-center justify-between mt-1">
+                                                <span class="px-2 py-0.5 bg-whatsapp-100 text-whatsapp-800 text-xs rounded-full">VIP</span>
+                                                <span class="w-2 h-2 bg-whatsapp-500 rounded-full"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer" data-mock="true">
+                                    <div class="flex items-start space-x-3">
+                                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&h=100" alt="Contact" class="w-10 h-10 rounded-full object-cover">
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center justify-between">
+                                                <p class="font-medium text-gray-900 truncate">Michael Chen</p>
+                                                <span class="text-xs text-gray-500">15m ago</span>
+                                            </div>
+                                            <p class="text-sm text-gray-600 truncate">When will my order ship?</p>
+                                            <div class="flex items-center justify-between mt-1">
+                                                <span class="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full">Support</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Chat Interface -->
+                        <div class="lg:col-span-3 bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col">
+                            <!-- Chat Header -->
+                            <div class="p-4 border-b border-gray-200">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <img src="https://pixabay.com/get/g048d186b30d42c04854285adc82301a4bf897efc16091db1d761d94580333dd20b986971561fef551dd6f92010bdd8c47e0fcdda4930c429afb24e54d361a49c_1280.jpg" alt="Contact" class="w-10 h-10 rounded-full object-cover">
+                                        <div>
+                                            <p class="font-medium text-gray-900">Sarah Johnson</p>
+                                            <p class="text-sm text-gray-500">+1 (555) 123-4567 • Online</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <button class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded">
+                                            <i class="fas fa-info-circle"></i>
+                                        </button>
+                                        <button class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Chat Messages -->
+                            <div class="flex-1 overflow-y-auto p-4 space-y-4" style="background-image: url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><defs><pattern id=\"grid\" width=\"20\" height=\"20\" patternUnits=\"userSpaceOnUse\"><path d=\"M 20 0 L 0 0 0 20\" fill=\"none\" stroke=\"%23f0f0f0\" stroke-width=\"0.5\"/></pattern></defs><rect width=\"100\" height=\"100\" fill=\"url(%23grid)\"/></svg>');">
+                                <!-- Mock chat messages -->
+                                <div class="flex justify-end" data-mock="true">
+                                    <div class="chat-bubble-sent max-w-xs px-4 py-2">
+                                        <p class="text-sm">Hi Sarah! How can I help you today?</p>
+                                        <p class="text-xs text-white opacity-75 mt-1">2:25 PM ✓✓</p>
+                                    </div>
+                                </div>
+                                <div class="flex justify-start" data-mock="true">
+                                    <div class="chat-bubble-received max-w-xs px-4 py-2">
+                                        <p class="text-sm">Hello! I had a question about my recent order. The tracking shows it's been stuck for a few days.</p>
+                                        <p class="text-xs text-gray-500 mt-1">2:26 PM</p>
+                                    </div>
+                                </div>
+                                <div class="flex justify-end" data-mock="true">
+                                    <div class="chat-bubble-sent max-w-xs px-4 py-2">
+                                        <p class="text-sm">I'd be happy to look into that for you. Can you please share your order number?</p>
+                                        <p class="text-xs text-white opacity-75 mt-1">2:27 PM ✓✓</p>
+                                    </div>
+                                </div>
+                                <div class="flex justify-start" data-mock="true">
+                                    <div class="chat-bubble-received max-w-xs px-4 py-2">
+                                        <p class="text-sm">Sure! It's ORD-12345</p>
+                                        <p class="text-xs text-gray-500 mt-1">2:28 PM</p>
+                                    </div>
+                                </div>
+                                <div class="flex justify-end" data-mock="true">
+                                    <div class="chat-bubble-sent max-w-xs px-4 py-2">
+                                        <p class="text-sm">Perfect! I can see your order here. It looks like there was a minor delay at the shipping facility, but it's moving again now. You should receive it by tomorrow evening.</p>
+                                        <p class="text-xs text-white opacity-75 mt-1">2:30 PM ✓</p>
+                                    </div>
+                                </div>
+                                <div class="flex justify-start" data-mock="true">
+                                    <div class="chat-bubble-received max-w-xs px-4 py-2">
+                                        <p class="text-sm">Thanks for the quick response! That's really helpful.</p>
+                                        <p class="text-xs text-gray-500 mt-1">2:30 PM</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Chat Input -->
+                            <div class="p-4 border-t border-gray-200">
+                                <div class="flex items-center space-x-3">
+                                    <button class="p-2 text-gray-400 hover:text-gray-600">
+                                        <i class="fas fa-paperclip"></i>
+                                    </button>
+                                    <button class="p-2 text-gray-400 hover:text-gray-600">
+                                        <i class="fas fa-smile"></i>
+                                    </button>
+                                    <div class="flex-1 relative">
+                                        <input type="text" placeholder="Type a message..." class="w-full px-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-whatsapp-500 focus:border-transparent">
+                                    </div>
+                                    <button class="p-2 bg-whatsapp-500 text-white rounded-full hover:bg-whatsapp-600">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Automation Section -->
+                <div id="automation-section" class="section hidden">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <h3 class="text-xl font-semibold text-gray-900">Automation Flow Builder</h3>
+                                <p class="text-gray-600 mt-1">Create automated workflows with drag-and-drop simplicity</p>
+                            </div>
+                            <button class="bg-whatsapp-500 hover:bg-whatsapp-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                                <i class="fas fa-plus mr-2"></i>New Flow
+                            </button>
+                        </div>
+
+                        <!-- Flow Builder Interface -->
+                        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                            <!-- Components Palette -->
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <h4 class="font-medium text-gray-900 mb-4">Components</h4>
+                                <div class="space-y-3">
+                                    <div class="bg-white p-3 rounded-lg border border-gray-200 cursor-pointer hover:shadow-sm transition-shadow" draggable="true">
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-6 h-6 bg-green-100 rounded flex items-center justify-center">
+                                                <i class="fas fa-play text-green-600 text-xs"></i>
+                                            </div>
+                                            <span class="text-sm font-medium">Trigger</span>
+                                        </div>
+                                    </div>
+                                    <div class="bg-white p-3 rounded-lg border border-gray-200 cursor-pointer hover:shadow-sm transition-shadow" draggable="true">
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-6 h-6 bg-blue-100 rounded flex items-center justify-center">
+                                                <i class="fas fa-comment text-blue-600 text-xs"></i>
+                                            </div>
+                                            <span class="text-sm font-medium">Send Message</span>
+                                        </div>
+                                    </div>
+                                    <div class="bg-white p-3 rounded-lg border border-gray-200 cursor-pointer hover:shadow-sm transition-shadow" draggable="true">
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-6 h-6 bg-yellow-100 rounded flex items-center justify-center">
+                                                <i class="fas fa-clock text-yellow-600 text-xs"></i>
+                                            </div>
+                                            <span class="text-sm font-medium">Wait</span>
+                                        </div>
+                                    </div>
+                                    <div class="bg-white p-3 rounded-lg border border-gray-200 cursor-pointer hover:shadow-sm transition-shadow" draggable="true">
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-6 h-6 bg-purple-100 rounded flex items-center justify-center">
+                                                <i class="fas fa-code-branch text-purple-600 text-xs"></i>
+                                            </div>
+                                            <span class="text-sm font-medium">Condition</span>
+                                        </div>
+                                    </div>
+                                    <div class="bg-white p-3 rounded-lg border border-gray-200 cursor-pointer hover:shadow-sm transition-shadow" draggable="true">
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-6 h-6 bg-red-100 rounded flex items-center justify-center">
+                                                <i class="fas fa-user-tie text-red-600 text-xs"></i>
+                                            </div>
+                                            <span class="text-sm font-medium">Assign Agent</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Flow Canvas -->
+                            <div class="lg:col-span-3 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 min-h-96 relative overflow-hidden" id="flow-canvas">
+                                <!-- Mock flow elements -->
+                                <div class="absolute top-8 left-8 bg-white rounded-lg p-4 border border-gray-200 shadow-sm" data-mock="true">
+                                    <div class="flex items-center space-x-2 mb-2">
+                                        <div class="w-6 h-6 bg-green-100 rounded flex items-center justify-center">
+                                            <i class="fas fa-play text-green-600 text-xs"></i>
+                                        </div>
+                                        <span class="text-sm font-medium">New Contact</span>
+                                    </div>
+                                    <p class="text-xs text-gray-600">Triggers when contact is added</p>
+                                </div>
+
+                                <div class="absolute top-8 left-64 bg-white rounded-lg p-4 border border-gray-200 shadow-sm" data-mock="true">
+                                    <div class="flex items-center space-x-2 mb-2">
+                                        <div class="w-6 h-6 bg-blue-100 rounded flex items-center justify-center">
+                                            <i class="fas fa-comment text-blue-600 text-xs"></i>
+                                        </div>
+                                        <span class="text-sm font-medium">Welcome Message</span>
+                                    </div>
+                                    <p class="text-xs text-gray-600">Send welcome template</p>
+                                </div>
+
+                                <div class="absolute top-32 left-64 bg-white rounded-lg p-4 border border-gray-200 shadow-sm" data-mock="true">
+                                    <div class="flex items-center space-x-2 mb-2">
+                                        <div class="w-6 h-6 bg-yellow-100 rounded flex items-center justify-center">
+                                            <i class="fas fa-clock text-yellow-600 text-xs"></i>
+                                        </div>
+                                        <span class="text-sm font-medium">Wait 24 hours</span>
+                                    </div>
+                                    <p class="text-xs text-gray-600">Delay before next action</p>
+                                </div>
+
+                                <!-- Connection lines -->
+                                <svg class="absolute inset-0 pointer-events-none" data-mock="true">
+                                    <line x1="160" y1="40" x2="240" y2="40" stroke="#25D366" stroke-width="2" marker-end="url(#arrowhead)"/>
+                                    <line x1="320" y1="64" x2="320" y2="120" stroke="#25D366" stroke-width="2" marker-end="url(#arrowhead)"/>
+                                    <defs>
+                                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                            <polygon points="0 0, 10 3.5, 0 7" fill="#25D366"/>
+                                        </marker>
+                                    </defs>
+                                </svg>
+
+                                <!-- Drop zone text -->
+                                <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                    <p class="text-gray-400 text-lg">Drag components here to build your flow</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Flow Templates -->
+                        <div class="mt-8">
+                            <h4 class="font-medium text-gray-900 mb-4">Pre-built Templates</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="border border-gray-200 rounded-lg p-4 hover:border-whatsapp-500 cursor-pointer transition-colors" data-mock="true">
+                                    <h5 class="font-medium text-gray-900 mb-2">Welcome Series</h5>
+                                    <p class="text-sm text-gray-600 mb-3">3-message welcome sequence for new subscribers</p>
+                                    <button class="text-whatsapp-600 hover:text-whatsapp-700 text-sm font-medium">Use Template</button>
+                                </div>
+                                <div class="border border-gray-200 rounded-lg p-4 hover:border-whatsapp-500 cursor-pointer transition-colors" data-mock="true">
+                                    <h5 class="font-medium text-gray-900 mb-2">Abandoned Cart</h5>
+                                    <p class="text-sm text-gray-600 mb-3">Re-engage customers who left items in cart</p>
+                                    <button class="text-whatsapp-600 hover:text-whatsapp-700 text-sm font-medium">Use Template</button>
+                                </div>
+                                <div class="border border-gray-200 rounded-lg p-4 hover:border-whatsapp-500 cursor-pointer transition-colors" data-mock="true">
+                                    <h5 class="font-medium text-gray-900 mb-2">Support Escalation</h5>
+                                    <p class="text-sm text-gray-600 mb-3">Auto-assign to agents based on keywords</p>
+                                    <button class="text-whatsapp-600 hover:text-whatsapp-700 text-sm font-medium">Use Template</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Section -->
+                <div id="analytics-section" class="section hidden">
+                    <div class="space-y-6">
+                        <!-- Analytics Header -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-xl font-semibold text-gray-900">Analytics Dashboard</h3>
+                                <div class="flex space-x-3">
+                                    <select class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-whatsapp-500 focus:border-transparent">
+                                        <option>Last 7 days</option>
+                                        <option>Last 30 days</option>
+                                        <option>Last 90 days</option>
+                                    </select>
+                                    <button class="bg-whatsapp-500 hover:bg-whatsapp-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                                        <i class="fas fa-download mr-2"></i>Export Report
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Key Metrics -->
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                                <div class="text-center" data-mock="true">
+                                    <div class="text-3xl font-bold text-gray-900 mb-1">98.5%</div>
+                                    <div class="text-sm text-gray-600">Delivery Rate</div>
+                                    <div class="text-xs text-green-600 mt-1">↑ 2.1% vs last period</div>
+                                </div>
+                                <div class="text-center" data-mock="true">
+                                    <div class="text-3xl font-bold text-gray-900 mb-1">45.2%</div>
+                                    <div class="text-sm text-gray-600">Open Rate</div>
+                                    <div class="text-xs text-green-600 mt-1">↑ 5.3% vs last period</div>
+                                </div>
+                                <div class="text-center" data-mock="true">
+                                    <div class="text-3xl font-bold text-gray-900 mb-1">12.8%</div>
+                                    <div class="text-sm text-gray-600">Click Rate</div>
+                                    <div class="text-xs text-red-600 mt-1">↓ 1.2% vs last period</div>
+                                </div>
+                                <div class="text-center" data-mock="true">
+                                    <div class="text-3xl font-bold text-gray-900 mb-1">3.2%</div>
+                                    <div class="text-sm text-gray-600">Conversion Rate</div>
+                                    <div class="text-xs text-green-600 mt-1">↑ 0.8% vs last period</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Campaign Performance -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h4 class="text-lg font-semibold text-gray-900 mb-4">Campaign Performance</h4>
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Campaign Name</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">API</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Messages Sent</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Delivered</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Opens</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Clicks</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Conversions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        <tr data-mock="true">
+                                            <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Black Friday Sale</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">MM Lite</span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">2,847</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">2,683 (94.2%)</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">1,214 (45.2%)</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">343 (12.8%)</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">86 (3.2%)</td>
+                                        </tr>
+                                        <tr data-mock="true">
+                                            <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Product Updates</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Cloud API</span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">1,245</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">1,198 (96.2%)</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">542 (45.2%)</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">154 (12.9%)</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">38 (3.2%)</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Charts Section -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <!-- API Comparison Chart -->
+                            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                                <h4 class="text-lg font-semibold text-gray-900 mb-4">API Performance Comparison</h4>
+                                <div class="space-y-4">
+                                    <div>
+                                        <div class="flex justify-between text-sm mb-1">
+                                            <span>MM Lite API Delivery Rate</span>
+                                            <span class="font-medium">97.8%</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-2">
+                                            <div class="bg-green-500 h-2 rounded-full" style="width: 97.8%"></div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="flex justify-between text-sm mb-1">
+                                            <span>Cloud API Delivery Rate</span>
+                                            <span class="font-medium">89.2%</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-2">
+                                            <div class="bg-blue-500 h-2 rounded-full" style="width: 89.2%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="text-xs text-gray-600 mt-4">
+                                        <i class="fas fa-info-circle mr-1"></i>
+                                        MM Lite API shows 9% higher delivery rates for marketing campaigns in supported regions
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Cost Analysis -->
+                            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                                <h4 class="text-lg font-semibold text-gray-900 mb-4">Cost Analysis</h4>
+                                <div class="space-y-4">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm text-gray-600">MM Lite API (per message)</span>
+                                        <span class="font-medium text-green-600">$0.045</span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm text-gray-600">Cloud API (per message)</span>
+                                        <span class="font-medium text-blue-600">$0.050</span>
+                                    </div>
+                                    <div class="border-t pt-4">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-sm text-gray-600">Monthly Savings</span>
+                                            <span class="font-bold text-green-600">$127.85</span>
+                                        </div>
+                                        <div class="text-xs text-gray-500 mt-1">Based on 2,557 marketing messages this month</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Section -->
+                <div id="settings-section" class="section hidden">
+                    <div class="space-y-6">
+                        <!-- WhatsApp Configuration -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-6">WhatsApp API Configuration</h3>
+                            
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <!-- Cloud API Settings -->
+                                <div class="border border-gray-200 rounded-lg p-4">
+                                    <h4 class="font-medium text-gray-900 mb-4">Cloud API Settings</h4>
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number ID</label>
+                                            <input type="text" placeholder="123456789012345" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-whatsapp-500 focus:border-transparent">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Access Token</label>
+                                            <input type="password" placeholder="Enter your access token..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-whatsapp-500 focus:border-transparent">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Webhook URL</label>
+                                            <input type="url" placeholder="https://yourapp.com/webhook" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-whatsapp-500 focus:border-transparent">
+                                        </div>
+                                        <button class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg font-medium transition-colors">
+                                            Test Cloud API Connection
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- MM Lite API Settings -->
+                                <div class="border border-gray-200 rounded-lg p-4">
+                                    <h4 class="font-medium text-gray-900 mb-4">MM Lite API Settings</h4>
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Business Account ID</label>
+                                            <input type="text" placeholder="Enter WABA ID..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-whatsapp-500 focus:border-transparent">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Marketing API Token</label>
+                                            <input type="password" placeholder="Enter MM Lite token..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-whatsapp-500 focus:border-transparent">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Region</label>
+                                            <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-whatsapp-500 focus:border-transparent">
+                                                <option>India</option>
+                                                <option>Brazil</option>
+                                                <option>Mexico</option>
+                                                <option>Indonesia</option>
+                                                <option>Chile</option>
+                                                <option>Peru</option>
+                                            </select>
+                                        </div>
+                                        <button class="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg font-medium transition-colors">
+                                            Test MM Lite Connection
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AI Configuration -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-6">AI Bot Configuration</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">OpenAI API Key</label>
+                                    <input type="password" placeholder="sk-..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-whatsapp-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Bot Instructions</label>
+                                    <textarea rows="4" placeholder="You are a helpful customer service assistant for WhatsWay..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-whatsapp-500 focus:border-transparent"></textarea>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h4 class="font-medium text-gray-900">Enable AI Bot</h4>
+                                        <p class="text-sm text-gray-600">Automatically respond to customer messages</p>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" class="sr-only peer">
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-whatsapp-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-whatsapp-600"></div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Team Management -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-6">Team Management</h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Active</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        <tr data-mock="true">
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="flex items-center">
+                                                    <img class="h-8 w-8 rounded-full object-cover" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&h=100" alt="John Smith">
+                                                    <div class="ml-3">
+                                                        <div class="text-sm font-medium text-gray-900">John Smith</div>
+                                                        <div class="text-sm text-gray-500">john@company.com</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">Admin</span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Just now</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                    <span class="w-1.5 h-1.5 bg-green-400 rounded-full mr-1.5"></span>
+                                                    Online
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                <button class="text-whatsapp-600 hover:text-whatsapp-900 mr-3">Edit</button>
+                                                <button class="text-red-600 hover:text-red-900">Remove</button>
+                                            </td>
+                                        </tr>
+                                        <tr data-mock="true">
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="flex items-center">
+                                                    <img class="h-8 w-8 rounded-full object-cover" src="https://pixabay.com/get/g17d2145ec8565fbe4abf3acbfc1c5e99416d832f6b5ced5e74055ccc8c39b3592ca977b90dbd7e2b60ea9b7c18c19de30b1dbf2fddabd00eccd43e8588096fd1_1280.jpg" alt="Sarah Johnson">
+                                                    <div class="ml-3">
+                                                        <div class="text-sm font-medium text-gray-900">Sarah Johnson</div>
+                                                        <div class="text-sm text-gray-500">sarah@company.com</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Agent</span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2 hours ago</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                    <span class="w-1.5 h-1.5 bg-gray-400 rounded-full mr-1.5"></span>
+                                                    Away
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                <button class="text-whatsapp-600 hover:text-whatsapp-900 mr-3">Edit</button>
+                                                <button class="text-red-600 hover:text-red-900">Remove</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="mt-4">
+                                <button class="bg-whatsapp-500 hover:bg-whatsapp-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                                    <i class="fas fa-plus mr-2"></i>Invite Team Member
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            <!-- @END_COMPONENT: MainContent -->
+        </div>
+    </div>
+    <!-- @END_COMPONENT: AppLayout -->
+
+    <script>
+        (function() {
+            // Navigation functionality
+            const sidebarItems = document.querySelectorAll('.sidebar-item');
+            const sections = document.querySelectorAll('.section');
+            const pageTitle = document.getElementById('page-title');
+            const pageSubtitle = document.getElementById('page-subtitle');
+
+            const sectionTitles = {
+                'dashboard': {
+                    title: 'Dashboard',
+                    subtitle: 'Welcome back! Here\'s what\'s happening with your WhatsApp campaigns.'
+                },
+                'contacts': {
+                    title: 'Contact Management',
+                    subtitle: 'Manage your WhatsApp contacts, groups, and subscriber lists.'
+                },
+                'campaigns': {
+                    title: 'Campaign Management',
+                    subtitle: 'Create and manage your WhatsApp marketing campaigns.'
+                },
+                'templates': {
+                    title: 'Template Management',
+                    subtitle: 'Create and manage WhatsApp message templates for approval.'
+                },
+                'chat': {
+                    title: 'Chat Inbox',
+                    subtitle: 'Manage real-time conversations with your customers.'
+                },
+                'automation': {
+                    title: 'Automation Flows',
+                    subtitle: 'Create automated workflows with drag-and-drop simplicity.'
+                },
+                'analytics': {
+                    title: 'Analytics & Reports',
+                    subtitle: 'Track performance and get insights from your campaigns.'
+                },
+                'settings': {
+                    title: 'Settings',
+                    subtitle: 'Configure your WhatsApp APIs, team, and preferences.'
+                }
+            };
+
+            function showSection(sectionId) {
+                // Hide all sections
+                sections.forEach(section => {
+                    section.classList.add('hidden');
+                    section.classList.remove('active');
+                });
+
+                // Show selected section
+                const targetSection = document.getElementById(sectionId + '-section');
+                if (targetSection) {
+                    targetSection.classList.remove('hidden');
+                    targetSection.classList.add('active');
+                }
+
+                // Update page title and subtitle
+                if (sectionTitles[sectionId]) {
+                    pageTitle.textContent = sectionTitles[sectionId].title;
+                    pageSubtitle.textContent = sectionTitles[sectionId].subtitle;
+                }
+
+                // Update active sidebar item
+                sidebarItems.forEach(item => {
+                    item.classList.remove('active');
+                });
+                const activeItem = document.querySelector(`[data-section="${sectionId}"]`);
+                if (activeItem) {
+                    activeItem.classList.add('active');
+                }
+            }
+
+            // Add click event listeners
+            sidebarItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const sectionId = item.getAttribute('data-section');
+                    showSection(sectionId);
+                });
+            });
+
+            // TODO: Implement business logic, API calls, and state management
+            
+            // Mock real-time updates for demonstration
+            setInterval(() => {
+                // Simulate real-time updates to message counts, etc.
+                // In a real app, this would use WebSocket connections
+            }, 30000);
+
+        })();
+    </script>
+</body>
+</html>
