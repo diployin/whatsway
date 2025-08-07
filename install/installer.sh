@@ -141,37 +141,70 @@ install_postgresql() {
 setup_database() {
     header "Setting up Database"
     
-    read -p "Enter PostgreSQL host [localhost]: " DB_HOST
-    DB_HOST=${DB_HOST:-localhost}
+    echo "Choose database type:"
+    echo "1) Standard PostgreSQL (local or cloud)"
+    echo "2) Neon cloud database"
+    read -p "Enter choice (1-2): " DB_TYPE
     
-    read -p "Enter PostgreSQL port [5432]: " DB_PORT
-    DB_PORT=${DB_PORT:-5432}
-    
-    read -p "Enter database name [whatsway_db]: " DB_NAME
-    DB_NAME=${DB_NAME:-whatsway_db}
-    
-    read -p "Enter database user [whatsway]: " DB_USER
-    DB_USER=${DB_USER:-whatsway}
-    
-    read -sp "Enter database password: " DB_PASS
-    echo
-    
-    # Create database and user
-    $SUDO -u postgres psql <<EOF
+    if [[ $DB_TYPE == "2" ]]; then
+        # Neon database setup
+        echo ""
+        echo "To use Neon database:"
+        echo "1. Sign up at https://neon.tech"
+        echo "2. Create a new project"
+        echo "3. Copy the connection string"
+        echo ""
+        read -p "Enter Neon connection string: " DB_CONNECTION
+        USE_NEON="true"
+    else
+        # Standard PostgreSQL setup
+        read -p "Enter PostgreSQL host [localhost]: " DB_HOST
+        DB_HOST=${DB_HOST:-localhost}
+        
+        read -p "Enter PostgreSQL port [5432]: " DB_PORT
+        DB_PORT=${DB_PORT:-5432}
+        
+        read -p "Enter database name [whatsway_db]: " DB_NAME
+        DB_NAME=${DB_NAME:-whatsway_db}
+        
+        read -p "Enter database user [whatsway]: " DB_USER
+        DB_USER=${DB_USER:-whatsway}
+        
+        read -sp "Enter database password: " DB_PASS
+        echo
+        
+        DB_CONNECTION="postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}"
+        
+        # Set SSL mode based on host
+        if [[ "$DB_HOST" == "localhost" || "$DB_HOST" == "127.0.0.1" ]]; then
+            DB_SSL_MODE="disable"
+        else
+            DB_SSL_MODE="require"
+        fi
+        
+        # Create database and user if local
+        if [[ "$DB_HOST" == "localhost" || "$DB_HOST" == "127.0.0.1" ]]; then
+            $SUDO -u postgres psql <<EOF
 CREATE USER ${DB_USER} WITH PASSWORD '${DB_PASS}';
 CREATE DATABASE ${DB_NAME} OWNER ${DB_USER};
 GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};
 EOF
+        fi
+    fi
     
     # Create .env file
     cat > "$APP_DIR/.env" <<EOF
 # Database Configuration
-DATABASE_URL="postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}"
-PGHOST="${DB_HOST}"
-PGPORT="${DB_PORT}"
-PGDATABASE="${DB_NAME}"
-PGUSER="${DB_USER}"
-PGPASSWORD="${DB_PASS}"
+DATABASE_URL="${DB_CONNECTION}"
+${DB_HOST:+PGHOST="${DB_HOST}"}
+${DB_PORT:+PGPORT="${DB_PORT}"}
+${DB_NAME:+PGDATABASE="${DB_NAME}"}
+${DB_USER:+PGUSER="${DB_USER}"}
+${DB_PASS:+PGPASSWORD="${DB_PASS}"}
+
+# Database Driver Settings
+${USE_NEON:+USE_NEON="${USE_NEON}"}
+${DB_SSL_MODE:+DB_SSL_MODE="${DB_SSL_MODE}"}
 
 # Application Configuration
 NODE_ENV="production"

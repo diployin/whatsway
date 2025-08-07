@@ -56,6 +56,24 @@ Preferred communication style: Simple, everyday language.
 - **ESBuild**: Fast JavaScript bundling for production.
 
 ## Recent Changes
+- Flexible database support (Jan 7, 2025):
+  - Added support for both standard PostgreSQL and Neon cloud databases
+  - Auto-detection of database type based on connection string
+  - Fixed SSL/WebSocket errors for self-hosted PostgreSQL
+  - Removed hard dependency on Neon for deployments
+  - SSL configuration handled automatically based on environment
+  - Created DATABASE_SETUP.md with comprehensive configuration guide
+  - Updated installers to support both database types
+- Plesk compatibility fixes (Jan 7, 2025):
+  - Created multiple Plesk-compatible startup files (passenger_wsgi.js, plesk-start.js, app.js)
+  - Added Plesk fix script to resolve Phusion Passenger startup issues
+  - Handles ES modules in CommonJS environment for Plesk
+  - Created PLESK_DEPLOYMENT.md with detailed instructions
+- Enhanced installer system (Jan 7, 2025):
+  - Updated installer.sh to support Neon and standard PostgreSQL options
+  - Created comprehensive INSTALLATION_GUIDE.md covering all platforms
+  - Added production-ready configurations (nginx.conf, ecosystem.config.js)
+  - Docker support with optimized multi-stage builds
 - Simplified and consolidated installation system (Jan 6, 2025):
   - Created single robust `installer.sh` that works on ALL servers (Plesk, DigitalOcean, cPanel, AWS, etc.)
   - Added complete Docker support with `Dockerfile` and `docker-compose.yml`
