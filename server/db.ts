@@ -1,9 +1,9 @@
-import * as schema from "@shared/schema";
+import { drizzle } from 'drizzle-orm/node-postgres';
 import { drizzle as drizzleNeon } from 'drizzle-orm/neon-serverless';
-import { drizzle as drizzleNode } from 'drizzle-orm/node-postgres';
 import { Pool as NeonPool, neonConfig } from '@neondatabase/serverless';
 import { Pool as PgPool } from 'pg';
 import ws from "ws";
+import * as schema from "@shared/schema";
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -11,67 +11,33 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Detect if using Neon database (contains 'neon' in the URL)
-const isNeonDatabase = process.env.DATABASE_URL.includes('neon.tech') || 
-                       process.env.DATABASE_URL.includes('neon.') ||
-                       process.env.USE_NEON === 'true';
+// Check if we're using Neon cloud database
+const isNeonDatabase = process.env.DATABASE_URL?.includes('neon.tech') || 
+                       process.env.DATABASE_URL?.includes('neon.build');
 
-let pool: NeonPool | PgPool;
-let db: ReturnType<typeof drizzleNeon> | ReturnType<typeof drizzleNode>;
+let pool: any;
+let db: any;
 
 if (isNeonDatabase) {
-  console.log('Using Neon database connection');
+  // For Neon cloud database
+  console.log('Using Neon cloud database driver');
   
-  // Configure WebSocket for Neon
+  // Configure WebSocket for Neon cloud environment
   neonConfig.webSocketConstructor = ws;
   
-  // Disable WebSocket pooling in production to avoid SSL issues
+  // Use fetch for queries in production to avoid SSL issues
   if (process.env.NODE_ENV === 'production') {
     neonConfig.poolQueryViaFetch = true;
   }
   
   pool = new NeonPool({ connectionString: process.env.DATABASE_URL });
-  db = drizzleNeon({ client: pool as NeonPool, schema });
+  db = drizzleNeon({ client: pool, schema });
 } else {
-  console.log('Using standard PostgreSQL connection');
+  // For local/Docker PostgreSQL
+  console.log('Using standard PostgreSQL driver for local database');
   
-  // Parse DATABASE_URL to handle SSL configuration
-  const connectionConfig: any = {
-    connectionString: process.env.DATABASE_URL,
-    max: 20, // Maximum number of clients in the pool
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
-  };
-  
-  // For local databases or servers with self-signed certificates
-  if (process.env.DATABASE_URL.includes('localhost') || 
-      process.env.DATABASE_URL.includes('127.0.0.1') ||
-      process.env.DB_SSL_MODE === 'disable') {
-    connectionConfig.ssl = false;
-  } else if (process.env.DB_SSL_MODE === 'require') {
-    connectionConfig.ssl = {
-      rejectUnauthorized: false // Accept self-signed certificates
-    };
-  } else {
-    // Auto-detect SSL requirement
-    connectionConfig.ssl = process.env.NODE_ENV === 'production' ? {
-      rejectUnauthorized: false
-    } : false;
-  }
-  
-  pool = new PgPool(connectionConfig);
-  db = drizzleNode(pool as PgPool, { schema });
+  pool = new PgPool({ connectionString: process.env.DATABASE_URL });
+  db = drizzle(pool, { schema });
 }
-
-// Test database connection
-pool.connect()
-  .then(client => {
-    console.log('✅ Successfully connected to the database');
-    client.release();
-  })
-  .catch(err => {
-    console.error('❌ Failed to connect to the database:', err);
-    console.error('Connection string pattern:', process.env.DATABASE_URL?.replace(/\/\/[^@]+@/, '//***:***@'));
-  });
 
 export { pool, db };

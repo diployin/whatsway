@@ -5,6 +5,8 @@ import { pool } from "./db";
 import { registerRoutes } from "./routes/index";
 import { setupVite, serveStatic, log } from "./vite";
 import { MessageStatusUpdater } from "./services/message-status-updater";
+import 'dotenv/config';
+
 
 const app = express();
 app.use(express.json());
@@ -22,7 +24,8 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production",
+      secure: false,
+      // secure: process.env.NODE_ENV === "production",
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     },
@@ -79,42 +82,25 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Check if running under Plesk Passenger
-  const isPassenger = process.env.PASSENGER_APP_ENV || false;
-  
-  if (isPassenger) {
-    // For Plesk Passenger, just export the app
-    // Passenger will handle the port binding
-    log('Running under Plesk Passenger');
+  // ALWAYS serve the app on the port specified in the environment variable PORT
+  // Other ports are firewalled. Default to 5000 if not specified.
+  // this serves both the API and the client.
+  // It is the only port that is not firewalled.
+  const port = parseInt(process.env.PORT || '5000', 10);
+  server.listen({
+    port,
+    host: "0.0.0.0",
+    reusePort: true,
+  }, async () => {
+    log(`serving on port ${port}`);
     
-    // Start background services
+    // Start the message status updater cron job
     const messageStatusUpdater = new MessageStatusUpdater();
-    messageStatusUpdater.startCronJob(60);
+    messageStatusUpdater.startCronJob(60); // Run every 60 seconds instead of 10
     log('Message status updater cron job started');
     
+    // Start channel health monitor
     const { channelHealthMonitor } = await import('./cron/channel-health-monitor');
     channelHealthMonitor.start();
-  } else {
-    // Normal server startup for development or standalone production
-    const port = parseInt(process.env.PORT || '5000', 10);
-    server.listen({
-      port,
-      host: "0.0.0.0",
-      reusePort: true,
-    }, async () => {
-      log(`serving on port ${port}`);
-      
-      // Start the message status updater cron job
-      const messageStatusUpdater = new MessageStatusUpdater();
-      messageStatusUpdater.startCronJob(60); // Run every 60 seconds instead of 10
-      log('Message status updater cron job started');
-      
-      // Start channel health monitor
-      const { channelHealthMonitor } = await import('./cron/channel-health-monitor');
-      channelHealthMonitor.start();
-    });
-  }
+  });
 })();
-
-// Export the app for Plesk Passenger
-export default app;

@@ -47,7 +47,8 @@ export const createMessage = asyncHandler(async (req: Request, res: Response) =>
       
       // Update conversation's last message
       await storage.updateConversation(conversationId, {
-        lastMessageAt: new Date()
+        lastMessageAt: new Date(),
+        lastMessageText:content
       });
       
       // Broadcast new message to WebSocket clients
@@ -74,7 +75,8 @@ export const createMessage = asyncHandler(async (req: Request, res: Response) =>
     
     // Update conversation's last message
     await storage.updateConversation(conversationId, {
-      lastMessageAt: new Date()
+      lastMessageAt: new Date(),
+        lastMessageText:content
     });
     
     // Broadcast new message to WebSocket clients

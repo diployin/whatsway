@@ -29,7 +29,8 @@ export class MessageStatusUpdater {
         if (!message.whatsappMessageId) continue;
 
         // Simulate status updates based on message age
-        const messageAge = Date.now() - new Date(message.createdAt).getTime();
+        const createdAt = message.createdAt ? new Date(message.createdAt) : new Date();
+        const messageAge = Date.now() - createdAt.getTime();
         const updates: any = {
           updatedAt: new Date()
         };
@@ -37,12 +38,12 @@ export class MessageStatusUpdater {
         // Simulate delivery after 5-10 seconds
         if (messageAge > 5000 && messageAge < 600000) { // Between 5 seconds and 10 minutes
           updates.status = 'delivered';
-          updates.deliveredAt = new Date(new Date(message.createdAt).getTime() + 5000);
+          updates.deliveredAt = new Date(createdAt.getTime() + 5000);
           
           // Simulate read after 15-30 seconds (50% chance)
           if (messageAge > 15000 && Math.random() > 0.5) {
             updates.status = 'read';
-            updates.readAt = new Date(new Date(message.createdAt).getTime() + 15000);
+            updates.readAt = new Date(createdAt.getTime() + 15000);
           }
         } else if (messageAge > 600000) { // Older than 10 minutes
           // Mark as failed if still in sent status (30% chance)
@@ -53,7 +54,7 @@ export class MessageStatusUpdater {
           } else {
             // Otherwise mark as delivered
             updates.status = 'delivered';
-            updates.deliveredAt = new Date(new Date(message.createdAt).getTime() + 5000);
+            updates.deliveredAt = new Date(createdAt.getTime() + 5000);
           }
         }
 

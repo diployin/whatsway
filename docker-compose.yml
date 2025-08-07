@@ -1,99 +1,28 @@
-version: '3.8'
-
+version: "3.9"
 services:
-  # PostgreSQL Database
-  postgres:
-    image: postgres:15-alpine
+  app:
+    build: .
+    container_name: whatsway-app
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "5001:5001"
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16-alpine
     container_name: whatsway-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: whatsway_db
-      POSTGRES_USER: whatsway
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-SecurePass123!}
-      PGDATA: /var/lib/postgresql/data/pgdata
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+      POSTGRES_DB: whatsway
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: changeme
     ports:
       - "5432:5432"
-    networks:
-      - whatsway-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U whatsway"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # WhatsWay Application
-  whatsway:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: whatsway-app
-    restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      # Database
-      DATABASE_URL: postgresql://whatsway:${DB_PASSWORD:-SecurePass123!}@postgres:5432/whatsway_db
-      PGHOST: postgres
-      PGPORT: 5432
-      PGDATABASE: whatsway_db
-      PGUSER: whatsway
-      PGPASSWORD: ${DB_PASSWORD:-SecurePass123!}
-      
-      # Application
-      NODE_ENV: production
-      PORT: 5000
-      SESSION_SECRET: ${SESSION_SECRET:-change-this-secret-key-in-production}
-      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-change-this-encryption-key}
-      
-      # WhatsApp API
-      WHATSAPP_API_VERSION: v21.0
-      WHATSAPP_WEBHOOK_VERIFY_TOKEN: ${WEBHOOK_TOKEN:-your-webhook-verify-token}
-      
-      # Server
-      REPLIT_DOMAINS: ${DOMAIN:-localhost}
-      BASE_URL: https://${DOMAIN:-localhost}
-    ports:
-      - "5000:5000"
     volumes:
-      - ./logs:/app/logs
-      - ./uploads:/app/uploads
-    networks:
-      - whatsway-network
-    healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:5000/api/health', (r) => {r.statusCode === 200 ? process.exit(0) : process.exit(1)})"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-  # Nginx Reverse Proxy (Optional - for production with SSL)
-  nginx:
-    image: nginx:alpine
-    container_name: whatsway-nginx
-    restart: unless-stopped
-    depends_on:
-      - whatsway
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./ssl:/etc/nginx/ssl:ro
-      - nginx_cache:/var/cache/nginx
-    networks:
-      - whatsway-network
-    profiles:
-      - production
-
-networks:
-  whatsway-network:
-    driver: bridge
+      - db_data:/var/lib/postgresql/data
 
 volumes:
-  postgres_data:
-    driver: local
-  nginx_cache:
-    driver: local
+  db_data:

@@ -353,22 +353,21 @@ export default function Inbox() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // WebSocket connection for real-time updates
-  useEffect(() => {
-    // Create WebSocket connection immediately
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.host}/ws`;
-    const ws = new WebSocket(wsUrl);
-    wsRef.current = ws;
+ // WebSocket connection for real-time updates
+useEffect(() => {
+  // Create WebSocket connection immediately
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  const wsUrl = `${protocol}//${window.location.host}/ws`;
+  const ws = new WebSocket(wsUrl);
+  wsRef.current = ws;
 
-    ws.onopen = () => {
-      console.log('WebSocket connected');
-      // Join all conversations for updates
-      ws.send(JSON.stringify({
-        type: 'join-all-conversations'
-      }));
-    };
-
+  ws.onopen = () => {
+    console.log('WebSocket connected');
+    // Join all conversations for updates
+    ws.send(JSON.stringify({
+      type: 'join-all-conversations'
+    }));
+  };
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       
