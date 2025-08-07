@@ -202,11 +202,15 @@ export interface IStorage {
   // API Logs
   getApiLogs(channelId?: string, limit?: number): Promise<ApiLog[]>;
 <<<<<<< HEAD
+<<<<<<< HEAD
   logApiRequest(log: InsertApiLog): Promise<ApiLog | null>;
 =======
 >>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
 =======
 >>>>>>> 2a6e854b (Enable campaign creation and manage WhatsApp channel configurations)
+=======
+  logApiRequest(log: InsertApiLog): Promise<ApiLog | null>;
+>>>>>>> f4a63d13 (Improve WhatsApp channel connection stability with health checks)
 }
 
 export class MemStorage implements IStorage {
@@ -231,12 +235,15 @@ export class MemStorage implements IStorage {
   private messageQueues: Map<string, MessageQueue> = new Map();
   private apiLogs: Map<string, ApiLog> = new Map();
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
 =======
   private messageQueues: Map<string, MessageQueue> = new Map();
   private apiLogs: Map<string, ApiLog> = new Map();
 >>>>>>> 2a6e854b (Enable campaign creation and manage WhatsApp channel configurations)
+=======
+>>>>>>> f4a63d13 (Improve WhatsApp channel connection stability with health checks)
 
   constructor() {
     this.initializeSampleData();
@@ -801,14 +808,24 @@ export const storage = new DatabaseStorage();
 >>>>>>> 2a6e854b (Enable campaign creation and manage WhatsApp channel configurations)
 =======
 
-  async logApiRequest(log: InsertApiLog): Promise<ApiLog> {
-    const apiLog: ApiLog = {
-      ...log,
-      id: Date.now().toString(),
-      createdAt: new Date(),
-    };
-    this.apiLogs.set(apiLog.id, apiLog);
-    return apiLog;
+  async logApiRequest(log: InsertApiLog): Promise<ApiLog | null> {
+    try {
+      const apiLog: ApiLog = {
+        ...log,
+        id: Date.now().toString(),
+        createdAt: new Date(),
+      };
+      // Check if channel exists before logging
+      if (log.channelId && !this.whatsappChannels.has(log.channelId)) {
+        console.error("Channel not found for API log:", log.channelId);
+        return null;
+      }
+      this.apiLogs.set(apiLog.id, apiLog);
+      return apiLog;
+    } catch (error) {
+      console.error("Failed to log API request:", error);
+      return null;
+    }
   }
 >>>>>>> d1e3f7ab (Add feature to test WhatsApp channel connections within settings)
 }

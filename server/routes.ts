@@ -469,12 +469,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       if (result.success) {
+        // Update channel status to active
+        await storage.updateWhatsappChannel(channel.id, {
+          status: "active",
+          lastHealthCheck: new Date(),
+          errorMessage: null,
+        });
+        
         res.json({ 
           success: true, 
           message: "Test message sent successfully",
           messageId: result.data?.messages?.[0]?.id
         });
       } else {
+        // Update channel status to error
+        await storage.updateWhatsappChannel(channel.id, {
+          status: "error",
+          lastHealthCheck: new Date(),
+          errorMessage: result.error,
+        });
+        
         res.status(400).json({ 
           success: false, 
           message: "Failed to send test message",
@@ -488,6 +502,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Failed to test connection",
         error: error instanceof Error ? error.message : String(error)
       });
+    }
+  });
+
+  // Health check endpoint for WhatsApp channels
+  app.get("/api/whatsapp/channels/:id/health", async (req, res) => {
+    try {
+      const channel = await storage.getWhatsappChannel(req.params.id);
+      if (!channel) {
+        return res.status(404).json({ message: "Channel not found" });
+      }
+
+      // Perform health check using WhatsApp Business API
+      const health = await WhatsAppApiService.checkHealth(channel);
+      
+      // Update channel with health check results
+      await storage.updateWhatsappChannel(channel.id, {
+        status: health.status,
+        lastHealthCheck: new Date(),
+        messageLimit: health.messageLimit,
+        messagesUsed: health.messagesUsed,
+        errorMessage: health.error,
+      });
+
+      res.json({
+        success: true,
+        health: {
+          status: health.status,
+          messageLimit: health.messageLimit,
+          messagesUsed: health.messagesUsed,
+          messagesRemaining: health.messageLimit ? health.messageLimit - (health.messagesUsed || 0) : null,
+          lastCheck: new Date(),
+          error: health.error,
+        }
+      });
+    } catch (error) {
+      console.error("Health check error:", error);
+      res.status(500).json({ message: "Internal server error" });
     }
   });
 

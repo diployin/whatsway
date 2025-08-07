@@ -410,6 +410,13 @@ export interface WhatsAppApiResponse {
   };
 }
 
+interface HealthCheckResult {
+  status: "active" | "error" | "inactive";
+  messageLimit?: number;
+  messagesUsed?: number;
+  error?: string;
+}
+
 export class WhatsAppApiService {
   private static CLOUD_API_BASE_URL = "https://graph.facebook.com/v18.0";
   private static MM_LITE_API_BASE_URL = "https://graph.facebook.com/v18.0"; // MM Lite uses same base URL but different endpoint
@@ -444,7 +451,7 @@ export class WhatsAppApiService {
     channel: WhatsappChannel,
     message: WhatsAppMessage,
     useMMlite: boolean = false
-  ): Promise<WhatsAppApiResponse> {
+  ): Promise<{ success: boolean; data?: WhatsAppApiResponse; error?: string }> {
     const startTime = Date.now();
     
     // Determine endpoint based on API type
@@ -471,6 +478,7 @@ export class WhatsAppApiService {
       const responseData = await response.json();
       const duration = Date.now() - startTime;
 
+      // Log API request (with error handling for foreign key constraint)
       await this.logApiRequest(
         channel.id,
         "send_message",
@@ -483,23 +491,76 @@ export class WhatsAppApiService {
       );
 
       if (!response.ok) {
-        throw new Error(responseData.error?.message || "Failed to send message");
+        return {
+          success: false,
+          error: responseData.error?.message || "Failed to send message"
+        };
       }
 
-      return responseData;
+      return {
+        success: true,
+        data: responseData
+      };
     } catch (error) {
       const duration = Date.now() - startTime;
-      await this.logApiRequest(
-        channel.id,
-        "send_message",
-        endpoint,
-        "POST",
-        requestBody,
-        500,
-        { error: error instanceof Error ? error.message : String(error) },
-        duration
-      );
-      throw error;
+      
+      // Try to log but don't fail if logging fails
+      try {
+        await this.logApiRequest(
+          channel.id,
+          "send_message",
+          endpoint,
+          "POST",
+          requestBody,
+          500,
+          { error: error instanceof Error ? error.message : String(error) },
+          duration
+        );
+      } catch (logError) {
+        console.error("Failed to log API request:", logError);
+      }
+      
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error occurred"
+      };
+    }
+  }
+
+  static async checkHealth(channel: WhatsappChannel): Promise<HealthCheckResult> {
+    try {
+      // Check WhatsApp Business Account details and message limits
+      const endpoint = `${this.CLOUD_API_BASE_URL}/${channel.businessAccountId || channel.phoneNumberId}`;
+      
+      const response = await fetch(endpoint, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${channel.accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        return {
+          status: "error",
+          error: errorData.error?.message || "Failed to check health"
+        };
+      }
+
+      const data = await response.json();
+      
+      // For now, if we can fetch the account, it's active
+      // In a real implementation, you would parse the response for actual limits
+      return {
+        status: "active",
+        messageLimit: 1000, // Default limit, should be fetched from API
+        messagesUsed: 0, // Should be calculated from actual usage
+      };
+    } catch (error) {
+      return {
+        status: "error",
+        error: error instanceof Error ? error.message : "Health check failed"
+      };
     }
   }
 
@@ -510,7 +571,7 @@ export class WhatsAppApiService {
     templateParams: any[] = [],
     languageCode: string = "en_US",
     useMMlite: boolean = false
-  ): Promise<WhatsAppApiResponse> {
+  ): Promise<{ success: boolean; data?: WhatsAppApiResponse; error?: string }> {
     const components = templateParams.length > 0 ? [{
       type: "body",
       parameters: templateParams.map(param => ({

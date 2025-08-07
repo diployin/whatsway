@@ -46,7 +46,9 @@ import {
   Trash2,
   AlertCircle,
   Copy,
-  RefreshCw
+  RefreshCw,
+  Activity,
+  Edit
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
@@ -204,6 +206,8 @@ export default function Settings() {
         description: "WhatsApp message sent successfully. Check your phone!",
       });
       setShowTestDialog(false);
+      // Refresh channels to show updated status
+      queryClient.invalidateQueries({ queryKey: ["/api/whatsapp/channels"] });
     },
     onError: (error) => {
       toast({
@@ -429,6 +433,30 @@ export default function Settings() {
                               disabled={testChannelMutation.isPending}
                             >
                               Test Connection
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={async () => {
+                                try {
+                                  const res = await apiRequest("GET", `/api/whatsapp/channels/${channel.id}/health`);
+                                  const data = await res.json();
+                                  toast({
+                                    title: "Health Check Complete",
+                                    description: `Status: ${data.health.status}, Messages: ${data.health.messagesUsed}/${data.health.messageLimit}`,
+                                  });
+                                  queryClient.invalidateQueries({ queryKey: ["/api/whatsapp/channels"] });
+                                } catch (error) {
+                                  toast({
+                                    title: "Health Check Failed",
+                                    description: error instanceof Error ? error.message : "Failed to check health",
+                                    variant: "destructive",
+                                  });
+                                }
+                              }}
+                              title="Check API health"
+                            >
+                              <Activity className="w-4 h-4" />
                             </Button>
                             <Button
                               variant="outline"
