@@ -72,6 +72,10 @@ export function registerWhatsAppRoutes(app: Express) {
   // Send WhatsApp message
   app.post("/api/whatsapp/channels/:id/send", async (req, res) => {
     try {
+
+
+      console.log("Req params.id : ===> "  , req.params.id)
+
       // Get the regular channel first
       const channel = await storage.getChannel(req.params.id);
       if (!channel) {
@@ -85,8 +89,15 @@ export function registerWhatsAppRoutes(app: Express) {
 
       const { to, type, message, templateName, templateLanguage, templateVariables } = req.body;
       
+
+      console.log("Req body : ===> "  , req.body)
+
+
       // Build WhatsApp message payload
       let payload: any;
+
+      let newMsg = null
+
       if (type === "template") {
         payload = {
           to,
@@ -98,6 +109,10 @@ export function registerWhatsAppRoutes(app: Express) {
             }
           }
         };
+
+        newMsg =  await storage.getTemplatesByName(templateName)
+
+      // return  console.log("New msg ==>" , newMsg?.body)
         
         // Add template parameters if provided
         if (templateVariables && templateVariables.length > 0) {
@@ -144,8 +159,14 @@ export function registerWhatsAppRoutes(app: Express) {
           });
         }
         
+        console.log("conversation start ===> "  , req.body)
+        
+
+
+        
         // Find or create conversation
         let conversation = await storage.getConversationByPhone(to);
+        console.log("conversation mid ===> "  ,conversation)
         if (!conversation) {
           conversation = await storage.createConversation({
             channelId: channel.id,
@@ -154,22 +175,29 @@ export function registerWhatsAppRoutes(app: Express) {
             contactName: contact.name,
             status: "active",
             lastMessageAt: new Date(),
+            lastMessageText: newMsg?.body || null
           });
         }
+        console.log("conversation end ===> ")
         
         // Create message record
         await storage.createMessage({
           conversationId: conversation.id,
-          content: type === "text" ? message : `Template: ${templateName}`,
+          content: type === "text" ? message : newMsg?.body,
           direction: "outgoing",
           type: type,
           status: "sent",
           whatsappMessageId: messageId || undefined,
         });
         
+        console.log("updateConversation : ===> "  , {lastMessageAt: new Date(),
+          lastMessageText:  newMsg?.body})
+
+
         // Update conversation last message time
         await storage.updateConversation(conversation.id, {
           lastMessageAt: new Date(),
+          lastMessageText:  newMsg?.body || null
         });
         
         res.json({ 

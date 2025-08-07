@@ -168,6 +168,10 @@ export class DatabaseStorage implements IStorage {
   async getTemplatesByChannel(channelId: string): Promise<Template[]> {
     return this.templateRepo.getByChannel(channelId);
   }
+  
+  async getTemplatesByName(name: string): Promise<Template[]> {
+    return this.templateRepo.getByName(name);
+  }
 
   async getTemplate(id: string): Promise<Template | undefined> {
     return this.templateRepo.getById(id);

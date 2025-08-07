@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
@@ -166,6 +166,7 @@ export default function TeamPage() {
   });
 
   const handleOpenDialog = (member?: User) => {
+    console.log("member" , member)
     if (member) {
       setEditingMember(member);
     }
@@ -457,6 +458,18 @@ function TeamMemberDialog({
     role: (member?.role as "admin" | "manager" | "agent") || "agent",
     permissions: (member?.permissions as any) || {},
   });
+
+  useEffect(() => {
+    setFormData({
+      firstName: member?.firstName || "",
+      lastName: member?.lastName || "",
+      email: member?.email || "",
+      username: member?.username || "",
+      password: "",
+      role: (member?.role as "admin" | "manager" | "agent") || "agent",
+      permissions: (member?.permissions as any) || {},
+    });
+  }, [member]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

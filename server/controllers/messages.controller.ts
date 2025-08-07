@@ -16,6 +16,9 @@ export const createMessage = asyncHandler(async (req: Request, res: Response) =>
   const { conversationId } = req.params;
   const { content, fromUser } = req.body;
   
+  console.log("Req body : ===> "  , req.body)
+
+
   // Get conversation details
   const conversation = await storage.getConversation(conversationId);
   if (!conversation) {
@@ -35,6 +38,8 @@ export const createMessage = asyncHandler(async (req: Request, res: Response) =>
     try {
       // Send text message via WhatsApp
       const result = await whatsappApi.sendTextMessage(conversation.contactPhone, content);
+
+      console.log("sendTextMessage : ===> "  , conversation.contactPhone, content)
       
       // Create message record with WhatsApp message ID
       const message = await storage.createMessage({
@@ -44,10 +49,14 @@ export const createMessage = asyncHandler(async (req: Request, res: Response) =>
         status: 'sent',
         whatsappMessageId: result.messages?.[0]?.id
       });
+
+      console.log("Req body : ===> "  , {lastMessageAt: new Date(),
+        lastMessageText:content})
       
       // Update conversation's last message
       await storage.updateConversation(conversationId, {
-        lastMessageAt: new Date()
+        lastMessageAt: new Date(),
+        lastMessageText:content
       });
       
       // Broadcast new message to WebSocket clients
@@ -74,7 +83,8 @@ export const createMessage = asyncHandler(async (req: Request, res: Response) =>
     
     // Update conversation's last message
     await storage.updateConversation(conversationId, {
-      lastMessageAt: new Date()
+      lastMessageAt: new Date(),
+        lastMessageText:content
     });
     
     // Broadcast new message to WebSocket clients
@@ -140,15 +150,24 @@ export const sendMessage = asyncHandler(async (req: RequestWithChannel, res: Res
         unreadCount: 0
       });
     }
+
+
+   let newMsg =  await storage.getTemplatesByName(templateName)
     
     // Create message record
     const createdMessage = await storage.createMessage({
       conversationId: conversation.id,
-      content: message || `Template: ${templateName}`,
+      content: message || newMsg?.body,
       sender: 'business',
       status: 'sent',
       whatsappMessageId: result.messages?.[0]?.id
     });
+
+        // Update conversation's last message
+        await storage.updateConversation(conversation.id, {
+          lastMessageAt: new Date(),
+            lastMessageText: message ||  newMsg?.body,
+        });
     
     // Broadcast new message to WebSocket clients
     if ((global as any).broadcastToConversation) {

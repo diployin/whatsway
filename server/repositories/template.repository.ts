@@ -24,6 +24,11 @@ export class TemplateRepository {
     return template || undefined;
   }
 
+  async getByName(name: string): Promise<Template | undefined> {
+    const [template] = await db.select().from(templates).where(eq(templates.name, name));
+    return template || undefined;
+  }
+
   async create(insertTemplate: InsertTemplate): Promise<Template> {
     const [template] = await db
       .insert(templates)

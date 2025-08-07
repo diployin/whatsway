@@ -2,6 +2,7 @@ import { db } from "../db";
 import { messageQueue, channels, campaigns } from "@shared/schema";
 import { eq, and, lte, isNull, sql } from "drizzle-orm";
 import { WhatsAppApiService } from "./whatsapp-api";
+import { storage } from '../storage';
 
 export class MessageQueueService {
   private static isProcessing = false;
@@ -129,6 +130,12 @@ export class MessageQueueService {
           attempts: message.attempts + 1
         })
         .where(eq(messageQueue.id, message.id));
+
+// update last message
+        // await storage.updateConversation(conversationId, {
+        //   lastMessageAt: new Date(),
+        //   lastMessageText:content
+        // });
 
       // Update campaign sent count if part of a campaign
       if (message.campaignId) {

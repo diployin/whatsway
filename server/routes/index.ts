@@ -61,6 +61,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Add WebSocket server for real-time features
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+
+
   
   // Store WebSocket connections by conversation ID
   const conversationClients = new Map<string, Set<WebSocket>>();
