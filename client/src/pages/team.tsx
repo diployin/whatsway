@@ -401,11 +401,13 @@ export default function TeamPage() {
                   ) : (
                     activityLogs.map((log: any) => (
                       <TableRow key={log.id}>
-                        <TableCell>{log.memberName}</TableCell>
+                        <TableCell>{log.userName}</TableCell>
                         <TableCell>
                           <Badge variant="outline">{log.action}</Badge>
                         </TableCell>
-                        {/* <TableCell>{log.details || "-"}</TableCell> */}
+                        <TableCell>
+                          <DetailsView details={log.details} />
+                        </TableCell>
                         <TableCell>
                           {new Date(log.createdAt).toLocaleString()}
                         </TableCell>
@@ -430,6 +432,37 @@ export default function TeamPage() {
   );
 }
 
+
+function DetailsView({ details }) {
+  if (!details) return "-";
+
+  if (details.updates) {
+    const { role, email, firstName, lastName, permissions } = details.updates;
+    return (
+      <>
+        <div><strong>Role:</strong> {role}</div>
+        <div><strong>Email:</strong> {email}</div>
+        <div><strong>Name:</strong> {firstName} {lastName}</div>
+        <div><strong>Permissions:</strong> {permissions.join(", ")}</div>
+      </>
+    );
+  }
+
+  if (details.createdBy) {
+    return <div>Created By: {details.createdBy}</div>;
+  }
+
+  if (details.ipAddress) {
+    return (
+      <>
+        <div><strong>IP Address:</strong> {details.ipAddress}</div>
+        <div><strong>User Agent:</strong> {details.userAgent || "-"}</div>
+      </>
+    );
+  }
+
+  return "-";
+}
 // Team Member Form Dialog Component
 function TeamMemberDialog({
   open,

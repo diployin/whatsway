@@ -358,6 +358,8 @@ router.delete("/members/:id", async (req, res) => {
       });
     }
 
+    console.log("userToDelete" , userToDelete)
+
     // Check if user has active assignments
     const [hasAssignments] = await db
       .select({ count: sql<number>`count(*)` })
@@ -368,6 +370,8 @@ router.delete("/members/:id", async (req, res) => {
           eq(conversationAssignments.status, "active")
         )
       );
+
+      console.log("NEW RES")
 
     if (hasAssignments && hasAssignments.count > 0) {
       return res.status(400).json({
