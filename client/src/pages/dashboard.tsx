@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useDashboardStats, useAnalytics } from "@/hooks/use-dashboard";
 import { useTranslation } from "@/lib/i18n";
+import { useState } from "react";
 
 export default function Dashboard() {
   const { t } = useTranslation();
@@ -32,8 +33,27 @@ export default function Dashboard() {
     },
   });
 
+  const [timeRange, setTimeRange] = useState<number>(30);
+
+
   const { data: stats, isLoading: statsLoading } = useDashboardStats(activeChannel?.id);
-  const { data: analytics, isLoading: analyticsLoading } = useAnalytics(7, activeChannel?.id);
+  // const { data: analytics, isLoading: analyticsLoading } = useAnalytics(7, activeChannel?.id);
+
+  
+  // Fetch message analytics
+  const { data: messageAnalytics, isLoading: analyticsLoading } = useQuery({
+    queryKey: ["/api/analytics/messages", activeChannel?.id, timeRange],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        days: timeRange.toString(),
+        ...(activeChannel?.id && { channelId: activeChannel.id })
+      });
+      const response = await fetch(`/api/analytics/messages?${params}`);
+      if (!response.ok) throw new Error('Failed to fetch message analytics');
+      return await response.json();
+    },
+    enabled: !!activeChannel,
+  });
 
   if (statsLoading) {
     return (
@@ -46,7 +66,16 @@ export default function Dashboard() {
     );
   }
 
-  const chartData = analytics || [];
+
+
+  // const chartData = analytics || [];
+  const chartData =  messageAnalytics?.dailyStats?.map((stat: any) => ({
+    date: new Date(stat.date).toLocaleDateString(),
+    sent: stat.totalSent || 0,
+    delivered: stat.delivered || 0,
+    read: stat.read || 0,
+    failed: stat.failed || 0,
+  })) || [];
 
   return (
     <div className="flex-1 dots-bg min-h-screen">
@@ -159,11 +188,22 @@ export default function Dashboard() {
               <div className="flex items-center justify-between">
                 <CardTitle>{t('dashboard.messageAnalytics')}</CardTitle>
                 <div className="flex space-x-2">
-                  <Button variant="outline" size="sm" className="bg-green-600 text-white border-green-600">
-                    {t('dashboard.7Days')}
-                  </Button>
-                  <Button variant="outline" size="sm">{t('dashboard.30Days')}</Button>
-                  <Button variant="outline" size="sm">{t('dashboard.3Months')}</Button>
+                {[
+                    { value: 7, label: "7 Days" },
+                    { value: 30, label: "30 Days" },
+                    { value: 90, label: "3 Months" }
+                  ].map((range) => (
+                    <Button
+                      key={range.value}
+                      variant={timeRange === range.value ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setTimeRange(range.value)}
+                      className={timeRange === range.value ? "bg-green-600" : ""}
+                    >
+                      {range.label}
+                    </Button>
+                  ))}
+                  
                 </div>
               </div>
             </CardHeader>
