@@ -19,7 +19,7 @@ export const users = pgTable("users", {
   role: text("role").notNull().default("admin"), // admin, manager, agent
   avatar: text("avatar"),
   status: text("status").notNull().default("active"), // active, inactive
-  permissions: jsonb("permissions").default({}),
+  permissions: text("permissions").array().notNull(),
   lastLogin: timestamp("last_login"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

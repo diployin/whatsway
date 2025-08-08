@@ -92,19 +92,15 @@ export default function TeamPage() {
     enabled: activeTab === "activity",
   });
 
+  console.log("activity logs" , activityLogs)
+
   // Add/Update team member mutation
   const saveMemberMutation = useMutation({
     mutationFn: async (data: TeamMemberFormData) => {
       if (editingMember) {
-        return apiRequest(`/api/team/members/${editingMember.id}`, {
-          method: "PUT",
-          body: JSON.stringify(data),
-        });
+        return apiRequest('PUT', `/api/team/members/${editingMember.id}`,data);
       } else {
-        return apiRequest("/api/team/members", {
-          method: "POST",
-          body: JSON.stringify(data),
-        });
+        return apiRequest('POST', "/api/team/members", data);
       }
     },
     onSuccess: () => {
@@ -398,7 +394,7 @@ export default function TeamPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {activityLogs.length === 0 ? (
+                  {activityLogs?.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={4} className="text-center py-8">
                         No activity logs found.
