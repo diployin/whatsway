@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 import { Switch, Route, useLocation } from "wouter";
-=======
-import { Switch, Route } from "wouter";
->>>>>>> f53b7f6e (Modernize user interface with animations and a visually appealing design)
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";

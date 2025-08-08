@@ -407,7 +407,7 @@ export default function TeamPage() {
                         <TableCell>
                           <Badge variant="outline">{log.action}</Badge>
                         </TableCell>
-                        <TableCell>{log.details || "-"}</TableCell>
+                        {/* <TableCell>{log.details || "-"}</TableCell> */}
                         <TableCell>
                           {new Date(log.createdAt).toLocaleString()}
                         </TableCell>
