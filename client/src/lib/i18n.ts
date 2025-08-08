@@ -453,22 +453,22 @@ export const languages: Record<Language, { name: string; nativeName: string; dir
 // Import all translation files
 import enTranslations from './translations/en.json';
 import esTranslations from './translations/es.json';
-// import frTranslations from './translations/fr.json';
-// import deTranslations from './translations/de.json';
-// import ptTranslations from './translations/pt.json';
-// import arTranslations from './translations/ar.json';
-// import hiTranslations from './translations/hi.json';
-// import zhTranslations from './translations/zh.json';
+import frTranslations from './translations/fr.json';
+import deTranslations from './translations/de.json';
+import ptTranslations from './translations/pt.json';
+import arTranslations from './translations/ar.json';
+import hiTranslations from './translations/hi.json';
+import zhTranslations from './translations/zh.json';
 
 const translations: Record<Language, Translations> = {
   en: enTranslations as Translations,
   es: esTranslations as Translations,
-  fr: enTranslations as Translations, // fallback to English
-  de: enTranslations as Translations, // fallback to English
-  pt: enTranslations as Translations, // fallback to English
-  ar: enTranslations as Translations, // fallback to English
-  hi: enTranslations as Translations, // fallback to English
-  zh: enTranslations as Translations, // fallback to English
+  fr: frTranslations as Translations, // fallback to English
+  de: deTranslations as Translations, // fallback to English
+  pt: ptTranslations as Translations, // fallback to English
+  ar: arTranslations as Translations, // fallback to English
+  hi: hiTranslations as Translations, // fallback to English
+  zh: zhTranslations as Translations, // fallback to English
 };
 
 // i18n store

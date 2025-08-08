@@ -1,12 +1,44 @@
 import { Router } from "express";
 import { db } from "../db";
-import { users, userActivityLogs, conversationAssignments, DEFAULT_PERMISSIONS, Permission } from "@shared/schema";
+import {
+  users,
+  userActivityLogs,
+  conversationAssignments,
+  DEFAULT_PERMISSIONS,
+  Permission,
+} from "@shared/schema";
 import { eq, desc, and, sql, ne } from "drizzle-orm";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { validateRequest } from "../middlewares/validateRequest.middleware";
 
 const router = Router();
+
+const PERMISSION_KEY_MAP: Record<string, string[]> = {
+  canManageContacts: [
+    "contacts:view",
+    "contacts:create",
+    "contacts:edit",
+    "contacts:import",
+    "contacts:export",
+  ],
+  canManageCampaigns: [
+    "campaigns:view",
+    "campaigns:create",
+    "campaigns:edit",
+    "campaigns:send",
+    "campaigns:schedule",
+  ],
+  canManageTemplates: [
+    "templates:view",
+    "templates:create",
+    "templates:edit",
+    "templates:sync",
+  ],
+  canManageTeam: ["team:view", "team:create", "team:edit", "team:delete"],
+  canViewAnalytics: ["analytics:view", "analytics:export"],
+  canExportData: ["dashboard:export", "contacts:export", "analytics:export"],
+};
 
 // Validation schemas
 const createUserSchema = z.object({
@@ -16,7 +48,25 @@ const createUserSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().optional(),
   role: z.enum(["admin", "manager", "agent"]),
-  permissions: z.array(z.string()).optional(),
+  permissions: z
+    .union([z.array(z.string()), z.record(z.boolean())])
+    .optional()
+    .transform((val) => {
+      if (Array.isArray(val)) {
+        // Already a valid permission array
+        return val;
+      }
+      if (val && typeof val === "object") {
+        // Expand boolean keys into full permissions
+        return Object.keys(val).reduce((acc: string[], key) => {
+          if (val[key] && PERMISSION_KEY_MAP[key]) {
+            acc.push(...PERMISSION_KEY_MAP[key]);
+          }
+          return acc;
+        }, []);
+      }
+      return [];
+    }),
   avatar: z.string().optional(),
 });
 
@@ -81,61 +131,74 @@ router.get("/members/:id", async (req, res) => {
 });
 
 // Create team member
-router.post(
-  "/members",
-  validateRequest(createUserSchema),
-  async (req, res) => {
-    try {
-      const { username, email, password, firstName, lastName, role, permissions, avatar } = req.body;
+router.post("/members", validateRequest(createUserSchema), async (req, res) => {
+  try {
+    const {
+      username,
+      email,
+      password,
+      firstName,
+      lastName,
+      role,
+      permissions,
+      avatar,
+    } = req.body;
 
-      // Check if email or username already exists
-      const [existingUser] = await db
-        .select()
-        .from(users)
-        .where(sql`${users.email} = ${email} OR ${users.username} = ${username}`);
+    // Check if email or username already exists
+    const [existingUser] = await db
+      .select()
+      .from(users)
+      .where(sql`${users.email} = ${email} OR ${users.username} = ${username}`);
 
-      if (existingUser) {
-        return res.status(400).json({ error: "Username or email already exists" });
-      }
-
-      const hashedPassword = await bcrypt.hash(password, 10);
-
-      // Create user with appropriate permissions
-      const userPermissions = permissions || DEFAULT_PERMISSIONS[role] || [];
-
-      const [newUser] = await db
-        .insert(users)
-        .values({
-          username,
-          password: hashedPassword,
-          email,
-          firstName,
-          lastName,
-          role,
-          permissions: userPermissions,
-          avatar,
-          status: "active",
-        })
-        .returning();
-
-      // Log activity
-      await db.insert(userActivityLogs).values({
-        userId: newUser.id,
-        action: "user_created",
-        entityType: "user",
-        entityId: newUser.id,
-        details: { createdBy: "admin" },
-      });
-
-      // Remove password from response
-      const { password: _, ...userData } = newUser;
-      res.json(userData);
-    } catch (error) {
-      console.error("Error creating team member:", error);
-      res.status(500).json({ error: "Failed to create team member" });
+    if (existingUser) {
+      return res.status(400).json({ error: "Username or email already exists" });
     }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    console.log({
+      username,
+      password: hashedPassword,
+      email,
+      firstName,
+      lastName,
+      role,
+      permissions, // already an array from schema
+      avatar: avatar || null,
+      status: "active",
+    })
+
+    const [newUser] = await db
+      .insert(users)
+      .values({
+        username,
+        password: hashedPassword,
+        email,
+        firstName,
+        lastName,
+        role,
+        permissions, // already an array from schema
+        avatar: avatar || null,
+        status: "active",
+      })
+      .returning();
+
+    await db.insert(userActivityLogs).values({
+      userId: newUser.id,
+      action: "user_created",
+      entityType: "user",
+      entityId: newUser.id,
+      details: { createdBy: "admin" },
+    });
+
+    const { password: _, ...userData } = newUser;
+    res.json(userData);
+  } catch (error) {
+    console.error("Error creating team member:", error);
+    res.status(500).json({ error: error || "Failed to create team member" });
   }
-);
+});
+
 
 // Update team member
 router.put(
@@ -229,17 +292,17 @@ router.patch(
       const { currentPassword, newPassword } = req.body;
 
       // Get user to verify current password
-      const [user] = await db
-        .select()
-        .from(users)
-        .where(eq(users.id, id));
+      const [user] = await db.select().from(users).where(eq(users.id, id));
 
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
 
       // Verify current password
-      const isValidPassword = await bcrypt.compare(currentPassword, user.password);
+      const isValidPassword = await bcrypt.compare(
+        currentPassword,
+        user.password
+      );
       if (!isValidPassword) {
         return res.status(400).json({ error: "Current password is incorrect" });
       }
@@ -282,10 +345,7 @@ router.delete("/members/:id", async (req, res) => {
     const [adminCount] = await db
       .select({ count: sql<number>`count(*)` })
       .from(users)
-      .where(and(
-        eq(users.role, "admin"),
-        ne(users.id, id)
-      ));
+      .where(and(eq(users.role, "admin"), ne(users.id, id)));
 
     const [userToDelete] = await db
       .select({ role: users.role })
@@ -298,6 +358,8 @@ router.delete("/members/:id", async (req, res) => {
       });
     }
 
+    console.log("userToDelete" , userToDelete)
+
     // Check if user has active assignments
     const [hasAssignments] = await db
       .select({ count: sql<number>`count(*)` })
@@ -308,6 +370,8 @@ router.delete("/members/:id", async (req, res) => {
           eq(conversationAssignments.status, "active")
         )
       );
+
+      console.log("NEW RES")
 
     if (hasAssignments && hasAssignments.count > 0) {
       return res.status(400).json({
