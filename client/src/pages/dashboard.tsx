@@ -21,6 +21,9 @@ import {
 import { useDashboardStats, useAnalytics } from "@/hooks/use-dashboard";
 import { useTranslation } from "@/lib/i18n";
 import { useState } from "react";
+import { User, LogOut, LogIn, Edit, PlusCircle } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+
 
 export default function Dashboard() {
   const { t } = useTranslation();
@@ -33,7 +36,32 @@ export default function Dashboard() {
     },
   });
 
+  
+  const { data: activityLogs = [] , isLoading } = useQuery({
+    queryKey: ["/api/team/activity-logs"],
+    queryFn: async () => {
+      const response = await fetch("/api/team/activity-logs");
+      if (!response.ok) return null;
+      return await response.json();
+    },
+  });
+
   const [timeRange, setTimeRange] = useState<number>(30);
+
+
+    // Fetch campaign analytics
+    const { data: campaignAnalytics, isLoading: campaignLoading } = useQuery({
+      queryKey: ["/api/analytics/campaigns", activeChannel?.id],
+      queryFn: async () => {
+        const params = new URLSearchParams({
+          ...(activeChannel?.id && { channelId: activeChannel.id })
+        });
+        const response = await fetch(`/api/analytics/campaigns?${params}`);
+        if (!response.ok) throw new Error('Failed to fetch campaign analytics');
+        return await response.json();
+      },
+      enabled: !!activeChannel,
+    });
 
 
   const { data: stats, isLoading: statsLoading } = useDashboardStats(activeChannel?.id);
@@ -77,6 +105,29 @@ export default function Dashboard() {
     failed: stat.failed || 0,
   })) || [];
 
+  const messageMetrics = messageAnalytics?.overall || {};
+
+  // Calculate rates
+  const deliveryRate = messageMetrics.totalMessages > 0 
+    ? ((messageMetrics.totalDelivered || 0) / messageMetrics.totalMessages) * 100 
+    : 0;
+
+
+    const getActivityMeta = (action: string) => {
+      switch (action) {
+        case "login":
+          return { icon: <LogIn className="w-4 h-4 text-green-600" />, color: "bg-green-100", label: "User logged in" };
+        case "logout":
+          return { icon: <LogOut className="w-4 h-4 text-gray-600" />, color: "bg-gray-100", label: "User logged out" };
+        case "user_created":
+          return { icon: <PlusCircle className="w-4 h-4 text-blue-600" />, color: "bg-blue-100", label: "User created" };
+        case "user_updated":
+          return { icon: <Edit className="w-4 h-4 text-yellow-600" />, color: "bg-yellow-100", label: "User updated" };
+        default:
+          return { icon: <Activity className="w-4 h-4 text-purple-600" />, color: "bg-purple-100", label: "Activity" };
+      }
+    };
+
   return (
     <div className="flex-1 dots-bg min-h-screen">
       <Header 
@@ -97,7 +148,7 @@ export default function Dashboard() {
                 <div>
                   <p className="text-sm font-medium text-gray-600">{t('dashboard.totalMessagesSent')}</p>
                   <p className="text-2xl font-bold text-gray-900 mt-1">
-                    {stats?.totalMessages?.toLocaleString() || "0"}
+                    {messageMetrics?.totalMessages?.toLocaleString() || "0"}
                   </p>
                   <div className="flex items-center mt-2">
                     <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
@@ -120,12 +171,12 @@ export default function Dashboard() {
                 <div>
                   <p className="text-sm font-medium text-gray-600">{t('dashboard.activeCampaigns')}</p>
                   <p className="text-2xl font-bold text-gray-900 mt-1">
-                    {stats?.activeCampaigns || 0}
+                    {campaignAnalytics?.summary?.totalCampaigns || 0}
                   </p>
                   <div className="flex items-center mt-2">
                     <Clock className="w-4 h-4 text-orange-500 mr-1" />
                     <span className="text-sm text-orange-600 font-medium">
-                      {stats?.campaignsRunning || 0} {t('dashboard.runningNow')}
+                      {campaignAnalytics?.summary?.activeCampaigns || 0} {t('dashboard.runningNow')}
                     </span>
                   </div>
                 </div>
@@ -142,7 +193,7 @@ export default function Dashboard() {
                 <div>
                   <p className="text-sm font-medium text-gray-600">{t('dashboard.deliveryRate')}</p>
                   <p className="text-2xl font-bold text-gray-900 mt-1">
-                    {stats?.deliveryRate?.toFixed(1) || "0.0"}%
+                    {deliveryRate.toFixed(1) || "0.0"}%
                   </p>
                   <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
                     <div 
@@ -238,50 +289,45 @@ export default function Dashboard() {
 
           {/* Recent Activities */}
           <Card className="hover-lift fade-in">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Activity className="w-5 h-5 mr-2" />
-                {t('dashboard.recentActivities')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Megaphone className="w-4 h-4 text-green-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-900">{t('dashboard.noRecentCampaigns')}</p>
-                    <p className="text-xs text-gray-500">{t('dashboard.createFirstCampaign')}</p>
-                  </div>
-                </div>
+  <CardHeader>
+    <CardTitle className="flex items-center">
+      <Activity className="w-5 h-5 mr-2" />
+      {t("dashboard.recentActivities")}
+    </CardTitle>
+  </CardHeader>
 
-                <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Users className="w-4 h-4 text-blue-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-900">{t('dashboard.noContactsImported')}</p>
-                    <p className="text-xs text-gray-500">{t('dashboard.importContactsToStart')}</p>
-                  </div>
+  <CardContent>
+    <div className="space-y-4">
+      {isLoading ? (
+        <p className="text-sm text-gray-500">{t("dashboard.loadingActivities")}</p>
+      ) : activityLogs.length === 0 ? (
+        <p className="text-sm text-gray-500">{t("dashboard.noRecentActivities")}</p>
+      ) : (
+        activityLogs
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .slice(0, 5)
+          .map((log) => {
+            const meta = getActivityMeta(log.action);
+            return (
+              <div key={log.id} className="flex items-start space-x-3">
+                <div className={`w-8 h-8 ${meta.color} rounded-full flex items-center justify-center flex-shrink-0`}>
+                  {meta.icon}
                 </div>
-
-                <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Zap className="w-4 h-4 text-purple-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-900">{t('dashboard.noAutomationsActive')}</p>
-                    <p className="text-xs text-gray-500">{t('dashboard.setupAutomationFlows')}</p>
-                  </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-gray-900">{meta.label} by {log.userName}</p>
+                  <p className="text-xs text-gray-500">{formatDistanceToNow(new Date(log.createdAt), { addSuffix: true })}</p>
                 </div>
               </div>
-              
-              <Button variant="ghost" className="w-full mt-4 text-green-600 hover:text-green-700">
-                {t('dashboard.viewAllActivities')} <ExternalLink className="w-4 h-4 ml-1" />
-              </Button>
-            </CardContent>
-          </Card>
+            );
+          })
+      )}
+    </div>
+
+    <Button variant="ghost" className="w-full mt-4 text-green-600 hover:text-green-700">
+      {t("dashboard.viewAllActivities")} <ExternalLink className="w-4 h-4 ml-1" />
+    </Button>
+  </CardContent>
+</Card>
         </div>
 
         {/* Quick Actions and API Status */}

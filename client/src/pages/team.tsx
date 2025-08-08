@@ -92,7 +92,7 @@ export default function TeamPage() {
     enabled: activeTab === "activity",
   });
 
-  console.log("activity logs" , activityLogs)
+  // console.log("activity logs" , activityLogs)
 
   // Add/Update team member mutation
   const saveMemberMutation = useMutation({
