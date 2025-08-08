@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState,useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
@@ -92,19 +92,16 @@ export default function TeamPage() {
     enabled: activeTab === "activity",
   });
 
+  console.log("activity logs" , activityLogs)
+
   // Add/Update team member mutation
   const saveMemberMutation = useMutation({
     mutationFn: async (data: TeamMemberFormData) => {
       if (editingMember) {
-        return apiRequest(`/api/team/members/${editingMember.id}`, {
-          method: "PUT",
-          body: JSON.stringify(data),
-        });
+        return apiRequest('PUT', `/api/team/members/${editingMember.id}`,data);
       } else {
-        return apiRequest("/api/team/members", {
-          method: "POST",
-          body: JSON.stringify(data),
-        });
+        return apiRequest('POST', "/api/team/members", data);
+        // new add
       }
     },
     onSuccess: () => {
@@ -128,10 +125,7 @@ export default function TeamPage() {
   // Delete team member mutation
   const deleteMemberMutation = useMutation({
     mutationFn: async (memberId: string) => {
-      return apiRequest(`/api/team/members/${memberId}`, {
-        method: "DELETE",
-      });
-    },
+      return apiRequest( "DELETE" , `/api/team/members/${memberId}` )},
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/team/members"] });
       toast({
@@ -166,7 +160,6 @@ export default function TeamPage() {
   });
 
   const handleOpenDialog = (member?: User) => {
-    console.log("member" , member)
     if (member) {
       setEditingMember(member);
     }
@@ -399,7 +392,7 @@ export default function TeamPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {activityLogs.length === 0 ? (
+                  {activityLogs?.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={4} className="text-center py-8">
                         No activity logs found.
@@ -412,7 +405,7 @@ export default function TeamPage() {
                         <TableCell>
                           <Badge variant="outline">{log.action}</Badge>
                         </TableCell>
-                        <TableCell>{log.details || "-"}</TableCell>
+                        {/* <TableCell>{log.details || "-"}</TableCell> */}
                         <TableCell>
                           {new Date(log.createdAt).toLocaleString()}
                         </TableCell>
@@ -459,6 +452,7 @@ function TeamMemberDialog({
     permissions: (member?.permissions as any) || {},
   });
 
+
   useEffect(() => {
     setFormData({
       firstName: member?.firstName || "",
@@ -470,6 +464,8 @@ function TeamMemberDialog({
       permissions: (member?.permissions as any) || {},
     });
   }, [member]);
+
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
