@@ -35,7 +35,8 @@
     "noData": "Nenhum dado disponível",
     "logout": "Sair",
     "profile": "Perfil",
-    "settings": "Configurações"
+    "settings": "Configurações",
+    "active":"Ativa"
   },
   "auth": {
     "login": "Login",
@@ -63,6 +64,10 @@
     "channels": "Canais"
   },
   "dashboard": {
+    "uploadCSV": "Carregar CSV",
+    "createAutomation": "Criar automação",
+    "detailedAnalytics": "Análise detalhada",
+    "createMessageTemplate": "Criar modelo de mensagem",
     "title": "Visão Geral do Painel",
     "subtitle": "Bem-vindo de volta! Veja o que está acontecendo com sua empresa no WhatsApp.",
     "overview": "Visão Geral",

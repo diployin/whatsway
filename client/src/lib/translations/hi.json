@@ -35,7 +35,8 @@
     "noData": "कोई डेटा उपलब्ध नहीं है",
     "logout": "लॉग आउट",
     "profile": "प्रोफ़ाइल",
-    "settings": "सेटिंग्स"
+    "settings": "सेटिंग्स",
+    "active":"सक्रिय"
   },
   "auth": {
     "login": "लॉगिन",
@@ -63,6 +64,10 @@
     "channels": "चैनल"
   },
   "dashboard": {
+    "uploadCSV":"CSV अपलोड करें",
+    "createAutomation":"स्वचालन बनाएं",
+    "detailedAnalytics":"g",
+    "createMessageTemplate":"",
     "title": "डैशबोर्ड अवलोकन",
     "subtitle": "वापसी पर आपका स्वागत है! आपके WhatsApp व्यवसाय के साथ क्या हो रहा है, यहां बताया गया है।",
     "overview": "अवलोकन",

@@ -35,7 +35,8 @@
     "noData": "Aucune donnée disponible",
     "logout": "Déconnexion",
     "profile": "Profil",
-    "settings": "Paramètres"
+    "settings": "Paramètres",
+    "active":"Actif"
   },
   "auth": {
     "login": "Connexion",
@@ -63,6 +64,10 @@
     "channels": "Canaux"
   },
   "dashboard": {
+    "uploadCSV": "Télécharger le CSV",
+    "createAutomation": "Créer une automatisation",
+    "detailedAnalytics": "Analyse détaillée",
+    "createMessageTemplate": "Créer un modèle de message",
     "title": "Aperçu du tableau de bord",
     "subtitle": "Content de vous revoir ! Voici ce qui se passe avec votre entreprise WhatsApp.",
     "overview": "Aperçu",

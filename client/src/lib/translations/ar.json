@@ -35,7 +35,8 @@
     "noData": "لا توجد بيانات متاحة",
     "logout": "تسجيل الخروج",
     "profile": "الملف الشخصي",
-    "settings": "الإعدادات"
+    "settings": "الإعدادات",
+    "active": "نشط"
   },
   "auth": {
     "login": "تسجيل الدخول",
@@ -63,6 +64,10 @@
     "channels": "القنوات"
   },
   "dashboard": {
+    "uploadCSV": "تحميل ملف CSV",
+    "createAutomation": "إنشاء أتمتة",
+    "detailedAnalytics": "تحليلات مفصلة",
+    "createMessageTemplate": "إنشاء قالب رسالة",
     "title": "نظرة عامة على لوحة التحكم",
     "subtitle": "مرحبًا بعودتك! إليك ما يحدث في عملك على واتساب.",
     "overview": "نظرة عامة",

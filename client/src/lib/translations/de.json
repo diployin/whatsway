@@ -35,7 +35,8 @@
     "noData": "Keine Daten verfügbar",
     "logout": "Abmelden",
     "profile": "Profil",
-    "settings": "Einstellungen"
+    "settings": "Einstellungen",
+    "active":"Aktiv"
   },
   "auth": {
     "login": "Anmelden",
@@ -63,6 +64,10 @@
     "channels": "Kanäle"
   },
   "dashboard": {
+    "uploadCSV": "CSV hochladen",
+    "createAutomation": "Automatisierung erstellen",
+    "detailedAnalytics": "Detaillierte Analysen",
+    "createMessageTemplate": "Nachrichtenvorlage erstellen",
     "title": "Dashboard-Übersicht",
     "subtitle": "Willkommen zurück! Hier sehen Sie, was mit Ihrem WhatsApp-Geschäft passiert.",
     "overview": "Übersicht",

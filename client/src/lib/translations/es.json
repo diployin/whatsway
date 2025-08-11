@@ -35,7 +35,8 @@
     "noData": "No hay datos disponibles",
     "logout": "Cerrar sesión",
     "profile": "Perfil",
-    "settings": "Configuración"
+    "settings": "Configuración",
+    "active":"Activo"
   },
   "auth": {
     "login": "Iniciar sesión",
@@ -63,6 +64,10 @@
     "channels": "Canales"
   },
   "dashboard": {
+    "uploadCSV": "Subir CSV",
+    "createAutomation": "Crear automatización",
+    "detailedAnalytics": "Análisis detallado",
+    "createMessageTemplate": "Crear plantilla de mensaje",
     "title": "Resumen del Panel",
     "subtitle": "¡Bienvenido de vuelta! Esto es lo que está sucediendo con tu negocio de WhatsApp.",
     "overview": "Resumen",
