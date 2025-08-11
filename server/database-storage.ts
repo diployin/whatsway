@@ -198,6 +198,15 @@ export class DatabaseStorage implements IStorage {
     return this.conversationRepo.getByChannel(channelId);
   }
 
+
+  async getConversationsNew(): Promise<Conversation[]> {
+    return this.conversationRepo.getAllNew();
+  }
+
+  async getConversationsByChannelNew(channelId: string): Promise<Conversation[]> {
+    return this.conversationRepo.getByChannelNew(channelId);
+  }
+
   async getConversation(id: string): Promise<Conversation | undefined> {
     return this.conversationRepo.getById(id);
   }

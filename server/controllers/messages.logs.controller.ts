@@ -86,6 +86,7 @@ export const getMessageLogs = asyncHandler(async (req: Request, res: Response) =
     .orderBy(desc(messages.createdAt))
     .limit(100); // Limit to last 100 messages
   
+
   // Transform to match expected format
   const formattedLogs = messageLogs.map(log => ({
     id: log.id,

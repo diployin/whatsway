@@ -9,6 +9,10 @@ import { randomUUID } from 'crypto';
 export const getMessages = asyncHandler(async (req: Request, res: Response) => {
   const { conversationId } = req.params;
   const messages = await storage.getMessages(conversationId);
+
+  await storage.updateConversation(conversationId, {
+    unreadCount:null
+  });
   res.json(messages);
 });
 

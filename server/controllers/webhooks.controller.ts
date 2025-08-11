@@ -209,12 +209,19 @@ async function handleMessageChange(value: any) {
       });
     } else {
       // Increment unread count
+
+
+      
+      
       await storage.updateConversation(conversation.id, {
         unreadCount: (conversation.unreadCount || 0) + 1,
-        lastMessageAt: new Date()
+        lastMessageAt: new Date(),
+        lastMessageText:text?.body || `[${type} message]`,
       });
     }
     
+    console.log("Webhook Message ::>>" , text , text?.body)
+
     // Create message
     const newMessage = await storage.createMessage({
       conversationId: conversation.id,
