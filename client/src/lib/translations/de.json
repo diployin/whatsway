@@ -35,7 +35,10 @@
     "noData": "Keine Daten verfügbar",
     "logout": "Abmelden",
     "profile": "Profil",
-    "settings": "Einstellungen"
+    "settings": "Einstellungen",
+    "active":"Aktiv",
+    "aiAssistant":"KI-Assistent",
+    "myAccount":"Mein Konto"
   },
   "auth": {
     "login": "Anmelden",
@@ -63,6 +66,13 @@
     "channels": "Kanäle"
   },
   "dashboard": {
+    "uploadCSV": "CSV hochladen",
+    "createAutomation": "Automatisierung erstellen",
+    "detailedAnalytics": "Detaillierte Analysen",
+    "createMessageTemplate": "Nachrichtenvorlage erstellen",
+    "newTemplate": "Neue Vorlage",
+    "buildFlow": "Ablauf erstellen",
+    "viewReports": "Berichte anzeigen",
     "title": "Dashboard-Übersicht",
     "subtitle": "Willkommen zurück! Hier sehen Sie, was mit Ihrem WhatsApp-Geschäft passiert.",
     "overview": "Übersicht",

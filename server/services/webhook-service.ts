@@ -165,15 +165,22 @@ export class WebhookService {
           contactPhone: message.from,
           contactName: contact?.profile?.name || message.from,
           lastMessageAt: new Date(parseInt(message.timestamp) * 1000),
+          lastMessageText:message.text?.body || "",
           unreadCount: 1,
         });
       } else {
         // Update conversation
+
+        console.log("WEBhook msg else hit" , message)
+
         await storage.updateConversation(conversation.id, {
           lastMessageAt: new Date(parseInt(message.timestamp) * 1000),
           unreadCount: (conversation.unreadCount || 0) + 1,
+          lastMessageText:message.text?.body || "",
         });
       }
+
+      console.log("WEBhook msg create" , message)
 
       // Create message record
       await storage.createMessage({

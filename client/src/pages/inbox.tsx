@@ -127,6 +127,19 @@ const ConversationListItem = ({
     ? formatLastSeen(conversation.lastMessageAt)
     : "";
 
+
+    function getMessagePreview(message) {
+      if (!message) {
+        return ''; // or return 'No message' if you want a placeholder
+      }
+    
+      if (message.length <= 40) {
+        return message;
+      } else {
+        return message.substring(0, 40) + '...';
+      }
+    }
+
   return (
     <div
       onClick={onClick}
@@ -155,7 +168,7 @@ const ConversationListItem = ({
         
         <div className="flex items-center justify-between">
           <p className="text-sm text-gray-600 truncate">
-            {conversation.lastMessageText || "No messages yet"}
+            {getMessagePreview(conversation.lastMessageText) || "No messages yet"}
           </p>
           {conversation.unreadCount && conversation.unreadCount > 0 && (
             <Badge className="ml-2 bg-green-600 text-white">
@@ -397,7 +410,9 @@ export default function Inbox() {
         wsRef.current.close();
       }
     };
-  }, [queryClient]);
+  }, []);
+
+  console.log("Query" , queryClient)
 
   // Join specific conversation when selected
   useEffect(() => {
@@ -408,7 +423,7 @@ export default function Inbox() {
       type: 'join-conversation',
       conversationId: selectedConversation.id
     }));
-  }, [selectedConversation]);
+  }, [selectedConversation]); 
 
   // Send message mutation
   const sendMessageMutation = useMutation({

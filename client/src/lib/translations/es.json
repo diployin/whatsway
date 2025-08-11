@@ -35,7 +35,10 @@
     "noData": "No hay datos disponibles",
     "logout": "Cerrar sesión",
     "profile": "Perfil",
-    "settings": "Configuración"
+    "settings": "Configuración",
+    "active":"Activo",
+    "aiAssistant":"Asistente de IA",
+    "myAccount":"Mi Cuenta"
   },
   "auth": {
     "login": "Iniciar sesión",

@@ -35,7 +35,10 @@
     "noData": "Nenhum dado disponível",
     "logout": "Sair",
     "profile": "Perfil",
-    "settings": "Configurações"
+    "settings": "Configurações",
+    "active":"Ativa",
+    "aiAssistant":"Assistente de IA",
+    "myAccount":"Minha Conta"
   },
   "auth": {
     "login": "Login",
@@ -63,6 +66,13 @@
     "channels": "Canais"
   },
   "dashboard": {
+    "uploadCSV": "Carregar CSV",
+    "createAutomation": "Criar automação",
+    "detailedAnalytics": "Análise detalhada",
+    "createMessageTemplate": "Criar modelo de mensagem",
+    "newTemplate": "Novo modelo",
+    "buildFlow": "Construir fluxo",
+    "viewReports": "Ver relatórios",
     "title": "Visão Geral do Painel",
     "subtitle": "Bem-vindo de volta! Veja o que está acontecendo com sua empresa no WhatsApp.",
     "overview": "Visão Geral",

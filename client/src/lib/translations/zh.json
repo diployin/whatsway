@@ -35,7 +35,10 @@
     "noData": "无可用数据",
     "logout": "退出登录",
     "profile": "个人资料",
-    "settings": "设置"
+    "settings": "设置",
+    "active":"活跃",
+    "aiAssistant":"人工智能助手",
+    "myAccount":"我的账户"
   },
   "auth": {
     "login": "登录",
@@ -63,6 +66,13 @@
     "channels": "渠道"
   },
   "dashboard": {
+    "uploadCSV": "上传 CSV",
+    "createAutomation": "创建自动化",
+    "detailedAnalytics": "详细分析",
+    "createMessageTemplate": "创建消息模板",
+    "newTemplate": "新模板",
+    "buildFlow": "构建流程",
+    "viewReports": "查看报告",
     "title": "仪表板概览",
     "subtitle": "欢迎回来！这是您的 WhatsApp 业务最新动态。",
     "overview": "概览",

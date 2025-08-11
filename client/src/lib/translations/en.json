@@ -35,7 +35,10 @@
     "noData": "No data available",
     "logout": "Logout",
     "profile": "Profile",
-    "settings": "Settings"
+    "settings": "Settings",
+    "active":"Active",
+    "aiAssistant":"AI Assistant",
+    "myAccount":"My Account"
   },
   "auth": {
     "login": "Login",
@@ -63,6 +66,13 @@
     "channels": "Channels"
   },
   "dashboard": {
+    "uploadCSV": "Upload CSV",
+    "createAutomation": "Create automation",
+    "detailedAnalytics": "Detailed analytics",
+    "createMessageTemplate": "Create message template",
+    "newTemplate": "New Template",
+    "buildFlow": "Build Flow",
+    "viewReports": "View Reports",
     "title": "Dashboard Overview",
     "subtitle": "Welcome back! Here's what's happening with your WhatsApp business.",
     "overview": "Overview",
