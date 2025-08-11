@@ -36,7 +36,9 @@
     "logout": "تسجيل الخروج",
     "profile": "الملف الشخصي",
     "settings": "الإعدادات",
-    "active": "نشط"
+    "active": "نشط",
+    "aiAssistant":"مساعد الذكاء الاصطناعي",
+    "myAccount":"حسابي"
   },
   "auth": {
     "login": "تسجيل الدخول",

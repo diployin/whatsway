@@ -36,7 +36,9 @@
     "logout": "退出登录",
     "profile": "个人资料",
     "settings": "设置",
-    "active":"活跃"
+    "active":"活跃",
+    "aiAssistant":"人工智能助手",
+    "myAccount":"我的账户"
   },
   "auth": {
     "login": "登录",

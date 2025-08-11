@@ -36,7 +36,9 @@
     "logout": "Déconnexion",
     "profile": "Profil",
     "settings": "Paramètres",
-    "active":"Actif"
+    "active":"Actif",
+    "aiAssistant":"Assistant IA",
+    "myAccount":"Mon Compte"
   },
   "auth": {
     "login": "Connexion",

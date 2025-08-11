@@ -36,7 +36,9 @@
     "logout": "Abmelden",
     "profile": "Profil",
     "settings": "Einstellungen",
-    "active":"Aktiv"
+    "active":"Aktiv",
+    "aiAssistant":"KI-Assistent",
+    "myAccount":"Mein Konto"
   },
   "auth": {
     "login": "Anmelden",

@@ -36,7 +36,9 @@
     "logout": "लॉग आउट",
     "profile": "प्रोफ़ाइल",
     "settings": "सेटिंग्स",
-    "active":"सक्रिय"
+    "active":"सक्रिय",
+    "aiAssistant":"AI सहायक",
+    "myAccount":"मेरा खाता"
   },
   "auth": {
     "login": "लॉगिन",

@@ -36,7 +36,9 @@
     "logout": "Cerrar sesión",
     "profile": "Perfil",
     "settings": "Configuración",
-    "active":"Activo"
+    "active":"Activo",
+    "aiAssistant":"Asistente de IA",
+    "myAccount":"Mi Cuenta"
   },
   "auth": {
     "login": "Iniciar sesión",

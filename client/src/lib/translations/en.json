@@ -36,7 +36,9 @@
     "logout": "Logout",
     "profile": "Profile",
     "settings": "Settings",
-    "active":"Active"
+    "active":"Active",
+    "aiAssistant":"AI Assistant",
+    "myAccount":"My Account"
   },
   "auth": {
     "login": "Login",

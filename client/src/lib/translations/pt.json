@@ -36,7 +36,9 @@
     "logout": "Sair",
     "profile": "Perfil",
     "settings": "Configurações",
-    "active":"Ativa"
+    "active":"Ativa",
+    "aiAssistant":"Assistente de IA",
+    "myAccount":"Minha Conta"
   },
   "auth": {
     "login": "Login",
