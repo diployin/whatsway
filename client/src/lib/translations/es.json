@@ -64,10 +64,6 @@
     "channels": "Canales"
   },
   "dashboard": {
-    "uploadCSV": "Subir CSV",
-    "createAutomation": "Crear automatización",
-    "detailedAnalytics": "Análisis detallado",
-    "createMessageTemplate": "Crear plantilla de mensaje",
     "title": "Resumen del Panel",
     "subtitle": "¡Bienvenido de vuelta! Esto es lo que está sucediendo con tu negocio de WhatsApp.",
     "overview": "Resumen",
