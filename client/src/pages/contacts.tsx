@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Header from "@/components/layout/header";
 import { Loading } from "@/components/ui/loading";
@@ -47,6 +47,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertContactSchema, type Contact, type InsertContact } from "@shared/schema";
+
 
 // Edit Contact Form Component
 function EditContactForm({ 
@@ -198,6 +199,26 @@ export default function Contacts() {
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const phone = params.get("phone");
+    if (phone) {
+      setSearchQuery(phone);
+    }
+    console.log("Initial search query from URL:", phone);
+  }, []);
+
+  
+
+// const { data: contacts, isLoading } = useQuery({
+//   queryKey: ["/api/contacts", searchQuery, activeChannel?.id],
+//   queryFn: async () => {
+//     const response = await api.getContacts(searchQuery, activeChannel?.id);
+//     return await response.json();
+//   },
+//   enabled: !!activeChannel,
+// });
 
   // Form for adding contacts
   const form = useForm<InsertContact>({

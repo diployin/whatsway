@@ -13,7 +13,7 @@ export const getContacts = asyncHandler(async (req: RequestWithChannel, res: Res
   } else {
     contacts = await storage.getContacts();
   }
-  
+  // console.log(`Fetching contacts for channelId: ${channelId || 'all'}`, contacts.length, 'found');
   // Apply search filter if provided
   if (search && typeof search === 'string') {
     const searchLower = search.toLowerCase();

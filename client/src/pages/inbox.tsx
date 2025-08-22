@@ -575,7 +575,7 @@ export default function Inbox() {
 
   const handleViewContact = () => {
     if (!selectedConversation || !selectedConversation.contactId) return;
-    window.location.href = `/contacts?id=${selectedConversation.contactId}`;
+    window.location.href = `/contacts?id=${selectedConversation.contactId}&phone=${selectedConversation.contactPhone || ""}`;
   };
 
   const handleArchiveChat = async () => {
@@ -690,7 +690,7 @@ export default function Inbox() {
       {/* Conversations List */}
       <div className={cn(
         "bg-white border-r border-gray-200 flex flex-col",
-        selectedConversation ? "hidden md:flex md:w-80 lg:w-96" : "w-full md:w-80 lg:w-96"
+        selectedConversation ? "hidden md:flex md:w-80 lg:w-96" : "w-full x-5 md:w-80 lg:w-96"
       )}>
         {/* Search and Filter */}
         <div className="p-4 border-b border-gray-200">
@@ -715,7 +715,7 @@ export default function Inbox() {
         </div>
 
         {/* Conversations */}
-        <ScrollArea className="flex-1">
+        <ScrollArea className="flex-1 px-5">
           {conversationsLoading ? (
             <div className="flex items-center justify-center py-8">
               <Loading />
