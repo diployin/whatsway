@@ -4,11 +4,11 @@ import { Loading } from "@/components/ui/loading";
 import { MessageChart } from "@/components/charts/message-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { 
-  MessageSquare, 
-  Megaphone, 
-  CheckCircle, 
-  Users, 
+import {
+  MessageSquare,
+  Megaphone,
+  CheckCircle,
+  Users,
   TrendingUp,
   Clock,
   Activity,
@@ -16,17 +16,18 @@ import {
   Upload,
   FileText,
   BarChart3,
-  ExternalLink
+  ExternalLink,
 } from "lucide-react";
 import { useDashboardStats, useAnalytics } from "@/hooks/use-dashboard";
 import { useTranslation } from "@/lib/i18n";
 import { useState } from "react";
 import { User, LogOut, LogIn, Edit, PlusCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-
+import { useLocation } from "wouter";
 
 export default function Dashboard() {
   const { t } = useTranslation();
+  const [, setLocation] = useLocation();
   const { data: activeChannel } = useQuery({
     queryKey: ["/api/channels/active"],
     queryFn: async () => {
@@ -36,8 +37,7 @@ export default function Dashboard() {
     },
   });
 
-  
-  const { data: activityLogs = [] , isLoading } = useQuery({
+  const { data: activityLogs = [], isLoading } = useQuery({
     queryKey: ["/api/team/activity-logs"],
     queryFn: async () => {
       const response = await fetch("/api/team/activity-logs");
@@ -48,36 +48,35 @@ export default function Dashboard() {
 
   const [timeRange, setTimeRange] = useState<number>(30);
 
+  // Fetch campaign analytics
+  const { data: campaignAnalytics, isLoading: campaignLoading } = useQuery({
+    queryKey: ["/api/analytics/campaigns", activeChannel?.id],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        ...(activeChannel?.id && { channelId: activeChannel.id }),
+      });
+      const response = await fetch(`/api/analytics/campaigns?${params}`);
+      if (!response.ok) throw new Error("Failed to fetch campaign analytics");
+      return await response.json();
+    },
+    enabled: !!activeChannel,
+  });
 
-    // Fetch campaign analytics
-    const { data: campaignAnalytics, isLoading: campaignLoading } = useQuery({
-      queryKey: ["/api/analytics/campaigns", activeChannel?.id],
-      queryFn: async () => {
-        const params = new URLSearchParams({
-          ...(activeChannel?.id && { channelId: activeChannel.id })
-        });
-        const response = await fetch(`/api/analytics/campaigns?${params}`);
-        if (!response.ok) throw new Error('Failed to fetch campaign analytics');
-        return await response.json();
-      },
-      enabled: !!activeChannel,
-    });
-
-
-  const { data: stats, isLoading: statsLoading } = useDashboardStats(activeChannel?.id);
+  const { data: stats, isLoading: statsLoading } = useDashboardStats(
+    activeChannel?.id
+  );
   // const { data: analytics, isLoading: analyticsLoading } = useAnalytics(7, activeChannel?.id);
 
-  
   // Fetch message analytics
   const { data: messageAnalytics, isLoading: analyticsLoading } = useQuery({
     queryKey: ["/api/analytics/messages", activeChannel?.id, timeRange],
     queryFn: async () => {
       const params = new URLSearchParams({
         days: timeRange.toString(),
-        ...(activeChannel?.id && { channelId: activeChannel.id })
+        ...(activeChannel?.id && { channelId: activeChannel.id }),
       });
       const response = await fetch(`/api/analytics/messages?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch message analytics');
+      if (!response.ok) throw new Error("Failed to fetch message analytics");
       return await response.json();
     },
     enabled: !!activeChannel,
@@ -94,48 +93,68 @@ export default function Dashboard() {
     );
   }
 
-
-
   // const chartData = analytics || [];
-  const chartData =  messageAnalytics?.dailyStats?.map((stat: any) => ({
-    date: new Date(stat.date).toLocaleDateString(),
-    sent: stat.totalSent || 0,
-    delivered: stat.delivered || 0,
-    read: stat.read || 0,
-    failed: stat.failed || 0,
-  })) || [];
+  const chartData =
+    messageAnalytics?.dailyStats?.map((stat: any) => ({
+      date: new Date(stat.date).toLocaleDateString(),
+      sent: stat.totalSent || 0,
+      delivered: stat.delivered || 0,
+      read: stat.read || 0,
+      failed: stat.failed || 0,
+    })) || [];
 
   const messageMetrics = messageAnalytics?.overall || {};
 
   // Calculate rates
-  const deliveryRate = messageMetrics.totalMessages > 0 
-    ? ((messageMetrics.totalDelivered || 0) / messageMetrics.totalMessages) * 100 
-    : 0;
+  const deliveryRate =
+    messageMetrics.totalMessages > 0
+      ? ((messageMetrics.totalDelivered || 0) / messageMetrics.totalMessages) *
+        100
+      : 0;
 
-
-    const getActivityMeta = (action: string) => {
-      switch (action) {
-        case "login":
-          return { icon: <LogIn className="w-4 h-4 text-green-600" />, color: "bg-green-100", label: "User logged in" };
-        case "logout":
-          return { icon: <LogOut className="w-4 h-4 text-gray-600" />, color: "bg-gray-100", label: "User logged out" };
-        case "user_created":
-          return { icon: <PlusCircle className="w-4 h-4 text-blue-600" />, color: "bg-blue-100", label: "User created" };
-        case "user_updated":
-          return { icon: <Edit className="w-4 h-4 text-yellow-600" />, color: "bg-yellow-100", label: "User updated" };
-        default:
-          return { icon: <Activity className="w-4 h-4 text-purple-600" />, color: "bg-purple-100", label: "Activity" };
-      }
-    };
+  const getActivityMeta = (action: string) => {
+    switch (action) {
+      case "login":
+        return {
+          icon: <LogIn className="w-4 h-4 text-green-600" />,
+          color: "bg-green-100",
+          label: "User logged in",
+        };
+      case "logout":
+        return {
+          icon: <LogOut className="w-4 h-4 text-gray-600" />,
+          color: "bg-gray-100",
+          label: "User logged out",
+        };
+      case "user_created":
+        return {
+          icon: <PlusCircle className="w-4 h-4 text-blue-600" />,
+          color: "bg-blue-100",
+          label: "User created",
+        };
+      case "user_updated":
+        return {
+          icon: <Edit className="w-4 h-4 text-yellow-600" />,
+          color: "bg-yellow-100",
+          label: "User updated",
+        };
+      default:
+        return {
+          icon: <Activity className="w-4 h-4 text-purple-600" />,
+          color: "bg-purple-100",
+          label: "Activity",
+        };
+    }
+  };
 
   return (
     <div className="flex-1 dots-bg min-h-screen">
-      <Header 
-        title={t('dashboard.title')} 
-        subtitle={t('dashboard.subtitle')}
+      <Header
+        title={t("dashboard.title")}
+        subtitle={t("dashboard.subtitle")}
         action={{
-          label: t('dashboard.newCampaign'),
-          onClick: () => console.log("Create campaign")
+          label: t("dashboard.newCampaign"),
+          onClick: () => console.log("Create campaign"),
         }}
       />
 
@@ -146,7 +165,9 @@ export default function Dashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">{t('dashboard.totalMessagesSent')}</p>
+                  <p className="text-sm font-medium text-gray-600">
+                    {t("dashboard.totalMessagesSent")}
+                  </p>
                   <p className="text-2xl font-bold text-gray-900 mt-1">
                     {messageMetrics?.totalMessages?.toLocaleString() || "0"}
                   </p>
@@ -155,7 +176,9 @@ export default function Dashboard() {
                     <span className="text-sm text-green-600 font-medium">
                       +{stats?.messagesGrowth || 0}%
                     </span>
-                    <span className="text-sm text-gray-500 ml-1">{t('dashboard.vsLastMonth')}</span>
+                    <span className="text-sm text-gray-500 ml-1">
+                      {t("dashboard.vsLastMonth")}
+                    </span>
                   </div>
                 </div>
                 <div className="p-3 bg-blue-50 rounded-lg">
@@ -169,14 +192,17 @@ export default function Dashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">{t('dashboard.activeCampaigns')}</p>
+                  <p className="text-sm font-medium text-gray-600">
+                    {t("dashboard.activeCampaigns")}
+                  </p>
                   <p className="text-2xl font-bold text-gray-900 mt-1">
                     {campaignAnalytics?.summary?.totalCampaigns || 0}
                   </p>
                   <div className="flex items-center mt-2">
                     <Clock className="w-4 h-4 text-orange-500 mr-1" />
                     <span className="text-sm text-orange-600 font-medium">
-                      {campaignAnalytics?.summary?.activeCampaigns || 0} {t('dashboard.runningNow')}
+                      {campaignAnalytics?.summary?.activeCampaigns || 0}{" "}
+                      {t("dashboard.runningNow")}
                     </span>
                   </div>
                 </div>
@@ -191,13 +217,15 @@ export default function Dashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">{t('dashboard.deliveryRate')}</p>
+                  <p className="text-sm font-medium text-gray-600">
+                    {t("dashboard.deliveryRate")}
+                  </p>
                   <p className="text-2xl font-bold text-gray-900 mt-1">
                     {deliveryRate.toFixed(1) || "0.0"}%
                   </p>
                   <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                    <div 
-                      className="bg-green-500 h-2 rounded-full" 
+                    <div
+                      className="bg-green-500 h-2 rounded-full"
                       style={{ width: `${stats?.deliveryRate || 0}%` }}
                     />
                   </div>
@@ -219,8 +247,12 @@ export default function Dashboard() {
                   </p>
                   <div className="flex items-center mt-2">
                     <TrendingUp className="w-4 h-4 text-purple-500 mr-1" />
-                    <span className="text-sm text-purple-600 font-medium">+18.2%</span>
-                    <span className="text-sm text-gray-500 ml-1">this week</span>
+                    <span className="text-sm text-purple-600 font-medium">
+                      +18.2%
+                    </span>
+                    <span className="text-sm text-gray-500 ml-1">
+                      this week
+                    </span>
                   </div>
                 </div>
                 <div className="p-3 bg-purple-50 rounded-lg">
@@ -237,24 +269,27 @@ export default function Dashboard() {
           <Card className="lg:col-span-2 hover-lift fade-in">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>{t('dashboard.messageAnalytics')}</CardTitle>
+                <CardTitle>{t("dashboard.messageAnalytics")}</CardTitle>
                 <div className="flex space-x-2">
-                {[
+                  {[
                     { value: 7, label: "7 Days" },
                     { value: 30, label: "30 Days" },
-                    { value: 90, label: "3 Months" }
+                    { value: 90, label: "3 Months" },
                   ].map((range) => (
                     <Button
                       key={range.value}
-                      variant={timeRange === range.value ? "default" : "outline"}
+                      variant={
+                        timeRange === range.value ? "default" : "outline"
+                      }
                       size="sm"
                       onClick={() => setTimeRange(range.value)}
-                      className={timeRange === range.value ? "bg-green-600" : ""}
+                      className={
+                        timeRange === range.value ? "bg-green-600" : ""
+                      }
                     >
                       {range.label}
                     </Button>
                   ))}
-                  
                 </div>
               </div>
             </CardHeader>
@@ -264,24 +299,32 @@ export default function Dashboard() {
               ) : (
                 <MessageChart data={chartData} />
               )}
-              
+
               {/* Chart Legend */}
               <div className="flex items-center justify-center space-x-6 mt-4">
                 <div className="flex items-center">
                   <div className="w-3 h-3 bg-blue-600 rounded mr-2" />
-                  <span className="text-sm text-gray-600">{t('dashboard.sent')}</span>
+                  <span className="text-sm text-gray-600">
+                    {t("dashboard.sent")}
+                  </span>
                 </div>
                 <div className="flex items-center">
                   <div className="w-3 h-3 bg-green-600 rounded mr-2" />
-                  <span className="text-sm text-gray-600">{t('dashboard.delivered')}</span>
+                  <span className="text-sm text-gray-600">
+                    {t("dashboard.delivered")}
+                  </span>
                 </div>
                 <div className="flex items-center">
                   <div className="w-3 h-3 bg-orange-600 rounded mr-2" />
-                  <span className="text-sm text-gray-600">{t('dashboard.read')}</span>
+                  <span className="text-sm text-gray-600">
+                    {t("dashboard.read")}
+                  </span>
                 </div>
                 <div className="flex items-center">
                   <div className="w-3 h-3 bg-purple-600 rounded mr-2" />
-                  <span className="text-sm text-gray-600">{t('dashboard.replied')}</span>
+                  <span className="text-sm text-gray-600">
+                    {t("dashboard.replied")}
+                  </span>
                 </div>
               </div>
             </CardContent>
@@ -289,45 +332,67 @@ export default function Dashboard() {
 
           {/* Recent Activities */}
           <Card className="hover-lift fade-in">
-  <CardHeader>
-    <CardTitle className="flex items-center">
-      <Activity className="w-5 h-5 mr-2" />
-      {t("dashboard.recentActivities")}
-    </CardTitle>
-  </CardHeader>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Activity className="w-5 h-5 mr-2" />
+                {t("dashboard.recentActivities")}
+              </CardTitle>
+            </CardHeader>
 
-  <CardContent>
-    <div className="space-y-4">
-      {isLoading ? (
-        <p className="text-sm text-gray-500">{t("dashboard.loadingActivities")}</p>
-      ) : activityLogs.length === 0 ? (
-        <p className="text-sm text-gray-500">{t("dashboard.noRecentActivities")}</p>
-      ) : (
-        activityLogs
-          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-          .slice(0, 5)
-          .map((log) => {
-            const meta = getActivityMeta(log.action);
-            return (
-              <div key={log.id} className="flex items-start space-x-3">
-                <div className={`w-8 h-8 ${meta.color} rounded-full flex items-center justify-center flex-shrink-0`}>
-                  {meta.icon}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-gray-900">{meta.label} by {log.userName}</p>
-                  <p className="text-xs text-gray-500">{formatDistanceToNow(new Date(log.createdAt), { addSuffix: true })}</p>
-                </div>
+            <CardContent>
+              <div className="space-y-4">
+                {isLoading ? (
+                  <p className="text-sm text-gray-500">
+                    {t("dashboard.loadingActivities")}
+                  </p>
+                ) : activityLogs.length === 0 ? (
+                  <p className="text-sm text-gray-500">
+                    {t("dashboard.noRecentActivities")}
+                  </p>
+                ) : (
+                  activityLogs
+                    .sort(
+                      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+                    )
+                    .slice(0, 5)
+                    .map((log) => {
+                      const meta = getActivityMeta(log.action);
+                      return (
+                        <div
+                          key={log.id}
+                          className="flex items-start space-x-3"
+                        >
+                          <div
+                            className={`w-8 h-8 ${meta.color} rounded-full flex items-center justify-center flex-shrink-0`}
+                          >
+                            {meta.icon}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-gray-900">
+                              {meta.label} by {log.userName}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {formatDistanceToNow(new Date(log.createdAt), {
+                                addSuffix: true,
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })
+                )}
               </div>
-            );
-          })
-      )}
-    </div>
 
-    <Button variant="ghost" className="w-full mt-4 text-green-600 hover:text-green-700">
-      {t("dashboard.viewAllActivities")} <ExternalLink className="w-4 h-4 ml-1" />
-    </Button>
-  </CardContent>
-</Card>
+              <Button
+                variant="ghost"
+                className="w-full mt-4 text-green-600 hover:text-green-700"
+                onClick={() => setLocation("/team")}
+              >
+                {t("dashboard.viewAllActivities")}{" "}
+                <ExternalLink className="w-4 h-4 ml-1" />
+              </Button>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Quick Actions and API Status */}
@@ -335,59 +400,75 @@ export default function Dashboard() {
           {/* Quick Actions */}
           <Card className="hover-lift fade-in">
             <CardHeader>
-              <CardTitle>{t('dashboard.quickActions')}</CardTitle>
+              <CardTitle>{t("dashboard.quickActions")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="p-4 h-auto text-left flex flex-col items-start space-y-2 hover:bg-blue-50"
                 >
                   <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                     <Upload className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-gray-900">{t('dashboard.importContacts')}</h4>
-                    <p className="text-sm text-gray-600">{t('dashboard.uploadCSV')}</p>
+                    <h4 className="font-medium text-gray-900">
+                      {t("dashboard.importContacts")}
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      {t("dashboard.uploadCSV")}
+                    </p>
                   </div>
                 </Button>
 
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="p-4 h-auto text-left flex flex-col items-start space-y-2 hover:bg-green-50"
                 >
                   <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
                     <FileText className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-gray-900">{t('dashboard.newTemplate')}</h4>
-                    <p className="text-sm text-gray-600">{t('dashboard.createMessageTemplate')}</p>
+                    <h4 className="font-medium text-gray-900">
+                      {t("dashboard.newTemplate")}
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      {t("dashboard.createMessageTemplate")}
+                    </p>
                   </div>
                 </Button>
 
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="p-4 h-auto text-left flex flex-col items-start space-y-2 hover:bg-purple-50"
                 >
                   <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
                     <Zap className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-gray-900">{t('dashboard.buildFlow')}</h4>
-                    <p className="text-sm text-gray-600">{t('dashboard.createAutomation')}</p>
+                    <h4 className="font-medium text-gray-900">
+                      {t("dashboard.buildFlow")}
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      {t("dashboard.createAutomation")}
+                    </p>
                   </div>
                 </Button>
 
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="p-4 h-auto text-left flex flex-col items-start space-y-2 hover:bg-orange-50"
                 >
                   <div className="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center">
                     <BarChart3 className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-gray-900">{t('dashboard.viewReports')}</h4>
-                    <p className="text-sm text-gray-600">{t('dashboard.detailedAnalytics')}</p>
+                    <h4 className="font-medium text-gray-900">
+                      {t("dashboard.viewReports")}
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      {t("dashboard.detailedAnalytics")}
+                    </p>
                   </div>
                 </Button>
               </div>
@@ -397,41 +478,69 @@ export default function Dashboard() {
           {/* API Status */}
           <Card className="hover-lift fade-in">
             <CardHeader>
-              <CardTitle>{t('dashboard.apiStatusConnection')}</CardTitle>
+              <CardTitle>{t("dashboard.apiStatusConnection")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {/* WhatsApp Cloud API */}
-                <div className={`flex items-center justify-between p-3 rounded-lg ${
-                  activeChannel?.status === 'active' ? 'bg-green-50' : 
-                  activeChannel?.status === 'warning' ? 'bg-yellow-50' : 'bg-red-50'
-                }`}>
+                <div
+                  className={`flex items-center justify-between p-3 rounded-lg ${
+                    activeChannel?.status === "active"
+                      ? "bg-green-50"
+                      : activeChannel?.status === "warning"
+                      ? "bg-yellow-50"
+                      : "bg-red-50"
+                  }`}
+                >
                   <div className="flex items-center space-x-3">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                      activeChannel?.status === 'active' ? 'bg-green-600' : 
-                      activeChannel?.status === 'warning' ? 'bg-yellow-600' : 'bg-red-600'
-                    }`}>
+                    <div
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                        activeChannel?.status === "active"
+                          ? "bg-green-600"
+                          : activeChannel?.status === "warning"
+                          ? "bg-yellow-600"
+                          : "bg-red-600"
+                      }`}
+                    >
                       <MessageSquare className="w-4 h-4 text-white" />
                     </div>
                     <div>
-                      <h4 className="font-medium text-gray-900">{t('dashboard.whatsAppCloudAPI')}</h4>
+                      <h4 className="font-medium text-gray-900">
+                        {t("dashboard.whatsAppCloudAPI")}
+                      </h4>
                       <p className="text-sm text-gray-600">
-                        {activeChannel ? `${activeChannel.name} (${activeChannel.phoneNumber})` : t('dashboard.noChannelSelected')}
+                        {activeChannel
+                          ? `${activeChannel.name} (${activeChannel.phoneNumber})`
+                          : t("dashboard.noChannelSelected")}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <div className={`w-2 h-2 rounded-full ${
-                      activeChannel?.status === 'active' ? 'bg-green-500 pulse-gentle' : 
-                      activeChannel?.status === 'warning' ? 'bg-yellow-500' : 'bg-red-500'
-                    }`} />
-                    <span className={`text-sm font-medium ${
-                      activeChannel?.status === 'active' ? 'text-green-600' : 
-                      activeChannel?.status === 'warning' ? 'text-yellow-600' : 'text-red-600'
-                    }`}>
-                      {activeChannel?.status === 'active' ? t('dashboard.connected') : 
-                       activeChannel?.status === 'warning' ? t('dashboard.warning') : 
-                       activeChannel ? t('dashboard.error') : t('dashboard.noChannel')}
+                    <div
+                      className={`w-2 h-2 rounded-full ${
+                        activeChannel?.status === "active"
+                          ? "bg-green-500 pulse-gentle"
+                          : activeChannel?.status === "warning"
+                          ? "bg-yellow-500"
+                          : "bg-red-500"
+                      }`}
+                    />
+                    <span
+                      className={`text-sm font-medium ${
+                        activeChannel?.status === "active"
+                          ? "text-green-600"
+                          : activeChannel?.status === "warning"
+                          ? "text-yellow-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      {activeChannel?.status === "active"
+                        ? t("dashboard.connected")
+                        : activeChannel?.status === "warning"
+                        ? t("dashboard.warning")
+                        : activeChannel
+                        ? t("dashboard.error")
+                        : t("dashboard.noChannel")}
                     </span>
                   </div>
                 </div>
@@ -444,15 +553,19 @@ export default function Dashboard() {
                         <Activity className="w-4 h-4 text-white" />
                       </div>
                       <div>
-                        <h4 className="font-medium text-gray-900">{t('dashboard.channelQuality')}</h4>
+                        <h4 className="font-medium text-gray-900">
+                          {t("dashboard.channelQuality")}
+                        </h4>
                         <p className="text-sm text-gray-600">
-                          {t('dashboard.rating')}: {activeChannel.qualityRating || 'N/A'}
+                          {t("dashboard.rating")}:{" "}
+                          {activeChannel.qualityRating || "N/A"}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
                       <span className="text-sm text-blue-600 font-medium">
-                        {t('dashboard.tier')}: {activeChannel.messagingLimitTier || 'N/A'}
+                        {t("dashboard.tier")}:{" "}
+                        {activeChannel.messagingLimitTier || "N/A"}
                       </span>
                     </div>
                   </div>
@@ -462,44 +575,59 @@ export default function Dashboard() {
                 <div className="grid grid-cols-2 gap-4 mt-4">
                   <div className="text-center p-3 bg-gray-50 rounded-lg">
                     <p className="text-lg font-bold text-gray-900">
-                      {activeChannel?.lastCheckedAt ? '100%' : 'N/A'}
+                      {activeChannel?.lastCheckedAt ? "100%" : "N/A"}
                     </p>
-                    <p className="text-xs text-gray-600">{t('dashboard.apiUptime')}</p>
+                    <p className="text-xs text-gray-600">
+                      {t("dashboard.apiUptime")}
+                    </p>
                   </div>
                   <div className="text-center p-3 bg-gray-50 rounded-lg">
                     <p className="text-lg font-bold text-gray-900">
-                      {activeChannel ? '~200ms' : 'N/A'}
+                      {activeChannel ? "~200ms" : "N/A"}
                     </p>
-                    <p className="text-xs text-gray-600">{t('dashboard.avgResponse')}</p>
+                    <p className="text-xs text-gray-600">
+                      {t("dashboard.avgResponse")}
+                    </p>
                   </div>
                 </div>
 
                 {/* Daily Limit */}
                 <div className="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700">{t('dashboard.dailyMessageLimit')}</span>
+                    <span className="text-sm font-medium text-gray-700">
+                      {t("dashboard.dailyMessageLimit")}
+                    </span>
                     <span className="text-sm text-gray-600">
-                      {stats?.totalMessages || 0} / {
-                        activeChannel?.messagingLimitTier === 'TIER_1K' ? '1,000' :
-                        activeChannel?.messagingLimitTier === 'TIER_10K' ? '10,000' :
-                        activeChannel?.messagingLimitTier === 'TIER_100K' ? '100,000' :
-                        activeChannel?.messagingLimitTier === 'TIER_UNLIMITED' ? 'Unlimited' : '1,000'
-                      }
+                      {stats?.totalMessages || 0} /{" "}
+                      {activeChannel?.messagingLimitTier === "TIER_1K"
+                        ? "1,000"
+                        : activeChannel?.messagingLimitTier === "TIER_10K"
+                        ? "10,000"
+                        : activeChannel?.messagingLimitTier === "TIER_100K"
+                        ? "100,000"
+                        : activeChannel?.messagingLimitTier === "TIER_UNLIMITED"
+                        ? "Unlimited"
+                        : "1,000"}
                     </span>
                   </div>
                   <div className="w-full bg-yellow-200 rounded-full h-2">
-                    <div 
-                      className="bg-yellow-500 h-2 rounded-full" 
-                      style={{ 
+                    <div
+                      className="bg-yellow-500 h-2 rounded-full"
+                      style={{
                         width: `${Math.min(
-                          (stats?.totalMessages || 0) / (
-                            activeChannel?.messagingLimitTier === 'TIER_1K' ? 1000 :
-                            activeChannel?.messagingLimitTier === 'TIER_10K' ? 10000 :
-                            activeChannel?.messagingLimitTier === 'TIER_100K' ? 100000 : 1000
-                          ) * 100, 
+                          ((stats?.totalMessages || 0) /
+                            (activeChannel?.messagingLimitTier === "TIER_1K"
+                              ? 1000
+                              : activeChannel?.messagingLimitTier === "TIER_10K"
+                              ? 10000
+                              : activeChannel?.messagingLimitTier ===
+                                "TIER_100K"
+                              ? 100000
+                              : 1000)) *
+                            100,
                           100
-                        )}%` 
-                      }} 
+                        )}%`,
+                      }}
                     />
                   </div>
                 </div>

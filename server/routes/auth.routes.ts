@@ -21,8 +21,6 @@ router.post("/login", validateRequest(loginSchema), async (req, res) => {
 
     console.log("Login request body:", req.body);
 
-//     const userView =  await db.select().from(users).where(eq(users.username, username)).then(results => results[0]);
-// // console.log("User found:", userView);
     // Find user by username
     const results = await db
       .select()

@@ -310,6 +310,59 @@ const TemplateDialog = ({
   );
 };
 
+
+// Team Assignment Dropdown Component
+const TeamAssignDropdown = ({ conversationId, currentAssignee, onAssign }: {
+  conversationId: string;
+  currentAssignee?: string;
+  onAssign: (assignedTo: string, assignedToName: string) => void;
+}) => {
+  const { data: users } = useQuery({
+    queryKey: ["/api/users"],
+    queryFn: async () => {
+      const response = await fetch("/api/users");
+      if (!response.ok) throw new Error("Failed to fetch users");
+      return response.json();
+    },
+  });
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm" className="gap-2">
+          <UserPlus className="w-4 h-4" />
+          {currentAssignee ? "Reassign" : "Assign"}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuLabel>Assign to team member</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {currentAssignee && (
+          <>
+            <DropdownMenuItem onClick={() => onAssign("", "")}>
+              <UserIcon className="w-4 h-4 mr-2" />
+              Unassign
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+          </>
+        )}
+        {users?.map((user: any) => (
+          <DropdownMenuItem 
+            key={user.id} 
+            onClick={() => onAssign(user.id, `${user.firstName} ${user.lastName}`.trim() || user.username)}
+          >
+            <UserIcon className="w-4 h-4 mr-2" />
+            <div className="flex flex-col">
+              <span>{user.firstName} {user.lastName}</span>
+              <span className="text-xs text-gray-500">@{user.username}</span>
+            </div>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
 // Main Component
 export default function Inbox() {
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
@@ -646,6 +699,41 @@ export default function Inbox() {
     }
   };
 
+
+  const updateConversationMutation = useMutation({
+    mutationFn: async (data: { id: string; updates: any }) => {
+      const response = await fetch(`/api/conversations/${data.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data.updates),
+      });
+      if (!response.ok) throw new Error('Failed to update conversation');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      toast({
+        title: "Success",
+        description: "Conversation updated successfully",
+      });
+    },
+  });
+
+
+  const handleAssignConversation = (assignedTo: string, assignedToName: string) => {
+    if (!selectedConversation) return;
+    
+    updateConversationMutation.mutate({
+      id: selectedConversation.id,
+      updates: { 
+        assignedTo, 
+        assignedToName,
+        assignedAt: new Date().toISOString(),
+        status: assignedTo ? "assigned" : "open" 
+      }
+    });
+  };
+
   // Filter conversations  
   const filteredConversations = conversations.filter((conv: any) => {
     const matchesSearch = conv.contact?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -778,6 +866,11 @@ export default function Inbox() {
               </div>
 
               <div className="flex items-center gap-2">
+              <TeamAssignDropdown
+                      conversationId={selectedConversation.id}
+                      currentAssignee={selectedConversation.assignedTo || undefined}
+                      onAssign={handleAssignConversation}
+                    />
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-9 w-9">
