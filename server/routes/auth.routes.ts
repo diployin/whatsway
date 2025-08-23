@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { validateRequest } from "../middlewares/validateRequest.middleware";
+import { resolveUserPermissions } from "server/utils/role-permissions";
 
 const router = Router();
 
@@ -13,6 +14,9 @@ const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
   password: z.string().min(1, "Password is required"),
 });
+
+
+
 
 // Login endpoint
 router.post("/login", validateRequest(loginSchema), async (req, res) => {
@@ -91,7 +95,7 @@ router.post("/login", validateRequest(loginSchema), async (req, res) => {
       firstName: user.firstName,
       lastName: user.lastName,
       role: user.role,
-      permissions: user.permissions,
+      permissions: resolveUserPermissions(user.role, user.permissions as any),
       avatar: user.avatar,
     };
 
