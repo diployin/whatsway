@@ -169,7 +169,7 @@ requirePermission(PERMISSIONS.TEAM_CREATE), validateRequest(createUserSchema), a
       firstName,
       lastName,
       role,
-      permissions, // already an array from schema
+      permissions,
       avatar: avatar || null,
       status: "active",
     })

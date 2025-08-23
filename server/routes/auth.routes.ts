@@ -23,7 +23,7 @@ router.post("/login", validateRequest(loginSchema), async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    console.log("Login request body:", req.body);
+    // console.log("Login request body:", req.body);
 
     // Find user by username
     const results = await db

@@ -81,9 +81,15 @@ export const requirePermission = (...permissions: string[]) => {
     if (!user) return res.status(401).json({ error: "Authentication required" });
 
     const userPermissions = user.permissions ?? {};
+    // const hasPermission = permissions.some(
+    //   (perm) => userPermissions[perm.replace(":", ".")]
+    // );
+
     const hasPermission = permissions.some(
-      (perm) => userPermissions[perm.replace(":", ".")]
+      (perm) => userPermissions[perm]
     );
+
+
 // console.log(`User permissions: ${JSON.stringify(userPermissions)}, Required permissions: ${permissions}, Has permission: ${hasPermission}`);
     if (!hasPermission) {
       return res.status(403).json({ error: "Insufficient permissions" });

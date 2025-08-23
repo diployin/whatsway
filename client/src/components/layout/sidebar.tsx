@@ -37,6 +37,8 @@ interface NavItem {
   labelKey: string;
   badge?: string | number;
   color?: string;
+  alwaysVisible?: boolean;
+  requiredPrefix?: string;
 }
 
 const navItems: NavItem[] = [
@@ -44,61 +46,71 @@ const navItems: NavItem[] = [
     href: "/",
     icon: LayoutDashboard,
     labelKey: "navigation.dashboard",
-    color: "text-green-600"
+    color: "text-green-600",
+    alwaysVisible: true, // always show
   },
   {
     href: "/contacts",
     icon: Users,
     labelKey: "navigation.contacts",
-    color: "text-blue-600"
+    color: "text-blue-600",
+    requiredPrefix: "contacts.",
   },
   {
     href: "/campaigns",
     icon: Megaphone,
     labelKey: "navigation.campaigns",
-    color: "text-orange-600"
+    color: "text-orange-600",
+    requiredPrefix: "campaigns.",
   },
   {
     href: "/templates",
     icon: FileText,
     labelKey: "navigation.templates",
-    color: "text-purple-600"
+    color: "text-purple-600",
+    requiredPrefix: "templates.",
   },
   {
     href: "/inbox",
     icon: MessageSquare,
     labelKey: "navigation.inbox",
-    color: "text-red-600"
+    color: "text-red-600",
+    requiredPrefix: "inbox.",
   },
   {
     href: "/automation",
     icon: Zap,
     labelKey: "navigation.automations",
-    color: "text-indigo-600"
+    color: "text-indigo-600",
+    requiredPrefix: "automations.",
   },
   {
     href: "/analytics",
     icon: BarChart3,
     labelKey: "navigation.analytics",
-    color: "text-pink-600"
+    color: "text-pink-600",
+    requiredPrefix: "analytics.",
   },
   {
     href: "/logs",
     icon: ScrollText,
     labelKey: "navigation.messageLogs",
-    color: "text-yellow-600"
+    color: "text-yellow-600",
+    alwaysVisible: true,
   },
   {
     href: "/team",
     icon: UsersRound,
     labelKey: "navigation.team",
-    color: "text-teal-600"
+    color: "text-teal-600",
+    requiredPrefix: "team.",
   },
   {
     href: "/settings",
     icon: Settings,
     labelKey: "navigation.settings",
-    color: "text-gray-600"
+    color: "text-gray-600",
+    alwaysVisible: true, 
   }
 ];
 
@@ -107,6 +119,21 @@ export default function Sidebar() {
   const { user, logout } = useAuth();
   const { t } = useTranslation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  function canView(item: NavItem) {
+    if (item.alwaysVisible) return true;
+    if (!item.requiredPrefix) return true;
+    if (!user?.permissions) return false;
+  console.log(`Checking permissions for item: ${item.labelKey} (${item.href}) with prefix ${item.requiredPrefix} and user permissions: ${JSON.stringify(user.permissions)}`);
+    const perms = Array.isArray(user.permissions) 
+      ? user.permissions 
+      : Object.keys(user.permissions);
+  
+    return perms.some((perm) => 
+      perm.startsWith(item.requiredPrefix) && (Array.isArray(user.permissions) ? true : user.permissions[perm])
+    );
+  }
+  
   
   const { data: unreadCount = 0 } = useQuery({
     queryKey: ["/api/conversations/unread-count"],
@@ -171,12 +198,13 @@ export default function Sidebar() {
 
         {/* Channel Switcher */}
         <div className="px-6 py-3 border-b border-gray-100">
-          <ChannelSwitcher />
+       {user?.role === 'admin' &&   <ChannelSwitcher />}
         </div>
 
         {/* Navigation Menu */}
         <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
-          {navItems.map((item) => {
+          {navItems.filter(canView).map((item) => {
+            console.log(`Rendering nav item: ${item.labelKey} (${item.href})`);
             const isActive = location === item.href;
             const Icon = item.icon;
             const showBadge = item.href === "/inbox" && unreadCount > 0;

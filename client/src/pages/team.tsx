@@ -55,8 +55,11 @@ import {
   Users,
   Activity,
   Clock,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import type { User } from "@shared/schema";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface TeamMemberFormData {
   firstName: string;
@@ -463,6 +466,132 @@ function DetailsView({ details }) {
 
   return "-";
 }
+
+
+interface PermissionItem {
+  key: string;
+  label: string;
+}
+
+interface PermissionGroup {
+  title: string;
+  label: string;
+  permissions: PermissionItem[];
+}
+
+// External configuration - easily manageable
+const PERMISSION_GROUPS: PermissionGroup[] = [
+  {
+    "title": "contacts",
+    "label": "Manage Contacts",
+    "permissions": [
+      { "key": "contacts:view", "label": "View" },
+      { "key": "contacts:create", "label": "Create" },
+      { "key": "contacts:edit", "label": "Edit" },
+      { "key": "contacts:delete", "label": "Delete" },
+      { "key": "contacts:import", "label": "Import" },
+      { "key": "contacts:export", "label": "Export" }
+    ]
+  },
+  {
+    "title": "campaigns",
+    "label": "Manage Campaigns",
+    "permissions": [
+      { "key": "campaigns:view", "label": "View" },
+      { "key": "campaigns:create", "label": "Create" },
+      { "key": "campaigns:edit", "label": "Edit" },
+      { "key": "campaigns:delete", "label": "Delete" },
+      { "key": "campaigns:send", "label": "Send" },
+      { "key": "campaigns:schedule", "label": "Schedule" }
+    ]
+  },
+  {
+    "title": "templates",
+    "label": "Manage Templates",
+    "permissions": [
+      { "key": "templates:view", "label": "View" },
+      { "key": "templates:create", "label": "Create" },
+      { "key": "templates:edit", "label": "Edit" },
+      { "key": "templates:delete", "label": "Delete" },
+      { "key": "templates:sync", "label": "Sync" }
+    ]
+  },
+  {
+    "title": "analytics",
+    "label": "View Analytics",
+    "permissions": [
+      { "key": "analytics:view", "label": "View" },
+      { "key": "analytics:export", "label": "Export" }
+    ]
+  },
+  {
+    "title": "team",
+    "label": "Manage Team",
+    "permissions": [
+      { "key": "team:view", "label": "View" },
+      { "key": "team:create", "label": "Create" },
+      { "key": "team:edit", "label": "Edit" },
+      { "key": "team:delete", "label": "Delete" },
+      { "key": "team:permissions", "label": "Permissions" }
+    ]
+  }
+];
+
+// Convert array from API → object for form
+function mapApiPermissionsToForm(permissions: string[]): Record<string, boolean> {
+  const result: Record<string, boolean> = {};
+  permissions.forEach((key) => {
+    result[key] = true;
+  });
+
+  // also set group main flags if any permission inside is true
+  PERMISSION_GROUPS.forEach((group) => {
+    const mainKey = getMainPermissionKey(group.title);
+    result[mainKey] = group.permissions.some((perm) => result[perm.key]);
+  });
+
+  if (permissions.includes("analytics:export") || permissions.includes("analytics:view")) {
+    result.canViewAnalytics = true;
+  }
+  if (permissions.includes("contacts:export")) {
+    result.canExportData = true;
+  }
+
+  return result;
+}
+
+// Convert form object → array for API
+function mapFormPermissionsToApi(permissions: Record<string, boolean>): string[] {
+  const result: string[] = [];
+
+  PERMISSION_GROUPS.forEach((group) => {
+    group.permissions.forEach((perm) => {
+      if (permissions[perm.key]) {
+        result.push(perm.key);
+      }
+    });
+  });
+
+  if (permissions.canExportData) {
+    result.push("data:export"); // or contacts:export depending on your API spec
+  }
+
+  return result;
+}
+
+
+// Helper functions
+const getMainPermissionKey = (groupTitle: string): string => {
+  if (groupTitle === 'analytics') return 'canViewAnalytics';
+  return `canManage${groupTitle.charAt(0).toUpperCase() + groupTitle.slice(1)}`;
+};
+
+const findGroupByPermission = (permissionKey: string): PermissionGroup | undefined => {
+  return PERMISSION_GROUPS.find(group => 
+    group.permissions.some(perm => perm.key === permissionKey)
+  );
+};
+
 // Team Member Form Dialog Component
 function TeamMemberDialog({
   open,
@@ -485,6 +614,12 @@ function TeamMemberDialog({
     permissions: (member?.permissions as any) || {},
   });
 
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(
+    PERMISSION_GROUPS.reduce((acc, group) => {
+      acc[group.title] = false;
+      return acc;
+    }, {} as Record<string, boolean>)
+  );
 
   useEffect(() => {
     setFormData({
@@ -494,15 +629,21 @@ function TeamMemberDialog({
       username: member?.username || "",
       password: "",
       role: (member?.role as "admin" | "manager" | "agent") || "agent",
-      permissions: (member?.permissions as any) || {},
+      permissions: member?.permissions
+      ? mapApiPermissionsToForm(member.permissions as any)
+      : {},
     });
   }, [member]);
 
-
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+  
+    const payload = {
+      ...formData,
+      permissions: mapFormPermissionsToApi(formData.permissions),
+    };
+  
+    onSave(payload);
   };
 
   const updatePermission = (key: string, value: boolean) => {
@@ -515,9 +656,115 @@ function TeamMemberDialog({
     }));
   };
 
+  const updateGroupPermission = (group: PermissionGroup, checked: boolean) => {
+    const updates = {};
+    
+    // Update the main group permission
+    const mainKey = getMainPermissionKey(group.title);
+    updates[mainKey] = checked;
+    
+    // Update all related granular permissions
+    group.permissions.forEach(perm => {
+      updates[perm.key] = checked;
+    });
+
+    setFormData(prev => ({
+      ...prev,
+      permissions: {
+        ...prev.permissions,
+        ...updates
+      }
+    }));
+  };
+
+  const updateGranularPermission = (permissionKey: string, checked: boolean) => {
+    const group = findGroupByPermission(permissionKey);
+    if (!group) return;
+
+    const updates = { [permissionKey]: checked };
+    
+    // Check if all permissions in the group will be true after this update
+    const allGroupPermissionsChecked = group.permissions.every(perm => 
+      perm.key === permissionKey ? checked : formData.permissions[perm.key]
+    );
+    
+    // Update the main group permission accordingly
+    const mainKey = getMainPermissionKey(group.title);
+    updates[mainKey] = allGroupPermissionsChecked;
+
+    setFormData(prev => ({
+      ...prev,
+      permissions: {
+        ...prev.permissions,
+        ...updates
+      }
+    }));
+  };
+
+  const toggleSection = (groupTitle: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [groupTitle]: !prev[groupTitle]
+    }));
+  };
+
+  const getGroupMainPermission = (groupTitle: string) => {
+    const mainKey = getMainPermissionKey(groupTitle);
+    return formData.permissions[mainKey];
+  };
+
+  const renderPermissionGroup = (group: PermissionGroup) => {
+    const isExpanded = expandedSections[group.title];
+    
+    return (
+      <div key={group.title} className="border rounded-lg p-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <button
+              type="button"
+              onClick={() => toggleSection(group.title)}
+              className="p-1 hover:bg-gray-100 rounded"
+            >
+              {isExpanded ? 
+                <ChevronDown className="w-4 h-4" /> : 
+                <ChevronRight className="w-4 h-4" />
+              }
+            </button>
+            <Label className="text-sm font-medium cursor-pointer">
+              {group.label}
+            </Label>
+          </div>
+          <Switch
+            checked={getGroupMainPermission(group.title) || false}
+            onCheckedChange={(checked) => updateGroupPermission(group, checked)}
+          />
+        </div>
+        
+        {isExpanded && (
+          <div className="mt-3 ml-6 pl-4 border-l-2 border-gray-200">
+            <div className="grid grid-cols-3 gap-x-4 gap-y-2">
+              {group.permissions.map(perm => (
+                <div key={perm.key} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={perm.key}
+                    checked={formData.permissions[perm.key] || false}
+                    onCheckedChange={(checked) => updateGranularPermission(perm.key, checked)}
+                  />
+                  <Label htmlFor={perm.key} className="text-xs text-gray-600 cursor-pointer">
+                    {perm.label}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {member ? "Edit Team Member" : "Add Team Member"}
@@ -530,7 +777,8 @@ function TeamMemberDialog({
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-6">
-            <div className="grid grid-cols-2 gap-4">
+            {/* Basic Information */}
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="firstName">First Name</Label>
                 <Input
@@ -553,21 +801,6 @@ function TeamMemberDialog({
                   required
                 />
               </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                  required
-                />
-              </div>
               <div className="space-y-2">
                 <Label htmlFor="username">Username</Label>
                 <Input
@@ -581,131 +814,72 @@ function TeamMemberDialog({
               </div>
             </div>
 
-            {!member && (
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
-                  id="password"
-                  type="password"
-                  value={formData.password}
+                  id="email"
+                  type="email"
+                  value={formData.email}
                   onChange={(e) =>
-                    setFormData({ ...formData, password: e.target.value })
+                    setFormData({ ...formData, email: e.target.value })
                   }
-                  required={!member}
+                  required
                 />
               </div>
-            )}
-
-            <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
-              <Select
-                value={formData.role}
-                onValueChange={(value) =>
-                  setFormData({
-                    ...formData,
-                    role: value as "admin" | "manager" | "agent",
-                  })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="manager">Manager</SelectItem>
-                  <SelectItem value="agent">Agent</SelectItem>
-                </SelectContent>
-              </Select>
+              {!member && (
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) =>
+                      setFormData({ ...formData, password: e.target.value })
+                    }
+                    required={!member}
+                  />
+                </div>
+              )}
+              <div className="space-y-2">
+                <Label htmlFor="role">Role</Label>
+                <Select
+                  value={formData.role}
+                  onValueChange={(value) =>
+                    setFormData({
+                      ...formData,
+                      role: value as "admin" | "manager" | "agent",
+                    })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="manager">Manager</SelectItem>
+                    <SelectItem value="agent">Agent</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
+            {/* Dynamic Permissions Section */}
             <div className="space-y-4">
               <Label>Permissions</Label>
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label
-                    htmlFor="perm-contacts"
-                    className="text-sm font-normal"
-                  >
-                    Manage Contacts
-                  </Label>
-                  <Switch
-                    id="perm-contacts"
-                    checked={formData.permissions.canManageContacts || false}
-                    onCheckedChange={(checked) =>
-                      updatePermission("canManageContacts", checked)
-                    }
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label
-                    htmlFor="perm-campaigns"
-                    className="text-sm font-normal"
-                  >
-                    Manage Campaigns
-                  </Label>
-                  <Switch
-                    id="perm-campaigns"
-                    checked={formData.permissions.canManageCampaigns || false}
-                    onCheckedChange={(checked) =>
-                      updatePermission("canManageCampaigns", checked)
-                    }
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label
-                    htmlFor="perm-templates"
-                    className="text-sm font-normal"
-                  >
-                    Manage Templates
-                  </Label>
-                  <Switch
-                    id="perm-templates"
-                    checked={formData.permissions.canManageTemplates || false}
-                    onCheckedChange={(checked) =>
-                      updatePermission("canManageTemplates", checked)
-                    }
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label
-                    htmlFor="perm-analytics"
-                    className="text-sm font-normal"
-                  >
-                    View Analytics
-                  </Label>
-                  <Switch
-                    id="perm-analytics"
-                    checked={formData.permissions.canViewAnalytics || false}
-                    onCheckedChange={(checked) =>
-                      updatePermission("canViewAnalytics", checked)
-                    }
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="perm-team" className="text-sm font-normal">
-                    Manage Team
-                  </Label>
-                  <Switch
-                    id="perm-team"
-                    checked={formData.permissions.canManageTeam || false}
-                    onCheckedChange={(checked) =>
-                      updatePermission("canManageTeam", checked)
-                    }
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label
-                    htmlFor="perm-export"
-                    className="text-sm font-normal"
-                  >
+              <div className="grid grid-cols-2 gap-4">
+                {PERMISSION_GROUPS.map(renderPermissionGroup)}
+              </div>
+                {/* Export Data - Simple permission */}
+                <div className="flex items-center justify-between py-2">
+                  <Label htmlFor="perm-export" className="text-sm font-normal">
                     Export Data
                   </Label>
                   <Switch
                     id="perm-export"
                     checked={formData.permissions.canExportData || false}
-                    onCheckedChange={(checked) =>
-                      updatePermission("canExportData", checked)
-                    }
+                    onCheckedChange={(checked) => updatePermission("canExportData", checked)}
                   />
                 </div>
               </div>
