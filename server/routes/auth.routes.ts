@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { validateRequest } from "../middlewares/validateRequest.middleware";
+import { resolveUserPermissions } from "server/utils/role-permissions";
 
 const router = Router();
 
@@ -14,15 +15,16 @@ const loginSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
+
+
+
 // Login endpoint
 router.post("/login", validateRequest(loginSchema), async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    console.log("Login request body:", req.body);
+    // console.log("Login request body:", req.body);
 
-//     const userView =  await db.select().from(users).where(eq(users.username, username)).then(results => results[0]);
-// // console.log("User found:", userView);
     // Find user by username
     const results = await db
       .select()
@@ -93,7 +95,7 @@ router.post("/login", validateRequest(loginSchema), async (req, res) => {
       firstName: user.firstName,
       lastName: user.lastName,
       role: user.role,
-      permissions: user.permissions,
+      permissions: resolveUserPermissions(user.role, user.permissions as any),
       avatar: user.avatar,
     };
 

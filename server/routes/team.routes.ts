@@ -11,6 +11,9 @@ import { eq, desc, and, sql, ne } from "drizzle-orm";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { validateRequest } from "../middlewares/validateRequest.middleware";
+import { requireAuth, requirePermission } from "../middlewares/auth.middleware";
+import { PERMISSIONS } from "@shared/schema";
+
 
 const router = Router();
 
@@ -82,7 +85,8 @@ const updateStatusSchema = z.object({
 });
 
 // Get all team members (users)
-router.get("/members", async (req, res) => {
+router.get("/members",requireAuth,
+requirePermission(PERMISSIONS.TEAM_VIEW), async (req, res) => {
   try {
     const members = await db
       .select({
@@ -110,7 +114,8 @@ router.get("/members", async (req, res) => {
 });
 
 // Get single team member
-router.get("/members/:id", async (req, res) => {
+router.get("/members/:id",requireAuth,
+requirePermission(PERMISSIONS.TEAM_VIEW), async (req, res) => {
   try {
     const [member] = await db
       .select()
@@ -131,7 +136,8 @@ router.get("/members/:id", async (req, res) => {
 });
 
 // Create team member
-router.post("/members", validateRequest(createUserSchema), async (req, res) => {
+router.post("/members",requireAuth,
+requirePermission(PERMISSIONS.TEAM_CREATE), validateRequest(createUserSchema), async (req, res) => {
   try {
     const {
       username,
@@ -163,7 +169,7 @@ router.post("/members", validateRequest(createUserSchema), async (req, res) => {
       firstName,
       lastName,
       role,
-      permissions, // already an array from schema
+      permissions,
       avatar: avatar || null,
       status: "active",
     })
@@ -202,7 +208,8 @@ router.post("/members", validateRequest(createUserSchema), async (req, res) => {
 
 // Update team member
 router.put(
-  "/members/:id",
+  "/members/:id",requireAuth,
+  requirePermission(PERMISSIONS.TEAM_EDIT),
   validateRequest(updateUserSchema),
   async (req, res) => {
     try {
@@ -243,7 +250,8 @@ router.put(
 
 // Update team member status
 router.patch(
-  "/members/:id/status",
+  "/members/:id/status",requireAuth,
+  requirePermission(PERMISSIONS.TEAM_EDIT),
   validateRequest(updateStatusSchema),
   async (req, res) => {
     try {
@@ -284,7 +292,8 @@ router.patch(
 
 // Update user password
 router.patch(
-  "/members/:id/password",
+  "/members/:id/password",requireAuth,
+  requirePermission(PERMISSIONS.TEAM_EDIT),
   validateRequest(updatePasswordSchema),
   async (req, res) => {
     try {
@@ -337,7 +346,8 @@ router.patch(
 );
 
 // Delete team member
-router.delete("/members/:id", async (req, res) => {
+router.delete("/members/:id",requireAuth,
+requirePermission(PERMISSIONS.TEAM_DELETE), async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -425,7 +435,8 @@ router.get("/activity-logs", async (req, res) => {
 });
 
 // Update member permissions
-router.patch("/members/:id/permissions", async (req, res) => {
+router.patch("/members/:id/permissions",requireAuth,
+requirePermission(PERMISSIONS.TEAM_PERMISSIONS), async (req, res) => {
   try {
     const { id } = req.params;
     const { permissions } = req.body;

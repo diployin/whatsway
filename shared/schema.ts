@@ -370,6 +370,10 @@ export const apiLogs = pgTable("api_logs", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+
+
+
+
 // Permissions type definition
 export const PERMISSIONS = {
   // Dashboard permissions
@@ -426,6 +430,9 @@ export const PERMISSIONS = {
 } as const;
 
 export type Permission = typeof PERMISSIONS[keyof typeof PERMISSIONS];
+
+export type PermissionMap = Record<Permission, boolean>;
+
 
 // Default permissions by role
 export const DEFAULT_PERMISSIONS: Record<string, Permission[]> = {

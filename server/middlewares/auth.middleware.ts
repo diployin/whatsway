@@ -49,23 +49,48 @@ export const requireRole = (...roles: string[]) => {
 };
 
 // Permission-based authorization middleware
-export const requirePermission = (...permissions: Permission[]) => {
+// export const requirePermission = (...permissions: Permission[]) => {
+//   return (req: Request, res: Response, next: NextFunction) => {
+//     const user = req.user;
+
+//     if (!user) {
+//       return res.status(401).json({ error: "Authentication required" });
+//     }
+
+//     // Admins have all permissions
+//     if (user.role === "admin") {
+//       return next();
+//     }
+
+//     const hasPermission = permissions.some(permission => 
+//       user.permissions.includes(permission)
+//     );
+
+//     if (!hasPermission) {
+//       return res.status(403).json({ error: "Insufficient permissions" });
+//     }
+
+//     next();
+//   };
+// };
+
+
+export const requirePermission = (...permissions: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const user = req.user;
+    if (!user) return res.status(401).json({ error: "Authentication required" });
 
-    if (!user) {
-      return res.status(401).json({ error: "Authentication required" });
-    }
+    const userPermissions = user.permissions ?? {};
+    // const hasPermission = permissions.some(
+    //   (perm) => userPermissions[perm.replace(":", ".")]
+    // );
 
-    // Admins have all permissions
-    if (user.role === "admin") {
-      return next();
-    }
-
-    const hasPermission = permissions.some(permission => 
-      user.permissions.includes(permission)
+    const hasPermission = permissions.some(
+      (perm) => userPermissions[perm]
     );
 
+
+// console.log(`User permissions: ${JSON.stringify(userPermissions)}, Required permissions: ${permissions}, Has permission: ${hasPermission}`);
     if (!hasPermission) {
       return res.status(403).json({ error: "Insufficient permissions" });
     }
@@ -73,6 +98,10 @@ export const requirePermission = (...permissions: Permission[]) => {
     next();
   };
 };
+
+
+
+
 
 // Optional auth middleware (doesn't require auth but adds user if available)
 export const optionalAuth = (req: Request, res: Response, next: NextFunction) => {
