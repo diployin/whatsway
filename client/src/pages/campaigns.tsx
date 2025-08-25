@@ -21,7 +21,7 @@ export default function Campaigns() {
   
   // Log selected channel for debugging
   useEffect(() => {
-    console.log("Selected channel in campaigns:", selectedChannel);
+    // console.log("Selected channel in campaigns:", selectedChannel);
   }, [selectedChannel]);
 
   // Fetch campaigns
