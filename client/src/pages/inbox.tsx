@@ -152,14 +152,14 @@ const ConversationListItem = ({
     >
       <Avatar className="h-12 w-12">
         <AvatarFallback className="bg-gray-200">
-          {conversation.contact?.name?.[0]?.toUpperCase() || "?"}
+          {conversation.contactName?.[0]?.toUpperCase() || "?"}
         </AvatarFallback>
       </Avatar>
       
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-1">
           <h4 className="font-medium text-gray-900 truncate">
-            {conversation.contact?.name || conversation.contactPhone}
+            {conversation.contactName || conversation.contactPhone}
           </h4>
           <span className="text-xs text-gray-500 whitespace-nowrap ml-2">
             {lastMessageTime}
@@ -312,9 +312,10 @@ const TemplateDialog = ({
 
 
 // Team Assignment Dropdown Component
-const TeamAssignDropdown = ({ conversationId, currentAssignee, onAssign }: {
+const TeamAssignDropdown = ({ conversationId, currentAssignee,currentAssigneeName, onAssign }: {
   conversationId: string;
   currentAssignee?: string;
+  currentAssigneeName?: string;
   onAssign: (assignedTo: string, assignedToName: string) => void;
 }) => {
   const { data: users } = useQuery({
@@ -326,12 +327,14 @@ const TeamAssignDropdown = ({ conversationId, currentAssignee, onAssign }: {
     },
   });
 
+  // console.log(currentAssignee , currentAssigneeName)
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2">
           <UserPlus className="w-4 h-4" />
-          {currentAssignee ? "Reassign" : "Assign"}
+          {currentAssignee ? `Reassign (${currentAssigneeName})` : "Assign"}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
@@ -707,14 +710,29 @@ export default function Inbox() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data.updates),
       });
-      if (!response.ok) throw new Error('Failed to update conversation');
-      return response.json();
+      const result = await response.json(); // parse JSON body
+
+      if (!response.ok) {
+        // Optionally log the server error message if provided
+        console.error(result.error || 'Unknown error');
+        throw new Error(result.error || 'Failed to update conversation');
+      }
+  console.log("Update conversation result:", result);
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (updatedConversation) => {
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      setSelectedConversation(updatedConversation);
       toast({
         title: "Success",
         description: "Conversation updated successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
       });
     },
   });
@@ -843,14 +861,14 @@ export default function Inbox() {
                 </Button>
                 <Avatar className="h-10 w-10">
                   <AvatarFallback className="bg-gray-200">
-                    {(selectedConversation as any).contact?.name?.[0]?.toUpperCase() || "?"}
+                    {(selectedConversation as any).contactName?.[0]?.toUpperCase() || "?"}
                   </AvatarFallback>
                 </Avatar>
                 
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="font-semibold text-gray-900">
-                      {(selectedConversation as any).contact?.name || selectedConversation.contactPhone || "Unknown"}
+                      {(selectedConversation as any).contactName || selectedConversation.contactPhone || "Unknown"}
                     </h3>
                     <Badge 
                       variant={selectedConversation.status === 'resolved' ? 'secondary' : 'default'}
@@ -869,6 +887,7 @@ export default function Inbox() {
               <TeamAssignDropdown
                       conversationId={selectedConversation.id}
                       currentAssignee={selectedConversation.assignedTo || undefined}
+                      currentAssigneeName={selectedConversation.assignedToName || undefined}
                       onAssign={handleAssignConversation}
                     />
                 <DropdownMenu>

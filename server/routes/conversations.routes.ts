@@ -1,9 +1,10 @@
 import type { Express } from "express";
 import * as conversationsController from "../controllers/conversations.controller";
 import { validateRequest } from "../middlewares/validation.middleware";
-import { insertConversationSchema } from "@shared/schema";
+import { insertConversationSchema,PERMISSIONS } from "@shared/schema";
 import { extractChannelId } from "../middlewares/channel.middleware";
 import { storage } from "../storage";
+import { requireAuth, requirePermission } from "../middlewares/auth.middleware";
 
 export function registerConversationRoutes(app: Express) {
   // Get unread count
@@ -40,7 +41,8 @@ export function registerConversationRoutes(app: Express) {
   );
 
   // Update conversation
-  app.put("/api/conversations/:id", conversationsController.updateConversation);
+  app.put("/api/conversations/:id",    requireAuth,
+  requirePermission(PERMISSIONS.INBOX_ASSIGN), conversationsController.updateConversation);
 
   // Delete conversation
   app.delete("/api/conversations/:id", conversationsController.deleteConversation);

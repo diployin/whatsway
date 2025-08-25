@@ -124,16 +124,21 @@ export default function Sidebar() {
     if (item.alwaysVisible) return true;
     if (!item.requiredPrefix) return true;
     if (!user?.permissions) return false;
-  console.log(`Checking permissions for item: ${item.labelKey} (${item.href}) with prefix ${item.requiredPrefix} and user permissions: ${JSON.stringify(user.permissions)}`);
+  // console.log(`Checking permissions for item: ${item.labelKey} (${item.href}) with prefix ${item.requiredPrefix} and user permissions: ${JSON.stringify(user.permissions)}`);
     const perms = Array.isArray(user.permissions) 
       ? user.permissions 
       : Object.keys(user.permissions);
   
-    return perms.some((perm) => 
-      perm.startsWith(item.requiredPrefix) && (Array.isArray(user.permissions) ? true : user.permissions[perm])
-    );
+      const normalize = (str: string) => str.replace(".", ":");
+
+      return perms.some((perm) =>
+        perm.startsWith(normalize(item.requiredPrefix)) &&
+        (Array.isArray(user.permissions) ? true : user.permissions[perm])
+      );
+      
   }
   
+
   
   const { data: unreadCount = 0 } = useQuery({
     queryKey: ["/api/conversations/unread-count"],
@@ -204,7 +209,7 @@ export default function Sidebar() {
         {/* Navigation Menu */}
         <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
           {navItems.filter(canView).map((item) => {
-            console.log(`Rendering nav item: ${item.labelKey} (${item.href})`);
+            // console.log(`Rendering nav item: ${item.labelKey} (${item.href})`);
             const isActive = location === item.href;
             const Icon = item.icon;
             const showBadge = item.href === "/inbox" && unreadCount > 0;

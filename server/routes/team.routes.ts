@@ -381,7 +381,7 @@ requirePermission(PERMISSIONS.TEAM_DELETE), async (req, res) => {
         )
       );
 
-      console.log("NEW RES")
+      // console.log("NEW RES")
 
     if (hasAssignments && hasAssignments.count > 0) {
       return res.status(400).json({

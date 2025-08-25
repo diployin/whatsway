@@ -843,8 +843,13 @@ ALTER TABLE ONLY public.api_logs
 -- Name: conversation_assignments conversation_assignments_assigned_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.conversation_assignments
-    ADD CONSTRAINT conversation_assignments_assigned_by_fkey FOREIGN KEY (assigned_by) REFERENCES public.team_members(id);
+ALTER TABLE conversation_assignments
+ADD CONSTRAINT conversation_assignments_user_id_fkey
+FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
+
+
+-- ALTER TABLE ONLY public.conversation_assignments
+--     ADD CONSTRAINT conversation_assignments_assigned_by_fkey FOREIGN KEY (assigned_by) REFERENCES public.team_members(id);
 
 
 --
@@ -859,8 +864,8 @@ ALTER TABLE ONLY public.conversation_assignments
 -- Name: conversation_assignments conversation_assignments_team_member_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.conversation_assignments
-    ADD CONSTRAINT conversation_assignments_team_member_id_fkey FOREIGN KEY (team_member_id) REFERENCES public.team_members(id) ON DELETE CASCADE;
+-- ALTER TABLE ONLY public.conversation_assignments
+--     ADD CONSTRAINT conversation_assignments_team_member_id_fkey FOREIGN KEY (team_member_id) REFERENCES public.team_members(id) ON DELETE CASCADE;
 
 
 --

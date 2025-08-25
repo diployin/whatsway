@@ -1,9 +1,8 @@
 import type { Request, Response } from 'express';
 import { storage } from '../storage';
-import { insertConversationSchema } from '@shared/schema';
 import { AppError, asyncHandler } from '../middlewares/error.middleware';
 import type { RequestWithChannel } from '../middlewares/channel.middleware';
-import { conversations, messages , contacts } from "@shared/schema";
+import { conversations, messages, users , contacts , conversationAssignments , insertConversationAssignmentSchema, insertConversationSchema } from "@shared/schema";
 import { eq,desc, sql } from "drizzle-orm";
 import { db } from "../db";
 
@@ -22,6 +21,7 @@ export async function getConversations(req, res) {
       .select({
         conversation: conversations,
         contact: contacts,
+        assignedToName: sql`${users.firstName} || ' ' || ${users.lastName}`.as('assignedBy'),
         message: {
           createdAt: messages.createdAt,
           content: messages.content,
@@ -30,8 +30,9 @@ export async function getConversations(req, res) {
       .from(conversations)
       .leftJoin(contacts, eq(conversations.contactId, contacts.id))
       .leftJoin(messages, eq(conversations.id, messages.conversationId))
+      .leftJoin(users, eq(conversations.assignedTo, users.id))
       .orderBy(desc(messages.createdAt)); // latest messages first
-
+// console.log("Fetched conversation rows:", rows[0]);
     // Group to only latest message per conversation
     const seen = new Set();
     const formatted = rows
@@ -44,6 +45,7 @@ export async function getConversations(req, res) {
         ...row.conversation,
         lastMessageAt: row.message?.createdAt || null,
         lastMessageText: row.message?.content || null,
+        assignedToName: row.assignedToName || null,
         contact: row.contact || null,
       }));
 
@@ -87,11 +89,34 @@ export const createConversation = asyncHandler(async (req: RequestWithChannel, r
 
 export const updateConversation = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const conversation = await storage.updateConversation(id, req.body);
+  console.log("Update conversation body:", req.body);
+
+  const conversation = await storage.updateConversation(id, {assignedTo: req.body.assignedTo, status: req.body.status});
+
   if (!conversation) {
     throw new AppError(404, 'Conversation not found');
   }
-  res.json(conversation);
+
+  // Validate and transform body to match insert schema
+  const validatedConversation = insertConversationAssignmentSchema.parse({
+    conversationId: id,
+    userId: req.body.assignedTo,
+    assignedBy: req.user?.id,
+    assignedAt: new Date(req.body.assignedAt),
+    status: req.body.status,
+  });
+
+  console.log("Validated conversation assignment:", validatedConversation);
+if(req.body.status ==="assigned"){
+  const insertConversation = await db
+    .insert(conversationAssignments)
+    .values(validatedConversation)
+    .returning();
+}
+
+  res.json(
+    conversation,
+   );
 });
 
 export const deleteConversation = asyncHandler(async (req: Request, res: Response) => {

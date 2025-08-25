@@ -12,6 +12,16 @@ export class UserRepository {
     return user || undefined;
   }
 
+  async getByPermissions(id: string): Promise<User["permissions"] | undefined> {
+    const [result] = await db
+      .select({ permissions: users.permissions })
+      .from(users)
+      .where(eq(users.id, id));
+  
+    return result?.permissions || [];
+  }
+  
+
   async getByUsername(username: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.username, username));
     return user || undefined;

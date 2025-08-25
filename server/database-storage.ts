@@ -49,6 +49,10 @@ export class DatabaseStorage implements IStorage {
     return this.userRepo.getById(id);
   }
 
+  async getPermissions(id: string): Promise<User | undefined> {
+    return this.userRepo.getByPermissions(id);
+  }
+
   async getUserByUsername(username: string): Promise<User | undefined> {
     return this.userRepo.getByUsername(username);
   }

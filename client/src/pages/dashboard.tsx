@@ -154,7 +154,7 @@ export default function Dashboard() {
         subtitle={t("dashboard.subtitle")}
         action={{
           label: t("dashboard.newCampaign"),
-          onClick: () => console.log("Create campaign"),
+          onClick: () => setLocation("/campaigns")
         }}
       />
 

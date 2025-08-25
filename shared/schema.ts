@@ -25,7 +25,7 @@ export const conversationAssignments = pgTable("conversation_assignments", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   conversationId: varchar("conversation_id").notNull().references(() => conversations.id, { onDelete: "cascade" }),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  assignedBy: varchar("assigned_by").references(() => users.id),
+  assignedBy: varchar("assigned_by"),
   assignedAt: timestamp("assigned_at").defaultNow(),
   status: text("status").notNull().default("active"), // active, resolved, transferred
   priority: text("priority").default("normal"), // low, normal, high, urgent
@@ -170,6 +170,7 @@ export const conversations = pgTable("conversations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   channelId: varchar("channel_id").references(() => channels.id, { onDelete: "cascade" }),
   contactId: varchar("contact_id").references(() => contacts.id, { onDelete: "cascade" }),
+  assignedTo: varchar("assigned_to"),
   contactPhone: varchar("contact_phone"), // Store phone number for webhook lookups
   contactName: varchar("contact_name"), // Store contact name
   status: text("status").default("open"), // open, closed, assigned, pending
@@ -610,7 +611,7 @@ export const usersRelations = relations(users, ({ many }) => ({
 
 export const conversationAssignmentsRelations = relations(conversationAssignments, ({ one }) => ({
   conversation: one(conversations, {
-    fields: [conversationAssignments.conversationId],  
+    fields: [conversationAssignments.conversationId],
     references: [conversations.id],
   }),
   user: one(users, {
@@ -622,6 +623,7 @@ export const conversationAssignmentsRelations = relations(conversationAssignment
     references: [users.id],
   }),
 }));
+
 
 export const userActivityLogsRelations = relations(userActivityLogs, ({ one }) => ({
   user: one(users, {

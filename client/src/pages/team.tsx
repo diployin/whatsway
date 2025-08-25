@@ -534,6 +534,17 @@ const PERMISSION_GROUPS: PermissionGroup[] = [
       { "key": "team:delete", "label": "Delete" },
       { "key": "team:permissions", "label": "Permissions" }
     ]
+  },
+  {
+    "title": "inbox",
+    "label": "Manage Inbox",
+    "permissions": [
+      { "key": "inbox:view", "label": "View" },
+      { "key": "inbox:send", "label": "Send" },
+      { "key": "inbox:assign", "label": "Assign" },
+      { "key": "inbox:delete", "label": "Delete" },
+      { "key": "inbox:close", "label": "Close" }
+    ]
   }
 ];
 
