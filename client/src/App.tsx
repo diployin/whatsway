@@ -22,8 +22,63 @@ import Sidebar from "@/components/layout/sidebar";
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
 
+// Define route permissions mapping
+const ROUTE_PERMISSIONS: Record<string, string> = {
+  "/contacts": "contacts.view",
+  "/campaigns": "campaigns.view",
+  "/templates": "templates.view",
+  "/inbox": "inbox.view",
+  "/team": "team.view",
+  "/automation": "automations.view",
+  "/analytics": "analytics.view",
+  "/logs": "logs.view",
+  "/settings": "settings.view",
+};
+
+// Unauthorized component
+function UnauthorizedPage() {
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="text-center">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
+        <p className="text-gray-600">You don't have permission to access this page.</p>
+      </div>
+    </div>
+  );
+}
+
+// Permission wrapper component
+function PermissionRoute({ component: Component, requiredPermission }: {
+  component: React.ComponentType;
+  requiredPermission?: string;
+}) {
+  const { user } = useAuth();
+
+  const hasPermission = (permission?: string) => {
+    if (!permission) return true; // No permission required
+    if (!user?.permissions) return false;
+
+    const perms = Array.isArray(user.permissions) 
+      ? user.permissions 
+      : Object.keys(user.permissions);
+  
+    const normalize = (str: string) => str.replace(".", ":");
+
+    return perms.some((perm) =>
+      perm.startsWith(normalize(permission)) &&
+      (Array.isArray(user.permissions) ? true : user.permissions[perm])
+    );
+  };
+
+  if (!hasPermission(requiredPermission)) {
+    return <UnauthorizedPage />;
+  }
+
+  return <Component />;
+}
+
 function ProtectedRoutes() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const [location, setLocation] = useLocation();
 
   useEffect(() => {
@@ -31,6 +86,17 @@ function ProtectedRoutes() {
       setLocation("/login");
     }
   }, [isAuthenticated, isLoading, setLocation]);
+
+  // Check if user has access to current route
+  useEffect(() => {
+    if (isAuthenticated && user && location !== "/") {
+      const requiredPermission = ROUTE_PERMISSIONS[location];
+      if (requiredPermission && !hasRoutePermission(requiredPermission, user)) {
+        // Redirect to dashboard if user doesn't have permission for current route
+        setLocation("/");
+      }
+    }
+  }, [location, isAuthenticated, user, setLocation]);
 
   if (isLoading) {
     return (
@@ -49,22 +115,118 @@ function ProtectedRoutes() {
       <Sidebar />
       <div className="flex-1 lg:ml-64">
         <Switch>
-          <Route path="/" component={Dashboard} />
-          <Route path="/contacts" component={Contacts} />
-          <Route path="/campaigns" component={Campaigns} />
-          <Route path="/templates" component={Templates} />
-          <Route path="/inbox" component={Inbox} />
-          <Route path="/team" component={Team} />
-          <Route path="/automation" component={Automations} />
-          <Route path="/analytics" component={Analytics} />
-          <Route path="/analytics/campaign/:campaignId" component={CampaignAnalytics} />
-          <Route path="/logs" component={Logs} />
-          <Route path="/settings" component={Settings} />
+          <Route path="/">
+            <Dashboard />
+          </Route>
+          <Route path="/contacts">
+            <PermissionRoute 
+              component={Contacts} 
+              requiredPermission="contacts.view" 
+            />
+          </Route>
+          <Route path="/campaigns">
+            <PermissionRoute 
+              component={Campaigns} 
+              requiredPermission="campaigns.view" 
+            />
+          </Route>
+          <Route path="/templates">
+            <PermissionRoute 
+              component={Templates} 
+              requiredPermission="templates.view" 
+            />
+          </Route>
+          <Route path="/inbox">
+            <PermissionRoute 
+              component={Inbox} 
+              requiredPermission="inbox.view" 
+            />
+          </Route>
+          <Route path="/team">
+            <PermissionRoute 
+              component={Team} 
+              requiredPermission="team.view" 
+            />
+          </Route>
+          <Route path="/automation">
+            <PermissionRoute 
+              component={Automations} 
+              requiredPermission="automations.view" 
+            />
+          </Route>
+          <Route path="/analytics">
+            <PermissionRoute 
+              component={Analytics} 
+              requiredPermission="analytics.view" 
+            />
+          </Route>
+          <Route path="/analytics/campaign/:campaignId">
+            <PermissionRoute 
+              component={CampaignAnalytics} 
+              requiredPermission="analytics.view" 
+            />
+          </Route>
+          <Route path="/logs">
+            <PermissionRoute 
+              component={Logs} 
+              requiredPermission="logs.view" 
+            />
+          </Route>
+          <Route path="/settings">
+            <PermissionRoute 
+              component={Settings} 
+              requiredPermission="settings.view" 
+            />
+          </Route>
           <Route component={NotFound} />
         </Switch>
       </div>
     </div>
   );
+}
+
+// Helper function to check route permissions
+function hasRoutePermission(permission: string, user: any) {
+  if (!user?.permissions) return false;
+
+  const perms = Array.isArray(user.permissions) 
+    ? user.permissions 
+    : Object.keys(user.permissions);
+
+  const normalize = (str: string) => str.replace(".", ":");
+
+  return perms.some((perm) =>
+    perm.startsWith(normalize(permission)) &&
+    (Array.isArray(user.permissions) ? true : user.permissions[perm])
+  );
+}
+
+// Custom hook for permission checking
+export function usePermissions() {
+  const { user } = useAuth();
+
+  const hasPermission = (permission: string) => {
+    if (!user?.permissions) return false;
+    
+    const perms = Array.isArray(user.permissions) 
+      ? user.permissions 
+      : Object.keys(user.permissions);
+    
+    const normalize = (str: string) => str.replace(".", ":");
+    const normalizedPermission = normalize(permission);
+
+    return perms.some((perm) =>
+      perm.startsWith(normalizedPermission) &&
+      (Array.isArray(user.permissions) ? true : user.permissions[perm])
+    );
+  };
+
+  const canAccessRoute = (route: string) => {
+    const requiredPermission = ROUTE_PERMISSIONS[route];
+    return requiredPermission ? hasPermission(requiredPermission) : true;
+  };
+
+  return { hasPermission, canAccessRoute, user };
 }
 
 function Router() {
