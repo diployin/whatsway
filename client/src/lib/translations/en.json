@@ -63,7 +63,9 @@
     "analytics": "Analytics",
     "settings": "Settings",
     "team": "Team",
-    "channels": "Channels"
+    "channels": "Channels",
+    "webhooks": "Webhooks",
+    "account": "Account"
   },
   "dashboard": {
     "uploadCSV": "Upload CSV",

@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Smartphone, Webhook, Key, User } from "lucide-react";
 import { ChannelSettings } from "@/components/settings/ChannelSettings";
 import { WebhookSettings } from "@/components/settings/WebhookSettings";
-import { AccountSettings } from "@/components/settings/AccountSettings";
+// import { AccountSettings } from "@/components/settings/AccountSettings";
 import { ApiKeySettings } from "@/components/settings/ApiKeySettings";
 
 export default function Settings() {
@@ -19,7 +19,7 @@ export default function Settings() {
 
       <main className="p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="whatsapp" className="flex items-center space-x-2">
               <Smartphone className="w-4 h-4" />
               <span>WhatsApp</span>
@@ -32,10 +32,10 @@ export default function Settings() {
               <Key className="w-4 h-4" />
               <span>API Keys</span>
             </TabsTrigger>
-            <TabsTrigger value="account" className="flex items-center space-x-2">
+            {/* <TabsTrigger value="account" className="flex items-center space-x-2">
               <User className="w-4 h-4" />
               <span>Account</span>
-            </TabsTrigger>
+            </TabsTrigger> */}
           </TabsList>
 
           {/* WhatsApp Numbers Tab */}
@@ -54,9 +54,9 @@ export default function Settings() {
           </TabsContent>
 
           {/* Account Tab */}
-          <TabsContent value="account">
+          {/* <TabsContent value="account">
             <AccountSettings />
-          </TabsContent>
+          </TabsContent> */}
         </Tabs>
       </main>
     </div>

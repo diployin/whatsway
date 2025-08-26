@@ -63,7 +63,8 @@
     "analytics": "التحليلات",
     "settings": "الإعدادات",
     "team": "الفريق",
-    "channels": "القنوات"
+    "channels": "القنوات",
+    "account": "الحساب"
   },
   "dashboard": {
     "uploadCSV": "تحميل ملف CSV",

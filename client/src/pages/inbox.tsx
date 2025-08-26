@@ -74,6 +74,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format, differenceInMinutes, differenceInHours, differenceInDays, isToday, isYesterday } from "date-fns";
 import { cn } from "@/lib/utils";
 import type { Conversation, Message, Contact, User } from "@shared/schema";
+import { useAuth } from "@/contexts/auth-context";
 
 // Helper functions
 const formatLastSeen = (date: Date | string | null) => {
@@ -377,6 +378,7 @@ export default function Inbox() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const {user} = useAuth();
 
   // Fetch active channel
   const { data: activeChannel } = useQuery({
@@ -764,8 +766,10 @@ export default function Inbox() {
         return matchesSearch && conv.status === "open";
       case "resolved":
         return matchesSearch && conv.status === "resolved";
-      case "assigned":
-        return matchesSearch && conv.status === "assigned";
+        case "assigned":
+          return matchesSearch &&
+                 conv.status === "assigned" &&
+                 (user?.role === 'admin' || conv.assignedTo === user?.id);
       default:
         return matchesSearch;
     }

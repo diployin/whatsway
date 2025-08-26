@@ -428,6 +428,12 @@ export const PERMISSIONS = {
   TEAM_EDIT: 'team:edit',
   TEAM_DELETE: 'team:delete',
   TEAM_PERMISSIONS: 'team:permissions',
+
+  // Logs permissions
+  LOGS_VIEW: 'logs:view',
+
+  // Automation permissions
+  AUTOMATIONS_VIEW: 'automations:view',
 } as const;
 
 export type Permission = typeof PERMISSIONS[keyof typeof PERMISSIONS];

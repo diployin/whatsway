@@ -1,6 +1,7 @@
 import { Bell, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUnreadCount } from "@/contexts/UnreadCountContext";
+import { useLocation } from "wouter";
 
 interface HeaderProps {
   title: string;
@@ -13,6 +14,7 @@ interface HeaderProps {
 
 export default function Header({ title, subtitle, action }: HeaderProps) {
   const unreadCount = useUnreadCount();
+  const [,setLocation] = useLocation();
   return (
     <header className="bg-white shadow-sm border-b border-gray-100 px-6 py-4">
       <div className="flex items-center justify-between">
@@ -35,7 +37,7 @@ export default function Header({ title, subtitle, action }: HeaderProps) {
           
           {/* Notifications */}
           <div className="relative">
-            <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+            <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-colors" onClick={()=> setLocation('/inbox')}>
               <Bell className="w-5 h-5" />
               <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
                {unreadCount}
