@@ -556,6 +556,14 @@ const PERMISSION_GROUPS: PermissionGroup[] = [
       { "key": "settings:team", "label": "Team" },
       { "key": "settings:api", "label": "APIs" }
     ]
+  },
+  {
+    "title": "general",
+    "label": "General Settings",
+    "permissions": [
+      { "key": "data:export", "label": "Data Export" },
+      { "key": "logs:view", "label": "Logs View" }
+    ]
   }
 ];
 
@@ -894,7 +902,7 @@ function TeamMemberDialog({
                 {PERMISSION_GROUPS.map(renderPermissionGroup)}
               </div>
                 {/* Export Data - Simple permission */}
-                <div className="flex items-center justify-between py-2">
+                {/* <div className="flex items-center justify-between py-2">
                   <Label htmlFor="perm-export" className="text-sm font-normal">
                     Export Data
                   </Label>
@@ -903,7 +911,7 @@ function TeamMemberDialog({
                     checked={formData.permissions.canExportData || false}
                     onCheckedChange={(checked) => updatePermission("canExportData", checked)}
                   />
-                </div>
+                </div> */}
               </div>
             </div>
           </div>

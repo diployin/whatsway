@@ -63,7 +63,9 @@
     "analytics": "Análisis",
     "settings": "Configuración",
     "team": "Equipo",
-    "channels": "Canales"
+    "channels": "Canales",
+    "billing": "Facturación",
+    "account": "Cuenta"
   },
   "dashboard": {
     "title": "Resumen del Panel",

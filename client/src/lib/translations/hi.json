@@ -63,7 +63,10 @@
     "analytics": "एनालिटिक्स",
     "settings": "सेटिंग्स",
     "team": "टीम",
-    "channels": "चैनल"
+    "channels": "चैनल",
+    "billing": "बिलिंग",
+    "webhooks":"वेबहुक",
+    "account": "खाता"
   },
   "dashboard": {
     "uploadCSV": "CSV अपलोड करें",

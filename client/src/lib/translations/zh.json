@@ -63,7 +63,8 @@
     "analytics": "分析",
     "settings": "设置",
     "team": "团队",
-    "channels": "渠道"
+    "channels": "渠道",
+    "account": "账户"
   },
   "dashboard": {
     "uploadCSV": "上传 CSV",

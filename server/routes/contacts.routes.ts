@@ -30,7 +30,7 @@ export function registerContactRoutes(app: Express) {
   app.put(
     "/api/contacts/:id",
     requireAuth,
-    requirePermission(PERMISSIONS.CONTACTS_UPDATE),
+    requirePermission(PERMISSIONS.CONTACTS_EDIT),
     contactsController.updateContact
   );
 

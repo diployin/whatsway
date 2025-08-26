@@ -13,7 +13,8 @@ import {
   UsersRound,
   LogOut,
   Menu,
-  X
+  X,
+  User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ChannelSwitcher } from "@/components/channel-switcher";
@@ -206,7 +207,8 @@ export default function Sidebar() {
 
         {/* Channel Switcher */}
         <div className="px-6 py-3 border-b border-gray-100">
-       {user?.role === 'admin' &&   <ChannelSwitcher />}
+       {/* {user?.role === 'admin' &&   } */}
+       <ChannelSwitcher />
         </div>
 
         {/* Navigation Menu */}
@@ -299,6 +301,13 @@ export default function Sidebar() {
                 <Link href="/settings" className="cursor-pointer">
                   <Settings className="mr-2 h-4 w-4" />
                   <span>{t('navigation.settings')}</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/account" className="cursor-pointer">
+                  <User className="mr-2 h-4 w-4" />
+                  <span>{t('navigation.account')}</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />

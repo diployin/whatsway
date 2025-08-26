@@ -3,7 +3,7 @@ import { storage } from '../storage';
 import { AppError, asyncHandler } from '../middlewares/error.middleware';
 import type { RequestWithChannel } from '../middlewares/channel.middleware';
 import { conversations, messages, users , contacts , conversationAssignments , insertConversationAssignmentSchema, insertConversationSchema } from "@shared/schema";
-import { eq,desc, sql } from "drizzle-orm";
+import { eq,desc,and, sql } from "drizzle-orm";
 import { db } from "../db";
 
 // export const getConversations = asyncHandler(async (req: RequestWithChannel, res: Response) => {
@@ -16,38 +16,47 @@ import { db } from "../db";
 
 export async function getConversations(req, res) {
   try {
-    // Get conversations with latest message per conversation
+    // Step 1: Subquery to get latest message timestamp per conversation
+    const latestMessages = db
+      .select({
+        conversationId: messages.conversationId,
+        lastMessageAt: sql`MAX(${messages.createdAt})`.as("lastMessageAt"),
+      })
+      .from(messages)
+      .groupBy(messages.conversationId)
+      .as("latestMessages");
+
+    // Step 2: Join with conversations, contacts, users, and messages
     const rows = await db
       .select({
         conversation: conversations,
         contact: contacts,
-        assignedToName: sql`${users.firstName} || ' ' || ${users.lastName}`.as('assignedBy'),
-        message: {
-          createdAt: messages.createdAt,
-          content: messages.content,
-        },
+        assignedToName: sql`${users.firstName} || ' ' || ${users.lastName}`.as("assignedBy"),
+        lastMessageAt: latestMessages.lastMessageAt,
+        lastMessageText: messages.content,
       })
       .from(conversations)
       .leftJoin(contacts, eq(conversations.contactId, contacts.id))
-      .leftJoin(messages, eq(conversations.id, messages.conversationId))
       .leftJoin(users, eq(conversations.assignedTo, users.id))
-      .orderBy(desc(messages.createdAt)); // latest messages first
-// console.log("Fetched conversation rows:", rows[0]);
-    // Group to only latest message per conversation
-    const seen = new Set();
-    const formatted = rows
-      .filter(row => {
-        if (seen.has(row.conversation.id)) return false;
-        seen.add(row.conversation.id);
-        return true;
-      })
-      .map(row => ({
-        ...row.conversation,
-        lastMessageAt: row.message?.createdAt || null,
-        lastMessageText: row.message?.content || null,
-        assignedToName: row.assignedToName || null,
-        contact: row.contact || null,
-      }));
+      .leftJoin(latestMessages, eq(latestMessages.conversationId, conversations.id))
+      .leftJoin(
+        messages,
+        and(
+          eq(messages.conversationId, latestMessages.conversationId),
+          eq(messages.createdAt, latestMessages.lastMessageAt)
+        )
+      )
+      .where(eq(conversations.channelId, req.query.channelId || ""))
+      .orderBy(desc(latestMessages.lastMessageAt));
+
+    // Step 3: Format response
+    const formatted = rows.map((row) => ({
+      ...row.conversation,
+      lastMessageAt: row.lastMessageAt || null,
+      lastMessageText: row.lastMessageText || null,
+      assignedToName: row.assignedToName || null,
+      contact: row.contact || null,
+    }));
 
     res.json(formatted);
   } catch (err) {

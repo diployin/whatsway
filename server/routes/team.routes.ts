@@ -209,12 +209,14 @@ requirePermission(PERMISSIONS.TEAM_CREATE), validateRequest(createUserSchema), a
 // Update team member
 router.put(
   "/members/:id",requireAuth,
-  requirePermission(PERMISSIONS.TEAM_EDIT),
   validateRequest(updateUserSchema),
   async (req, res) => {
+    console.log("Update member called") 
     try {
       const { id } = req.params;
       const updates = req.body;
+
+      console.log("Updates : ===> " , updates)
 
       const [member] = await db
         .update(users)
@@ -293,7 +295,6 @@ router.patch(
 // Update user password
 router.patch(
   "/members/:id/password",requireAuth,
-  requirePermission(PERMISSIONS.TEAM_EDIT),
   validateRequest(updatePasswordSchema),
   async (req, res) => {
     try {
@@ -346,8 +347,7 @@ router.patch(
 );
 
 // Delete team member
-router.delete("/members/:id",requireAuth,
-requirePermission(PERMISSIONS.TEAM_DELETE), async (req, res) => {
+router.delete("/members/:id",requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
 

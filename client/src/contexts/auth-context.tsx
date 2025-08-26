@@ -12,6 +12,7 @@ interface User {
   role: string;
   permissions: string[];
   avatar?: string;
+  createdAt?: string;
 }
 
 interface AuthContextType {

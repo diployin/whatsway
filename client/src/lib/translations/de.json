@@ -63,7 +63,8 @@
     "analytics": "Analysen",
     "settings": "Einstellungen",
     "team": "Team",
-    "channels": "Kanäle"
+    "channels": "Kanäle",
+    "account": "Konto"
   },
   "dashboard": {
     "uploadCSV": "CSV hochladen",

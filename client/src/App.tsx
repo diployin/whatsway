@@ -22,6 +22,7 @@ import Team from "@/pages/team";
 import Sidebar from "@/components/layout/sidebar";
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
+import Account from "./pages/account";
 
 // Define route permissions mapping
 const ROUTE_PERMISSIONS: Record<string, string> = {
@@ -177,6 +178,11 @@ function ProtectedRoutes() {
             <PermissionRoute 
               component={Settings} 
               requiredPermission="settings.view" 
+            />
+          </Route>
+          <Route path="/account">
+            <PermissionRoute 
+              component={Account} 
             />
           </Route>
           <Route component={NotFound} />
