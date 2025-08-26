@@ -764,6 +764,8 @@ export default function Inbox() {
         return matchesSearch && conv.status === "open";
       case "resolved":
         return matchesSearch && conv.status === "resolved";
+      case "assigned":
+        return matchesSearch && conv.status === "assigned";
       default:
         return matchesSearch;
     }
@@ -811,8 +813,9 @@ export default function Inbox() {
           </div>
           
           <Tabs value={filterTab} onValueChange={setFilterTab}>
-            <TabsList className="grid w-full grid-cols-4 h-9">
+            <TabsList className="grid w-full grid-cols-5 h-9">
               <TabsTrigger value="all" className="text-xs">All</TabsTrigger>
+              <TabsTrigger value="assigned" className="text-xs">Assigned</TabsTrigger>
               <TabsTrigger value="unread" className="text-xs">Unread</TabsTrigger>
               <TabsTrigger value="open" className="text-xs">Open</TabsTrigger>
               <TabsTrigger value="resolved" className="text-xs">Resolved</TabsTrigger>

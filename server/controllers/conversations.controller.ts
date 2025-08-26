@@ -89,7 +89,7 @@ export const createConversation = asyncHandler(async (req: RequestWithChannel, r
 
 export const updateConversation = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-  console.log("Update conversation body:", req.body);
+  // console.log("Update conversation body:", req.body);
 
   const conversation = await storage.updateConversation(id, {assignedTo: req.body.assignedTo, status: req.body.status});
 
@@ -106,7 +106,7 @@ export const updateConversation = asyncHandler(async (req: Request, res: Respons
     status: req.body.status,
   });
 
-  console.log("Validated conversation assignment:", validatedConversation);
+  // console.log("Validated conversation assignment:", validatedConversation);
 if(req.body.status ==="assigned"){
   const insertConversation = await db
     .insert(conversationAssignments)
@@ -115,7 +115,7 @@ if(req.body.status ==="assigned"){
 }
 
   res.json(
-    conversation,
+     {   ...conversation,assignedToName:req.body.assignedToName}
    );
 });
 

@@ -545,6 +545,17 @@ const PERMISSION_GROUPS: PermissionGroup[] = [
       { "key": "inbox:delete", "label": "Delete" },
       { "key": "inbox:close", "label": "Close" }
     ]
+  },
+  {
+    "title": "settings",
+    "label": "Manage Settings",
+    "permissions": [
+      { "key": "settings:view", "label": "View" },
+      { "key": "settings:channels", "label": "Channels" },
+      { "key": "settings:webhook", "label": "Webhook" },
+      { "key": "settings:team", "label": "Team" },
+      { "key": "settings:api", "label": "APIs" }
+    ]
   }
 ];
 

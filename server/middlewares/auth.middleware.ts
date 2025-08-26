@@ -97,10 +97,10 @@ export const requirePermission = (...permissions: string[]) => {
         (perm) => userPermissions[perm]
       )
 
-      console.log(
-        `User permissions: ${JSON.stringify(userPermissions)}, ` +
-        `Required permissions: ${permissions}, Has permission: ${hasPermission}`
-      );
+      // console.log(
+      //   `User permissions: ${JSON.stringify(userPermissions)}, ` +
+      //   `Required permissions: ${permissions}, Has permission: ${hasPermission}`
+      // );
 
       if (!hasPermission) {
         return res.status(403).json({ error: "Insufficient permissions" });
