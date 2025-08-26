@@ -30,6 +30,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useUnreadCount } from "@/contexts/UnreadCountContext";
+
 
 interface NavItem {
   href: string;
@@ -119,6 +121,7 @@ export default function Sidebar() {
   const { user, logout } = useAuth();
   const { t } = useTranslation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  // const unreadCount = useUnreadCount();
 
   function canView(item: NavItem) {
     if (item.alwaysVisible) return true;

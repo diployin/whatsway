@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ChannelProvider } from "@/contexts/channel-context";
+import { UnreadCountProvider } from "@/contexts/UnreadCountContext";
 import { AuthProvider, useAuth } from "@/contexts/auth-context";
 import NotFound from "@/pages/not-found";
 import LoginPage from "@/pages/login";
@@ -244,8 +245,10 @@ function App() {
       <AuthProvider>
         <ChannelProvider>
           <TooltipProvider>
+            <UnreadCountProvider>
             <Toaster />
             <Router />
+            </UnreadCountProvider>
           </TooltipProvider>
         </ChannelProvider>
       </AuthProvider>
