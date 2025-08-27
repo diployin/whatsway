@@ -224,7 +224,7 @@ export const automations = pgTable("automations", {
   name: text("name").notNull(),
   description: text("description"),
   trigger: text("trigger").notNull(), // message_received, keyword, schedule, api_webhook
-  triggerConfig: jsonb("trigger_config").default({}), // Configuration for the trigger
+  triggerConfig: jsonb("trigger_config").default({}),
   status: text("status").default("inactive"), // active, inactive, paused
   executionCount: integer("execution_count").default(0),
   lastExecutedAt: timestamp("last_executed_at"),
@@ -236,16 +236,16 @@ export const automations = pgTable("automations", {
   automationStatusIdx: index("automations_status_idx").on(table.status),
 }));
 
-// Automation flow nodes - each node represents an action or condition in the flow
+// ─── Automation Nodes ─────────────────────────
 export const automationNodes = pgTable("automation_nodes", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   automationId: varchar("automation_id").notNull().references(() => automations.id, { onDelete: "cascade" }),
-  nodeId: varchar("node_id").notNull(), // Unique ID within the flow (for visual builder)
+  nodeId: varchar("node_id").notNull(),
   type: text("type").notNull(), // trigger, action, condition, delay
-  subtype: text("subtype"), // send_template, send_message, wait, keyword_check, etc.
-  position: jsonb("position").default({}), // x, y coordinates for visual builder
-  data: jsonb("data").default({}), // Node-specific configuration
-  connections: jsonb("connections").default([]), // Array of target node IDs
+  subtype: text("subtype"), // send_template, send_message, wait, etc.
+  position: jsonb("position").default({}), // {x, y}
+  data: jsonb("data").default({}), // node config
+  connections: jsonb("connections").default([]), // array of next nodeIds
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => ({
@@ -253,17 +253,17 @@ export const automationNodes = pgTable("automation_nodes", {
   nodeUniqueIdx: unique("automation_nodes_unique_idx").on(table.automationId, table.nodeId),
 }));
 
-// Automation execution history
+// ─── Automation Executions ────────────────────
 export const automationExecutions = pgTable("automation_executions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   automationId: varchar("automation_id").notNull().references(() => automations.id, { onDelete: "cascade" }),
   contactId: varchar("contact_id").references(() => contacts.id),
   conversationId: varchar("conversation_id").references(() => conversations.id),
-  triggerData: jsonb("trigger_data").default({}), // Data that triggered the automation
-  status: text("status").notNull(), // running, completed, failed, cancelled
-  currentNodeId: varchar("current_node_id"), // Current node being executed
-  executionPath: jsonb("execution_path").default([]), // Array of executed node IDs
-  variables: jsonb("variables").default({}), // Runtime variables for the execution
+  triggerData: jsonb("trigger_data").default({}),
+  status: text("status").notNull(), // running, completed, failed
+  currentNodeId: varchar("current_node_id"),
+  executionPath: jsonb("execution_path").default([]),
+  variables: jsonb("variables").default({}),
   error: text("error"),
   startedAt: timestamp("started_at").defaultNow(),
   completedAt: timestamp("completed_at"),
@@ -272,13 +272,13 @@ export const automationExecutions = pgTable("automation_executions", {
   executionStatusIdx: index("automation_executions_status_idx").on(table.status),
 }));
 
-// Automation execution logs - detailed log of each node execution
+// ─── Automation Execution Logs ────────────────
 export const automationExecutionLogs = pgTable("automation_execution_logs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   executionId: varchar("execution_id").notNull().references(() => automationExecutions.id, { onDelete: "cascade" }),
   nodeId: varchar("node_id").notNull(),
   nodeType: text("node_type").notNull(),
-  status: text("status").notNull(), // started, completed, failed, skipped
+  status: text("status").notNull(), // started, completed, failed
   input: jsonb("input").default({}),
   output: jsonb("output").default({}),
   error: text("error"),
@@ -434,6 +434,9 @@ export const PERMISSIONS = {
 
   // Automation permissions
   AUTOMATIONS_VIEW: 'automations:view',
+  AUTOMATIONS_CREATE: 'automations:create',
+  AUTOMATIONS_EDIT: 'automations:edit',
+  AUTOMATIONS_DELETE: 'automations:delete',
 } as const;
 
 export type Permission = typeof PERMISSIONS[keyof typeof PERMISSIONS];

@@ -4,7 +4,7 @@ import { validateRequest } from "../middlewares/validation.middleware";
 import { insertAutomationSchema } from "@shared/schema";
 import { extractChannelId } from "../middlewares/channel.middleware";
 
-export function registerAutomationRoutes(app: Express) {
+export function registerAutomationsRoutes(app: Express) {
   // Get all automations
   app.get("/api/automations",
     extractChannelId,
@@ -16,7 +16,7 @@ export function registerAutomationRoutes(app: Express) {
 
   // Create automation
   app.post("/api/automations",
-    validateRequest(insertAutomationSchema),
+    // validateRequest(insertAutomationSchema),
     automationsController.createAutomation
   );
 

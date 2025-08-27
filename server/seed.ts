@@ -32,34 +32,49 @@ async function seed() {
         role: "admin",
         status: "active",
         permissions: [
-          "contacts.view",
-          "contacts.create",
-          "contacts.update",
-          "contacts.delete",
-          "contacts.export",
-          "campaigns.view",
-          "campaigns.create",
-          "campaigns.update",
-          "campaigns.delete",
-          "templates.view",
-          "templates.create",
-          "templates.update",
-          "templates.delete",
-          "analytics.view",
-          "team.view",
-          "team.create",
-          "team.update",
-          "team.delete",
-          "settings.view",
-          "settings.update",
-          "inbox.view",
-          "inbox.send",
-          "inbox.assign",
-          "automations.view",
-          "automations.create",
-          "automations.update",
-          "automations.delete",
-        ],
+          // Contacts
+          'contacts:view',
+          'contacts:create',
+          'contacts:edit',
+          'contacts:delete',
+          'contacts:export',
+        
+          // Campaigns
+          'campaigns:view',
+          'campaigns:create',
+          'campaigns:edit',
+          'campaigns:delete',
+        
+          // Templates
+          'templates:view',
+          'templates:create',
+          'templates:edit',
+          'templates:delete',
+        
+          // Analytics
+          'analytics:view',
+        
+          // Team
+          'team:view',
+          'team:create',
+          'team:edit',
+          'team:delete',
+        
+          // Settings
+          'settings:view',
+        
+          // Inbox
+          'inbox:view',
+          'inbox:send',
+          'inbox:assign',
+        
+          // Automations
+          'automations:view',
+          'automations:create',
+          'automations:edit',
+          'automations:delete',
+        ]
+        
       })
       .returning();
 

@@ -15,6 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import AutomationFlowBuilderXYFlow from "@/components/automation-flow-builder";
 
 export default function Automations() {
   const [showFlowBuilder, setShowFlowBuilder] = useState(false);
@@ -199,9 +200,13 @@ export default function Automations() {
               Create and edit automation workflows
             </DialogDescription>
           </DialogHeader>
-          <AutomationFlowBuilder
+          {/* <AutomationFlowBuilder
             automation={selectedAutomation}
             onClose={handleCloseFlowBuilder}
+          /> */}
+          <AutomationFlowBuilderXYFlow 
+           automation={selectedAutomation}
+           onClose={handleCloseFlowBuilder}
           />
         </DialogContent>
       </Dialog>

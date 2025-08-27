@@ -1,169 +1,99 @@
-import { Router } from "express";
-import { storage } from "../storage";
 import { z } from "zod";
+import type { Express } from "express";
+
 import { insertAutomationSchema, insertAutomationNodeSchema } from "@shared/schema";
-import { AutomationRepository } from "../repositories/automation.repository";
-import { requireAuth } from "../middleware/auth.middleware";
+import { requireAuth } from "../middlewares/auth.middleware";
+import { extractChannelId } from "../middlewares/channel.middleware";
+import * as automationController from "../controllers/automation.controller";
 
-const router = Router();
-const automationRepo = new AutomationRepository();
-
-// Schema for creating/updating automation with nodes
+// Schema for automation + nodes (used for builder save)
 const automationWithNodesSchema = z.object({
   automation: insertAutomationSchema,
-  nodes: z.array(insertAutomationNodeSchema)
+  nodes: z.array(insertAutomationNodeSchema),
 });
 
-// Get all automations for active channel
-router.get("/automations", requireAuth, async (req, res) => {
-  try {
-    const activeChannel = await storage.getActiveChannel();
-    if (!activeChannel) {
-      return res.status(400).json({ error: "No active channel selected" });
-    }
+export function registerAutomationRoutes(app: Express) {
+  //
+  // ─── AUTOMATION CRUD ──────────────────────────────────────────────
+  //
 
-    const automations = await storage.getAutomationsByChannel(activeChannel.id);
-    res.json(automations);
-  } catch (error) {
-    console.error("Error fetching automations:", error);
-    res.status(500).json({ error: "Failed to fetch automations" });
-  }
-});
+  // Get all automations
+  app.get(
+    "/api/automations",
+    requireAuth,
+    extractChannelId,
+    automationController.getAutomations
+  );
 
-// Get a specific automation with its nodes
-router.get("/automations/:id", requireAuth, async (req, res) => {
-  try {
-    const automation = await storage.getAutomation(req.params.id);
-    if (!automation) {
-      return res.status(404).json({ error: "Automation not found" });
-    }
+  // Get single automation with nodes
+  app.get(
+    "/api/automations/:id",
+    requireAuth,
+    extractChannelId,
+    automationController.getAutomation
+  );
 
-    const nodes = await automationRepo.findNodesByAutomation(automation.id);
-    res.json({ automation, nodes });
-  } catch (error) {
-    console.error("Error fetching automation:", error);
-    res.status(500).json({ error: "Failed to fetch automation" });
-  }
-});
+  // Create automation
+  app.post(
+    "/api/automations",
+    requireAuth,
+    extractChannelId,
+    automationController.createAutomation
+  );
 
-// Create a new automation with nodes
-router.post("/automations", requireAuth, async (req, res) => {
-  try {
-    const activeChannel = await storage.getActiveChannel();
-    if (!activeChannel) {
-      return res.status(400).json({ error: "No active channel selected" });
-    }
+  // Update automation
+  app.put(
+    "/api/automations/:id",
+    requireAuth,
+    extractChannelId,
+    automationController.updateAutomation
+  );
 
-    const parsed = automationWithNodesSchema.parse(req.body);
-    
-    // Create automation
-    const automation = await storage.createAutomation({
-      ...parsed.automation,
-      channelId: activeChannel.id,
-      createdBy: req.user?.id
-    });
+  // Delete automation
+  app.delete(
+    "/api/automations/:id",
+    requireAuth,
+    extractChannelId,
+    automationController.deleteAutomation
+  );
 
-    // Create nodes
-    const nodesWithAutomationId = parsed.nodes.map(node => ({
-      ...node,
-      automationId: automation.id
-    }));
-    const nodes = await automationRepo.createNodes(nodesWithAutomationId);
+  // Toggle status active/inactive
+  app.patch(
+    "/api/automations/:id/toggle",
+    requireAuth,
+    extractChannelId,
+    automationController.toggleAutomation
+  );
 
-    res.status(201).json({ automation, nodes });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: "Invalid request data", details: error.errors });
-    }
-    console.error("Error creating automation:", error);
-    res.status(500).json({ error: "Failed to create automation" });
-  }
-});
+  //
+  // ─── NODES (visual builder) ──────────────────────────────────────
+  //
 
-// Update an automation and its nodes
-router.put("/automations/:id", requireAuth, async (req, res) => {
-  try {
-    const parsed = automationWithNodesSchema.parse(req.body);
-    
-    // Update automation
-    const automation = await storage.updateAutomation(req.params.id, parsed.automation);
-    if (!automation) {
-      return res.status(404).json({ error: "Automation not found" });
-    }
+  // Save automation nodes (bulk replace from builder)
+  app.post(
+    "/api/automations/:automationId/nodes",
+    requireAuth,
+    extractChannelId,
+    automationController.saveAutomationNodes
+  );
 
-    // Delete existing nodes and recreate them
-    await automationRepo.deleteNodesByAutomation(automation.id);
-    
-    // Create new nodes
-    const nodesWithAutomationId = parsed.nodes.map(node => ({
-      ...node,
-      automationId: automation.id
-    }));
-    const nodes = await automationRepo.createNodes(nodesWithAutomationId);
+  //
+  // ─── EXECUTION ───────────────────────────────────────────────────
+  //
 
-    res.json({ automation, nodes });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: "Invalid request data", details: error.errors });
-    }
-    console.error("Error updating automation:", error);
-    res.status(500).json({ error: "Failed to update automation" });
-  }
-});
+  // Start execution for a contact/conversation
+  app.post(
+    "/api/automations/:automationId/executions",
+    requireAuth,
+    extractChannelId,
+    automationController.startAutomationExecution
+  );
 
-// Toggle automation status (active/inactive)
-router.patch("/automations/:id/toggle", requireAuth, async (req, res) => {
-  try {
-    const automation = await storage.getAutomation(req.params.id);
-    if (!automation) {
-      return res.status(404).json({ error: "Automation not found" });
-    }
-
-    const newStatus = automation.status === 'active' ? 'inactive' : 'active';
-    const updated = await storage.updateAutomation(req.params.id, { status: newStatus });
-
-    res.json(updated);
-  } catch (error) {
-    console.error("Error toggling automation:", error);
-    res.status(500).json({ error: "Failed to toggle automation" });
-  }
-});
-
-// Delete an automation
-router.delete("/automations/:id", requireAuth, async (req, res) => {
-  try {
-    const deleted = await storage.deleteAutomation(req.params.id);
-    if (!deleted) {
-      return res.status(404).json({ error: "Automation not found" });
-    }
-
-    res.json({ success: true });
-  } catch (error) {
-    console.error("Error deleting automation:", error);
-    res.status(500).json({ error: "Failed to delete automation" });
-  }
-});
-
-// Get automation execution history
-router.get("/automations/:id/executions", requireAuth, async (req, res) => {
-  try {
-    const executions = await automationRepo.findExecutionsByAutomation(req.params.id);
-    res.json(executions);
-  } catch (error) {
-    console.error("Error fetching executions:", error);
-    res.status(500).json({ error: "Failed to fetch executions" });
-  }
-});
-
-// Get execution logs
-router.get("/executions/:id/logs", requireAuth, async (req, res) => {
-  try {
-    const logs = await automationRepo.findExecutionLogs(req.params.id);
-    res.json(logs);
-  } catch (error) {
-    console.error("Error fetching execution logs:", error);
-    res.status(500).json({ error: "Failed to fetch execution logs" });
-  }
-});
-
-export default router;
+  // Log node execution (worker will call this per node)
+  app.post(
+    "/api/automations/executions/:executionId/logs",
+    requireAuth,
+    extractChannelId,
+    automationController.logAutomationNodeExecution
+  );
+}

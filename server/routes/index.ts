@@ -11,7 +11,8 @@ import { registerCampaignRoutes } from "./campaigns.routes";
 import { registerTemplateRoutes } from "./templates.routes";
 import { registerMediaRoutes } from "./media.routes";
 import { registerConversationRoutes } from "./conversations.routes";
-import { registerAutomationRoutes } from "./automations.routes";
+import { registerAutomationRoutes } from "./automation.routes";
+// import { registerAutomationsRoutes } from "./automations.routes";
 import { registerWhatsAppRoutes } from "./whatsapp.routes";
 import { registerWebhookRoutes } from "./webhooks.routes";
 import { registerMessageRoutes } from "./messages.routes";
@@ -36,6 +37,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerMediaRoutes(app);
   registerConversationRoutes(app);
   registerAutomationRoutes(app);
+  // registerAutomationsRoutes(app);
   registerWhatsAppRoutes(app);
   registerWebhookRoutes(app);
   registerMessageRoutes(app);
