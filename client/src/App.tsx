@@ -93,6 +93,7 @@ function ProtectedRoutes() {
   useEffect(() => {
     if (isAuthenticated && user && location !== "/") {
       const requiredPermission = ROUTE_PERMISSIONS[location];
+      console.log("Checking permissions for route:", location, requiredPermission , hasRoutePermission(requiredPermission, user));
       if (requiredPermission && !hasRoutePermission(requiredPermission, user)) {
         // Redirect to dashboard if user doesn't have permission for current route
         setLocation("/");

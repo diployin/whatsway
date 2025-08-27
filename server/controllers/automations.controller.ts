@@ -22,6 +22,7 @@ export const getAutomation = asyncHandler(async (req: Request, res: Response) =>
 });
 
 export const createAutomation = asyncHandler(async (req: RequestWithChannel, res: Response) => {
+  console.log('Request body:', req.body); // Debug log  
   const validatedAutomation = insertAutomationSchema.parse(req.body);
   
   // Get active channel if channelId not provided
