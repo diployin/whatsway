@@ -24,8 +24,8 @@ export const users = pgTable("users", {
 export const conversationAssignments = pgTable("conversation_assignments", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   conversationId: varchar("conversation_id").notNull().references(() => conversations.id, { onDelete: "cascade" }),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  assignedBy: varchar("assigned_by"),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade"  }),
+  assignedBy: varchar("assigned_by").references(() => users.id, { onDelete: "cascade" }),
   assignedAt: timestamp("assigned_at").defaultNow(),
   status: text("status").notNull().default("active"), // active, resolved, transferred
   priority: text("priority").default("normal"), // low, normal, high, urgent
@@ -360,7 +360,7 @@ export const messageQueue = pgTable("message_queue", {
 // API Request Logs for debugging
 export const apiLogs = pgTable("api_logs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  channelId: varchar("channel_id").references(() => whatsappChannels.id),
+  channelId: varchar("channel_id").references(() => channels.id),
   requestType: varchar("request_type", { length: 50 }).notNull(), // send_message, get_template, webhook_receive
   endpoint: text("endpoint").notNull(),
   method: varchar("method", { length: 10 }).notNull(),
@@ -614,7 +614,12 @@ export const messagesRelations = relations(messages, ({ one }) => ({
 }));
 
 export const usersRelations = relations(users, ({ many }) => ({
-  assignedConversations: many(conversationAssignments),
+  assignedConversations: many(conversationAssignments, {
+    relationName: "conversation_assigned_user", // matches user side
+  }),
+  assignedByConversations: many(conversationAssignments, {
+    relationName: "conversation_assigned_by_user", // matches assignedBy side
+  }),
   activityLogs: many(userActivityLogs),
 }));
 
@@ -626,12 +631,16 @@ export const conversationAssignmentsRelations = relations(conversationAssignment
   user: one(users, {
     fields: [conversationAssignments.userId],
     references: [users.id],
+    relationName: "conversation_assigned_user",
   }),
   assignedByUser: one(users, {
     fields: [conversationAssignments.assignedBy],
     references: [users.id],
+    relationName: "conversation_assigned_by_user",
   }),
 }));
+
+
 
 
 export const userActivityLogsRelations = relations(userActivityLogs, ({ one }) => ({
