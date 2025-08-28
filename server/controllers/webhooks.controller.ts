@@ -64,12 +64,12 @@ export const deleteWebhookConfig = asyncHandler(async (req: Request, res: Respon
 
 export const testWebhook = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-  
+  // console.log("Testing webhook for config ID:", id);
   const config = await storage.getWebhookConfig(id);
   if (!config) {
     throw new AppError(404, 'Webhook config not found');
   }
-  
+  // console.log("Webhook config:", config);
   // Send a test webhook event
   const testPayload = {
     entry: [{
@@ -87,7 +87,7 @@ export const testWebhook = asyncHandler(async (req: Request, res: Response) => {
       }]
     }]
   };
-  
+  // console.log("Sending test webhook to:", config.webhookUrl , testPayload);
   try {
     const response = await fetch(config.webhookUrl, {
       method: 'POST',
@@ -97,10 +97,10 @@ export const testWebhook = asyncHandler(async (req: Request, res: Response) => {
       body: JSON.stringify(testPayload)
     });
     
+    // console.log('Test :::==========>' , response);
     if (!response.ok) {
       throw new AppError(500, `Test webhook failed with status ${response.status}`);
     }
-    
     res.json({ success: true, message: 'Test webhook sent successfully' });
   } catch (error) {
     throw new AppError(500, `Failed to send test webhook: ${error.message}`);

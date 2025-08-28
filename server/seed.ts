@@ -73,6 +73,9 @@ async function seed() {
           'automations:create',
           'automations:edit',
           'automations:delete',
+
+          
+
         ]
         
       })

@@ -148,10 +148,7 @@ export default function TeamPage() {
   // Update member status mutation
   const updateStatusMutation = useMutation({
     mutationFn: async ({ memberId, status }: { memberId: string; status: string }) => {
-      return apiRequest(`/api/team/members/${memberId}/status`, {
-        method: "PATCH",
-        body: JSON.stringify({ status }),
-      });
+      return apiRequest("PATCH" ,`/api/team/members/${memberId}/status`, {status});
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/team/members"] });
@@ -305,7 +302,7 @@ export default function TeamPage() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={getStatusBadgeVariant(member.status)}>
+                          <Badge variant={getStatusBadgeVariant(member.status) || "default"}>
                             {member.status}
                           </Badge>
                         </TableCell>
@@ -555,6 +552,16 @@ const PERMISSION_GROUPS: PermissionGroup[] = [
       { "key": "settings:webhook", "label": "Webhook" },
       { "key": "settings:team", "label": "Team" },
       { "key": "settings:api", "label": "APIs" }
+    ]
+  },
+  {
+    "title": "automations",
+    "label": "Manage Automations",
+    "permissions": [
+      { "key": "automations:view", "label": "View" },
+      { "key": "automations:create", "label": "Create" },
+      { "key": "automations:edit", "label": "Edit" },
+      { "key": "automations:delete", "label": "Delete" }
     ]
   },
   {

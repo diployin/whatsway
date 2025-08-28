@@ -8,6 +8,20 @@
       "when": 1756298727325,
       "tag": "0000_happy_ogun",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1756359631387,
+      "tag": "0001_flimsy_nuke",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1756369837590,
+      "tag": "0002_vengeful_rhino",
+      "breakpoints": true
     }
   ]
 }

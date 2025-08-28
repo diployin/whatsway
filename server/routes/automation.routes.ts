@@ -58,7 +58,7 @@ export function registerAutomationRoutes(app: Express) {
   );
 
   // Toggle status active/inactive
-  app.patch(
+  app.post(
     "/api/automations/:id/toggle",
     requireAuth,
     extractChannelId,

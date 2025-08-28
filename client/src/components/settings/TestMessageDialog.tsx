@@ -38,7 +38,7 @@ export function TestMessageDialog({ open, onOpenChange, channelId }: TestMessage
         formattedPhone = '+' + formattedPhone;
       }
       
-      return await apiRequest("POST", `/api/channels/${channelId}/test`, {
+      return await apiRequest("POST", `/api/whatsapp/channels/${channelId}/test`, {
         phoneNumber: formattedPhone,
         message: testMessage,
       });

@@ -264,7 +264,7 @@ export class WhatsAppApiService {
       messaging_product: "whatsapp",
       ...payload
     };
-
+console.log('Sending direct WhatsApp message with payload:', body);
     const response = await fetch(
       `${this.baseUrl}/${this.channel.phoneNumberId}/messages`,
       {
@@ -280,6 +280,7 @@ export class WhatsAppApiService {
     }
 
     const data = await response.json();
+    console.log('Direct WhatsApp message sent successfully:', data);
     return { success: true, data };
   }
 

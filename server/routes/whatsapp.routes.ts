@@ -160,8 +160,6 @@ export function registerWhatsAppRoutes(app: Express) {
         }
         
         console.log("conversation start ===> "  , req.body)
-        
-
 
         
         // Find or create conversation
@@ -229,7 +227,7 @@ export function registerWhatsAppRoutes(app: Express) {
         return res.status(400).json({ message: "Channel is not configured for WhatsApp" });
       }
 
-      const testPhone = req.body.testPhone || "919310797700"; // Default test number
+      const testPhone = req.body.phoneNumber || "919310797700"; // Default test number
       
       // Test connection by sending hello_world template
       const result = await WhatsAppApiService.sendTemplateMessage(
@@ -242,7 +240,7 @@ export function registerWhatsAppRoutes(app: Express) {
       );
 
       // Log the API request
-      await storage.logApiRequest({
+      await storage.createApiLog({
         channelId: channel.id,
         requestType: "test_connection",
         endpoint: `https://graph.facebook.com/v22.0/${channel.phoneNumberId}/messages`,
@@ -258,7 +256,7 @@ export function registerWhatsAppRoutes(app: Express) {
         },
         responseStatus: 200,
         responseBody: result,
-        errorMessage: null
+        duration: 0
       });
 
       res.json({ success: true, message: "Test message sent successfully", result });
