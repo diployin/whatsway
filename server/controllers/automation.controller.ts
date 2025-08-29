@@ -19,12 +19,43 @@ import { storage } from "server/storage";
 export const getAutomations = asyncHandler(async (req: Request, res: Response) => {
   const channelId = req.query.channelId as string | undefined;
 
+  // Query with optional channelId filtering
   const rows = channelId
-    ? await db.select().from(automations).where(eq(automations.channelId, channelId))
-    : await db.select().from(automations);
+    ? await db.select()
+        .from(automations)
+        .leftJoin(automationNodes, eq(automations.id, automationNodes.automationId))
+        .where(eq(automations.channelId, channelId))
+    : await db.select()
+        .from(automations)
+        .leftJoin(automationNodes, eq(automations.id, automationNodes.automationId));
 
-  res.json(rows);
+  // Group by automation ID and collect nodes
+  const automationMap = new Map<string, any>();
+
+  for (const row of rows) {
+    const automation = row.automations;
+    const node = row.automation_nodes;
+
+    // If automation not already added, add it
+    if (!automationMap.has(automation.id)) {
+      automationMap.set(automation.id, {
+        ...automation,
+        automation_nodes: []
+      });
+    }
+
+    // If a node exists, add it to the automation's nodes
+    if (node && node.id) {
+      automationMap.get(automation.id).automation_nodes.push(node);
+    }
+  }
+
+  // Convert the Map to a plain array of objects
+  const result = Array.from(automationMap.values());
+
+  res.json(result);
 });
+
 
 // GET single automation (with nodes)
 export const getAutomation = asyncHandler(async (req: Request, res: Response) => {
@@ -96,6 +127,7 @@ export const updateAutomation = asyncHandler(async (req: Request, res: Response)
 // DELETE automation (cascade deletes nodes + executions due to schema)
 export const deleteAutomation = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
+  console.log("Deleting automation with id:", id); // Debug log
   const deleted = await db.delete(automations).where(eq(automations.id, id)).returning();
 
   if (!deleted.length) throw new AppError(404, "Automation not found");

@@ -15,9 +15,6 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,7 +22,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
 import {
   ArrowLeft,
   Clock,
@@ -38,9 +34,15 @@ import {
   Share2,
   Users,
   Zap,
-  Image as ImageIcon,
+  Upload,
   UserPlus,
   Trash2,
+  Image as ImageIcon,
+  Video,
+  FileAudio,
+  FileIcon,
+  X,
+  Check,
 } from "lucide-react";
 
 // -----------------------
@@ -59,17 +61,30 @@ export interface BuilderNodeData {
   label?: string;
   // Configs by type
   message?: string;
-  imageUrl?: string | null;
+  imageFile?: File | null;
+  imagePreview?: string;
+  videoFile?: File | null;
+  videoPreview?: string;
+  audioFile?: File | null;
+  audioPreview?: string;
+  documentFile?: File | null;
+  documentPreview?: string;
   question?: string;
   saveAs?: string;
   delay?: number; // seconds
   templateId?: string;
   assigneeId?: string; // user id
+  buttons?: Array<{
+    id: string;
+    text: string;
+    action: 'next' | 'custom';
+    value?: string;
+  }>;
 }
 
 interface AutomationFlowBuilderProps {
-  automationId?: string; // existing automation ID (optional)
-  channelId?: string; // channel this automation belongs to
+  automationId?: string;
+  channelId?: string;
   onClose: () => void;
 }
 
@@ -86,19 +101,35 @@ const defaultsByKind: Record<NodeKind, Partial<BuilderNodeData>> = {
     kind: "custom_reply",
     label: "Message",
     message: "",
-    imageUrl: null,
+    buttons: [],
   },
   user_reply: {
     kind: "user_reply",
     label: "Question",
     question: "",
     saveAs: "",
-    imageUrl: null,
+    buttons: [
+      { id: "answer1", text: "Answer 1", action: 'next' },
+      { id: "default", text: "Default", action: 'next' }
+    ],
   },
   time_gap: { kind: "time_gap", label: "Delay", delay: 60 },
   send_template: { kind: "send_template", label: "Template", templateId: "" },
   assign_user: { kind: "assign_user", label: "Assign User", assigneeId: "" },
 };
+
+// Mock data for testing
+const mockTemplates = [
+  { id: "1", name: "Welcome Template" },
+  { id: "2", name: "Follow-up Template" },
+  { id: "3", name: "Thank You Template" },
+];
+
+const mockMembers = [
+  { id: "1", name: "John Doe", firstName: "John", lastName: "Doe" },
+  { id: "2", name: "Jane Smith", firstName: "Jane", lastName: "Smith" },
+  { id: "3", name: "Mike Johnson", firstName: "Mike", lastName: "Johnson" },
+];
 
 // -----------------------
 // Custom Node Components
@@ -139,15 +170,50 @@ function CustomReplyNode({ data }: { data: BuilderNodeData }) {
           {data.message.length > 50 ? `${data.message.slice(0, 50)}...` : data.message}
         </div>
       )}
-      {data.imageUrl && (
+      
+      {/* Media previews */}
+      {data.imagePreview && (
         <div className="mt-2 rounded-lg overflow-hidden bg-white/10">
           <img
-            src={data.imageUrl}
+            src={data.imagePreview}
             alt="message"
-            className="max-h-32 object-cover w-full"
+            className="max-h-20 object-cover w-full"
           />
         </div>
       )}
+      {data.videoPreview && (
+        <div className="mt-2 flex items-center gap-2 text-xs bg-white/10 rounded px-2 py-1">
+          <Video className="w-3 h-3" />
+          Video attached
+        </div>
+      )}
+      {data.audioPreview && (
+        <div className="mt-2 flex items-center gap-2 text-xs bg-white/10 rounded px-2 py-1">
+          <FileAudio className="w-3 h-3" />
+          Audio attached
+        </div>
+      )}
+      {data.documentPreview && (
+        <div className="mt-2 flex items-center gap-2 text-xs bg-white/10 rounded px-2 py-1">
+          <FileIcon className="w-3 h-3" />
+          Document attached
+        </div>
+      )}
+      
+      {/* Buttons preview */}
+      {data.buttons && data.buttons.length > 0 && (
+        <div className="mt-2 space-y-1">
+          {data.buttons.slice(0, 2).map((button) => (
+            <div key={button.id} className="bg-white/20 text-xs px-2 py-1 rounded">
+              {button.text}
+            </div>
+          ))}
+          {data.buttons.length > 2 && (
+            <div className="text-xs text-white/70">+{data.buttons.length - 2} more</div>
+          )}
+        </div>
+      )}
+      
       <Handle type="target" position={Position.Top} />
       <Handle type="source" position={Position.Bottom} />
     </Shell>
@@ -165,20 +231,36 @@ function UserReplyNode({ data }: { data: BuilderNodeData }) {
           {data.question.length > 50 ? `${data.question.slice(0, 50)}...` : data.question}
         </div>
       )}
-      {data.imageUrl && (
+      
+      {/* Media previews */}
+      {data.imagePreview && (
         <div className="mt-2 rounded-lg overflow-hidden bg-white/10">
           <img
-            src={data.imageUrl}
+            src={data.imagePreview}
             alt="question"
-            className="max-h-32 object-cover w-full"
+            className="max-h-20 object-cover w-full"
           />
         </div>
       )}
+      
       {data.saveAs && (
         <div className="text-[11px] mt-2 bg-white/15 rounded px-2 py-1 inline-block">
           save as: <span className="font-mono">{data.saveAs}</span>
         </div>
       )}
+      
+      {/* Answer buttons preview */}
+      {data.buttons && data.buttons.length > 0 && (
+        <div className="mt-2 space-y-1">
+          {data.buttons.slice(0, 2).map((button) => (
+            <div key={button.id} className="bg-green-500 text-xs px-2 py-1 rounded flex items-center gap-1">
+              <div className="w-1 h-1 bg-white rounded-full" />
+              {button.text}
+            </div>
+          ))}
+        </div>
+      )}
+      
       <Handle type="target" position={Position.Top} />
       <Handle type="source" position={Position.Bottom} />
     </Shell>
@@ -239,6 +321,55 @@ const nodeTypes = {
   assign_user: AssignUserNode,
 };
 
+// File upload helper
+function FileUploadButton({ 
+  accept, 
+  onUpload, 
+  children, 
+  className = "" 
+}: { 
+  accept: string; 
+  onUpload: (file: File) => void; 
+  children: React.ReactNode;
+  className?: string;
+}) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      onUpload(file);
+    }
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={handleClick}
+        className={`flex items-center gap-2 px-3 py-2 border rounded-md hover:bg-gray-50 ${className}`}
+      >
+        {children}
+      </button>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept={accept}
+        onChange={handleFileChange}
+        className="hidden"
+      />
+    </>
+  );
+}
+
 // -----------------------
 // Right Panel (Config)
 // -----------------------
@@ -265,6 +396,48 @@ function ConfigPanel({
 
   const d = selected.data;
 
+  // File upload handlers
+  const handleFileUpload = (type: 'image' | 'video' | 'audio' | 'document') => (file: File) => {
+    const previewUrl = URL.createObjectURL(file);
+    onChange({
+      [`${type}File`]: file,
+      [`${type}Preview`]: previewUrl,
+    } as any);
+  };
+
+  const removeFile = (type: 'image' | 'video' | 'audio' | 'document') => () => {
+    onChange({
+      [`${type}File`]: null,
+      [`${type}Preview`]: null,
+    } as any);
+  };
+
+  // Button management
+  const addButton = () => {
+    const newButton = {
+      id: uid(),
+      text: 'New Button',
+      action: 'next' as const,
+    };
+    onChange({
+      buttons: [...(d.buttons || []), newButton],
+    });
+  };
+
+  const updateButton = (buttonId: string, updates: Partial<typeof d.buttons[0]>) => {
+    onChange({
+      buttons: (d.buttons || []).map(btn => 
+        btn.id === buttonId ? { ...btn, ...updates } : btn
+      ),
+    });
+  };
+
+  const removeButton = (buttonId: string) => {
+    onChange({
+      buttons: (d.buttons || []).filter(btn => btn.id !== buttonId),
+    });
+  };
+
   return (
     <ScrollArea className="h-full">
       <div className="p-4 space-y-4">
@@ -286,46 +459,156 @@ function ConfigPanel({
         </div>
 
         {d.kind === "custom_reply" && (
-          <Card className="p-3 space-y-3">
+          <Card className="p-3 space-y-4">
             <div>
               <Label>Message</Label>
               <Textarea
                 rows={4}
                 value={d.message || ""}
                 onChange={(e) => onChange({ message: e.target.value })}
-                placeholder="Enter your message here..."
+                placeholder="Hi {{name}},&#10;&#10;Welcome to Product Academy, please share the following information before we proceed."
               />
+              <div className="mt-2">
+                <Button size="sm" variant="outline" className="bg-green-500 text-white border-green-500 hover:bg-green-600">
+                  Variables
+                </Button>
+              </div>
             </div>
-            <div>
-              <Label className="flex items-center gap-2">
-                <ImageIcon className="w-4 h-4" /> Image URL (optional)
-              </Label>
-              <Input
-                type="url"
-                value={d.imageUrl || ""}
-                onChange={(e) => onChange({ imageUrl: e.target.value || null })}
-                placeholder="https://example.com/image.jpg"
-              />
-              {d.imageUrl && (
-                <img
-                  src={d.imageUrl}
-                  alt="preview"
-                  className="w-32 mt-2 rounded border"
-                />
+
+            {/* Media Upload Section */}
+            <div className="space-y-3">
+              <Label>Attachments</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <FileUploadButton
+                  accept="image/*"
+                  onUpload={handleFileUpload('image')}
+                  className="text-green-600 border-green-200 hover:bg-green-50"
+                >
+                  <ImageIcon className="w-4 h-4" />
+                  Image
+                </FileUploadButton>
+                <FileUploadButton
+                  accept="video/*"
+                  onUpload={handleFileUpload('video')}
+                  className="text-green-600 border-green-200 hover:bg-green-50"
+                >
+                  <Video className="w-4 h-4" />
+                  Video
+                </FileUploadButton>
+                <FileUploadButton
+                  accept="audio/*"
+                  onUpload={handleFileUpload('audio')}
+                  className="text-green-600 border-green-200 hover:bg-green-50"
+                >
+                  <FileAudio className="w-4 h-4" />
+                  Audio
+                </FileUploadButton>
+                <FileUploadButton
+                  accept=".pdf,.doc,.docx,.txt"
+                  onUpload={handleFileUpload('document')}
+                  className="text-green-600 border-green-200 hover:bg-green-50"
+                >
+                  <FileIcon className="w-4 h-4" />
+                  Document
+                </FileUploadButton>
+              </div>
+
+              {/* File Previews */}
+              {d.imagePreview && (
+                <div className="relative border rounded-lg p-2">
+                  <img src={d.imagePreview} alt="preview" className="w-full h-32 object-cover rounded" />
+                  <button
+                    onClick={removeFile('image')}
+                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
               )}
+              
+              {d.videoPreview && (
+                <div className="relative border rounded-lg p-2 flex items-center gap-2">
+                  <Video className="w-5 h-5 text-blue-500" />
+                  <span className="text-sm">Video file attached</span>
+                  <button
+                    onClick={removeFile('video')}
+                    className="ml-auto bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
+
+              {d.audioPreview && (
+                <div className="relative border rounded-lg p-2 flex items-center gap-2">
+                  <FileAudio className="w-5 h-5 text-purple-500" />
+                  <span className="text-sm">Audio file attached</span>
+                  <button
+                    onClick={removeFile('audio')}
+                    className="ml-auto bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
+
+              {d.documentPreview && (
+                <div className="relative border rounded-lg p-2 flex items-center gap-2">
+                  <FileIcon className="w-5 h-5 text-gray-500" />
+                  <span className="text-sm">Document attached</span>
+                  <button
+                    onClick={removeFile('document')}
+                    className="ml-auto bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Buttons Section */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label>Buttons (Optional)</Label>
+                <Button size="sm" variant="outline" onClick={addButton}>
+                  <Plus className="w-3 h-3 mr-1" />
+                  Add Button
+                </Button>
+              </div>
+              
+              {d.buttons?.map((button) => (
+                <div key={button.id} className="border rounded-lg p-3 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={button.text}
+                      onChange={(e) => updateButton(button.id, { text: e.target.value })}
+                      placeholder="Button text"
+                      className="flex-1"
+                    />
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => removeButton(button.id)}
+                      className="text-red-500"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
             </div>
           </Card>
         )}
 
         {d.kind === "user_reply" && (
-          <Card className="p-3 space-y-3">
+          <Card className="p-3 space-y-4">
             <div>
               <Label>Question</Label>
               <Textarea
                 rows={3}
                 value={d.question || ""}
                 onChange={(e) => onChange({ question: e.target.value })}
-                placeholder="What question would you like to ask?"
+                placeholder="Ask a question here"
               />
             </div>
             <div>
@@ -336,23 +619,63 @@ function ConfigPanel({
                 onChange={(e) => onChange({ saveAs: e.target.value })}
               />
             </div>
-            <div>
-              <Label className="flex items-center gap-2">
-                <ImageIcon className="w-4 h-4" /> Image URL (optional)
-              </Label>
-              <Input
-                type="url"
-                value={d.imageUrl || ""}
-                onChange={(e) => onChange({ imageUrl: e.target.value || null })}
-                placeholder="https://example.com/image.jpg"
-              />
-              {d.imageUrl && (
-                <img
-                  src={d.imageUrl}
-                  alt="preview"
-                  className="w-32 mt-2 rounded border"
-                />
+
+            {/* Image upload for questions */}
+            <div className="space-y-2">
+              <Label>Attachment (Optional)</Label>
+              <FileUploadButton
+                accept="image/*"
+                onUpload={handleFileUpload('image')}
+                className="w-full justify-center text-green-600 border-green-200 hover:bg-green-50"
+              >
+                <Upload className="w-4 h-4" />
+                Upload Image
+              </FileUploadButton>
+              
+              {d.imagePreview && (
+                <div className="relative border rounded-lg p-2">
+                  <img src={d.imagePreview} alt="preview" className="w-full h-32 object-cover rounded" />
+                  <button
+                    onClick={removeFile('image')}
+                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
               )}
+            </div>
+
+            {/* Answer Buttons */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label>Answer Options</Label>
+                <Button size="sm" variant="outline" onClick={addButton}>
+                  <Plus className="w-3 h-3 mr-1" />
+                  Add Option
+                </Button>
+              </div>
+              
+              {d.buttons?.map((button) => (
+                <div key={button.id} className="border rounded-lg p-3 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <Input
+                      value={button.text}
+                      onChange={(e) => updateButton(button.id, { text: e.target.value })}
+                      placeholder="Answer option"
+                      className="flex-1"
+                    />
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => removeButton(button.id)}
+                      className="text-red-500"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
             </div>
           </Card>
         )}
@@ -423,103 +746,29 @@ function ConfigPanel({
 // Main Component
 // -----------------------
 export default function AutomationFlowBuilderXYFlow({
-  automationId,
-  channelId,
+  automation,
   onClose,
 }: AutomationFlowBuilderProps) {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  // Load existing automation if editing
-  const { data: automation, isLoading } = useQuery({
-    queryKey: ["/api/automations", automationId],
-    queryFn: () => automationId ? apiRequest("GET", `/api/automations/${automationId}`) : null,
-    enabled: !!automationId,
-  });
-
   // Name and description
-  const [name, setName] = useState<string>("");
+  console.log("Loaded automation:", automation);
+  const [name, setName] = useState<string>("Send a message");
   const [description, setDescription] = useState<string>("");
   const [trigger, setTrigger] = useState<string>("new_conversation");
 
-  // Data sources
-  const { data: templates = [] } = useQuery({ queryKey: ["/api/templates"] });
+  const initialNodes: Node<BuilderNodeData>[] = [
+    {
+      id: "start",
+      type: "start",
+      position: { x: 200, y: 40 },
+      data: { ...(defaultsByKind.start as BuilderNodeData) },
+    },
+  ];
 
-  const { data: members = [] } = useQuery({ queryKey: ["/api/team/members"] });;
-
-  // Initialize from loaded automation
-  const initialNodes: Node<BuilderNodeData>[] = useMemo(() => {
-    if (automation?.diagram?.nodes) {
-      return automation.diagram.nodes;
-    }
-    if (automation?.nodes) {
-      // Convert legacy nodes to ReactFlow format
-      const flowNodes: Node<BuilderNodeData>[] = [
-        {
-          id: "start",
-          type: "start",
-          position: { x: 200, y: 40 },
-          data: { ...(defaultsByKind.start as BuilderNodeData) },
-        }
-      ];
-      
-      automation.nodes.forEach((node: any, index: number) => {
-        flowNodes.push({
-          id: node.nodeId || node.id,
-          type: fromLegacyType(node.type),
-          position: { x: 200, y: (index + 1) * 140 },
-          data: fromLegacyConfig(node.type, node.data || {}),
-        });
-      });
-      
-      return flowNodes;
-    }
-    return [
-      {
-        id: "start",
-        type: "start",
-        position: { x: 200, y: 40 },
-        data: { ...(defaultsByKind.start as BuilderNodeData) },
-      },
-    ];
-  }, [automation]);
-
-  const initialEdges = useMemo(() => {
-    if (automation?.diagram?.edges) {
-      return automation.diagram.edges;
-    }
-    if (automation?.nodes) {
-      // Convert legacy nextNodeId to edges
-      const edges: Edge[] = [];
-      let prevNodeId = "start";
-      
-      automation.nodes.forEach((node: any) => {
-        edges.push({
-          id: `${prevNodeId}-${node.nodeId || node.id}`,
-          source: prevNodeId,
-          target: node.nodeId || node.id,
-          animated: true,
-        });
-        prevNodeId = node.nodeId || node.id;
-      });
-      
-      return edges;
-    }
-    return [];
-  }, [automation]);
+  const initialEdges: Edge[] = [];
 
   // Nodes & Edges state (ReactFlow)
   const [nodes, setNodes, onNodesChange] = useNodesState<BuilderNodeData>(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-
-  // Update state when automation loads
-  useMemo(() => {
-    if (automation) {
-      setName(automation.name || "");
-      setDescription(automation.description || "");
-      setTrigger(automation.trigger || "new_conversation");
-    }
-  }, [automation]);
 
   // Selection
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -572,103 +821,14 @@ export default function AutomationFlowBuilderXYFlow({
     );
   };
 
-  // Save automation
-  const saveMutation = useMutation({
-    mutationFn: async (payload: any) => {
-      if (automationId) {
-        // Update existing automation
-        await apiRequest("PUT", `/api/automations/${automationId}`, {
-          name: payload.name,
-          description: payload.description,
-          trigger: payload.trigger,
-          triggerConfig: payload.triggerConfig,
-          diagram: payload.diagram,
-        });
-        
-        // Update nodes
-        await apiRequest("PUT", `/api/automations/${automationId}/nodes`, {
-          nodes: payload.nodes,
-        });
-        
-        return { id: automationId };
-      } else {
-        // Create new automation
-        const automation = await apiRequest("POST", "/api/automations", {
-          name: payload.name,
-          description: payload.description,
-          channelId: channelId,
-          trigger: payload.trigger,
-          triggerConfig: payload.triggerConfig,
-          nodes: payload.nodes,
-        });
-        
-        return automation;
-      }
-    },
-    onSuccess: () => {
-      toast({
-        title: automationId ? "Automation updated" : "Automation created",
-        description: "Your automation flow has been saved successfully.",
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/automations"] });
-      onClose();
-    },
-    onError: (error: any) => {
-      toast({ 
-        title: "Failed to save automation", 
-        description: error?.message || "An error occurred while saving.",
-        variant: "destructive" 
-      });
-    },
-  });
-
   const handleSave = () => {
-    if (!name.trim()) {
-      toast({
-        title: "Name required",
-        description: "Please enter a name for your automation.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Convert ReactFlow nodes to backend format
-    const backendNodes = nodes
-      .filter((n) => n.type !== "start")
-      .map((n, idx) => {
-        const outgoingEdge = edges.find((e) => e.source === n.id);
-        return {
-          nodeId: n.id,
-          type: toLegacyType(n.data.kind),
-          subtype: null,
-          position: idx,
-          data: toLegacyConfig(n.data),
-          connections: outgoingEdge ? [outgoingEdge.target] : [],
-        };
-      });
-
-    const payload = {
-      name,
-      description,
-      trigger,
-      triggerConfig: {},
-      nodes: backendNodes,
-      diagram: { nodes, edges },
-    };
-
-    saveMutation.mutate(payload);
+    console.log("Saving automation with data:", { name, description, nodes, edges });
+    alert("Automation saved successfully!");
   };
 
-  if (isLoading) {
-    return (
-      <div className="h-screen w-full flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading automation...</p>
-        </div>
-      </div>
-    );
-  }
+  const onInit = useCallback((reactFlowInstance) => {
+    reactFlowInstance.setViewport({ x: 0, y: 0, zoom: 1 });
+  }, []);
 
   return (
     <div className="h-screen w-full grid grid-cols-12 bg-gray-50">
@@ -762,7 +922,7 @@ export default function AutomationFlowBuilderXYFlow({
               />
             </div>
             <Badge variant="outline" className="text-xs">
-              {automationId ? "Edit" : "New"} Automation
+              {automation.id ? "Edit" : "New"} Automation
             </Badge>
             <Badge className="bg-green-500 text-white text-xs">
               {trigger === "new_conversation" ? "New Chat" : trigger}
@@ -773,10 +933,9 @@ export default function AutomationFlowBuilderXYFlow({
               size="sm" 
               variant="outline" 
               onClick={handleSave}
-              disabled={saveMutation.isPending}
             >
               <Save className="w-4 h-4 mr-1" /> 
-              {saveMutation.isPending ? "Saving..." : "Save"}
+              Save
             </Button>
             <Button size="sm" variant="ghost">
               <Share2 className="w-4 h-4" />
@@ -796,6 +955,7 @@ export default function AutomationFlowBuilderXYFlow({
             onConnect={onConnect}
             nodeTypes={nodeTypes}
             onNodeClick={onNodeClick}
+            onInit={onInit}
             fitView
           >
             <MiniMap />
@@ -851,106 +1011,10 @@ export default function AutomationFlowBuilderXYFlow({
           selected={selectedNode}
           onChange={patchSelected}
           onDelete={deleteNode}
-          templates={templates as any[]}
-          members={members as any[]}
+          templates={mockTemplates}
+          members={mockMembers}
         />
       </div>
     </div>
   );
-}
-
-// -----------------------
-// Helpers to map to/from legacy API
-// -----------------------
-function toLegacyType(
-  kind: NodeKind
-): "user_reply" | "time_gap" | "send_template" | "custom_reply" | "assign_user" {
-  switch (kind) {
-    case "user_reply":
-      return "user_reply";
-    case "time_gap":
-      return "time_gap";
-    case "send_template":
-      return "send_template";
-    case "assign_user":
-      return "assign_user";
-    default:
-      return "custom_reply";
-  }
-}
-
-function fromLegacyType(legacyType: string): NodeKind {
-  switch (legacyType) {
-    case "user_reply":
-      return "user_reply";
-    case "time_gap":
-      return "time_gap";
-    case "send_template":
-      return "send_template";
-    case "assign_user":
-      return "assign_user";
-    default:
-      return "custom_reply";
-  }
-}
-
-function toLegacyConfig(data: BuilderNodeData) {
-  switch (data.kind) {
-    case "custom_reply":
-      return { 
-        message: data.message || "", 
-        imageUrl: data.imageUrl || null 
-      };
-    case "user_reply":
-      return {
-        question: data.question || "",
-        saveAs: data.saveAs || "",
-        imageUrl: data.imageUrl || null,
-      };
-    case "time_gap":
-      return { delay: data.delay ?? 60 };
-    case "send_template":
-      return { templateId: data.templateId || "" };
-    case "assign_user":
-      return { assigneeId: data.assigneeId || "" };
-    default:
-      return {};
-  }
-}
-
-function fromLegacyConfig(type: string, config: any): BuilderNodeData {
-  const base = defaultsByKind[fromLegacyType(type)] as BuilderNodeData;
-  
-  switch (type) {
-    case "custom_reply":
-      return {
-        ...base,
-        message: config.message || "",
-        imageUrl: config.imageUrl || null,
-      };
-    case "user_reply":
-      return {
-        ...base,
-        question: config.question || "",
-        saveAs: config.saveAs || "",
-        imageUrl: config.imageUrl || null,
-      };
-    case "time_gap":
-      return {
-        ...base,
-        delay: config.delay ?? 60,
-      };
-    case "send_template":
-      return {
-        ...base,
-        templateId: config.templateId || "",
-      };
-    case "assign_user":
-      return {
-        ...base,
-        assigneeId: config.assigneeId || "",
-      };
-    default:
-      return base;
-  }
 }

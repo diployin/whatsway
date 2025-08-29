@@ -94,6 +94,12 @@ pm2 save
 pm2 startup
 ```
 
+Install nginx (If not install):
+```bash
+sudo apt install nginx -y
+sudo systemctl status nginx
+```
+
 #### Step 6: Nginx Configuration
 ```nginx
 server {
