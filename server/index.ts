@@ -12,6 +12,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+console.log("ENV::", process.env.NODE_ENV ,process.env.FORCE_HTTPS);
 // Set up session management
 const PostgresSessionStore = connectPgSimple(session);
 app.use(
@@ -25,7 +26,7 @@ app.use(
     saveUninitialized: false,
     cookie: {
       // secure: false,
-      secure: process.env.NODE_ENV === "production",
+      secure: process.env.NODE_ENV === "production" && process.env.FORCE_HTTPS !== "false",
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000, // 24 hour
       // maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days

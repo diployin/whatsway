@@ -144,8 +144,9 @@ router.post("/logout", (req, res) => {
 
 // Get current user
 router.get("/me", async (req, res) => {
+  console.log("Fetching current user" , req.session);
   const user = (req as any).session?.user;
-
+console.log("Session user:", user);
   if (!user) {
     return res.status(401).json({ error: "Not authenticated" });
   }
