@@ -160,9 +160,6 @@ export class DatabaseStorage implements IStorage {
     return this.channelRepo.getActive();
   }
 
-  async getActiveChannel(): Promise<Channel | undefined> {
-    return this.channelRepo.getActive();
-  }
 
   // Templates
   async getTemplates(): Promise<Template[]> {
@@ -281,9 +278,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Analytics
-  async getAnalytics(days?: number): Promise<Analytics[]> {
-    return this.analyticsRepo.getAnalytics(days);
-  }
+  // async getAnalytics(days?: number): Promise<Analytics[]> {
+  //   return this.analyticsRepo.getAnalytics(days);
+  // }
 
   async createOrUpdateAnalytics(insertAnalytics: InsertAnalytics): Promise<Analytics> {
     return this.analyticsRepo.createOrUpdate(insertAnalytics);
