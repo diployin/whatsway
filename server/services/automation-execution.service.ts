@@ -8,6 +8,8 @@ import {
   automationEdges,
 } from "@shared/schema";
 import { eq, and } from "drizzle-orm";
+import { sendBusinessMessage } from "../services/messageService";
+
 
 interface ExecutionContext {
   executionId: string;
@@ -185,13 +187,14 @@ export class AutomationExecutionService {
     console.log(`Sending message to conversation ${context.conversationId}: "${message}"`);
     
     // TODO: Replace with your actual messaging service
-    // if (context.conversationId) {
-    //   await messageService.sendMessage(context.conversationId, {
-    //     content: message,
-    //     sender: 'bot',
-    //     imageUrl: node.data.imageUrl
-    //   });
-    // }
+    if (context.variables?.to) {
+        await sendBusinessMessage({
+          to: context.variables.to,  // make sure you pass recipient
+          message,
+          channelId: context.variables.channelId, // optional
+        });
+      }
+    
     
     // Mock implementation for now
     console.log(`✅ Message sent: ${message}`);
@@ -269,11 +272,15 @@ export class AutomationExecutionService {
     }
     
     console.log(`📄 Sending template ${templateId} to conversation ${context.conversationId}`);
-    
-    // TODO: Load and send template
-    // const template = await templateService.getTemplate(templateId);
-    // const processedContent = this.replaceVariables(template.content, context.variables);
-    // await messageService.sendMessage(context.conversationId, processedContent);
+
+    if (context.variables?.to) {
+      await sendBusinessMessage({
+        to: context.variables.to,
+        templateName: templateId,
+        parameters: node.data?.parameters || [],
+        channelId: context.variables.channelId,
+      });
+    }
     
     console.log(`✅ Template sent: ${templateId}`);
     
