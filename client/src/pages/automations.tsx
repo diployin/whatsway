@@ -4,7 +4,7 @@ import { queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Bot, Play, Pause, Trash2, Edit } from "lucide-react";
+import { Plus, Bot, Play, Pause, Trash2, Edit, LucideTestTube } from "lucide-react";
 import { format } from "date-fns";
 import AutomationFlowBuilder from "@/components/automation-flow-builder-new";
 import { Badge } from "@/components/ui/badge";
@@ -87,6 +87,32 @@ export default function Automations() {
     setShowFlowBuilder(true);
   };
 
+
+  const handleTest = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/automations/${id}/test`, {
+        method: "POST",
+        credentials: "include",
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to test automation");
+      }
+  
+      return response.json(); // assuming response has a useful payload
+    },
+    onSuccess: (data) => {
+      console.log("Automation test result:", data);
+      toast({ title: "Automation tested successfully" });
+    },
+    onError: () => {
+      toast({
+        title: "Failed to test automation",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleCloseFlowBuilder = () => {
     setShowFlowBuilder(false);
     setSelectedAutomation(null);
@@ -160,10 +186,19 @@ export default function Automations() {
                 </div>
 
                 <div className="flex items-center gap-2">
+  <Button
+    variant="outline"
+    size="sm"
+    onClick={() => handleTest.mutate(automation.id)}
+    data-testid={`button-test-${automation.id}`}
+    aria-label="Test automation"
+  >
+    <LucideTestTube className="h-4 w-4" />
+  </Button>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleEdit(automation)}
+                    onClick={() => handleEdit(automation.id)}
                     data-testid={`button-edit-${automation.id}`}
                   >
                     <Edit className="h-4 w-4" />

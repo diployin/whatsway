@@ -4,7 +4,25 @@ import type { Express } from "express";
 import { insertAutomationSchema, insertAutomationNodeSchema } from "@shared/schema";
 import { requireAuth } from "../middlewares/auth.middleware";
 import { extractChannelId } from "../middlewares/channel.middleware";
-import * as automationController from "../controllers/automation.controller";
+// import * as automationController from "../controllers/automation.controller";
+
+import {
+  getAutomations,
+  getAutomation,
+  createAutomation,
+  updateAutomation,
+  deleteAutomation,
+  toggleAutomation,
+  saveAutomationNodes,
+  saveAutomationEdges,
+  startAutomationExecution,
+  logAutomationNodeExecution,
+  testAutomation,
+  getExecutionStatus,
+  getAutomationExecutions,
+  triggerNewConversation,
+  triggerMessageReceived
+} from "../controllers/automation.controller";
 
 // Schema for automation + nodes (used for builder save)
 const automationWithNodesSchema = z.object({
@@ -22,7 +40,7 @@ export function registerAutomationRoutes(app: Express) {
     "/api/automations",
     requireAuth,
     extractChannelId,
-    automationController.getAutomations
+    getAutomations
   );
 
   // Get single automation with nodes
@@ -30,7 +48,7 @@ export function registerAutomationRoutes(app: Express) {
     "/api/automations/:id",
     requireAuth,
     extractChannelId,
-    automationController.getAutomation
+    getAutomation
   );
 
   // Create automation
@@ -38,7 +56,7 @@ export function registerAutomationRoutes(app: Express) {
     "/api/automations",
     requireAuth,
     extractChannelId,
-    automationController.createAutomation
+    createAutomation
   );
 
   // Update automation
@@ -46,7 +64,7 @@ export function registerAutomationRoutes(app: Express) {
     "/api/automations/:id",
     requireAuth,
     extractChannelId,
-    automationController.updateAutomation
+    updateAutomation
   );
 
   // Delete automation
@@ -54,7 +72,7 @@ export function registerAutomationRoutes(app: Express) {
     "/api/automations/:id",
     requireAuth,
     extractChannelId,
-    automationController.deleteAutomation
+    deleteAutomation
   );
 
   // Toggle status active/inactive
@@ -62,7 +80,7 @@ export function registerAutomationRoutes(app: Express) {
     "/api/automations/:id/toggle",
     requireAuth,
     extractChannelId,
-    automationController.toggleAutomation
+    toggleAutomation
   );
 
   //
@@ -74,7 +92,7 @@ export function registerAutomationRoutes(app: Express) {
     "/api/automations/:automationId/nodes",
     requireAuth,
     extractChannelId,
-    automationController.saveAutomationNodes
+    saveAutomationNodes
   );
 
     // Save automation edges (bulk replace from builder)
@@ -82,7 +100,7 @@ export function registerAutomationRoutes(app: Express) {
     "/api/automations/:automationId/edges",
     requireAuth,
     extractChannelId,
-    automationController.saveAutomationNodes
+    saveAutomationNodes
   );
 
   //
@@ -94,7 +112,7 @@ export function registerAutomationRoutes(app: Express) {
     "/api/automations/:automationId/executions",
     requireAuth,
     extractChannelId,
-    automationController.startAutomationExecution
+    startAutomationExecution
   );
 
   // Log node execution (worker will call this per node)
@@ -102,6 +120,34 @@ export function registerAutomationRoutes(app: Express) {
     "/api/automations/executions/:executionId/logs",
     requireAuth,
     extractChannelId,
-    automationController.logAutomationNodeExecution
+    logAutomationNodeExecution
   );
+
+
+
+// app.get("/", getAutomations);
+// app.get("/:id", getAutomation);
+// app.post("/", createAutomation);
+// app.put("/:id", updateAutomation);
+// app.delete("/:id", deleteAutomation);
+// app.patch("/:id/toggle", toggleAutomation);
+
+// Node and Edge Management
+// app.post("/:automationId/nodes", saveAutomationNodes);
+// app.post("/:automationId/edges", saveAutomationEdges);
+
+// Execution
+app.post("/api/automations/:automationId/execute", startAutomationExecution);
+app.post("/api/automations/:id/test", testAutomation); // NEW: Manual test
+app.get("/api/automations/:id/executions", getAutomationExecutions); // NEW: Get execution history
+app.get("/api/automations/executions/:executionId/status", getExecutionStatus); // NEW: Get execution status
+
+// Logging
+app.post("/api/automations/executions/:executionId/logs", logAutomationNodeExecution);
+
+// Triggers (these would typically be called from other parts of your app)
+app.post("/api/automations/triggers/new-conversation", triggerNewConversation);
+app.post("/api/automations/triggers/message-received", triggerMessageReceived);
+
+
 }

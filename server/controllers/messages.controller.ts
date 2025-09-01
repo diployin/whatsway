@@ -5,6 +5,7 @@ import { AppError, asyncHandler } from '../middlewares/error.middleware';
 import { WhatsAppApiService } from '../services/whatsapp-api';
 import type { RequestWithChannel } from '../middlewares/channel.middleware';
 import { randomUUID } from 'crypto';
+import { triggerService } from "../services/automation-execution.service";
 
 export const getMessages = asyncHandler(async (req: Request, res: Response) => {
   const { conversationId } = req.params;
@@ -84,6 +85,20 @@ export const createMessage = asyncHandler(async (req: Request, res: Response) =>
     });
     
     const message = await storage.createMessage(validatedMessage);
+
+      // 🎯 TRIGGER MESSAGE-BASED AUTOMATIONS
+  try {
+    await triggerService.handleMessageReceived(
+      conversationId,
+      message,
+      conversation.channelId,
+      conversation.contactId
+    );
+    console.log(`Triggered automations for message: ${message.id}`);
+  } catch (error) {
+    console.error(`Failed to trigger message automations:`, error);
+    // Don't fail message handling if automation fails
+  }
     
     // Update conversation's last message
     await storage.updateConversation(conversationId, {

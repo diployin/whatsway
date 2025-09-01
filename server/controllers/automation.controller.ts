@@ -11,6 +11,7 @@ import {
 import { eq } from "drizzle-orm";
 import { AppError, asyncHandler } from "../middlewares/error.middleware";
 import { storage } from "server/storage";
+import { executionService } from "server/services/automation-execution.service";
 
 //
 // ─── AUTOMATIONS (flows) ───────────────────────────────────────────────
@@ -298,22 +299,22 @@ export const saveAutomationEdges = asyncHandler(async (req: Request, res: Respon
 //
 
 // Start execution for a contact/conversation
-export const startAutomationExecution = asyncHandler(async (req: Request, res: Response) => {
-  const { automationId } = req.params;
-  const { contactId, conversationId, triggerData } = req.body;
+// export const startAutomationExecution = asyncHandler(async (req: Request, res: Response) => {
+//   const { automationId } = req.params;
+//   const { contactId, conversationId, triggerData } = req.body;
 
-  const [execution] = await db.insert(automationExecutions).values({
-    automationId,
-    contactId,
-    conversationId,
-    triggerData,
-    status: "running",
-  }).returning();
+//   const [execution] = await db.insert(automationExecutions).values({
+//     automationId,
+//     contactId,
+//     conversationId,
+//     triggerData,
+//     status: "running",
+//   }).returning();
 
-  // TODO: kick off worker/queue to actually run nodes step-by-step
+//   // TODO: kick off worker/queue to actually run nodes step-by-step
 
-  res.status(201).json(execution);
-});
+//   res.status(201).json(execution);
+// });
 
 // Log node execution (for debugging/history)
 export const logAutomationNodeExecution = asyncHandler(async (req: Request, res: Response) => {
@@ -331,4 +332,186 @@ export const logAutomationNodeExecution = asyncHandler(async (req: Request, res:
   }).returning();
 
   res.status(201).json(log);
+});
+
+
+
+// UPDATED: Start execution for a contact/conversation
+export const startAutomationExecution = asyncHandler(async (req: Request, res: Response) => {
+  const { automationId } = req.params;
+  const { contactId, conversationId, triggerData } = req.body;
+
+  // Create execution record
+  const [execution] = await db.insert(automationExecutions).values({
+    automationId,
+    contactId,
+    conversationId,
+    triggerData,
+    status: "running",
+  }).returning();
+
+  // Start actual execution using the service
+  try {
+    // Execute in background (don't await to avoid timeout)
+    executionService.executeAutomation(execution.id).catch((error) => {
+      console.error(`Background execution failed for ${execution.id}:`, error);
+    });
+
+    res.status(201).json({
+      ...execution,
+      message: "Execution started successfully"
+    });
+  } catch (error) {
+    console.error(`Failed to start execution:`, error);
+    
+    // Update execution status to failed
+    await db.update(automationExecutions)
+      .set({ 
+        status: 'failed', 
+        completedAt: new Date(),
+        result: error.message 
+      })
+      .where(eq(automationExecutions.id, execution.id));
+
+    throw new AppError(500, `Failed to start automation execution: ${error.message}`);
+  }
+});
+
+// NEW: Manual test endpoint
+export const testAutomation = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  console.log("Testing automation with id:", id, "Body:", req.body); // Debug log
+  const { conversationId = 'b87e327e-3d11-4eb3-af99-cf44d6300bb5', contactId = 'e86df250-b192-45ef-9d9a-9aa23326c031' } = req.body;
+
+  // Check if automation exists and is active
+  const automation = await db.query.automations.findFirst({
+    where: eq(automations.id, id),
+  });
+
+  if (!automation) {
+    throw new AppError(404, "Automation not found");
+  }
+
+  // Create test execution
+  const [execution] = await db.insert(automationExecutions).values({
+    automationId: id,
+    contactId,
+    conversationId,
+    triggerData: {
+      trigger: 'manual_test',
+      timestamp: new Date(),
+      testMode: true
+    },
+    status: "running",
+  }).returning();
+
+  try {
+    // Start execution
+    executionService.executeAutomation(execution.id).catch((error) => {
+      console.error(`Test execution failed for ${execution.id}:`, error);
+    });
+
+    res.status(200).json({
+      success: true,
+      execution,
+      message: `Test execution started for automation: ${automation.name}`
+    });
+  } catch (error) {
+    await db.update(automationExecutions)
+      .set({ 
+        status: 'failed', 
+        completedAt: new Date(),
+        result: error.message 
+      })
+      .where(eq(automationExecutions.id, execution.id));
+
+    throw new AppError(500, `Test execution failed: ${error.message}`);
+  }
+});
+
+// NEW: Get execution status and logs
+export const getExecutionStatus = asyncHandler(async (req: Request, res: Response) => {
+  const { executionId } = req.params;
+
+  // Get execution
+  const execution = await db.query.automationExecutions.findFirst({
+    where: eq(automationExecutions.id, executionId),
+  });
+
+  if (!execution) {
+    throw new AppError(404, "Execution not found");
+  }
+
+  // Get logs
+  const logs = await db.select()
+    .from(automationExecutionLogs)
+    .where(eq(automationExecutionLogs.executionId, executionId))
+    .orderBy(automationExecutionLogs.createdAt);
+
+  res.json({
+    execution,
+    logs,
+    logCount: logs.length
+  });
+});
+
+// NEW: Get automation execution history
+export const getAutomationExecutions = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { limit = 10, offset = 0 } = req.query;
+
+  const executions = await db.select()
+    .from(automationExecutions)
+    .where(eq(automationExecutions.automationId, id))
+    .limit(parseInt(limit as string))
+    .offset(parseInt(offset as string))
+    .orderBy(automationExecutions.createdAt);
+
+  res.json(executions);
+});
+
+// NEW: Trigger automation for new conversation (call this from your conversation controller)
+export const triggerNewConversation = asyncHandler(async (req: Request, res: Response) => {
+  const { conversationId, channelId, contactId } = req.body;
+
+  if (!conversationId || !channelId) {
+    throw new AppError(400, "conversationId and channelId are required");
+  }
+
+  try {
+    await triggerService.handleNewConversation(conversationId, channelId, contactId);
+    
+    res.json({
+      success: true,
+      message: "New conversation triggers processed",
+      conversationId,
+      channelId
+    });
+  } catch (error) {
+    console.error("Error processing new conversation triggers:", error);
+    throw new AppError(500, `Failed to process triggers: ${error.message}`);
+  }
+});
+
+// NEW: Trigger automation for message received
+export const triggerMessageReceived = asyncHandler(async (req: Request, res: Response) => {
+  const { conversationId, message, channelId, contactId } = req.body;
+
+  if (!conversationId || !message || !channelId) {
+    throw new AppError(400, "conversationId, message, and channelId are required");
+  }
+
+  try {
+    await triggerService.handleMessageReceived(conversationId, message, channelId, contactId);
+    
+    res.json({
+      success: true,
+      message: "Message received triggers processed",
+      conversationId,
+      channelId
+    });
+  } catch (error) {
+    console.error("Error processing message triggers:", error);
+    throw new AppError(500, `Failed to process triggers: ${error.message}`);
+  }
 });
