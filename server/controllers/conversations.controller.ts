@@ -5,6 +5,8 @@ import type { RequestWithChannel } from '../middlewares/channel.middleware';
 import { conversations, messages, users , contacts , conversationAssignments , insertConversationAssignmentSchema, insertConversationSchema } from "@shared/schema";
 import { eq,desc,and, sql } from "drizzle-orm";
 import { db } from "../db";
+import { triggerService } from "../services/automation-execution.service";
+
 
 // export const getConversations = asyncHandler(async (req: RequestWithChannel, res: Response) => {
 //   const channelId = req.query.channelId as string | undefined;
@@ -92,6 +94,18 @@ export const createConversation = asyncHandler(async (req: RequestWithChannel, r
     ...validatedConversation,
     channelId
   });
+
+  try {
+    await triggerService.handleNewConversation(
+      conversation.id, 
+      validatedConversation.channelId, 
+      validatedConversation.contactId
+    );
+    console.log(`Triggered automations for new conversation: ${conversation.id}`);
+  } catch (error) {
+    console.error(`Failed to trigger automations:`, error);
+    // Don't fail the conversation creation if automation fails
+  }
   
   res.json(conversation);
 });
