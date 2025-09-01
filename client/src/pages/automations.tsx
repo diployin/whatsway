@@ -4,7 +4,15 @@ import { queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Bot, Play, Pause, Trash2, Edit, LucideTestTube } from "lucide-react";
+import {
+  Plus,
+  Bot,
+  Play,
+  Pause,
+  Trash2,
+  Edit,
+  LucideTestTube,
+} from "lucide-react";
 import { format } from "date-fns";
 import AutomationFlowBuilder from "@/components/automation-flow-builder-new";
 import { Badge } from "@/components/ui/badge";
@@ -24,12 +32,12 @@ export default function Automations() {
   const { toast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAutomationId, setSelectedAutomationId] = useState<string | null>(null);
-  
+
   const openModal = (id: string) => {
     setSelectedAutomationId(id);
     setIsModalOpen(true);
   };
-  
+
   const { data: automations = [], isLoading } = useQuery({
     queryKey: ["/api/automations"],
   });
@@ -95,13 +103,12 @@ export default function Automations() {
     setShowFlowBuilder(true);
   };
 
-
   type TestPayload = {
     id: string;
     conversationId: string;
     contactId: string;
   };
-  
+
   const handleTest = useMutation({
     mutationFn: async ({ id, conversationId, contactId }: TestPayload) => {
       const response = await fetch(`/api/automations/${id}/test`, {
@@ -112,11 +119,11 @@ export default function Automations() {
         },
         body: JSON.stringify({ conversationId, contactId }),
       });
-  
+
       if (!response.ok) {
         throw new Error("Failed to test automation");
       }
-  
+
       return response.json();
     },
     onSuccess: (data) => {
@@ -150,7 +157,10 @@ export default function Automations() {
             Create automated workflows to engage with your customers
           </p>
         </div>
-        <Button onClick={handleCreateNew} data-testid="button-create-automation">
+        <Button
+          onClick={handleCreateNew}
+          data-testid="button-create-automation"
+        >
           <Plus className="h-4 w-4 mr-2" />
           Create Automation
         </Button>
@@ -161,9 +171,13 @@ export default function Automations() {
           <Bot className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
           <h3 className="text-lg font-medium mb-2">No automations yet</h3>
           <p className="text-sm text-muted-foreground mb-4">
-            Create your first automation to start engaging with customers automatically
+            Create your first automation to start engaging with customers
+            automatically
           </p>
-          <Button onClick={handleCreateNew} data-testid="button-create-first-automation">
+          <Button
+            onClick={handleCreateNew}
+            data-testid="button-create-first-automation"
+          >
             <Plus className="h-4 w-4 mr-2" />
             Create Your First Automation
           </Button>
@@ -171,21 +185,35 @@ export default function Automations() {
       ) : (
         <div className="grid gap-4">
           {automations.map((automation: any) => (
-            <Card key={automation.id} className="p-6" data-testid={`card-automation-${automation.id}`}>
+            <Card
+              key={automation.id}
+              className="p-6"
+              data-testid={`card-automation-${automation.id}`}
+            >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <Bot className="h-5 w-5 text-primary" />
-                    <h3 className="text-lg font-medium" data-testid={`text-name-${automation.id}`}>
+                    <h3
+                      className="text-lg font-medium"
+                      data-testid={`text-name-${automation.id}`}
+                    >
                       {automation.name}
                     </h3>
-                    <Badge variant={automation.status === "active" ? "default" : "secondary"}>
+                    <Badge
+                      variant={
+                        automation.status === "active" ? "default" : "secondary"
+                      }
+                    >
                       {automation.status}
                     </Badge>
                   </div>
-                  
+
                   {automation.description && (
-                    <p className="text-sm text-muted-foreground mb-3" data-testid={`text-description-${automation.id}`}>
+                    <p
+                      className="text-sm text-muted-foreground mb-3"
+                      data-testid={`text-description-${automation.id}`}
+                    >
                       {automation.description}
                     </p>
                   )}
@@ -197,27 +225,31 @@ export default function Automations() {
                     )}
                     {automation.lastExecutedAt && (
                       <span>
-                        Last run: {format(new Date(automation.lastExecutedAt), "MMM d, yyyy HH:mm")}
+                        Last run:{" "}
+                        {format(
+                          new Date(automation.lastExecutedAt),
+                          "MMM d, yyyy HH:mm"
+                        )}
                       </span>
                     )}
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
-                <Button
-  variant="outline"
-  size="sm"
-  onClick={() => openModal(automation.id)}
-  data-testid={`button-test-${automation.id}`}
-  aria-label="Test automation"
->
-  <LucideTestTube className="h-4 w-4" />
-</Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openModal(automation.id)}
+                    data-testid={`button-test-${automation.id}`}
+                    aria-label="Test automation"
+                  >
+                    <LucideTestTube className="h-4 w-4" />
+                  </Button>
 
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleEdit(automation.id)}
+                    onClick={() => handleEdit(automation)}
                     data-testid={`button-edit-${automation.id}`}
                   >
                     <Edit className="h-4 w-4" />
@@ -239,7 +271,11 @@ export default function Automations() {
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      if (confirm("Are you sure you want to delete this automation?")) {
+                      if (
+                        confirm(
+                          "Are you sure you want to delete this automation?"
+                        )
+                      ) {
                         deleteMutation.mutate(automation.id);
                       }
                     }}
@@ -267,24 +303,21 @@ export default function Automations() {
             automation={selectedAutomation}
             onClose={handleCloseFlowBuilder}
           /> */}
-          <AutomationFlowBuilderXYFlow 
-           automation={selectedAutomation}
-           channelId={activeChannel?.id}
-           onClose={handleCloseFlowBuilder}
+          <AutomationFlowBuilderXYFlow
+            automation={selectedAutomation}
+            channelId={activeChannel?.id}
+            onClose={handleCloseFlowBuilder}
           />
-
-
-
         </DialogContent>
       </Dialog>
       {selectedAutomationId && (
-  <TestAutomationModal
-    open={isModalOpen}
-    onClose={() => setIsModalOpen(false)}
-    automationId={selectedAutomationId}
-    onSubmit={(data) => handleTest.mutate(data)}
-  />
-)}
+        <TestAutomationModal
+          open={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          automationId={selectedAutomationId}
+          onSubmit={(data) => handleTest.mutate(data)}
+        />
+      )}
     </div>
   );
 }

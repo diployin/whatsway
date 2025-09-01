@@ -6,6 +6,7 @@ import {
   automationExecutions,
   automationExecutionLogs,
   automationEdges,
+  contacts,
 } from "@shared/schema";
 import { eq, and } from "drizzle-orm";
 import { sendBusinessMessage } from "../services/messageService";
@@ -183,15 +184,22 @@ export class AutomationExecutionService {
    */
   private async executeCustomReply(node: any, context: ExecutionContext) {
     const message = this.replaceVariables(node.data.message || '', context.variables);
-    
+    console.log("node & context", node, context);
     console.log(`Sending message to conversation ${context.conversationId}: "${message}"`);
-    
+    console.log('Context variables:', context.variables);
     // TODO: Replace with your actual messaging service
-    if (context.variables?.to) {
+
+    const getContact = await db.query.contacts.findFirst({
+        where: eq(contacts?.id, context.contactId),
+      });
+
+      console.log('Contact info:', getContact);
+
+      if (getContact?.phone) {
         await sendBusinessMessage({
-          to: context.variables.to,  // make sure you pass recipient
+          to: getContact?.phone,  // make sure you pass recipient
           message,
-          channelId: context.variables.channelId, // optional
+          channelId: getContact?.channelId, // optional
         });
       }
     
