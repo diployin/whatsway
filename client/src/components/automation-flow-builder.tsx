@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState, useEffect } from "react";
 import {
   ReactFlow,
   Background,
@@ -14,7 +14,8 @@ import {
   Node,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,6 +45,7 @@ import {
   X,
   Check,
 } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 // -----------------------
 // Types
@@ -83,7 +85,7 @@ export interface BuilderNodeData {
 }
 
 interface AutomationFlowBuilderProps {
-  automationId?: string;
+  automation?: any; // Changed from automationId to automation object
   channelId?: string;
   onClose: () => void;
 }
@@ -119,20 +121,86 @@ const defaultsByKind: Record<NodeKind, Partial<BuilderNodeData>> = {
 };
 
 // Mock data for testing
-const mockTemplates = [
-  { id: "1", name: "Welcome Template" },
-  { id: "2", name: "Follow-up Template" },
-  { id: "3", name: "Thank You Template" },
-];
+// const mockTemplates = [
+//   { id: "1", name: "Welcome Template" },
+//   { id: "2", name: "Follow-up Template" },
+//   { id: "3", name: "Thank You Template" },
+// ];
 
-const mockMembers = [
-  { id: "1", name: "John Doe", firstName: "John", lastName: "Doe" },
-  { id: "2", name: "Jane Smith", firstName: "Jane", lastName: "Smith" },
-  { id: "3", name: "Mike Johnson", firstName: "Mike", lastName: "Johnson" },
-];
+// const mockMembers = [
+//   { id: "1", name: "John Doe", firstName: "John", lastName: "Doe" },
+//   { id: "2", name: "Jane Smith", firstName: "Jane", lastName: "Smith" },
+//   { id: "3", name: "Mike Johnson", firstName: "Mike", lastName: "Johnson" },
+// ];
 
 // -----------------------
-// Custom Node Components
+// Transform automation data to ReactFlow format
+// -----------------------
+function transformAutomationToFlow(automation: any) {
+  if (!automation || !automation.automation_nodes) {
+    return {
+      nodes: [
+        {
+          id: "start",
+          type: "start",
+          position: { x: 200, y: 40 },
+          data: { ...(defaultsByKind.start as BuilderNodeData) },
+        },
+      ],
+      edges: [],
+    };
+  }
+
+  const nodes: Node<BuilderNodeData>[] = [
+    {
+      id: "start",
+      type: "start", 
+      position: { x: 200, y: 40 },
+      data: { ...(defaultsByKind.start as BuilderNodeData) },
+    },
+  ];
+
+  const edges: Edge[] = [];
+
+  // Sort nodes by position
+  const sortedNodes = [...automation.automation_nodes].sort((a, b) => a.position - b.position);
+
+  // Transform each automation node
+  sortedNodes.forEach((autoNode: any, index: number) => {
+    const nodeData: BuilderNodeData = {
+      kind: autoNode.type as NodeKind,
+      label: defaultsByKind[autoNode.type as NodeKind]?.label || autoNode.type,
+      ...autoNode.data,
+    };
+
+    const reactFlowNode: Node<BuilderNodeData> = {
+      id: autoNode.nodeId,
+      type: autoNode.type,
+      position: { x: 200, y: 140 + (index * 140) }, // Vertical layout
+      data: nodeData,
+    };
+
+    nodes.push(reactFlowNode);
+  });
+
+  // Create edges based on connections
+  let previousNodeId = "start";
+  sortedNodes.forEach((autoNode: any) => {
+    // Connect from previous node to current node
+    edges.push({
+      id: `${previousNodeId}-${autoNode.nodeId}`,
+      source: previousNodeId,
+      target: autoNode.nodeId,
+      animated: true,
+    });
+    previousNodeId = autoNode.nodeId;
+  });
+
+  return { nodes, edges };
+}
+
+// -----------------------
+// Custom Node Components (same as before)
 // -----------------------
 function Shell({
   children,
@@ -321,7 +389,7 @@ const nodeTypes = {
   assign_user: AssignUserNode,
 };
 
-// File upload helper
+// File upload helper (same as before)
 function FileUploadButton({ 
   accept, 
   onUpload, 
@@ -371,7 +439,7 @@ function FileUploadButton({
 }
 
 // -----------------------
-// Right Panel (Config)
+// Right Panel (Config) - Same as before but keeping for completeness
 // -----------------------
 function ConfigPanel({
   selected,
@@ -386,6 +454,7 @@ function ConfigPanel({
   templates: any[];
   members: any[];
 }) {
+  console.log("templates in config panel:", templates , members);
   if (!selected || selected.data.kind === "start") {
     return (
       <div className="h-full flex items-center justify-center text-gray-500">
@@ -706,7 +775,7 @@ function ConfigPanel({
                 onChange={(e) => onChange({ templateId: e.target.value })}
               >
                 <option value="">Select template</option>
-                {templates.map((t: any) => (
+                {templates?.map((t: any) => (
                   <option key={t.id} value={t.id}>
                     {t.name}
                   </option>
@@ -747,28 +816,25 @@ function ConfigPanel({
 // -----------------------
 export default function AutomationFlowBuilderXYFlow({
   automation,
+  channelId,
   onClose,
 }: AutomationFlowBuilderProps) {
-  // Name and description
-  console.log("Loaded automation:", automation);
-  const [name, setName] = useState<string>("Send a message");
-  const [description, setDescription] = useState<string>("");
-  const [trigger, setTrigger] = useState<string>("new_conversation");
+  console.log("Loaded automation:", automation , channelId);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  // Initialize with automation data or defaults
+  const [name, setName] = useState<string>(automation?.name || "Send a message");
+  const [description, setDescription] = useState<string>(automation?.description || "");
+  const [trigger, setTrigger] = useState<string>(automation?.trigger || "new_conversation");
 
-  const initialNodes: Node<BuilderNodeData>[] = [
-    {
-      id: "start",
-      type: "start",
-      position: { x: 200, y: 40 },
-      data: { ...(defaultsByKind.start as BuilderNodeData) },
-    },
-  ];
-
-  const initialEdges: Edge[] = [];
+  // Transform automation data to flow format
+  const initialFlow = useMemo(() => {
+    return transformAutomationToFlow(automation);
+  }, [automation]);
 
   // Nodes & Edges state (ReactFlow)
-  const [nodes, setNodes, onNodesChange] = useNodesState<BuilderNodeData>(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [nodes, setNodes, onNodesChange] = useNodesState<BuilderNodeData>(initialFlow.nodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialFlow.edges);
 
   // Selection
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -787,6 +853,21 @@ export default function AutomationFlowBuilderXYFlow({
     (_: any, node: Node<BuilderNodeData>) => setSelectedId(node.id),
     []
   );
+
+
+    // Data sources
+    const { data: templates = [] } = useQuery({ 
+      queryKey: ["/api/templates"],
+      queryFn: () => apiRequest("GET", "/api/templates").then(res => res.json())
+    });
+    
+    const { data: members = [] } = useQuery({ 
+      queryKey: ["/api/team/members"],
+      queryFn: () => apiRequest("GET", "/api/team/members").then(res => res.json())
+    });
+    
+
+    // console.log("Fetched templates and members:", templates, members);
 
   // Add node actions
   const addNode = (kind: NodeKind) => {
@@ -821,9 +902,93 @@ export default function AutomationFlowBuilderXYFlow({
     );
   };
 
+    // Save automation
+    const saveMutation = useMutation({
+      mutationFn: async (payload: any) => {
+        if (payload.automationId) {
+          // Update existing automation
+          await apiRequest("PUT", `/api/automations/${payload.automationId}`, {
+            name: payload.name,
+            description: payload.description,
+            trigger: payload.trigger,
+            triggerConfig: payload.triggerConfig,
+            nodes: payload.nodes,
+            edges: payload.edges,
+          });
+          
+          // Update nodes
+          // await apiRequest("POST", `/api/automations/${payload.automationId}/nodes`, {
+          //   nodes: payload.nodes,
+          // });
+
+          // // Update edges
+          // await apiRequest("POST", `/api/automations/${payload.automationId}/edges`, {
+          //   edges: payload.edges,
+          // });
+          
+          return { id: payload.automationId };
+        } else {
+          // Create new automation
+          const automation = await apiRequest("POST", "/api/automations", {
+            name: payload.name,
+            description: payload.description,
+            channelId: channelId,
+            trigger: payload.trigger,
+            triggerConfig: payload.triggerConfig,
+            nodes: payload.nodes,
+            edges: payload.edges,
+          });
+          
+          return automation;
+        }
+      },
+      onSuccess: () => {
+        toast({
+          title: automation?.id ? "Automation updated" : "Automation created",
+          description: "Your automation flow has been saved successfully.",
+        });
+        queryClient.invalidateQueries({ queryKey: ["/api/automations"] });
+        onClose();
+      },
+      onError: (error: any) => {
+        toast({ 
+          title: "Failed to save automation", 
+          description: error?.message || "An error occurred while saving.",
+          variant: "destructive" 
+        });
+      },
+    });
+
+  // const handleSave = () => {
+  //   console.log("Saving automation with data:", { name, description, nodes, edges });
+  //   alert("Automation saved successfully!");
+  // };
+
   const handleSave = () => {
-    console.log("Saving automation with data:", { name, description, nodes, edges });
-    alert("Automation saved successfully!");
+    if (!name.trim()) {
+      toast({
+        title: "Name required",
+        description: "Please enter a name for your automation.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+
+    const backendNodes = nodes.filter(n => n.id !== 'start')
+    const backendEdges = edges.filter(n => n.source !== 'start')
+
+
+    const payload = {
+      name,
+      description,
+      trigger,
+      triggerConfig: {},
+      nodes:backendNodes,edges :backendEdges,automationId: automation?.id || null,
+      
+    };
+ console.log("Saving automation with payload:", payload);
+    saveMutation.mutate(payload);
   };
 
   const onInit = useCallback((reactFlowInstance) => {
@@ -922,7 +1087,7 @@ export default function AutomationFlowBuilderXYFlow({
               />
             </div>
             <Badge variant="outline" className="text-xs">
-              {automation.id ? "Edit" : "New"} Automation
+              {automation?.id ? "Edit" : "New"} Automation
             </Badge>
             <Badge className="bg-green-500 text-white text-xs">
               {trigger === "new_conversation" ? "New Chat" : trigger}
@@ -1011,8 +1176,8 @@ export default function AutomationFlowBuilderXYFlow({
           selected={selectedNode}
           onChange={patchSelected}
           onDelete={deleteNode}
-          templates={mockTemplates}
-          members={mockMembers}
+          templates={templates as any[]}
+          members={members as any[]}
         />
       </div>
     </div>

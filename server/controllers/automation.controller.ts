@@ -6,6 +6,7 @@ import {
   automationExecutions,
   automationExecutionLogs,
   insertAutomationSchema,
+  automationEdges,
 } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { AppError, asyncHandler } from "../middlewares/error.middleware";
@@ -24,10 +25,12 @@ export const getAutomations = asyncHandler(async (req: Request, res: Response) =
     ? await db.select()
         .from(automations)
         .leftJoin(automationNodes, eq(automations.id, automationNodes.automationId))
+        .leftJoin(automationEdges, eq(automations.id, automationEdges.automationId))
         .where(eq(automations.channelId, channelId))
-    : await db.select()
+        : await db.select()
         .from(automations)
-        .leftJoin(automationNodes, eq(automations.id, automationNodes.automationId));
+        .leftJoin(automationNodes, eq(automations.id, automationNodes.automationId))
+        .leftJoin(automationEdges, eq(automations.id, automationEdges.automationId))
 
   // Group by automation ID and collect nodes
   const automationMap = new Map<string, any>();
@@ -35,12 +38,14 @@ export const getAutomations = asyncHandler(async (req: Request, res: Response) =
   for (const row of rows) {
     const automation = row.automations;
     const node = row.automation_nodes;
+    const edge = row.automation_edges;
 
     // If automation not already added, add it
     if (!automationMap.has(automation.id)) {
       automationMap.set(automation.id, {
         ...automation,
-        automation_nodes: []
+        automation_nodes: [],
+      automation_edges: []
       });
     }
 
@@ -48,6 +53,11 @@ export const getAutomations = asyncHandler(async (req: Request, res: Response) =
     if (node && node.id) {
       automationMap.get(automation.id).automation_nodes.push(node);
     }
+
+      // If an edge exists, add it to the automation's edges
+  if (edge && edge.id) {
+    automationMap.get(automation.id).automation_edges.push(edge);
+  }
   }
 
   // Convert the Map to a plain array of objects
@@ -74,8 +84,8 @@ export const getAutomation = asyncHandler(async (req: Request, res: Response) =>
 
 // CREATE automation (empty flow or with initial nodes)
 export const createAutomation = asyncHandler(async (req: Request, res: Response) => {
-  const { name, description, trigger, triggerConfig, nodes = [] } = req.body;
-console.log("Creating automation with data:", req.body); // Debug log
+  const { name, description, trigger, triggerConfig, nodes = [] , edges=[] } = req.body;
+// console.log("Creating automation with data:", req.body); // Debug log
 const validatedAutomation = insertAutomationSchema.parse(req.body);
   
 // Get active channel if channelId not provided
@@ -95,17 +105,30 @@ console.log("Using channelId:", channelId); // Debug log
     triggerConfig,
   }).returning();
 
+  // console.log(nodes)
   // optional: insert initial nodes
   if (nodes.length) {
     await db.insert(automationNodes).values(
       nodes.map((n: any) => ({
         automationId: automation.id,
-        nodeId: n.nodeId,
+        nodeId: n.id,
         type: n.type,
         subtype: n.subtype,
         position: n.position,
         data: n.data,
         connections: n.connections,
+      }))
+    );
+  }
+// console.log("Edges:", edges); // Debug log
+  if (edges.length) {
+    await db.insert(automationEdges).values(
+      edges.map((n: any) => ({
+        id: n.id,
+        automationId: automation.id,
+        sourceNodeId: n.source,
+        targetNodeId: n.target,
+        animated: n.animated,
       }))
     );
   }
@@ -116,24 +139,84 @@ console.log("Using channelId:", channelId); // Debug log
 // UPDATE automation
 export const updateAutomation = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
+  const { nodes = [], edges = [], ...automationData } = req.body;
 
-  const [automation] = await db.update(automations).set(req.body).where(eq(automations.id, id)).returning();
+  // Update automation main record
+  const [automation] = await db
+    .update(automations)
+    .set(automationData)
+    .where(eq(automations.id, id))
+    .returning();
 
-  if (!automation) throw new AppError(404, "Automation not found");
+  if (!automation) {
+    throw new AppError(404, "Automation not found");
+  }
 
+  console.log("Updating automation with ID:", automation.id);
+
+  // Delete existing nodes for this automation
+ const getDlt = await db
+    .delete(automationNodes)
+    .where(eq(automationNodes.automationId, automation.id));
+console.log("Deleted nodes result:", getDlt , automation.id); // Debug log
+  // Insert new nodes if provided
+  if (nodes.length > 0) {
+    const insertedNodes = await db.insert(automationNodes).values(
+      nodes.map((node: any) => ({
+        automationId: automation.id,
+        nodeId: node.id,
+        type: node.type,
+        subtype: node.subtype,
+        position: node.position,
+        data: node.data,
+        connections: node.connections,
+      }))
+    );
+    console.log("Inserted nodes:", insertedNodes.length);
+  }
+
+  // Delete existing edges
+  await db
+    .delete(automationEdges)
+    .where(eq(automationEdges.automationId, automation.id));
+
+  // Insert new edges if provided
+  if (edges.length > 0) {
+    const insertedEdges = await db.insert(automationEdges).values(
+      edges.map((edge: any) => ({
+        id: edge.id,
+        automationId: automation.id,
+        sourceNodeId: edge.source,
+        targetNodeId: edge.target,
+        animated: edge.animated,
+      }))
+    );
+    console.log("Inserted edges:", insertedEdges.length);
+  }
+
+  // Respond with updated automation
   res.json(automation);
 });
+
 
 // DELETE automation (cascade deletes nodes + executions due to schema)
 export const deleteAutomation = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   console.log("Deleting automation with id:", id); // Debug log
-  const deleted = await db.delete(automations).where(eq(automations.id, id)).returning();
+
+  const deleted = await db
+    .delete(automations)
+    .where(eq(automations.id, id))
+    .returning();
+
+  console.log("Deleted rows:", deleted, deleted.length); // Debug log
 
   if (!deleted.length) throw new AppError(404, "Automation not found");
 
-  res.status(204).send();
+  // Return a success response properly
+  res.status(200).json({ deleted: deleted[0] }); // or res.status(204).send()
 });
+
 
 // Toggle active/inactive
 export const toggleAutomation = asyncHandler(async (req: Request, res: Response) => {
@@ -161,21 +244,47 @@ export const toggleAutomation = asyncHandler(async (req: Request, res: Response)
 export const saveAutomationNodes = asyncHandler(async (req: Request, res: Response) => {
   const { automationId } = req.params;
   const { nodes } = req.body;
-
+console.log("Saving nodes for automationId:", automationId, "Nodes:", nodes); // Debug log
   // Delete old nodes
-  await db.delete(automationNodes).where(eq(automationNodes.automationId, automationId));
-
+const getDelete =   await db.delete(automationNodes).where(eq(automationNodes.automationId, automationId));
+console.log("Deleted nodes result:", getDelete); // Debug log
   // Insert new nodes
   if (nodes?.length) {
-    await db.insert(automationNodes).values(
+  const getNodes =   await db.insert(automationNodes).values(
       nodes.map((n: any) => ({
         automationId,
-        nodeId: n.nodeId,
+        nodeId: n.id,
         type: n.type,
         subtype: n.subtype,
         position: n.position,
         data: n.data,
         connections: n.connections,
+      }))
+      );
+      console.log("Inserted nodes result:", getNodes)
+  }
+
+  res.json({ success: true });
+});
+
+
+// Add or update edges (bulk save from visual builder)
+export const saveAutomationEdges = asyncHandler(async (req: Request, res: Response) => {
+  const { automationId } = req.params;
+  const { edges } = req.body;
+
+  // Delete old edges
+  await db.delete(automationEdges).where(eq(automationEdges.automationId, automationId));
+
+  // Insert new edges
+  if (edges?.length) {
+    await db.insert(automationEdges).values(
+      edges.map((n: any) => ({
+        id: n.id,
+        automationId: automationId,
+        sourceNodeId: n.source,
+        targetNodeId: n.target,
+        animated: n.animated,
       }))
     );
   }
