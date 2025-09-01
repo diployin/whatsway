@@ -107,6 +107,9 @@ export default function Automations() {
       const response = await fetch(`/api/automations/${id}/test`, {
         method: "POST",
         credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ conversationId, contactId }),
       });
   
