@@ -380,9 +380,10 @@ export const startAutomationExecution = asyncHandler(async (req: Request, res: R
 // NEW: Manual test endpoint
 export const testAutomation = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
+  const { conversationId , contactId } = req.body;
+  
   console.log("Testing automation with id:", id, "Body:", req.body); // Debug log
-  const { conversationId = 'b87e327e-3d11-4eb3-af99-cf44d6300bb5', contactId = 'e86df250-b192-45ef-9d9a-9aa23326c031' } = req.body;
-
+  
   // Check if automation exists and is active
   const automation = await db.query.automations.findFirst({
     where: eq(automations.id, id),

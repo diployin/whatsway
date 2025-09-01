@@ -16,12 +16,20 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import AutomationFlowBuilderXYFlow from "@/components/automation-flow-builder";
+import { TestAutomationModal } from "@/components/TestAutomationModal";
 
 export default function Automations() {
   const [showFlowBuilder, setShowFlowBuilder] = useState(false);
   const [selectedAutomation, setSelectedAutomation] = useState<any>(null);
   const { toast } = useToast();
-
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedAutomationId, setSelectedAutomationId] = useState<string | null>(null);
+  
+  const openModal = (id: string) => {
+    setSelectedAutomationId(id);
+    setIsModalOpen(true);
+  };
+  
   const { data: automations = [], isLoading } = useQuery({
     queryKey: ["/api/automations"],
   });
@@ -88,18 +96,25 @@ export default function Automations() {
   };
 
 
+  type TestPayload = {
+    id: string;
+    conversationId: string;
+    contactId: string;
+  };
+  
   const handleTest = useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: async ({ id, conversationId, contactId }: TestPayload) => {
       const response = await fetch(`/api/automations/${id}/test`, {
         method: "POST",
         credentials: "include",
+        body: JSON.stringify({ conversationId, contactId }),
       });
   
       if (!response.ok) {
         throw new Error("Failed to test automation");
       }
   
-      return response.json(); // assuming response has a useful payload
+      return response.json();
     },
     onSuccess: (data) => {
       console.log("Automation test result:", data);
@@ -186,15 +201,16 @@ export default function Automations() {
                 </div>
 
                 <div className="flex items-center gap-2">
-  <Button
-    variant="outline"
-    size="sm"
-    onClick={() => handleTest.mutate(automation.id)}
-    data-testid={`button-test-${automation.id}`}
-    aria-label="Test automation"
-  >
-    <LucideTestTube className="h-4 w-4" />
-  </Button>
+                <Button
+  variant="outline"
+  size="sm"
+  onClick={() => openModal(automation.id)}
+  data-testid={`button-test-${automation.id}`}
+  aria-label="Test automation"
+>
+  <LucideTestTube className="h-4 w-4" />
+</Button>
+
                   <Button
                     variant="outline"
                     size="sm"
@@ -253,8 +269,19 @@ export default function Automations() {
            channelId={activeChannel?.id}
            onClose={handleCloseFlowBuilder}
           />
+
+
+
         </DialogContent>
       </Dialog>
+      {selectedAutomationId && (
+  <TestAutomationModal
+    open={isModalOpen}
+    onClose={() => setIsModalOpen(false)}
+    automationId={selectedAutomationId}
+    onSubmit={(data) => handleTest.mutate(data)}
+  />
+)}
     </div>
   );
 }
