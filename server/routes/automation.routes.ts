@@ -77,6 +77,14 @@ export function registerAutomationRoutes(app: Express) {
     automationController.saveAutomationNodes
   );
 
+    // Save automation edges (bulk replace from builder)
+  app.post(
+    "/api/automations/:automationId/edges",
+    requireAuth,
+    extractChannelId,
+    automationController.saveAutomationNodes
+  );
+
   //
   // ─── EXECUTION ───────────────────────────────────────────────────
   //

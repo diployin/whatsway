@@ -244,6 +244,7 @@ export const automationNodes = pgTable("automation_nodes", {
   type: text("type").notNull(), // trigger, action, condition, delay
   subtype: text("subtype"), // send_template, send_message, wait, etc.
   position: jsonb("position").default({}), // {x, y}
+  measured: jsonb("measured").default({}), // {x, y}
   data: jsonb("data").default({}), // node config
   connections: jsonb("connections").default([]), // array of next nodeIds
   createdAt: timestamp("created_at").defaultNow(),
@@ -252,6 +253,34 @@ export const automationNodes = pgTable("automation_nodes", {
   nodeAutomationIdx: index("automation_nodes_automation_idx").on(table.automationId),
   nodeUniqueIdx: unique("automation_nodes_unique_idx").on(table.automationId, table.nodeId),
 }));
+
+
+
+// ─── Automation Nodes ─────────────────────────
+export const automationEdges = pgTable("automation_edges", {
+  id: varchar("id").primaryKey(), // This can use the edge ID from your JSON if needed
+
+  automationId: varchar("automation_id")
+    .notNull()
+    .references(() => automations.id, { onDelete: "cascade" }),
+
+  sourceNodeId: varchar("source_node_id")
+    .notNull()
+    .references(() => automationNodes.nodeId, { onDelete: "cascade" }),
+
+  targetNodeId: varchar("target_node_id")
+    .notNull()
+    .references(() => automationNodes.nodeId, { onDelete: "cascade" }),
+
+  animated: boolean("animated").default(false),
+
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  automationEdgeIdx: index("automation_edges_automation_idx").on(table.automationId),
+  edgeUniqueIdx: unique("automation_edges_unique_idx").on(table.automationId, table.sourceNodeId, table.targetNodeId),
+}));
+
 
 // ─── Automation Executions ────────────────────
 export const automationExecutions = pgTable("automation_executions", {
@@ -660,12 +689,20 @@ export const automationsRelations = relations(automations, ({ one, many }) => ({
     references: [users.id],
   }),
   nodes: many(automationNodes),
+  edges: many(automationEdges),
   executions: many(automationExecutions),
 }));
 
 export const automationNodesRelations = relations(automationNodes, ({ one }) => ({
   automation: one(automations, {
     fields: [automationNodes.automationId],
+    references: [automations.id],
+  }),
+}));
+
+export const automationEdgesRelations = relations(automationEdges, ({ one }) => ({
+  automation: one(automations, {
+    fields: [automationEdges.automationId],
     references: [automations.id],
   }),
 }));

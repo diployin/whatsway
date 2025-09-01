@@ -26,6 +26,15 @@ export default function Automations() {
     queryKey: ["/api/automations"],
   });
 
+  const { data: activeChannel } = useQuery({
+    queryKey: ["/api/channels/active"],
+    queryFn: async () => {
+      const response = await fetch("/api/channels/active");
+      if (!response.ok) return null;
+      return await response.json();
+    },
+  });
+
   const toggleMutation = useMutation({
     mutationFn: async (id: string) => {
       const response = await fetch(`/api/automations/${id}/toggle`, {
@@ -206,6 +215,7 @@ export default function Automations() {
           /> */}
           <AutomationFlowBuilderXYFlow 
            automation={selectedAutomation}
+           channelId={activeChannel?.id}
            onClose={handleCloseFlowBuilder}
           />
         </DialogContent>
