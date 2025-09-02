@@ -828,7 +828,7 @@ export default function Inbox() {
         </div>
 
         {/* Conversations */}
-        <ScrollArea className="flex-1 px-5">
+        <ScrollArea className="flex-1 mx-5">
           {conversationsLoading ? (
             <div className="flex items-center justify-center py-8">
               <Loading />
