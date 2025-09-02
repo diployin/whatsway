@@ -5,6 +5,7 @@ import { insertConversationSchema,PERMISSIONS } from "@shared/schema";
 import { extractChannelId } from "../middlewares/channel.middleware";
 import { storage } from "../storage";
 import { requireAuth, requirePermission } from "../middlewares/auth.middleware";
+import { cancelConversationAutomation, getConversationAutomationStatus } from "server/controllers/webhooks.controller";
 
 export function registerConversationRoutes(app: Express) {
   // Get unread count
@@ -69,4 +70,10 @@ export function registerConversationRoutes(app: Express) {
       res.status(500).json({ message: 'Failed to update conversation status' });
     }
   });
+
+
+
+  app.get('/api/conversations/:conversationId/automation-status', getConversationAutomationStatus);
+app.post('/api/conversations/:conversationId/cancel-automation', cancelConversationAutomation);
+
 }

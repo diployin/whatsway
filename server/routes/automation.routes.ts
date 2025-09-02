@@ -23,6 +23,7 @@ import {
   triggerNewConversation,
   triggerMessageReceived
 } from "../controllers/automation.controller";
+import { cleanupExpiredExecutions, getAllPendingExecutions } from "server/controllers/webhooks.controller";
 
 // Schema for automation + nodes (used for builder save)
 const automationWithNodesSchema = z.object({
@@ -149,5 +150,9 @@ app.post("/api/automations/executions/:executionId/logs", logAutomationNodeExecu
 app.post("/api/automations/triggers/new-conversation", triggerNewConversation);
 app.post("/api/automations/triggers/message-received", triggerMessageReceived);
 
+
+
+app.get('/api/automations/pending-executions', getAllPendingExecutions);
+app.post('/api/automations/cleanup-expired', cleanupExpiredExecutions);
 
 }

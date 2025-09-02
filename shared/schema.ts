@@ -293,6 +293,7 @@ export const automationExecutions = pgTable("automation_executions", {
   currentNodeId: varchar("current_node_id"),
   executionPath: jsonb("execution_path").default([]),
   variables: jsonb("variables").default({}),
+  result: text("result"),
   error: text("error"),
   startedAt: timestamp("started_at").defaultNow(),
   completedAt: timestamp("completed_at"),

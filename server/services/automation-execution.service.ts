@@ -21,8 +21,20 @@ interface ExecutionContext {
   triggerData: any;
 }
 
+interface PendingExecution {
+  executionId: string;
+  automationId: string;
+  nodeId: string;
+  conversationId: string;
+  contactId?: string;
+  context: ExecutionContext;
+  saveAs?: string;
+  timestamp: Date;
+  status: 'waiting_for_response';
+}
+
 export class AutomationExecutionService {
-  
+  private pendingExecutions = new Map<string, PendingExecution>();
   /**
    * Start automation execution (called from your controller)
    */
@@ -227,31 +239,170 @@ private async continueToNextNode(currentNode: any, automation: any, context: Exe
     };
   }
 
+
   /**
-   * Execute user reply node (question)
+   * Execute user reply node (question) - ENHANCED VERSION
    */
-  private async executeUserReply(node: any, context: ExecutionContext) {
+  private async executeUserReply(node: any, automation: any, context: ExecutionContext) {
     const question = this.replaceVariables(node.data.question || '', context.variables);
     
     console.log(`Asking question to conversation ${context.conversationId}: "${question}"`);
     
-    // TODO: This is complex - you need to:
-    // 1. Send the question
-    // 2. Pause execution
-    // 3. Wait for user response
-    // 4. Resume execution with the response
+    // 1. Send the question to the user
+    const getContact = await db.query.contacts.findFirst({
+      where: eq(contacts?.id, context.contactId),
+    });
+
+    if (getContact?.phone) {
+      await sendBusinessMessage({
+        to: getContact?.phone,
+        message: question,
+        channelId: getContact?.channelId,
+        conversationId: context.conversationId,
+      });
+    }
     
-    // For now, just send the question and continue
-    // In a real implementation, you'd pause here and resume when user responds
+    // 2. Create a unique pending execution ID
+    const pendingId = `${context.executionId}_${node.nodeId}_${Date.now()}`;
+    
+    // 3. Store the execution state for resumption
+    const pendingExecution: PendingExecution = {
+      executionId: context.executionId,
+      automationId: context.automationId,
+      nodeId: node.nodeId,
+      conversationId: context.conversationId,
+      contactId: context.contactId,
+      context: { ...context },
+      saveAs: node.data.saveAs,
+      timestamp: new Date(),
+      status: 'waiting_for_response'
+    };
+    
+    this.pendingExecutions.set(pendingId, pendingExecution);
+    
+    // 4. Update execution status to paused
+    await db.update(automationExecutions)
+      .set({
+        status: 'paused',
+        result: `Waiting for user response to: "${question}"`
+      })
+      .where(eq(automationExecutions.id, context.executionId));
+    
+    // 5. Log that we're waiting
+    await this.logNodeExecution(
+      context.executionId,
+      node.nodeId,
+      node.type,
+      'waiting_for_response',
+      { ...node.data, question },
+      { pendingId, action: 'question_sent' },
+      null
+    );
     
     console.log(`✅ Question sent: ${question}`);
+    console.log(`⏸️  Execution paused. Waiting for user response (pending ID: ${pendingId})`);
     
     return {
-      action: 'question_sent',
+      action: 'execution_paused',
       question,
       conversationId: context.conversationId,
+      pendingId,
       saveAs: node.data.saveAs
     };
+  }
+
+
+    /**
+   * Handle user response and resume execution - NEW METHOD
+   */
+  async handleUserResponse(conversationId: string, userResponse: string) {
+    console.log(`📨 Received user response for conversation ${conversationId}: "${userResponse}"`);
+    
+    // Find pending execution for this conversation
+    const pendingExecution = this.findPendingExecutionByConversation(conversationId);
+    if (!pendingExecution) {
+      console.warn(`No pending execution found for conversation ${conversationId}`);
+      return null;
+    }
+
+    try {
+      // Remove from pending
+      this.pendingExecutions.delete(pendingExecution.pendingId);
+      
+      // Update context with user response
+      const context = pendingExecution.context;
+      if (pendingExecution.saveAs) {
+        context.variables[pendingExecution.saveAs] = userResponse;
+        console.log(`💾 Saved user response to variable: ${pendingExecution.saveAs} = "${userResponse}"`);
+      }
+
+      // Log the response received
+      await this.logNodeExecution(
+        context.executionId,
+        pendingExecution.nodeId,
+        'user_reply',
+        'completed',
+        { question: 'User response received' },
+        { userResponse, savedAs: pendingExecution.saveAs },
+        null
+      );
+
+      // Resume execution status
+      await db.update(automationExecutions)
+        .set({
+          status: 'running',
+          result: null
+        })
+        .where(eq(automationExecutions.id, context.executionId));
+
+      console.log(`▶️  Resuming execution ${context.executionId} with user response`);
+
+      // Get fresh automation data
+      const automation = await this.getAutomationWithFlow(context.automationId);
+      if (!automation) {
+        throw new Error(`Automation ${context.automationId} not found during resume`);
+      }
+
+      // Find the current node and continue to next
+      const currentNode = automation.nodes.find((n: any) => n.nodeId === pendingExecution.nodeId);
+      if (currentNode) {
+        await this.continueToNextNode(currentNode, automation, context);
+      } else {
+        throw new Error(`Node ${pendingExecution.nodeId} not found during resume`);
+      }
+
+      return {
+        success: true,
+        executionId: context.executionId,
+        userResponse,
+        savedVariable: pendingExecution.saveAs,
+        resumedAt: new Date()
+      };
+
+    } catch (error) {
+      console.error(`Error resuming execution for conversation ${conversationId}:`, error);
+      
+      // Fail the execution
+      await this.completeExecution(
+        pendingExecution.executionId, 
+        'failed', 
+        `Failed to resume after user response: ${error.message}`
+      );
+      
+      throw error;
+    }
+  }
+
+  /**
+   * Find pending execution by conversation ID
+   */
+  private findPendingExecutionByConversation(conversationId: string) {
+    for (const [pendingId, execution] of this.pendingExecutions) {
+      if (execution.conversationId === conversationId) {
+        return { pendingId, ...execution };
+      }
+    }
+    return null;
   }
 
   /**
@@ -340,6 +491,73 @@ private async continueToNextNode(currentNode: any, automation: any, context: Exe
     };
   }
 
+
+  /**
+   * Get pending executions for monitoring
+   */
+  getPendingExecutions() {
+    return Array.from(this.pendingExecutions.entries()).map(([pendingId, execution]) => ({
+      pendingId,
+      executionId: execution.executionId,
+      conversationId: execution.conversationId,
+      nodeId: execution.nodeId,
+      contactId: execution.contactId,
+      saveAs: execution.saveAs,
+      timestamp: execution.timestamp,
+      waitingTime: Date.now() - execution.timestamp.getTime()
+    }));
+  }
+
+  /**
+   * Check if conversation has pending execution
+   */
+  hasPendingExecution(conversationId: string): boolean {
+    return this.findPendingExecutionByConversation(conversationId) !== null;
+  }
+
+  /**
+   * Clean up expired pending executions (call this periodically)
+   */
+  async cleanupExpiredExecutions(timeoutMs: number = 30 * 60 * 1000) { // 30 minutes default
+    const now = Date.now();
+    const expired = [];
+    
+    for (const [pendingId, execution] of this.pendingExecutions) {
+      if (now - execution.timestamp.getTime() > timeoutMs) {
+        expired.push({ pendingId, execution });
+      }
+    }
+    
+    for (const { pendingId, execution } of expired) {
+      this.pendingExecutions.delete(pendingId);
+      
+      // Mark execution as failed due to timeout
+      await this.completeExecution(
+        execution.executionId,
+        'failed',
+        'Execution timed out waiting for user response'
+      );
+      
+      console.warn(`⚠️  Cleaned up expired execution: ${pendingId} (conversation: ${execution.conversationId})`);
+    }
+    
+    return expired.length;
+  }
+
+  /**
+   * Cancel pending execution
+   */
+  async cancelExecution(conversationId: string): Promise<boolean> {
+    const pending = this.findPendingExecutionByConversation(conversationId);
+    if (pending) {
+      this.pendingExecutions.delete(pending.pendingId);
+      await this.completeExecution(pending.executionId, 'failed', 'Execution cancelled by user');
+      console.log(`❌ Cancelled execution for conversation: ${conversationId}`);
+      return true;
+    }
+    return false;
+  }
+
   /**
    * Complete execution
    */
@@ -404,6 +622,13 @@ private async continueToNextNode(currentNode: any, automation: any, context: Exe
   }
 }
 
+
+}
+
+
+
+
+
 // Trigger Manager - handles when automations should start
 export class AutomationTriggerService {
   private executionService: AutomationExecutionService;
@@ -460,7 +685,19 @@ export class AutomationTriggerService {
   async handleMessageReceived(conversationId: string, message: any, channelId: string, contactId?: string) {
     console.log(`💬 Message received trigger: ${conversationId}`);
     
-    // Similar logic for message-based triggers
+    // First, check if this is a response to a pending user_reply node
+    if (this.executionService.hasPendingExecution(conversationId)) {
+      console.log(`📨 Processing as user response to pending execution`);
+      try {
+        await this.executionService.handleUserResponse(conversationId, message.content || message.text || message);
+        return; // Don't trigger new automations if this was a response
+      } catch (error) {
+        console.error(`Error handling user response:`, error);
+        // Continue to trigger new automations as fallback
+      }
+    }
+    
+    // Normal message-based automation triggers
     const activeAutomations = await db.select()
       .from(automations)
       .where(and(
@@ -490,8 +727,21 @@ export class AutomationTriggerService {
       }
     }
   }
+
+    /**
+   * Get execution service for external access
+   */
+    getExecutionService() {
+      return this.executionService;
+    }
 }
 
 // Export singleton instances
 export const executionService = new AutomationExecutionService();
 export const triggerService = new AutomationTriggerService();
+
+
+// Periodic cleanup (run this somewhere in your app)
+setInterval(() => {
+  executionService.cleanupExpiredExecutions();
+}, 5 * 60 * 1000); // Every 5 minutes
