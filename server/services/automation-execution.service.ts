@@ -623,7 +623,6 @@ private async continueToNextNode(currentNode: any, automation: any, context: Exe
 }
 
 
-}
 
 
 
