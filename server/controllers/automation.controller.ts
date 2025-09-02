@@ -8,7 +8,7 @@ import {
   insertAutomationSchema,
   automationEdges,
 } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { eq , and } from "drizzle-orm";
 import { AppError, asyncHandler } from "../middlewares/error.middleware";
 import { storage } from "server/storage";
 import { executionService } from "server/services/automation-execution.service";
@@ -376,6 +376,61 @@ export const startAutomationExecution = asyncHandler(async (req: Request, res: R
     throw new AppError(500, `Failed to start automation execution: ${error.message}`);
   }
 });
+
+
+export const startAutomationExecutionFunction = asyncHandler(
+  async (contactId: string, conversationId: string, triggerData: any = {}) => {
+    // Create execution record in the database
+
+    const getAutomations = await db.query.automations.findMany({
+      where: (fields) => 
+        and(
+          eq(fields.trigger, 'new_conversation'),
+          eq(fields.status, 'active')
+        )
+    }); 
+    
+    for (const automation of getAutomations) {
+      console.log("Found automation for new conversation trigger:", automation.id, automation.name);
+ 
+
+    const [execution] = await db.insert(automationExecutions).values({
+      automationId:automation.id,
+      contactId,
+      conversationId,
+      triggerData,
+      status: "running",
+    }).returning();
+
+    try {
+      // Start automation in background
+      executionService.executeAutomation(execution.id).catch((error) => {
+        console.error(`Background execution failed for ${execution.id}:`, error);
+      });
+
+      // Return execution info (or you could log it, etc.)
+      return {
+        ...execution,
+        message: "Execution started successfully"
+      };
+    } catch (error: any) {
+      console.error(`Failed to start execution:`, error);
+
+      // Mark execution as failed in DB
+      await db.update(automationExecutions)
+        .set({ 
+          status: 'failed', 
+          completedAt: new Date(),
+          result: error.message 
+        })
+        .where(eq(automationExecutions.id, execution.id));
+
+      throw new AppError(500, `Failed to start automation execution: ${error.message}`);
+    }
+  }
+  }
+);
+
 
 // NEW: Manual test endpoint
 export const testAutomation = asyncHandler(async (req: Request, res: Response) => {
