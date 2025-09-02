@@ -164,7 +164,7 @@ function transformAutomationToFlow(automation: any) {
 
   // Sort nodes by position
   const sortedNodes = [...automation.automation_nodes].sort((a, b) => a.position - b.position);
-
+console.log("sortedNodes", sortedNodes);
   // Transform each automation node
   sortedNodes.forEach((autoNode: any, index: number) => {
     const nodeData: BuilderNodeData = {
@@ -454,7 +454,7 @@ function ConfigPanel({
   templates: any[];
   members: any[];
 }) {
-  console.log("templates in config panel:", templates , members);
+  // console.log("templates in config panel:", templates , members);
   if (!selected || selected.data.kind === "start") {
     return (
       <div className="h-full flex items-center justify-center text-gray-500">

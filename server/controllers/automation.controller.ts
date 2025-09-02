@@ -40,26 +40,27 @@ export const getAutomations = asyncHandler(async (req: Request, res: Response) =
     const automation = row.automations;
     const node = row.automation_nodes;
     const edge = row.automation_edges;
-
-    // If automation not already added, add it
+  
     if (!automationMap.has(automation.id)) {
       automationMap.set(automation.id, {
         ...automation,
         automation_nodes: [],
-      automation_edges: []
+        automation_edges: [],
       });
     }
-
-    // If a node exists, add it to the automation's nodes
-    if (node && node.id) {
-      automationMap.get(automation.id).automation_nodes.push(node);
+  
+    const automationEntry = automationMap.get(automation.id);
+  
+    // Add node only if it's not already in the array
+    if (node && node.id && !automationEntry.automation_nodes.some(n => n.id === node.id)) {
+      automationEntry.automation_nodes.push(node);
     }
-
-      // If an edge exists, add it to the automation's edges
-  if (edge && edge.id) {
-    automationMap.get(automation.id).automation_edges.push(edge);
-  }
-  }
+  
+    // Add edge only if it's not already in the array
+    if (edge && edge.id && !automationEntry.automation_edges.some(e => e.id === edge.id)) {
+      automationEntry.automation_edges.push(edge);
+    }
+  }  
 
   // Convert the Map to a plain array of objects
   const result = Array.from(automationMap.values());
@@ -118,6 +119,7 @@ console.log("Using channelId:", channelId); // Debug log
         position: n.position,
         data: n.data,
         connections: n.connections,
+        measured: n.measured,
       }))
     );
   }
@@ -203,14 +205,14 @@ console.log("Deleted nodes result:", getDlt , automation.id); // Debug log
 // DELETE automation (cascade deletes nodes + executions due to schema)
 export const deleteAutomation = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-  console.log("Deleting automation with id:", id); // Debug log
+  // console.log("Deleting automation with id:", id); // Debug log
 
   const deleted = await db
     .delete(automations)
     .where(eq(automations.id, id))
     .returning();
 
-  console.log("Deleted rows:", deleted, deleted.length); // Debug log
+  // console.log("Deleted rows:", deleted, deleted.length); // Debug log
 
   if (!deleted.length) throw new AppError(404, "Automation not found");
 
