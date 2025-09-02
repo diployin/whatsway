@@ -256,7 +256,7 @@ export const automationNodes = pgTable("automation_nodes", {
 
 
 
-// ─── Automation Nodes ─────────────────────────
+// ─── Automation Edges ─────────────────────────
 export const automationEdges = pgTable("automation_edges", {
   id: varchar("id").primaryKey(), // This can use the edge ID from your JSON if needed
 
