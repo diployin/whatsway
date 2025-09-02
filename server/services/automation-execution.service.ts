@@ -164,27 +164,35 @@ export class AutomationExecutionService {
     }
   }
 
-  /**
-   * Find and execute next node
-   */
-  private async continueToNextNode(currentNode: any, automation: any, context: ExecutionContext) {
-    // Find next node by position (simple sequential flow)
-    const nextNode = automation.nodes.find((n: any) => n.position === currentNode.position + 1);
-    
+/**
+ * Find and execute next node(s) using edges
+ */
+private async continueToNextNode(currentNode: any, automation: any, context: ExecutionContext) {
+  // Find edges where current node is the source
+  const nextEdges = automation.edges.filter((e: any) => e.source === currentNode.nodeId);
+
+  if (nextEdges.length === 0) {
+    // No outgoing edges → complete execution
+    await this.completeExecution(context.executionId, 'completed', 'All nodes executed successfully');
+    return;
+  }
+
+  // Execute each connected node (can be parallel or sequential depending on your design)
+  for (const edge of nextEdges) {
+    const nextNode = automation.nodes.find((n: any) => n.nodeId === edge.target);
     if (nextNode) {
       await this.executeNode(nextNode, automation, context);
-    } else {
-      // No more nodes - complete execution
-      await this.completeExecution(context.executionId, 'completed', 'All nodes executed successfully');
     }
   }
+}
+
 
   /**
    * Execute custom reply node
    */
   private async executeCustomReply(node: any, context: ExecutionContext) {
     const message = this.replaceVariables(node.data.message || '', context.variables);
-    console.log("node & context", node, context);
+    // console.log("node & context", node, context);
     console.log(`Sending message to conversation ${context.conversationId}: "${message}"`);
     console.log('Context variables:', context.variables);
     // TODO: Replace with your actual messaging service
@@ -193,7 +201,7 @@ export class AutomationExecutionService {
         where: eq(contacts?.id, context.contactId),
       });
 
-      console.log('Contact info:', getContact);
+      // console.log('Contact info:', getContact);
 
       if (getContact?.phone) {
         await sendBusinessMessage({

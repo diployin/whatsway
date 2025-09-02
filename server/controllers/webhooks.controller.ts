@@ -216,8 +216,6 @@ async function handleMessageChange(value: any) {
       // Increment unread count
 
 
-      
-      
       await storage.updateConversation(conversation.id, {
         unreadCount: (conversation.unreadCount || 0) + 1,
         lastMessageAt: new Date(),

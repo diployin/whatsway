@@ -29,18 +29,18 @@ console.log('Sending message via channel:', channelId, 'to:', to);
   // Send via WhatsApp API
   let result;
   if (templateName) {
-    console.log('Sending template message:', templateName, 'with parameters:', parameters);
+    // console.log('Sending template message:', templateName, 'with parameters:', parameters);
     result = await whatsappApi.sendMessage(to, templateName, parameters || []);
   } else {
-    console.log('Sending text message:', message);
+    // console.log('Sending text message:', message);
     result = await whatsappApi.sendTextMessage(to, message);
   }
-console.log('WhatsApp API result:', result);
+// console.log('WhatsApp API result:', result);
   // Find or create conversation
   let conversation = conversationId
     ? await storage.getConversation(conversationId)
     : await storage.getConversationByPhone(to);
-console.log('Using conversation:', conversation?.id);
+// console.log('Using conversation:', conversation?.id);
   if (!conversation) {
     let contact = await storage.getContactByPhone(to);
     if (!contact) {
@@ -61,13 +61,13 @@ console.log('Using conversation:', conversation?.id);
   }
 
   let newMsg = templateName ? await storage.getTemplatesByName(templateName) : null;
-console.log('Using template for message body:',{
-    conversationId: conversation.id,
-    content: message || newMsg?.body,
-    sender: "business",
-    status: "sent",
-    whatsappMessageId: result.messages?.[0]?.id,
-  });
+// console.log('Using template for message body:',{
+//     conversationId: conversation.id,
+//     content: message || newMsg?.body,
+//     sender: "business",
+//     status: "sent",
+//     whatsappMessageId: result.messages?.[0]?.id,
+//   });
   // Save message
   const createdMessage = await storage.createMessage({
     conversationId: conversation.id,
@@ -76,7 +76,7 @@ console.log('Using template for message body:',{
     status: "sent",
     whatsappMessageId: result.messages?.[0]?.id,
   });
-console.log('Created message:', createdMessage);
+// console.log('Created message:', createdMessage);
   // Update conversation last message
   await storage.updateConversation(conversation.id, {
     lastMessageAt: new Date(),
@@ -91,10 +91,10 @@ console.log('Created message:', createdMessage);
     });
   }
 console.log('Broadcasted new message to conversation:', conversation.id);
-console.log('sendBusinessMessage completed successfully' , {    success: true,
-messageId: result.messages?.[0]?.id,
-conversationId: conversation.id,
-createdMessage});
+// console.log('sendBusinessMessage completed successfully' , {    success: true,
+// messageId: result.messages?.[0]?.id,
+// conversationId: conversation.id,
+// createdMessage});
   return {
     success: true,
     messageId: result.messages?.[0]?.id,
