@@ -3,6 +3,7 @@ import { storage } from '../storage';
 import { insertMessageSchema } from '@shared/schema';
 import { AppError, asyncHandler } from '../middlewares/error.middleware';
 import crypto from 'crypto';
+import { startAutomationExecutionFunction } from './automation.controller';
 
 export const getWebhookConfigs = asyncHandler(async (req: Request, res: Response) => {
   const configs = await storage.getWebhookConfigs();
@@ -207,6 +208,10 @@ async function handleMessageChange(value: any) {
         channelId: channel.id,
         unreadCount: 1
       });
+
+    //  execute automations;
+    const result = await startAutomationExecutionFunction(contact?.id, conversation?.id,{ from, whatsappMessageId, text, type, timestamp });
+     console.log(result);
     } else {
       // Increment unread count
 
@@ -232,6 +237,9 @@ async function handleMessageChange(value: any) {
       whatsappMessageId,
       timestamp: new Date(parseInt(timestamp, 10) * 1000)
     });
+
+
+
     
     // Broadcast new message via WebSocket
     if ((global as any).broadcastToConversation) {
