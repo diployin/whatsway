@@ -67,14 +67,16 @@ export class AutomationExecutionService {
         triggerData: execution.triggerData
       };
 
-      // Find first node (position 0 or lowest position)
-      const firstNode = automation.nodes.sort((a, b) => a.position - b.position)[0];
-      
-      if (firstNode) {
-        await this.executeNode(firstNode, automation, context);
-      } else {
-        await this.completeExecution(executionId, 'completed', 'No nodes to execute');
-      }
+      // Get first node = no incoming edges
+        const firstNode = automation.nodes.find(
+          (n: any) => !automation.edges.some((e: any) => e.targetNodeId === n.nodeId)
+        );
+
+        if (firstNode) {
+          await this.executeNode(firstNode, automation, context);
+        } else {
+          await this.completeExecution(executionId, 'completed', 'No start node found');
+        }
 
     } catch (error) {
       console.error(`Error executing automation ${executionId}:`, error);
@@ -165,26 +167,29 @@ export class AutomationExecutionService {
   }
 
 /**
- * Find and execute next node(s) using edges
+ * Continue to next node(s) using edges
  */
 private async continueToNextNode(currentNode: any, automation: any, context: ExecutionContext) {
-  // Find edges where current node is the source
-  const nextEdges = automation.edges.filter((e: any) => e.source === currentNode.nodeId);
+  // Get outgoing edges
+  const outgoingEdges = automation.edges.filter(
+    (e: any) => e.sourceNodeId === currentNode.nodeId
+  );
 
-  if (nextEdges.length === 0) {
-    // No outgoing edges → complete execution
+  if (outgoingEdges.length === 0) {
+    // No more nodes → execution complete
     await this.completeExecution(context.executionId, 'completed', 'All nodes executed successfully');
     return;
   }
 
-  // Execute each connected node (can be parallel or sequential depending on your design)
-  for (const edge of nextEdges) {
-    const nextNode = automation.nodes.find((n: any) => n.nodeId === edge.target);
+  // Follow each edge
+  for (const edge of outgoingEdges) {
+    const nextNode = automation.nodes.find((n: any) => n.nodeId === edge.targetNodeId);
     if (nextNode) {
       await this.executeNode(nextNode, automation, context);
     }
   }
 }
+
 
 
   /**
@@ -389,25 +394,13 @@ private async continueToNextNode(currentNode: any, automation: any, context: Exe
     // Get automation
     const automation = await db.query.automations.findFirst({
       where: eq(automations.id, automationId),
+      with: {
+        nodes: true,
+        edges: true,
+      },
     });
-
-    if (!automation) return null;
-
-    // Get nodes
-    const nodes = await db.select()
-      .from(automationNodes)
-      .where(eq(automationNodes.automationId, automationId));
-
-    // Get edges  
-    const edges = await db.select()
-      .from(automationEdges)
-      .where(eq(automationEdges.automationId, automationId));
-
-    return {
-      ...automation,
-      nodes: nodes.sort((a, b) => a.position - b.position),
-      edges
-    };
+  
+    return automation;
   }
 }
 
