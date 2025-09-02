@@ -29,6 +29,13 @@
       "when": 1756704832016,
       "tag": "0003_flaky_wither",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1756813999008,
+      "tag": "0004_greedy_hydra",
+      "breakpoints": true
     }
   ]
 }
