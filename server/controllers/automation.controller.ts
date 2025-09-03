@@ -107,7 +107,7 @@ console.log("Using channelId:", channelId); // Debug log
     triggerConfig,
   }).returning();
 
-  // console.log(nodes)
+  console.log(nodes)
   // optional: insert initial nodes
   if (nodes.length) {
     await db.insert(automationNodes).values(
@@ -158,10 +158,10 @@ export const updateAutomation = asyncHandler(async (req: Request, res: Response)
   console.log("Updating automation with ID:", automation.id);
 
   // Delete existing nodes for this automation
- const getDlt = await db
+ const getDltNodes = await db
     .delete(automationNodes)
     .where(eq(automationNodes.automationId, automation.id));
-console.log("Deleted nodes result:", getDlt , automation.id); // Debug log
+ console.log("Deleted nodes result:", getDltNodes , automation.id ,nodes.length); // Debug log
   // Insert new nodes if provided
   if (nodes.length > 0) {
     const insertedNodes = await db.insert(automationNodes).values(
@@ -173,16 +173,17 @@ console.log("Deleted nodes result:", getDlt , automation.id); // Debug log
         position: node.position,
         data: node.data,
         connections: node.connections,
+        measured: node.measured,
       }))
     );
-    console.log("Inserted nodes:", insertedNodes.length);
+    console.log("Inserted nodes:", insertedNodes);
   }
 
   // Delete existing edges
-  await db
+const getDltEdges =  await db
     .delete(automationEdges)
     .where(eq(automationEdges.automationId, automation.id));
-
+    console.log("Deleted edges result:", getDltEdges , automation.id ,edges.length); // Debug log
   // Insert new edges if provided
   if (edges.length > 0) {
     const insertedEdges = await db.insert(automationEdges).values(
@@ -194,7 +195,7 @@ console.log("Deleted nodes result:", getDlt , automation.id); // Debug log
         animated: edge.animated,
       }))
     );
-    console.log("Inserted edges:", insertedEdges.length);
+    console.log("Inserted edges:", insertedEdges);
   }
 
   // Respond with updated automation
