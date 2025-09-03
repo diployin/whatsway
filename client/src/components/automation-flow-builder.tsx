@@ -12,6 +12,9 @@ import {
   Connection,
   Edge,
   Node,
+  BaseEdge,
+  getStraightPath,
+  EdgeLabelRenderer,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { apiRequest } from "@/lib/queryClient";
@@ -832,10 +835,18 @@ export default function AutomationFlowBuilderXYFlow({
     return transformAutomationToFlow(automation);
   }, [automation]);
 
+   const normalizeEdges = (edges) =>
+  (edges || []).map((e) => ({
+    ...e,
+    type: "custom",
+    animated: true,
+  }));
+
   // Nodes & Edges state (ReactFlow)
   const [nodes, setNodes, onNodesChange] = useNodesState<BuilderNodeData>(initialFlow.nodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialFlow.edges);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(normalizeEdges(initialFlow.edges));
 
+  
   // Selection
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selectedNode = useMemo(
@@ -845,9 +856,15 @@ export default function AutomationFlowBuilderXYFlow({
 
   const onConnect = useCallback(
     (params: Edge | Connection) =>
-      setEdges((eds) => addEdge({ ...params, animated: true }, eds)),
+      setEdges((eds) =>
+        addEdge(
+          { ...params, animated: true, type: "custom" }, // 👈 important
+          eds
+        )
+      ),
     [setEdges]
   );
+  
 
   const onNodeClick = useCallback(
     (_: any, node: Node<BuilderNodeData>) => setSelectedId(node.id),
@@ -891,6 +908,8 @@ export default function AutomationFlowBuilderXYFlow({
     setEdges((eds) => eds.filter((e) => e.source !== selectedId && e.target !== selectedId));
     setSelectedId(null);
   };
+
+  
 
   // Patch selected node data
   const patchSelected = (patch: Partial<BuilderNodeData>) => {
@@ -995,6 +1014,12 @@ export default function AutomationFlowBuilderXYFlow({
     reactFlowInstance.setViewport({ x: 0, y: 0, zoom: 1 });
   }, []);
 
+
+  const edgeTypes = {
+    custom: (props) => <CustomEdge {...props} setEdges={setEdges} />,
+  };
+
+  
   return (
     <div className="h-screen w-full grid grid-cols-12 bg-gray-50">
       {/* Left Sidebar */}
@@ -1122,6 +1147,7 @@ export default function AutomationFlowBuilderXYFlow({
             onNodeClick={onNodeClick}
             onInit={onInit}
             fitView
+            edgeTypes={edgeTypes}
           >
             <MiniMap />
             <Controls />
@@ -1181,5 +1207,42 @@ export default function AutomationFlowBuilderXYFlow({
         />
       </div>
     </div>
+  );
+}
+
+
+function CustomEdge({ id, sourceX, sourceY, targetX, targetY, style, markerEnd, setEdges }) {
+  // get edge path + center position
+  const [edgePath, labelX, labelY] = getStraightPath({
+    sourceX,
+    sourceY,
+    targetX,
+    targetY,
+  });
+
+  const handleDelete = () => {
+    setEdges((eds) => eds.filter((e) => e.id !== id));
+  };
+
+  return (
+    <>
+      <BaseEdge path={edgePath} markerEnd={markerEnd} style={style} />
+      <EdgeLabelRenderer>
+        <div
+          style={{
+            position: "absolute",
+            transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
+            pointerEvents: "all",
+            background: "white",
+            borderRadius: "9999px",
+            boxShadow: "0 1px 4px rgba(0,0,0,0.2)",
+            cursor: "pointer",
+          }}
+          onClick={handleDelete}
+        >
+          <Trash2 color="red" size={14}/>
+        </div>
+      </EdgeLabelRenderer>
+    </>
   );
 }
