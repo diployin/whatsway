@@ -255,6 +255,136 @@ export const handleWebhook = asyncHandler(async (req: Request, res: Response) =>
 //   }
 // }
 
+// async function handleMessageChange(value: any) {
+//   const { messages, contacts, metadata, statuses } = value;
+  
+//   // Handle message status updates (sent, delivered, read, failed)
+//   if (statuses && statuses.length > 0) {
+//     await handleMessageStatuses(statuses, metadata);
+//     return;
+//   }
+  
+//   if (!messages || messages.length === 0) {
+//     return;
+//   }
+  
+//   // Find channel by phone number ID
+//   const phoneNumberId = metadata?.phone_number_id;
+//   if (!phoneNumberId) {
+//     console.error('No phone_number_id in webhook');
+//     return;
+//   }
+  
+//   const channel = await storage.getChannelByPhoneNumberId(phoneNumberId);
+//   if (!channel) {
+//     console.error(`No channel found for phone_number_id: ${phoneNumberId}`);
+//     return;
+//   }
+  
+//   for (const message of messages) {
+//     const { from, id: whatsappMessageId, text, type, timestamp } = message;
+    
+//     // Find or create conversation
+//     let conversation = await storage.getConversationByPhone(from);
+//     let contact = await storage.getContactByPhone(from);
+//     let isNewConversation = false;
+    
+//     if (!conversation) {
+//       // This is a new conversation
+//       isNewConversation = true;
+      
+//       // Find or create contact first
+//       if (!contact) {
+//         const contactName = contacts?.find((c: any) => c.wa_id === from)?.profile?.name || from;
+//         contact = await storage.createContact({
+//           name: contactName,
+//           phone: from,
+//           channelId: channel.id
+//         });
+//       }
+      
+//       conversation = await storage.createConversation({
+//         contactId: contact.id,
+//         contactPhone: from,
+//         contactName: contact.name || from,
+//         channelId: channel.id,
+//         unreadCount: 1
+//       });
+//     } else {
+//       // Existing conversation - increment unread count
+//       await storage.updateConversation(conversation.id, {
+//         unreadCount: (conversation.unreadCount || 0) + 1,
+//         lastMessageAt: new Date(),
+//         lastMessageText: text?.body || `[${type} message]`,
+//       });
+//     }
+    
+//     console.log("Webhook Message ::>>", text, text?.body);
+
+//     // Create message record
+//     const newMessage = await storage.createMessage({
+//       conversationId: conversation.id,
+//       content: text?.body || `[${type} message]`,
+//       fromUser: false,
+//       direction: 'inbound',
+//       status: 'received',
+//       whatsappMessageId,
+//       timestamp: new Date(parseInt(timestamp, 10) * 1000)
+//     });
+
+//     // Broadcast new message via WebSocket
+//     if ((global as any).broadcastToConversation) {
+//       (global as any).broadcastToConversation(conversation.id, {
+//         type: 'new-message',
+//         message: newMessage
+//       });
+//     }
+
+//     // ============== AUTOMATION HANDLING ==============
+    
+//     try {
+//       if (isNewConversation) {
+//         // Handle new conversation automation triggers
+//         console.log(`🎯 Triggering new conversation automation for: ${conversation.id}`);
+//         await triggerService.handleNewConversation(
+//           conversation.id, 
+//           channel.id, 
+//           contact.id
+//         );
+//       } else {
+//         // Handle message received triggers (including user responses)
+//         console.log(`💬 Triggering message received automation for: ${conversation.id}`);
+        
+//         // The triggerService.handleMessageReceived method will:
+//         // 1. Check if there's a pending execution waiting for user response
+//         // 2. If yes, process as user response and resume execution
+//         // 3. If no, trigger normal message-based automations
+        
+//         await triggerService.handleMessageReceived(
+//           conversation.id, 
+//           {
+//             content: text?.body || `[${type} message]`,
+//             text: text?.body,
+//             type: type,
+//             from: from,
+//             whatsappMessageId: whatsappMessageId,
+//             timestamp: timestamp
+//           }, 
+//           channel.id, 
+//           contact.id
+//         );
+//       }
+//     } catch (automationError) {
+//       // Log automation errors but don't fail the webhook
+//       console.error(`❌ Automation error for conversation ${conversation.id}:`, automationError);
+      
+//       // Optionally notify monitoring/alerting systems
+//       // await notifyAutomationError(conversation.id, automationError);
+//     }
+//   }
+// }
+
+
 async function handleMessageChange(value: any) {
   const { messages, contacts, metadata, statuses } = value;
   
@@ -282,18 +412,37 @@ async function handleMessageChange(value: any) {
   }
   
   for (const message of messages) {
-    const { from, id: whatsappMessageId, text, type, timestamp } = message;
+    const { from, id: whatsappMessageId, text, type, timestamp, interactive } = message;
     
-    // Find or create conversation
+    // Extract message content and interactive data
+    let messageContent = '';
+    let interactiveData = null;
+    
+    if (type === 'text' && text) {
+      messageContent = text.body;
+    } else if (type === 'interactive' && interactive) {
+      // Handle button click responses
+      if (interactive.type === 'button_reply') {
+        messageContent = interactive.button_reply.title;
+        interactiveData = interactive;
+        console.log('Interactive button response:', interactive.button_reply);
+      } else if (interactive.type === 'list_reply') {
+        messageContent = interactive.list_reply.title;
+        interactiveData = interactive;
+        console.log('Interactive list response:', interactive.list_reply);
+      }
+    } else {
+      messageContent = `[${type} message]`;
+    }
+    
+    // Find or create conversation (same as before)
     let conversation = await storage.getConversationByPhone(from);
     let contact = await storage.getContactByPhone(from);
     let isNewConversation = false;
     
     if (!conversation) {
-      // This is a new conversation
       isNewConversation = true;
       
-      // Find or create contact first
       if (!contact) {
         const contactName = contacts?.find((c: any) => c.wa_id === from)?.profile?.name || from;
         contact = await storage.createContact({
@@ -311,24 +460,25 @@ async function handleMessageChange(value: any) {
         unreadCount: 1
       });
     } else {
-      // Existing conversation - increment unread count
       await storage.updateConversation(conversation.id, {
         unreadCount: (conversation.unreadCount || 0) + 1,
         lastMessageAt: new Date(),
-        lastMessageText: text?.body || `[${type} message]`,
+        lastMessageText: messageContent,
       });
     }
     
-    console.log("Webhook Message ::>>", text, text?.body);
+    console.log("Webhook Message ::>>", messageContent, "Type:", type, "Interactive:", !!interactiveData);
 
     // Create message record
     const newMessage = await storage.createMessage({
       conversationId: conversation.id,
-      content: text?.body || `[${type} message]`,
+      content: messageContent,
       fromUser: false,
       direction: 'inbound',
       status: 'received',
       whatsappMessageId,
+      messageType: type,
+      metadata: interactiveData ? JSON.stringify(interactiveData) : null,
       timestamp: new Date(parseInt(timestamp, 10) * 1000)
     });
 
@@ -340,46 +490,38 @@ async function handleMessageChange(value: any) {
       });
     }
 
-    // ============== AUTOMATION HANDLING ==============
-    
+    // ENHANCED AUTOMATION HANDLING
     try {
       if (isNewConversation) {
-        // Handle new conversation automation triggers
-        console.log(`🎯 Triggering new conversation automation for: ${conversation.id}`);
+        console.log(`New conversation automation trigger for: ${conversation.id}`);
         await triggerService.handleNewConversation(
           conversation.id, 
           channel.id, 
           contact.id
         );
       } else {
-        // Handle message received triggers (including user responses)
-        console.log(`💬 Triggering message received automation for: ${conversation.id}`);
+        console.log(`Message received automation trigger for: ${conversation.id}`);
         
-        // The triggerService.handleMessageReceived method will:
-        // 1. Check if there's a pending execution waiting for user response
-        // 2. If yes, process as user response and resume execution
-        // 3. If no, trigger normal message-based automations
+        // Pass both the message content and interactive data to the trigger service
+        const messageData = {
+          content: messageContent,
+          text: messageContent,
+          type: type,
+          from: from,
+          whatsappMessageId: whatsappMessageId,
+          timestamp: timestamp,
+          interactive: interactiveData // Include button click data
+        };
         
         await triggerService.handleMessageReceived(
           conversation.id, 
-          {
-            content: text?.body || `[${type} message]`,
-            text: text?.body,
-            type: type,
-            from: from,
-            whatsappMessageId: whatsappMessageId,
-            timestamp: timestamp
-          }, 
+          messageData, 
           channel.id, 
           contact.id
         );
       }
     } catch (automationError) {
-      // Log automation errors but don't fail the webhook
-      console.error(`❌ Automation error for conversation ${conversation.id}:`, automationError);
-      
-      // Optionally notify monitoring/alerting systems
-      // await notifyAutomationError(conversation.id, automationError);
+      console.error(`Automation error for conversation ${conversation.id}:`, automationError);
     }
   }
 }
