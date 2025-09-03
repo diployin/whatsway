@@ -826,13 +826,13 @@ private formatPhoneNumber(phone: string): string {
    */
   private async executeSendTemplate(node: any, context: ExecutionContext) {
     const templateId = node.data?.templateId;
+    console.log("node & context", node, context);
     
     if (!templateId) {
       throw new Error('No template ID provided');
     }
     
     console.log(`📄 Sending template ${templateId} to conversation ${context.conversationId}`);
-
     if (context.variables?.to) {
       await sendBusinessMessage({
         to: context.variables.to,
