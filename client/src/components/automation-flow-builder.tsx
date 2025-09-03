@@ -47,6 +47,7 @@ import {
   FileIcon,
   X,
   Check,
+  GitBranch,
 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -55,6 +56,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 // -----------------------
 export type NodeKind =
   | "start"
+  | "conditions"
   | "custom_reply"
   | "user_reply"
   | "time_gap"
@@ -79,6 +81,10 @@ export interface BuilderNodeData {
   delay?: number; // seconds
   templateId?: string;
   assigneeId?: string; // user id
+  // Condition specific fields
+  conditionType?: 'keyword' | 'contains' | 'equals' | 'starts_with';
+  keywords?: string[];
+  matchType?: 'any' | 'all';
   buttons?: Array<{
     id: string;
     text: string;
@@ -88,7 +94,7 @@ export interface BuilderNodeData {
 }
 
 interface AutomationFlowBuilderProps {
-  automation?: any; // Changed from automationId to automation object
+  automation?: any;
   channelId?: string;
   onClose: () => void;
 }
@@ -102,6 +108,13 @@ const uid = () =>
 // Default data for each node type
 const defaultsByKind: Record<NodeKind, Partial<BuilderNodeData>> = {
   start: { kind: "start", label: "Start" },
+  conditions: {
+    kind: "conditions",
+    label: "Conditions",
+    conditionType: "keyword",
+    keywords: [],
+    matchType: "any",
+  },
   custom_reply: {
     kind: "custom_reply",
     label: "Message",
@@ -122,19 +135,6 @@ const defaultsByKind: Record<NodeKind, Partial<BuilderNodeData>> = {
   send_template: { kind: "send_template", label: "Template", templateId: "" },
   assign_user: { kind: "assign_user", label: "Assign User", assigneeId: "" },
 };
-
-// Mock data for testing
-// const mockTemplates = [
-//   { id: "1", name: "Welcome Template" },
-//   { id: "2", name: "Follow-up Template" },
-//   { id: "3", name: "Thank You Template" },
-// ];
-
-// const mockMembers = [
-//   { id: "1", name: "John Doe", firstName: "John", lastName: "Doe" },
-//   { id: "2", name: "Jane Smith", firstName: "Jane", lastName: "Smith" },
-//   { id: "3", name: "Mike Johnson", firstName: "Mike", lastName: "Johnson" },
-// ];
 
 // -----------------------
 // Transform automation data to ReactFlow format
@@ -167,7 +167,8 @@ function transformAutomationToFlow(automation: any) {
 
   // Sort nodes by position
   const sortedNodes = [...automation.automation_nodes].sort((a, b) => a.position - b.position);
-console.log("sortedNodes", sortedNodes);
+  console.log("sortedNodes", sortedNodes);
+  
   // Transform each automation node
   sortedNodes.forEach((autoNode: any, index: number) => {
     const nodeData: BuilderNodeData = {
@@ -186,14 +187,14 @@ console.log("sortedNodes", sortedNodes);
     nodes.push(reactFlowNode);
   });
 
-  // Create edges based on connections
+  // Create edges based on connections with proper type
   let previousNodeId = "start";
   sortedNodes.forEach((autoNode: any) => {
-    // Connect from previous node to current node
     edges.push({
       id: `${previousNodeId}-${autoNode.nodeId}`,
       source: previousNodeId,
       target: autoNode.nodeId,
+      type: "custom", // Set type immediately
       animated: true,
     });
     previousNodeId = autoNode.nodeId;
@@ -203,7 +204,7 @@ console.log("sortedNodes", sortedNodes);
 }
 
 // -----------------------
-// Custom Node Components (same as before)
+// Custom Node Components
 // -----------------------
 function Shell({
   children,
@@ -227,6 +228,33 @@ function StartNode() {
       <Zap className="w-6 h-6" />
       <Handle type="source" position={Position.Bottom} />
     </div>
+  );
+}
+
+function ConditionsNode({ data }: { data: BuilderNodeData }) {
+  return (
+    <Shell tint="bg-purple-500 border-purple-600">
+      <div className="font-semibold flex items-center gap-2">
+        <GitBranch className="w-4 h-4" /> Conditions
+      </div>
+      <div className="text-white/90 text-sm mt-1">
+        {data.conditionType === 'keyword' && data.keywords && data.keywords.length > 0 ? (
+          <div>
+            Keywords: {data.keywords.slice(0, 3).join(', ')}
+            {data.keywords.length > 3 && '...'}
+          </div>
+        ) : (
+          <div>No conditions set</div>
+        )}
+      </div>
+      {data.matchType && (
+        <div className="text-[11px] mt-1 bg-white/15 rounded px-2 py-1 inline-block">
+          Match: {data.matchType}
+        </div>
+      )}
+      <Handle type="target" position={Position.Top} />
+      <Handle type="source" position={Position.Bottom} />
+    </Shell>
   );
 }
 
@@ -385,6 +413,7 @@ function AssignUserNode({ data }: { data: BuilderNodeData }) {
 
 const nodeTypes = {
   start: StartNode,
+  conditions: ConditionsNode,
   custom_reply: CustomReplyNode,
   user_reply: UserReplyNode,
   time_gap: TimeGapNode,
@@ -392,7 +421,7 @@ const nodeTypes = {
   assign_user: AssignUserNode,
 };
 
-// File upload helper (same as before)
+// File upload helper
 function FileUploadButton({ 
   accept, 
   onUpload, 
@@ -442,7 +471,7 @@ function FileUploadButton({
 }
 
 // -----------------------
-// Right Panel (Config) - Same as before but keeping for completeness
+// Right Panel (Config)
 // -----------------------
 function ConfigPanel({
   selected,
@@ -457,7 +486,6 @@ function ConfigPanel({
   templates: any[];
   members: any[];
 }) {
-  // console.log("templates in config panel:", templates , members);
   if (!selected || selected.data.kind === "start") {
     return (
       <div className="h-full flex items-center justify-center text-gray-500">
@@ -510,6 +538,30 @@ function ConfigPanel({
     });
   };
 
+  // Keyword management
+  const addKeyword = () => {
+    const keywords = d.keywords || [];
+    onChange({
+      keywords: [...keywords, ''],
+    });
+  };
+
+  const updateKeyword = (index: number, value: string) => {
+    const keywords = d.keywords || [];
+    const updated = [...keywords];
+    updated[index] = value;
+    onChange({
+      keywords: updated,
+    });
+  };
+
+  const removeKeyword = (index: number) => {
+    const keywords = d.keywords || [];
+    onChange({
+      keywords: keywords.filter((_, i) => i !== index),
+    });
+  };
+
   return (
     <ScrollArea className="h-full">
       <div className="p-4 space-y-4">
@@ -529,6 +581,71 @@ function ConfigPanel({
             <Trash2 className="w-4 h-4" />
           </Button>
         </div>
+
+        {d.kind === "conditions" && (
+          <Card className="p-3 space-y-4">
+            <div>
+              <Label>Condition Type</Label>
+              <select
+                className="w-full border rounded-md h-9 px-2"
+                value={d.conditionType || "keyword"}
+                onChange={(e) => onChange({ conditionType: e.target.value as any })}
+              >
+                <option value="keyword">Contains Keywords</option>
+                <option value="equals">Equals</option>
+                <option value="starts_with">Starts With</option>
+                <option value="contains">Contains Text</option>
+              </select>
+            </div>
+
+            <div>
+              <Label>Match Type</Label>
+              <select
+                className="w-full border rounded-md h-9 px-2"
+                value={d.matchType || "any"}
+                onChange={(e) => onChange({ matchType: e.target.value as any })}
+              >
+                <option value="any">Match Any</option>
+                <option value="all">Match All</option>
+              </select>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label>Keywords</Label>
+                <Button size="sm" variant="outline" onClick={addKeyword}>
+                  <Plus className="w-3 h-3 mr-1" />
+                  Add Keyword
+                </Button>
+              </div>
+              
+              {(d.keywords || []).map((keyword, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <Input
+                    value={keyword}
+                    onChange={(e) => updateKeyword(index, e.target.value)}
+                    placeholder={`Keyword ${index + 1}`}
+                    className="flex-1"
+                  />
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => removeKeyword(index)}
+                    className="text-red-500"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+              
+              {(!d.keywords || d.keywords.length === 0) && (
+                <div className="text-sm text-gray-500 italic">
+                  No keywords added yet. Click "Add Keyword" to start.
+                </div>
+              )}
+            </div>
+          </Card>
+        )}
 
         {d.kind === "custom_reply" && (
           <Card className="p-3 space-y-4">
@@ -672,96 +789,16 @@ function ConfigPanel({
           </Card>
         )}
 
-        {d.kind === "user_reply" && (
-          <Card className="p-3 space-y-4">
-            <div>
-              <Label>Question</Label>
-              <Textarea
-                rows={3}
-                value={d.question || ""}
-                onChange={(e) => onChange({ question: e.target.value })}
-                placeholder="Ask a question here"
-              />
-            </div>
-            <div>
-              <Label>Save Answer As</Label>
-              <Input
-                placeholder="e.g. full_name, email, phone"
-                value={d.saveAs || ""}
-                onChange={(e) => onChange({ saveAs: e.target.value })}
-              />
-            </div>
-
-            {/* Image upload for questions */}
-            <div className="space-y-2">
-              <Label>Attachment (Optional)</Label>
-              <FileUploadButton
-                accept="image/*"
-                onUpload={handleFileUpload('image')}
-                className="w-full justify-center text-green-600 border-green-200 hover:bg-green-50"
-              >
-                <Upload className="w-4 h-4" />
-                Upload Image
-              </FileUploadButton>
-              
-              {d.imagePreview && (
-                <div className="relative border rounded-lg p-2">
-                  <img src={d.imagePreview} alt="preview" className="w-full h-32 object-cover rounded" />
-                  <button
-                    onClick={removeFile('image')}
-                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Answer Buttons */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label>Answer Options</Label>
-                <Button size="sm" variant="outline" onClick={addButton}>
-                  <Plus className="w-3 h-3 mr-1" />
-                  Add Option
-                </Button>
-              </div>
-              
-              {d.buttons?.map((button) => (
-                <div key={button.id} className="border rounded-lg p-3 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <Input
-                      value={button.text}
-                      onChange={(e) => updateButton(button.id, { text: e.target.value })}
-                      placeholder="Answer option"
-                      className="flex-1"
-                    />
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => removeButton(button.id)}
-                      className="text-red-500"
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Card>
-        )}
-
         {d.kind === "time_gap" && (
           <Card className="p-3 space-y-3">
             <div>
               <Label>Delay (seconds)</Label>
               <Input
                 type="number"
-                min={0}
+                min={10}
                 value={d.delay ?? 60}
                 onChange={(e) =>
-                  onChange({ delay: parseInt(e.target.value || "0", 10) })
+                  onChange({ delay: parseInt(e.target.value, 10) })
                 }
               />
             </div>
@@ -822,30 +859,24 @@ export default function AutomationFlowBuilderXYFlow({
   channelId,
   onClose,
 }: AutomationFlowBuilderProps) {
-  console.log("Loaded automation:", automation , channelId);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
   // Initialize with automation data or defaults
   const [name, setName] = useState<string>(automation?.name || "Send a message");
   const [description, setDescription] = useState<string>(automation?.description || "");
   const [trigger, setTrigger] = useState<string>(automation?.trigger || "new_conversation");
 
-  // Transform automation data to flow format
-  const initialFlow = useMemo(() => {
-    return transformAutomationToFlow(automation);
-  }, [automation]);
+  // FIXED: Transform automation data once and store in ref to prevent re-computation
+  const initialFlowRef = useRef<{ nodes: Node<BuilderNodeData>[]; edges: Edge[] } | null>(null);
+  
+  if (!initialFlowRef.current) {
+    initialFlowRef.current = transformAutomationToFlow(automation);
+  }
 
-   const normalizeEdges = (edges) =>
-  (edges || []).map((e) => ({
-    ...e,
-    type: "custom",
-    animated: true,
-  }));
-
-  // Nodes & Edges state (ReactFlow)
-  const [nodes, setNodes, onNodesChange] = useNodesState<BuilderNodeData>(initialFlow.nodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(normalizeEdges(initialFlow.edges));
-
+  // FIXED: Initialize directly without useMemo or normalizeEdges function
+  const [nodes, setNodes, onNodesChange] = useNodesState<BuilderNodeData>(initialFlowRef.current.nodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialFlowRef.current.edges);
   
   // Selection
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -858,33 +889,28 @@ export default function AutomationFlowBuilderXYFlow({
     (params: Edge | Connection) =>
       setEdges((eds) =>
         addEdge(
-          { ...params, animated: true, type: "custom" }, // 👈 important
+          { ...params, animated: true, type: "custom" },
           eds
         )
       ),
     [setEdges]
   );
-  
 
   const onNodeClick = useCallback(
     (_: any, node: Node<BuilderNodeData>) => setSelectedId(node.id),
     []
   );
 
-
-    // Data sources
-    const { data: templates = [] } = useQuery({ 
-      queryKey: ["/api/templates"],
-      queryFn: () => apiRequest("GET", "/api/templates").then(res => res.json())
-    });
-    
-    const { data: members = [] } = useQuery({ 
-      queryKey: ["/api/team/members"],
-      queryFn: () => apiRequest("GET", "/api/team/members").then(res => res.json())
-    });
-    
-
-    // console.log("Fetched templates and members:", templates, members);
+  // Data sources
+  const { data: templates = [] } = useQuery({ 
+    queryKey: ["/api/templates"],
+    queryFn: () => apiRequest("GET", "/api/templates").then(res => res.json())
+  });
+  
+  const { data: members = [] } = useQuery({ 
+    queryKey: ["/api/team/members"],
+    queryFn: () => apiRequest("GET", "/api/team/members").then(res => res.json())
+  });
 
   // Add node actions
   const addNode = (kind: NodeKind) => {
@@ -909,8 +935,6 @@ export default function AutomationFlowBuilderXYFlow({
     setSelectedId(null);
   };
 
-  
-
   // Patch selected node data
   const patchSelected = (patch: Partial<BuilderNodeData>) => {
     if (!selectedId) return;
@@ -921,67 +945,52 @@ export default function AutomationFlowBuilderXYFlow({
     );
   };
 
-    // Save automation
-    const saveMutation = useMutation({
-      mutationFn: async (payload: any) => {
-        if (payload.automationId) {
-          // Update existing automation
-          await apiRequest("PUT", `/api/automations/${payload.automationId}`, {
-            name: payload.name,
-            description: payload.description,
-            trigger: payload.trigger,
-            triggerConfig: payload.triggerConfig,
-            nodes: payload.nodes,
-            edges: payload.edges,
-          });
-          
-          // Update nodes
-          // await apiRequest("POST", `/api/automations/${payload.automationId}/nodes`, {
-          //   nodes: payload.nodes,
-          // });
-
-          // // Update edges
-          // await apiRequest("POST", `/api/automations/${payload.automationId}/edges`, {
-          //   edges: payload.edges,
-          // });
-          
-          return { id: payload.automationId };
-        } else {
-          // Create new automation
-          const automation = await apiRequest("POST", "/api/automations", {
-            name: payload.name,
-            description: payload.description,
-            channelId: channelId,
-            trigger: payload.trigger,
-            triggerConfig: payload.triggerConfig,
-            nodes: payload.nodes,
-            edges: payload.edges,
-          });
-          
-          return automation;
-        }
-      },
-      onSuccess: () => {
-        toast({
-          title: automation?.id ? "Automation updated" : "Automation created",
-          description: "Your automation flow has been saved successfully.",
+  // Save automation
+  const saveMutation = useMutation({
+    mutationFn: async (payload: any) => {
+      if (payload.automationId) {
+        // Update existing automation
+        await apiRequest("PUT", `/api/automations/${payload.automationId}`, {
+          name: payload.name,
+          description: payload.description,
+          trigger: payload.trigger,
+          triggerConfig: payload.triggerConfig,
+          nodes: payload.nodes,
+          edges: payload.edges,
         });
-        queryClient.invalidateQueries({ queryKey: ["/api/automations"] });
-        onClose();
-      },
-      onError: (error: any) => {
-        toast({ 
-          title: "Failed to save automation", 
-          description: error?.message || "An error occurred while saving.",
-          variant: "destructive" 
+        
+        return { id: payload.automationId };
+      } else {
+        // Create new automation
+        const automation = await apiRequest("POST", "/api/automations", {
+          name: payload.name,
+          description: payload.description,
+          channelId: channelId,
+          trigger: payload.trigger,
+          triggerConfig: payload.triggerConfig,
+          nodes: payload.nodes,
+          edges: payload.edges,
         });
-      },
-    });
-
-  // const handleSave = () => {
-  //   console.log("Saving automation with data:", { name, description, nodes, edges });
-  //   alert("Automation saved successfully!");
-  // };
+        
+        return automation;
+      }
+    },
+    onSuccess: () => {
+      toast({
+        title: automation?.id ? "Automation updated" : "Automation created",
+        description: "Your automation flow has been saved successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/automations"] });
+      onClose();
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to save automation", 
+        description: error?.message || "An error occurred while saving.",
+        variant: "destructive" 
+      });
+    },
+  });
 
   const handleSave = () => {
     if (!name.trim()) {
@@ -993,20 +1002,20 @@ export default function AutomationFlowBuilderXYFlow({
       return;
     }
 
-
-    const backendNodes = nodes.filter(n => n.id !== 'start')
-    const backendEdges = edges.filter(n => n.source !== 'start')
-
+    const backendNodes = nodes.filter(n => n.id !== 'start');
+    const backendEdges = edges.filter(n => n.source !== 'start');
 
     const payload = {
       name,
       description,
       trigger,
       triggerConfig: {},
-      nodes:backendNodes,edges :backendEdges,automationId: automation?.id || null,
-      
+      nodes: backendNodes,
+      edges: backendEdges,
+      automationId: automation?.id || null,
     };
- console.log("Saving automation with payload:", payload);
+    
+    console.log("Saving automation with payload:", payload);
     saveMutation.mutate(payload);
   };
 
@@ -1014,12 +1023,10 @@ export default function AutomationFlowBuilderXYFlow({
     reactFlowInstance.setViewport({ x: 0, y: 0, zoom: 1 });
   }, []);
 
-
   const edgeTypes = {
     custom: (props) => <CustomEdge {...props} setEdges={setEdges} />,
   };
 
-  
   return (
     <div className="h-screen w-full grid grid-cols-12 bg-gray-50">
       {/* Left Sidebar */}
@@ -1029,6 +1036,20 @@ export default function AutomationFlowBuilderXYFlow({
         </div>
         <ScrollArea className="p-2">
           <div className="space-y-4">
+            <div>
+              <div className="text-[11px] uppercase text-gray-500 px-2 mb-1 flex items-center gap-2">
+                <GitBranch className="w-3 h-3" /> Conditions
+              </div>
+              <div className="space-y-1">
+                <button
+                  onClick={() => addNode("conditions")}
+                  className="w-full text-left text-sm px-3 py-2 hover:bg-purple-50 rounded flex items-center gap-2"
+                >
+                  <div className="w-2 h-2 bg-purple-500 rounded-full" /> Conditions
+                </button>
+              </div>
+            </div>
+            
             <div>
               <div className="text-[11px] uppercase text-gray-500 px-2 mb-1 flex items-center gap-2">
                 <MessageCircle className="w-3 h-3" /> Send a message
@@ -1123,9 +1144,10 @@ export default function AutomationFlowBuilderXYFlow({
               size="sm" 
               variant="outline" 
               onClick={handleSave}
+              disabled={saveMutation.isPending}
             >
               <Save className="w-4 h-4 mr-1" /> 
-              Save
+              {saveMutation.isPending ? "Saving..." : "Save"}
             </Button>
             <Button size="sm" variant="ghost">
               <Share2 className="w-4 h-4" />
@@ -1158,6 +1180,13 @@ export default function AutomationFlowBuilderXYFlow({
         {/* Bottom bar add quick */}
         <div className="bg-white border-t px-4 py-2 flex items-center gap-2">
           <span className="text-sm text-gray-600">Add step:</span>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => addNode("conditions")}
+          >
+            Conditions
+          </Button>
           <Button
             size="sm"
             variant="secondary"
@@ -1209,7 +1238,6 @@ export default function AutomationFlowBuilderXYFlow({
     </div>
   );
 }
-
 
 function CustomEdge({ id, sourceX, sourceY, targetX, targetY, style, markerEnd, setEdges }) {
   // get edge path + center position
