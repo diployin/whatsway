@@ -1042,8 +1042,56 @@ export class AutomationTriggerService {
   /**
    * Handle message received trigger - ENHANCED for conditions
    */
+  // async handleMessageReceived(conversationId: string, message: any, channelId: string, contactId?: string) {
+  //   console.log(`💬 Message received trigger: ${conversationId}`);
+    
+  //   // First, check if this is a response to a pending user_reply node
+  //   if (this.executionService.hasPendingExecution(conversationId)) {
+  //     console.log(`📨 Processing as user response to pending execution`);
+  //     try {
+  //       await this.executionService.handleUserResponse(conversationId, message.content || message.text || message, message.interactive);
+  //       return; // Don't trigger new automations if this was a response
+  //     } catch (error) {
+  //       console.error(`Error handling user response:`, error);
+  //       // Continue to trigger new automations as fallback
+  //     }
+  //   }
+    
+  //   // Normal message-based automation triggers
+  //   const activeAutomations = await db.select()
+  //     .from(automations)
+  //     .where(and(
+  //       eq(automations.channelId, channelId),
+  //       eq(automations.trigger, 'message_received'),
+  //       eq(automations.status, 'active')
+  //     ));
+
+  //   for (const automation of activeAutomations) {
+  //     try {
+  //       const [execution] = await db.insert(automationExecutions).values({
+  //         automationId: automation.id,
+  //         contactId,
+  //         conversationId,
+  //         triggerData: {
+  //           trigger: 'message_received',
+  //           message,
+  //           channelId,
+  //           timestamp: new Date()
+  //         },
+  //         status: 'running'
+  //       }).returning();
+
+  //       await this.executionService.executeAutomation(execution.id);
+  //     } catch (error) {
+  //       console.error(`Failed to execute automation ${automation.id}:`, error);
+  //     }
+  //   }
+  // }
+
   async handleMessageReceived(conversationId: string, message: any, channelId: string, contactId?: string) {
     console.log(`💬 Message received trigger: ${conversationId}`);
+    console.log(`🔍 Channel ID: ${channelId}, Contact ID: ${contactId}`);
+    console.log(`📝 Message: "${message.content || message.text || message}"`);
     
     // First, check if this is a response to a pending user_reply node
     if (this.executionService.hasPendingExecution(conversationId)) {
@@ -1057,6 +1105,16 @@ export class AutomationTriggerService {
       }
     }
     
+    // DEBUG: Show all automations for this channel first
+    const allAutomations = await db.select()
+      .from(automations)
+      .where(eq(automations.channelId, channelId));
+      
+    console.log(`📊 Total automations for channel ${channelId}: ${allAutomations.length}`);
+    allAutomations.forEach(auto => {
+      console.log(`   - ID: ${auto.id}, Name: "${auto.name}", Trigger: ${auto.trigger}, Status: ${auto.status}`);
+    });
+    
     // Normal message-based automation triggers
     const activeAutomations = await db.select()
       .from(automations)
@@ -1065,9 +1123,30 @@ export class AutomationTriggerService {
         eq(automations.trigger, 'message_received'),
         eq(automations.status, 'active')
       ));
-
+  
+    console.log(`🎯 Found ${activeAutomations.length} active message_received automation(s)`);
+    
+    if (activeAutomations.length === 0) {
+      console.warn(`⚠️ No active automations found for message_received trigger on channel ${channelId}`);
+      return;
+    }
+  
     for (const automation of activeAutomations) {
+      console.log(`🚀 Starting automation: ${automation.id} - "${automation.name}"`);
+      
       try {
+        // Check if automation has nodes
+        const nodeCount = await db.select({ count: sql`count(*)` })
+          .from(automationNodes)
+          .where(eq(automationNodes.automationId, automation.id));
+          
+        console.log(`🔗 Automation ${automation.id} has ${nodeCount[0]?.count || 0} nodes`);
+        
+        if (!nodeCount[0]?.count || nodeCount[0].count === 0) {
+          console.warn(`⚠️ Automation ${automation.id} has no nodes, skipping`);
+          continue;
+        }
+        
         const [execution] = await db.insert(automationExecutions).values({
           automationId: automation.id,
           contactId,
@@ -1080,10 +1159,16 @@ export class AutomationTriggerService {
           },
           status: 'running'
         }).returning();
-
+  
+        console.log(`✅ Created execution record: ${execution.id}`);
+        
         await this.executionService.executeAutomation(execution.id);
+        
+        console.log(`🎉 Automation ${automation.id} execution completed`);
+        
       } catch (error) {
-        console.error(`Failed to execute automation ${automation.id}:`, error);
+        console.error(`❌ Failed to execute automation ${automation.id}:`, error);
+        console.error(`Stack trace:`, error.stack);
       }
     }
   }

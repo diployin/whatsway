@@ -500,13 +500,20 @@ async function handleMessageChange(value: any) {
       });
     }
 
-    // ENHANCED AUTOMATION HANDLING
+    // ENHANCED AUTOMATION HANDLING WITH DEBUG
     try {
+      // DEBUG: Check automation setup for this channel
+      if (messageContent.toLowerCase() === 'debug-automation') {
+        console.log(`🔧 Debug command received, checking automation setup...`);
+        await triggerService.debugAutomationSetup(channel.id);
+        return; // Don't process normal automation triggers
+      }
+      
       // Check if there's a pending automation execution waiting for this response
       const hasPendingExecution = triggerService.getExecutionService().hasPendingExecution(conversation.id);
       
       if (hasPendingExecution) {
-        console.log(`🔄 Processing as user response to pending automation execution`);
+        console.log(`Processing as user response to pending automation execution`);
         
         // Handle user response to pending execution
         const result = await triggerService.getExecutionService().handleUserResponse(
@@ -516,7 +523,7 @@ async function handleMessageChange(value: any) {
         );
         
         if (result && result.success) {
-          console.log(`✅ Successfully processed user response for execution ${result.executionId}`);
+          console.log(`Successfully processed user response for execution ${result.executionId}`);
           
           // Broadcast automation update
           if ((global as any).broadcastToConversation) {
@@ -534,20 +541,21 @@ async function handleMessageChange(value: any) {
           // Don't trigger new automations since this was a response to existing automation
           continue;
         } else {
-          console.warn(`⚠️ Failed to process user response, will try triggering new automations`);
+          console.warn(`Failed to process user response, will try triggering new automations`);
         }
       }
       
       // Handle new conversation triggers
       if (isNewConversation) {
-        console.log(`🆕 New conversation automation trigger for: ${conversation.id}`);
+        console.log(`New conversation automation trigger for: ${conversation.id}`);
         await triggerService.handleNewConversation(
           conversation.id, 
           channel.id, 
           contact.id
         );
       } else {
-        console.log(`💬 Message received automation trigger for: ${conversation.id}`);
+        console.log(`Message received automation trigger for: ${conversation.id}`);
+        console.log(`Debug info - Channel ID: ${channel.id}, Message: "${messageContent}"`);
         
         // Enhanced message data for automation triggers
         const messageData = {
