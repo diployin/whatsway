@@ -385,6 +385,7 @@ export const handleWebhook = asyncHandler(async (req: Request, res: Response) =>
 // }
 
 
+// Enhanced webhook handler with better automation integration
 async function handleMessageChange(value: any) {
   const { messages, contacts, metadata, statuses } = value;
   
@@ -431,11 +432,19 @@ async function handleMessageChange(value: any) {
         interactiveData = interactive;
         console.log('Interactive list response:', interactive.list_reply);
       }
+    } else if (type === 'image' && message.image) {
+      messageContent = message.image.caption || '[Image]';
+    } else if (type === 'document' && message.document) {
+      messageContent = message.document.caption || `[Document: ${message.document.filename || 'file'}]`;
+    } else if (type === 'audio' && message.audio) {
+      messageContent = '[Audio message]';
+    } else if (type === 'video' && message.video) {
+      messageContent = message.video.caption || '[Video]';
     } else {
       messageContent = `[${type} message]`;
     }
     
-    // Find or create conversation (same as before)
+    // Find or create conversation
     let conversation = await storage.getConversationByPhone(from);
     let contact = await storage.getContactByPhone(from);
     let isNewConversation = false;
@@ -467,13 +476,14 @@ async function handleMessageChange(value: any) {
       });
     }
     
-    console.log("Webhook Message ::>>", messageContent, "Type:", type, "Interactive:", !!interactiveData);
+    console.log("Webhook Message:", messageContent, "Type:", type, "Interactive:", !!interactiveData);
 
     // Create message record
     const newMessage = await storage.createMessage({
       conversationId: conversation.id,
       content: messageContent,
-      fromUser: false,
+      fromUser: false,  // This might need to be true for customer messages
+      sender: 'customer', // Add sender field
       direction: 'inbound',
       status: 'received',
       whatsappMessageId,
@@ -492,25 +502,70 @@ async function handleMessageChange(value: any) {
 
     // ENHANCED AUTOMATION HANDLING
     try {
+      // Check if there's a pending automation execution waiting for this response
+      const hasPendingExecution = triggerService.getExecutionService().hasPendingExecution(conversation.id);
+      
+      if (hasPendingExecution) {
+        console.log(`🔄 Processing as user response to pending automation execution`);
+        
+        // Handle user response to pending execution
+        const result = await triggerService.getExecutionService().handleUserResponse(
+          conversation.id, 
+          messageContent, 
+          interactiveData
+        );
+        
+        if (result && result.success) {
+          console.log(`✅ Successfully processed user response for execution ${result.executionId}`);
+          
+          // Broadcast automation update
+          if ((global as any).broadcastToConversation) {
+            (global as any).broadcastToConversation(conversation.id, {
+              type: 'automation-resumed',
+              data: {
+                executionId: result.executionId,
+                userResponse: result.userResponse,
+                savedVariable: result.savedVariable,
+                resumedAt: result.resumedAt
+              }
+            });
+          }
+          
+          // Don't trigger new automations since this was a response to existing automation
+          continue;
+        } else {
+          console.warn(`⚠️ Failed to process user response, will try triggering new automations`);
+        }
+      }
+      
+      // Handle new conversation triggers
       if (isNewConversation) {
-        console.log(`New conversation automation trigger for: ${conversation.id}`);
+        console.log(`🆕 New conversation automation trigger for: ${conversation.id}`);
         await triggerService.handleNewConversation(
           conversation.id, 
           channel.id, 
           contact.id
         );
       } else {
-        console.log(`Message received automation trigger for: ${conversation.id}`);
+        console.log(`💬 Message received automation trigger for: ${conversation.id}`);
         
-        // Pass both the message content and interactive data to the trigger service
+        // Enhanced message data for automation triggers
         const messageData = {
           content: messageContent,
           text: messageContent,
+          body: messageContent, // Alternative field name
           type: type,
           from: from,
           whatsappMessageId: whatsappMessageId,
           timestamp: timestamp,
-          interactive: interactiveData // Include button click data
+          interactive: interactiveData,
+          // Additional metadata for conditions
+          messageType: type,
+          hasInteraction: !!interactiveData,
+          buttonId: interactiveData?.button_reply?.id || null,
+          buttonTitle: interactiveData?.button_reply?.title || null,
+          listId: interactiveData?.list_reply?.id || null,
+          listTitle: interactiveData?.list_reply?.title || null
         };
         
         await triggerService.handleMessageReceived(
@@ -521,7 +576,19 @@ async function handleMessageChange(value: any) {
         );
       }
     } catch (automationError) {
-      console.error(`Automation error for conversation ${conversation.id}:`, automationError);
+      console.error(`❌ Automation error for conversation ${conversation.id}:`, automationError);
+      
+      // Optionally notify via webhook or broadcast error
+      if ((global as any).broadcastToConversation) {
+        (global as any).broadcastToConversation(conversation.id, {
+          type: 'automation-error',
+          error: {
+            message: automationError.message,
+            conversationId: conversation.id,
+            timestamp: new Date()
+          }
+        });
+      }
     }
   }
 }
@@ -540,14 +607,14 @@ async function handleMessageStatuses(statuses: any[], metadata: any) {
   }
 
   for (const statusUpdate of statuses) {
-    const { id: whatsappMessageId, status, timestamp, errors } = statusUpdate;
+    const { id: whatsappMessageId, status, timestamp, errors, recipient_id } = statusUpdate;
     
-    console.log(`Message status update: ${whatsappMessageId} - ${status}`, errors);
+    console.log(`📊 Message status update: ${whatsappMessageId} - ${status}`, errors ? `Errors: ${errors.length}` : '');
     
     // Find the message by WhatsApp ID
     const message = await storage.getMessageByWhatsAppId(whatsappMessageId);
     if (!message) {
-      console.log(`Message not found for WhatsApp ID: ${whatsappMessageId}`);
+      console.log(`⚠️ Message not found for WhatsApp ID: ${whatsappMessageId}`);
       continue;
     }
 
@@ -569,27 +636,58 @@ async function handleMessageStatuses(statuses: any[], metadata: any) {
         code: error.code,
         title: error.title,
         message: error.message || error.details,
-        errorData: error.error_data
+        errorData: error.error_data,
+        recipientId: recipient_id,
+        timestamp: timestamp
       };
       
-      console.error(`Message failed with error:`, errorDetails);
+      console.error(`❌ Message failed with error:`, errorDetails);
     }
 
     // Update message status and error details
-    await storage.updateMessage(message.id, {
+    const updatedMessage = await storage.updateMessage(message.id, {
       status: messageStatus,
       errorDetails: errorDetails ? JSON.stringify(errorDetails) : null,
+      deliveredAt: messageStatus === 'delivered' ? new Date(parseInt(timestamp, 10) * 1000) : message.deliveredAt,
+      readAt: messageStatus === 'read' ? new Date(parseInt(timestamp, 10) * 1000) : message.readAt,
       updatedAt: new Date()
     });
+
+    // Broadcast status update
+    if ((global as any).broadcastToConversation && message.conversationId) {
+      (global as any).broadcastToConversation(message.conversationId, {
+        type: 'message-status-update',
+        data: {
+          messageId: message.id,
+          whatsappMessageId,
+          status: messageStatus,
+          errorDetails,
+          timestamp: new Date(parseInt(timestamp, 10) * 1000)
+        }
+      });
+    }
 
     // If message has a campaign ID, update campaign stats
     if (message.campaignId) {
       const campaign = await storage.getCampaign(message.campaignId);
-      if (campaign && messageStatus === 'failed') {
-        await storage.updateCampaign(campaign.id, {
-          failedCount: (campaign.failedCount || 0) + 1,
-          sentCount: Math.max(0, (campaign.sentCount || 0) - 1)
-        });
+      if (campaign) {
+        const updates: any = {};
+        
+        if (messageStatus === 'delivered' && message.status !== 'delivered') {
+          updates.deliveredCount = (campaign.deliveredCount || 0) + 1;
+        } else if (messageStatus === 'read' && message.status !== 'read') {
+          updates.readCount = (campaign.readCount || 0) + 1;
+        } else if (messageStatus === 'failed' && message.status !== 'failed') {
+          updates.failedCount = (campaign.failedCount || 0) + 1;
+          // Only decrease sent count if message was previously marked as sent
+          if (message.status === 'sent') {
+            updates.sentCount = Math.max(0, (campaign.sentCount || 0) - 1);
+          }
+        }
+        
+        if (Object.keys(updates).length > 0) {
+          await storage.updateCampaign(campaign.id, updates);
+        }
       }
     }
   }
