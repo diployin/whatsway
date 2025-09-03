@@ -1,5 +1,6 @@
 // automation-execution.service.ts - Enhanced with Conditions Support
 import { db } from "../db";
+import { sql } from "drizzle-orm";
 import {
   automations,
   automationNodes,
