@@ -320,7 +320,7 @@ private async continueToNextNode(currentNode: any, automation: any, context: Exe
   /**
  * Enhanced executeUserReply method with WhatsApp Interactive Message support
  */
-private async executeUserReply(node: any, automation: any, context: ExecutionContext) {
+private async executeUserReply(node: any, context: ExecutionContext) {
   const question = this.replaceVariables(node.data.question || '', context.variables);
   const buttons = node.data.buttons || [];
   
