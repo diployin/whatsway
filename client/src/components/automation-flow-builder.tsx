@@ -1138,6 +1138,20 @@ export default function AutomationFlowBuilderXYFlow({
             <Badge className="bg-green-500 text-white text-xs">
               {trigger === "new_conversation" ? "New Chat" : trigger}
             </Badge>
+            <div>
+              <Label className="flex items-center gap-2">
+                <UserPlus className="w-4 h-4" /> Trigger Channel
+              </Label>
+              <select
+                className="w-full border rounded-md h-9 px-2"
+                value={trigger}
+                onChange={(e) => setTrigger(e.target.value)}
+              >
+                <option value="">Select trigger</option>
+                <option value="new_conversation">New conversation</option>
+                <option value="message_received">Message received</option>
+              </select>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <Button 
