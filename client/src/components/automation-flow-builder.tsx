@@ -179,7 +179,10 @@ function transformAutomationToFlow(automation: any) {
     const reactFlowNode: Node<BuilderNodeData> = {
       id: autoNode.nodeId,
       type: autoNode.type,
-      position: { x: 200, y: 140 + (index * 140) },
+      // FIXED: Use saved position if available, otherwise use calculated position
+      position: autoNode.position_x && autoNode.position_y 
+        ? { x: autoNode.position_x, y: autoNode.position_y }
+        : { x: 200, y: 140 + (index * 140) },
       data: nodeData,
     };
 
@@ -600,7 +603,8 @@ function ConfigPanel({
   };
 
   return (
-    <ScrollArea className="h-full">
+    <div className="flex flex-col h-screen">
+  <ScrollArea className="flex-1 min-h-0">
       <div className="p-4 space-y-4">
         <div className="flex items-center justify-between">
           <div>
@@ -883,8 +887,181 @@ function ConfigPanel({
             </div>
           </Card>
         )}
+
+        {d.kind === "user_reply" && (
+          <Card className="p-3 space-y-4">
+            <div>
+              <Label>Question Text</Label>
+              <Textarea
+                rows={4}
+                value={d.question || ""}
+                onChange={(e) => onChange({ question: e.target.value })}
+                placeholder="What would you like to ask the user?"
+              />
+            </div>
+
+            <div>
+              <Label>Save Answer As (Variable Name)</Label>
+              <Input
+                value={d.saveAs || ""}
+                onChange={(e) => onChange({ saveAs: e.target.value })}
+                placeholder="e.g., user_name, phone_number"
+              />
+              {/* <div className="text-xs text-gray-500 mt-1">
+                The user's answer will be saved with this variable name
+              </div> */}
+            </div>
+
+            {/* Media Upload Section for Questions */}
+            <div className="space-y-3">
+              <Label>Attachments (Optional)</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <FileUploadButton
+                  accept="image/*"
+                  onUpload={handleFileUpload('image')}
+                  className="text-green-600 border-green-200 hover:bg-green-50"
+                >
+                  <ImageIcon className="w-4 h-4" />
+                  Image
+                </FileUploadButton>
+                <FileUploadButton
+                  accept="video/*"
+                  onUpload={handleFileUpload('video')}
+                  className="text-green-600 border-green-200 hover:bg-green-50"
+                >
+                  <Video className="w-4 h-4" />
+                  Video
+                </FileUploadButton>
+              </div>
+
+              {/* File Previews for Questions */}
+              {d.imagePreview && (
+                <div className="relative border rounded-lg p-2">
+                  <img src={d.imagePreview} alt="preview" className="w-full h-32 object-cover rounded" />
+                  <button
+                    onClick={removeFile('image')}
+                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
+              
+              {d.videoPreview && (
+                <div className="relative border rounded-lg p-2 flex items-center gap-2">
+                  <Video className="w-5 h-5 text-blue-500" />
+                  <span className="text-sm">Video file attached</span>
+                  <button
+                    onClick={removeFile('video')}
+                    className="ml-auto bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Answer Options/Buttons Section */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label>Answer Options</Label>
+                <Button size="sm" variant="outline" onClick={addButton}>
+                  <Plus className="w-3 h-3 mr-1" />
+                  Add Option
+                </Button>
+              </div>
+              
+              {/* <div className="text-xs text-gray-600">
+                Create predefined answer buttons for users to click, or leave empty for free text input.
+              </div> */}
+              
+              {d.buttons?.map((button) => (
+                <div key={button.id} className="border rounded-lg p-3 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={button.text}
+                      onChange={(e) => updateButton(button.id, { text: e.target.value })}
+                      placeholder="Answer option text"
+                      className="flex-1"
+                    />
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => removeButton(button.id)}
+                      className="text-red-500"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 text-xs">
+                    <select
+                      value={button.action || 'next'}
+                      onChange={(e) => updateButton(button.id, { action: e.target.value as any })}
+                      className="border rounded px-2 py-1 text-xs"
+                    >
+                      <option value="next">Continue to next step</option>
+                      <option value="custom">Custom action</option>
+                    </select>
+                    
+                    {button.action === 'custom' && (
+                      <Input
+                        value={button.value || ""}
+                        onChange={(e) => updateButton(button.id, { value: e.target.value })}
+                        placeholder="Custom value"
+                        className="flex-1 text-xs h-7"
+                      />
+                    )}
+                  </div>
+                </div>
+              ))}
+              
+              {(!d.buttons || d.buttons.length === 0) && (
+                <div className="text-sm text-gray-500 italic border rounded-lg p-4 text-center">
+                  No answer options added. Users will be able to type free text responses.
+                  <br />
+                  <br />
+                  <Button size="sm" variant="outline" onClick={addButton} className="mt-2">
+                    <Plus className="w-3 h-3 mr-1" />
+                    Add First Option
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {/* Preview Section */}
+            {(d.question || d.buttons?.length > 0) && (
+              <div className="border-t pt-4">
+                <Label className="text-xs text-gray-500">PREVIEW</Label>
+                <div className="bg-gray-50 rounded-lg p-3 mt-2">
+                  {d.question && (
+                    <div className="font-medium text-sm mb-3">{d.question}</div>
+                  )}
+                  {d.buttons && d.buttons.length > 0 && (
+                    <div className="space-y-1">
+                      {d.buttons.map((button) => (
+                        <div 
+                          key={button.id} 
+                          className="bg-blue-500 text-white text-xs px-3 py-1 rounded-full inline-block mr-2"
+                        >
+                          {button.text}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {(!d.buttons || d.buttons.length === 0) && (
+                    <div className="text-xs text-gray-500 italic">
+                      [User can type free text response]
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </Card>
+        )}
       </div>
     </ScrollArea>
+    </div>
   );
 }
 
@@ -982,34 +1159,60 @@ export default function AutomationFlowBuilderXYFlow({
     );
   };
 
-  // Save automation
+
+  
+// FRONTEND: Fixed FormData construction
   const saveMutation = useMutation({
     mutationFn: async (payload: any) => {
+      const formData = new FormData();
+      formData.append('name', payload.name);
+      formData.append('description', payload.description);
+      formData.append('trigger', payload.trigger);
+      formData.append('triggerConfig', JSON.stringify(payload.triggerConfig));
+      formData.append('nodes', JSON.stringify(payload.nodes));
+      formData.append('edges', JSON.stringify(payload.edges));
+  
+      // FIXED: Add files with proper field names and validation
+      payload.nodes.forEach((node, index) => {
+        if (node.data.imageFile && node.data.imageFile instanceof File) {
+          console.log(`Adding imageFile for node ${index}:`, node.data.imageFile.name);
+          formData.append(`${node.id}_imageFile`, node.data.imageFile);
+        }
+        
+        if (node.data.videoFile && node.data.videoFile instanceof File) {
+          console.log(`Adding videoFile for node ${index}:`, node.data.videoFile.name);
+          formData.append(`node_${index}_videoFile`, node.data.videoFile);
+        }
+        if (node.data.audioFile && node.data.audioFile instanceof File) {
+          console.log(`Adding audioFile for node ${index}:`, node.data.audioFile.name);
+          formData.append(`node_${index}_audioFile`, node.data.audioFile);
+        }
+        if (node.data.documentFile && node.data.documentFile instanceof File) {
+          console.log(`Adding documentFile for node ${index}:`, node.data.documentFile.name);
+          formData.append(`node_${index}_documentFile`, node.data.documentFile);
+        }
+      });
+  
+      // Debug FormData contents
+      console.log('FormData entries:');
+      for (let pair of formData.entries()) {
+        console.log(pair[0], pair[1]);
+      }
+  
       if (payload.automationId) {
         // Update existing automation
-        await apiRequest("PUT", `/api/automations/${payload.automationId}`, {
-          name: payload.name,
-          description: payload.description,
-          trigger: payload.trigger,
-          triggerConfig: payload.triggerConfig,
-          nodes: payload.nodes,
-          edges: payload.edges,
+        // return await apiRequest("PUT", `/api/automations/${payload.automationId}`, formData);
+        return await fetch( `/api/automations/${payload.automationId}`, {
+          method: "PUT",
+          body: formData
         });
-        
-        return { id: payload.automationId };
       } else {
         // Create new automation
-        const automation = await apiRequest("POST", "/api/automations", {
-          name: payload.name,
-          description: payload.description,
-          channelId: channelId,
-          trigger: payload.trigger,
-          triggerConfig: payload.triggerConfig,
-          nodes: payload.nodes,
-          edges: payload.edges,
+        //  apiRequest("POST", "/api/automations", formData);
+       return await fetch("/api/automations", {
+          method: "POST",
+          body: formData
         });
-        
-        return automation;
       }
     },
     onSuccess: () => {
@@ -1021,6 +1224,7 @@ export default function AutomationFlowBuilderXYFlow({
       onClose();
     },
     onError: (error: any) => {
+      console.error('Save mutation error:', error);
       toast({ 
         title: "Failed to save automation", 
         description: error?.message || "An error occurred while saving.",
@@ -1028,84 +1232,71 @@ export default function AutomationFlowBuilderXYFlow({
       });
     },
   });
-
-  // const handleSave = () => {
-  //   if (!name.trim()) {
-  //     toast({
-  //       title: "Name required",
-  //       description: "Please enter a name for your automation.",
-  //       variant: "destructive",
-  //     });
-  //     return;
-  //   }
-
-  //   const backendNodes = nodes.filter(n => n.id !== 'start');
-  //   const backendEdges = edges.filter(n => n.source !== 'start');
-
-  //   const payload = {
-  //     name,
-  //     description,
-  //     trigger,
-  //     triggerConfig: {},
-  //     nodes: backendNodes,
-  //     edges: backendEdges,
-  //     automationId: automation?.id || null,
-  //   };
-    
-  //   console.log("Saving automation with payload:", payload);
-  //   saveMutation.mutate(payload);
-  // };
-
-
-  // Updated handleSave function with edge normalization
-const handleSave = () => {
-  if (!name.trim()) {
-    toast({
-      title: "Name required",
-      description: "Please enter a name for your automation.",
-      variant: "destructive",
-    });
-    return;
-  }
-
-  const backendNodes = nodes.filter(n => n.id !== 'start');
   
-  // FIXED: Normalize edges for backend storage
-  const normalizedEdges = edges.map(edge => ({
-    id: edge.id,
-    source: edge.source,
-    target: edge.target,
-    type: edge.type || "custom",
-    animated: edge.animated || true,
-    // Remove any ReactFlow-specific properties that shouldn't be stored
-  }));
-
-  // Remove duplicate edges (same source-target combination)
-  const uniqueEdges = [];
-  const seenConnections = new Set();
-  
-  normalizedEdges.forEach(edge => {
-    const connectionKey = `${edge.source}-${edge.target}`;
-    if (!seenConnections.has(connectionKey)) {
-      seenConnections.add(connectionKey);
-      uniqueEdges.push(edge);
+  // FRONTEND: Fixed handleSave function
+  const handleSave = () => {
+    if (!name.trim()) {
+      toast({
+        title: "Name required",
+        description: "Please enter a name for your automation.",
+        variant: "destructive",
+      });
+      return;
     }
-  });
-
-  const payload = {
-    name,
-    description,
-    trigger,
-    triggerConfig: {},
-    nodes: backendNodes,
-    edges: uniqueEdges, // Send deduplicated, normalized edges
-    automationId: automation?.id || null,
-  };
   
-  console.log("Saving automation with payload:", payload);
-  console.log("Normalized edges:", uniqueEdges);
-  saveMutation.mutate(payload);
-};
+    const backendNodes = nodes
+      .filter(n => n.id !== 'start')
+      .map((node, index) => ({
+        ...node,
+        position: {
+          x: node.position.x,
+          y: node.position.y
+        },
+      }));
+    
+    // Normalize edges for backend storage
+    const normalizedEdges = edges.map(edge => ({
+      id: edge.id,
+      source: edge.source,
+      target: edge.target,
+      type: edge.type || "custom",
+      animated: edge.animated || true,
+    }));
+  
+    // Remove duplicate edges
+    const uniqueEdges = [];
+    const seenConnections = new Set();
+    
+    normalizedEdges.forEach(edge => {
+      const connectionKey = `${edge.source}-${edge.target}`;
+      if (!seenConnections.has(connectionKey)) {
+        seenConnections.add(connectionKey);
+        uniqueEdges.push(edge);
+      }
+    });
+    console.log("DEBUG uniqueEdges:", uniqueEdges);
+
+    const mainEdges = uniqueEdges.filter(e => e.source !== 'start');
+    
+    console.log("Filtered mainEdges:", mainEdges);
+
+    const payload = {
+      name,
+      description,
+      trigger,
+      triggerConfig: {},
+      nodes: backendNodes,
+      edges: mainEdges,
+      automationId: automation?.id || null,
+    };
+    
+    console.log("Saving automation with payload:", payload);
+    console.log("Files to upload:", backendNodes.filter(node => 
+      node.data.imageFile || node.data.videoFile || node.data.audioFile || node.data.documentFile
+    ));
+    
+    saveMutation.mutate(payload);
+  };
 
 
 

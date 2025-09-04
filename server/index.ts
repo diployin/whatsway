@@ -11,6 +11,7 @@ import 'dotenv/config';
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use("/uploads", express.static("uploads"));
 
 console.log("ENV::", process.env.NODE_ENV ,process.env.FORCE_HTTPS);
 // Set up session management

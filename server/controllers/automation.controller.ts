@@ -12,7 +12,8 @@ import { eq , and } from "drizzle-orm";
 import { AppError, asyncHandler } from "../middlewares/error.middleware";
 import { storage } from "server/storage";
 import { executionService } from "server/services/automation-execution.service";
-
+import fs from "fs/promises";
+import path from "path";
 //
 // ─── AUTOMATIONS (flows) ───────────────────────────────────────────────
 //
@@ -85,69 +86,313 @@ export const getAutomation = asyncHandler(async (req: Request, res: Response) =>
 });
 
 // CREATE automation (empty flow or with initial nodes)
-export const createAutomation = asyncHandler(async (req: Request, res: Response) => {
-  const { name, description, trigger, triggerConfig, nodes = [] , edges=[] } = req.body;
-// console.log("Creating automation with data:", req.body); // Debug log
-const validatedAutomation = insertAutomationSchema.parse(req.body);
+// export const createAutomation = asyncHandler(async (req: Request, res: Response) => {
+//   const { name, description, trigger, triggerConfig, nodes = [], edges = [] } = req.body;
+//   console.log("Creating automation with data:", req.body); // Debug log
+//   const validatedAutomation = insertAutomationSchema.parse(req.body);
   
-// Get active channel if channelId not provided
-let channelId = validatedAutomation.channelId;
-if (!channelId) {
-  const activeChannel = await storage.getActiveChannel();
-  if (activeChannel) {
-    channelId = activeChannel.id;
-  }
-}
-console.log("Using channelId:", channelId); // Debug log
-  const [automation] = await db.insert(automations).values({
-    name,
-    description,
-    channelId,
-    trigger,
-    triggerConfig,
-  }).returning();
+//   // Get active channel if channelId not provided
+//   let channelId = validatedAutomation.channelId;
+//   if (!channelId) {
+//     const activeChannel = await storage.getActiveChannel();
+//     if (activeChannel) {
+//       channelId = activeChannel.id;
+//     }
+//   }
+  
+//   const [automation] = await db.insert(automations).values({
+//     name,
+//     description,
+//     channelId,
+//     trigger,
+//     triggerConfig,
+//   }).returning();
 
-  console.log(nodes)
-  // optional: insert initial nodes
-  if (nodes.length) {
-    await db.insert(automationNodes).values(
-      nodes.map((n: any) => ({
-        automationId: automation.id,
-        nodeId: n.id,
-        type: n.type,
-        subtype: n.subtype,
-        position: n.position,
-        data: n.data,
-        connections: n.connections,
-        measured: n.measured,
-      }))
-    );
-  }
-// console.log("Edges:", edges); // Debug log
-  if (edges.length) {
-    await db.insert(automationEdges).values(
-      edges.map((n: any) => ({
-        id: n.id,
-        automationId: automation.id,
-        sourceNodeId: n.source,
-        targetNodeId: n.target,
-        animated: n.animated,
-      }))
-    );
+//   // Process nodes and handle file uploads
+//   if (nodes.length) {
+//     const processedNodes = await Promise.all(
+//       nodes.map(async (node: any) => {
+//         const processedData = { ...node.data };
+        
+//         // Handle file uploads in custom_reply and user_reply nodes
+//         if (node.type === 'custom_reply' || node.type === 'user_reply') {
+//           // Handle image files
+//           if (processedData.imageFile && Object.keys(processedData.imageFile).length > 0) {
+//             try {
+//               const savedFile = await saveUploadedFile(processedData.imageFile, 'images');
+//               processedData.imageFile = savedFile;
+//               // Update imagePreview to use the saved file path
+//               processedData.imagePreview = `/uploads/images/${savedFile.filename}`;
+//             } catch (error) {
+//               console.error('Error saving image file:', error);
+//               processedData.imageFile = null;
+//               processedData.imagePreview = null;
+//             }
+//           }
+          
+//           // Handle video files
+//           if (processedData.videoFile && Object.keys(processedData.videoFile).length > 0) {
+//             try {
+//               const savedFile = await saveUploadedFile(processedData.videoFile, 'videos');
+//               processedData.videoFile = savedFile;
+//               processedData.videoPreview = `/uploads/videos/${savedFile.filename}`;
+//             } catch (error) {
+//               console.error('Error saving video file:', error);
+//               processedData.videoFile = null;
+//               processedData.videoPreview = null;
+//             }
+//           }
+          
+//           // Handle audio files
+//           if (processedData.audioFile && Object.keys(processedData.audioFile).length > 0) {
+//             try {
+//               const savedFile = await saveUploadedFile(processedData.audioFile, 'audio');
+//               processedData.audioFile = savedFile;
+//               processedData.audioPreview = `/uploads/audio/${savedFile.filename}`;
+//             } catch (error) {
+//               console.error('Error saving audio file:', error);
+//               processedData.audioFile = null;
+//               processedData.audioPreview = null;
+//             }
+//           }
+          
+//           // Handle document files
+//           if (processedData.documentFile && Object.keys(processedData.documentFile).length > 0) {
+//             try {
+//               const savedFile = await saveUploadedFile(processedData.documentFile, 'documents');
+//               processedData.documentFile = savedFile;
+//               processedData.documentPreview = `/uploads/documents/${savedFile.filename}`;
+//             } catch (error) {
+//               console.error('Error saving document file:', error);
+//               processedData.documentFile = null;
+//               processedData.documentPreview = null;
+//             }
+//           }
+//         }
+        
+//         return {
+//           automationId: automation.id,
+//           nodeId: node.id,
+//           type: node.type,
+//           subtype: node.subtype,
+//           position: node.position,
+//           data: processedData,
+//           connections: node.connections,
+//           measured: node.measured,
+//         };
+//       })
+//     );
+    
+//     await db.insert(automationNodes).values(processedNodes);
+//   }
+
+//   if (edges.length) {
+//     await db.insert(automationEdges).values(
+//       edges.map((edge: any) => ({
+//         id: edge.id,
+//         automationId: automation.id,
+//         sourceNodeId: edge.source,
+//         targetNodeId: edge.target,
+//         animated: edge.animated,
+//       }))
+//     );
+//   }
+
+//   res.status(201).json(automation);
+// });
+
+export const createAutomation = asyncHandler(async (req: Request, res: Response) => {
+  console.log("Raw body from form-data:", req.body);
+  console.log("Uploaded files:", req.files);
+
+  try {
+    const { name, description, trigger, triggerConfig, nodes, edges } = req.body;
+  const validatedAutomation = insertAutomationSchema.parse(req.body);
+  
+  // Get active channel if channelId not provided
+  let channelId = validatedAutomation.channelId;
+  if (!channelId) {
+    const activeChannel = await storage.getActiveChannel();
+    if (activeChannel) {
+      channelId = activeChannel.id;
+    }
   }
 
-  res.status(201).json(automation);
+
+    // ✅ Parse safely
+    let parsedNodes: any[] = [];
+    let parsedEdges: any[] = [];
+
+    try {
+      parsedNodes = typeof nodes === "string" ? JSON.parse(nodes) : nodes;
+      if (!Array.isArray(parsedNodes)) parsedNodes = [];
+    } catch {
+      parsedNodes = [];
+    }
+
+    try {
+      parsedEdges = typeof edges === "string" ? JSON.parse(edges) : edges;
+      if (!Array.isArray(parsedEdges)) parsedEdges = [];
+    } catch {
+      parsedEdges = [];
+    }
+
+    // ✅ Attach uploaded files to parsedNodes
+    if (req.files && Array.isArray(req.files)) {
+      const files = req.files as Express.Multer.File[];
+
+      files.forEach((file) => {
+        // fieldname looks like: node_<nodeId>_<field>
+        const match = file.fieldname.match(/^node_(.+)_(.+)$/);
+        if (match) {
+          const nodeId = `node_${match[1]}`;
+          const field = match[2];
+
+          const node = parsedNodes.find((n) => n.id === nodeId);
+          if (node && node.data) {
+            node.data[field] = {
+              filename: file.filename,
+              mimetype: file.mimetype,
+              size: file.size,
+              path: `/uploads/${file.filename}`,
+            };
+            node.data[`${field.replace("File", "Preview")}`] = `/uploads/${file.filename}`;
+          }
+        }
+      });
+    }
+console.log(    {  name,
+  description,
+  trigger,
+  triggerConfig: JSON.parse(triggerConfig || "{}"),})
+    // ✅ Save automation
+    const [automation] = await db.insert(automations).values({
+      name,
+      description,
+      channelId,
+      trigger,
+      triggerConfig: JSON.parse(triggerConfig || "{}"),
+    }).returning();
+
+
+    console.log("Created automation:", automation);
+    console.log("Parsed nodes:", parsedNodes);
+    console.log("Parsed edges:", parsedEdges);
+    // ✅ Save nodes
+    for (const node of parsedNodes) {
+      await db.insert(automationNodes).values({
+        automationId: automation.id,
+        nodeId: node.id,
+        type: node.type,
+        position: node.position,
+        measured: node.measured,
+        data: node.data, // clean JSON, no circular refs
+      });
+    }
+
+    // ✅ Save edges
+    for (const edge of parsedEdges) {
+      await db.insert(automationEdges).values({
+        automationId: automation.id,
+        ...edge,
+      });
+    }
+
+    res.json({
+      success: true,
+      automation,
+      nodes: parsedNodes,
+      edges: parsedEdges,
+    });
+  } catch (err: any) {
+    console.error(err);
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
+
+
+// Helper function to save uploaded files
+async function saveUploadedFile(file: Express.Multer.File, folder: string) {
+  const uploadPath = path.join("uploads", folder);
+  await fs.mkdir(uploadPath, { recursive: true });
+
+  const filename = Date.now() + "-" + file.originalname;
+  const destPath = path.join(uploadPath, filename);
+
+  if (file.buffer) {
+    // memoryStorage
+    await fs.writeFile(destPath, file.buffer);
+  } else if (file.path) {
+    // diskStorage
+    await fs.copyFile(file.path, destPath);
+  }
+
+  return {
+    filename,
+    path: `/uploads/${folder}/${filename}`,
+  };
+}
+
+
+// UPDATE automation
 // UPDATE automation
 export const updateAutomation = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { nodes = [], edges = [], ...automationData } = req.body;
+  const { name, description, trigger, triggerConfig, nodes, edges, ...rest } = req.body;
 
-  // Update automation main record
+  // ✅ Parse safely
+  let parsedNodes: any[] = [];
+  let parsedEdges: any[] = [];
+
+  try {
+    parsedNodes = typeof nodes === "string" ? JSON.parse(nodes) : nodes;
+    if (!Array.isArray(parsedNodes)) parsedNodes = [];
+  } catch {
+    parsedNodes = [];
+  }
+
+  try {
+    parsedEdges = typeof edges === "string" ? JSON.parse(edges) : edges;
+    if (!Array.isArray(parsedEdges)) parsedEdges = [];
+  } catch {
+    parsedEdges = [];
+  }
+
+  // ✅ Attach uploaded files to parsedNodes (same as create)
+  if (req.files && Array.isArray(req.files)) {
+    const files = req.files as Express.Multer.File[];
+
+    files.forEach((file) => {
+      const match = file.fieldname.match(/^node_(.+)_(.+)$/);
+      if (match) {
+        const nodeId = `node_${match[1]}`;
+        const field = match[2];
+
+        const node = parsedNodes.find((n) => n.id === nodeId);
+        if (node && node.data) {
+          node.data[field] = {
+            filename: file.filename,
+            mimetype: file.mimetype,
+            size: file.size,
+            path: `/uploads/${file.filename}`,
+          };
+          node.data[`${field.replace("File", "Preview")}`] = `/uploads/${file.filename}`;
+        }
+      }
+    });
+  }
+
+  // ✅ Update automation main record
   const [automation] = await db
     .update(automations)
-    .set(automationData)
+    .set({
+      name,
+      description,
+      trigger,
+      triggerConfig: JSON.parse(triggerConfig || "{}"),
+      ...rest,
+    })
     .where(eq(automations.id, id))
     .returning();
 
@@ -157,37 +402,32 @@ export const updateAutomation = asyncHandler(async (req: Request, res: Response)
 
   console.log("Updating automation with ID:", automation.id);
 
-  // Delete existing nodes for this automation
- const getDltNodes = await db
-    .delete(automationNodes)
-    .where(eq(automationNodes.automationId, automation.id));
- console.log("Deleted nodes result:", getDltNodes , automation.id ,nodes.length); // Debug log
-  // Insert new nodes if provided
-  if (nodes.length > 0) {
-    const insertedNodes = await db.insert(automationNodes).values(
-      nodes.map((node: any) => ({
+  // ✅ Delete existing nodes
+  await db.delete(automationNodes).where(eq(automationNodes.automationId, automation.id));
+
+  // ✅ Insert new nodes
+  if (parsedNodes.length > 0) {
+    await db.insert(automationNodes).values(
+      parsedNodes.map((node: any) => ({
         automationId: automation.id,
         nodeId: node.id,
         type: node.type,
         subtype: node.subtype,
         position: node.position,
+        measured: node.measured,
         data: node.data,
         connections: node.connections,
-        measured: node.measured,
       }))
     );
-    console.log("Inserted nodes:", insertedNodes);
   }
 
-  // Delete existing edges
-const getDltEdges =  await db
-    .delete(automationEdges)
-    .where(eq(automationEdges.automationId, automation.id));
-    console.log("Deleted edges result:", getDltEdges , automation.id ,edges.length); // Debug log
-  // Insert new edges if provided
-  if (edges.length > 0) {
-    const insertedEdges = await db.insert(automationEdges).values(
-      edges.map((edge: any) => ({
+  // ✅ Delete existing edges
+  await db.delete(automationEdges).where(eq(automationEdges.automationId, automation.id));
+
+  // ✅ Insert new edges
+  if (parsedEdges.length > 0) {
+    await db.insert(automationEdges).values(
+      parsedEdges.map((edge: any) => ({
         id: edge.id,
         automationId: automation.id,
         sourceNodeId: edge.source,
@@ -195,11 +435,15 @@ const getDltEdges =  await db
         animated: edge.animated,
       }))
     );
-    console.log("Inserted edges:", insertedEdges);
   }
 
-  // Respond with updated automation
-  res.json(automation);
+  // ✅ Respond with updated automation
+  res.json({
+    success: true,
+    automation,
+    nodes: parsedNodes,
+    edges: parsedEdges,
+  });
 });
 
 
