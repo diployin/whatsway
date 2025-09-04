@@ -1181,15 +1181,15 @@ export default function AutomationFlowBuilderXYFlow({
         
         if (node.data.videoFile && node.data.videoFile instanceof File) {
           console.log(`Adding videoFile for node ${index}:`, node.data.videoFile.name);
-          formData.append(`node_${index}_videoFile`, node.data.videoFile);
+          formData.append(`${node.id}_videoFile`, node.data.videoFile);
         }
         if (node.data.audioFile && node.data.audioFile instanceof File) {
           console.log(`Adding audioFile for node ${index}:`, node.data.audioFile.name);
-          formData.append(`node_${index}_audioFile`, node.data.audioFile);
+          formData.append(`${node.id}_audioFile`, node.data.audioFile);
         }
         if (node.data.documentFile && node.data.documentFile instanceof File) {
           console.log(`Adding documentFile for node ${index}:`, node.data.documentFile.name);
-          formData.append(`node_${index}_documentFile`, node.data.documentFile);
+          formData.append(`${node.id}_documentFile`, node.data.documentFile);
         }
       });
   
