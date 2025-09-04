@@ -18,7 +18,7 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+import { toast, useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -139,6 +139,7 @@ const defaultsByKind: Record<NodeKind, Partial<BuilderNodeData>> = {
 // -----------------------
 // Transform automation data to ReactFlow format
 // -----------------------
+// Updated transformAutomationToFlow function with proper edge handling
 function transformAutomationToFlow(automation: any) {
   if (!automation || !automation.automation_nodes) {
     return {
@@ -163,8 +164,6 @@ function transformAutomationToFlow(automation: any) {
     },
   ];
 
-  const edges: Edge[] = [];
-
   // Sort nodes by position
   const sortedNodes = [...automation.automation_nodes].sort((a, b) => a.position - b.position);
   console.log("sortedNodes", sortedNodes);
@@ -180,28 +179,66 @@ function transformAutomationToFlow(automation: any) {
     const reactFlowNode: Node<BuilderNodeData> = {
       id: autoNode.nodeId,
       type: autoNode.type,
-      position: { x: 200, y: 140 + (index * 140) }, // Vertical layout
+      position: { x: 200, y: 140 + (index * 140) },
       data: nodeData,
     };
 
     nodes.push(reactFlowNode);
   });
 
-  // Create edges based on connections with proper type
-  let previousNodeId = "start";
-  sortedNodes.forEach((autoNode: any) => {
-    edges.push({
-      id: `${previousNodeId}-${autoNode.nodeId}`,
-      source: previousNodeId,
-      target: autoNode.nodeId,
-      type: "custom", // Set type immediately
-      animated: true,
+  // FIXED: Normalize and deduplicate edges
+  const edges: Edge[] = [];
+  const edgeSet = new Set<string>(); // Track unique connections
+
+  if (automation.automation_edges && automation.automation_edges.length > 0) {
+    automation.automation_edges.forEach((edge: any) => {
+      // Normalize edge format - handle both database and ReactFlow formats
+      const source = edge.source || edge.sourceNodeId;
+      const target = edge.target || edge.targetNodeId;
+      
+      if (!source || !target) {
+        console.warn("Invalid edge data:", edge);
+        return;
+      }
+
+      // Create unique key for deduplication
+      const edgeKey = `${source}-${target}`;
+      
+      if (!edgeSet.has(edgeKey)) {
+        edgeSet.add(edgeKey);
+        
+        edges.push({
+          id: edge.id || `edge-${source}-${target}`,
+          source: source,
+          target: target,
+          type: "custom",
+          animated: true,
+        });
+      }
     });
-    previousNodeId = autoNode.nodeId;
-  });
+  } else {
+    // Only create default linear edges if no edges exist (new automation)
+    let previousNodeId = "start";
+    sortedNodes.forEach((autoNode: any) => {
+      const edgeKey = `${previousNodeId}-${autoNode.nodeId}`;
+      if (!edgeSet.has(edgeKey)) {
+        edgeSet.add(edgeKey);
+        edges.push({
+          id: `edge-${previousNodeId}-${autoNode.nodeId}`,
+          source: previousNodeId,
+          target: autoNode.nodeId,
+          type: "custom",
+          animated: true,
+        });
+      }
+      previousNodeId = autoNode.nodeId;
+    });
+  }
 
   return { nodes, edges };
 }
+
+
 
 // -----------------------
 // Custom Node Components
@@ -992,32 +1029,111 @@ export default function AutomationFlowBuilderXYFlow({
     },
   });
 
-  const handleSave = () => {
-    if (!name.trim()) {
-      toast({
-        title: "Name required",
-        description: "Please enter a name for your automation.",
-        variant: "destructive",
-      });
-      return;
-    }
+  // const handleSave = () => {
+  //   if (!name.trim()) {
+  //     toast({
+  //       title: "Name required",
+  //       description: "Please enter a name for your automation.",
+  //       variant: "destructive",
+  //     });
+  //     return;
+  //   }
 
-    const backendNodes = nodes.filter(n => n.id !== 'start');
-    const backendEdges = edges.filter(n => n.source !== 'start');
+  //   const backendNodes = nodes.filter(n => n.id !== 'start');
+  //   const backendEdges = edges.filter(n => n.source !== 'start');
 
-    const payload = {
-      name,
-      description,
-      trigger,
-      triggerConfig: {},
-      nodes: backendNodes,
-      edges: backendEdges,
-      automationId: automation?.id || null,
-    };
+  //   const payload = {
+  //     name,
+  //     description,
+  //     trigger,
+  //     triggerConfig: {},
+  //     nodes: backendNodes,
+  //     edges: backendEdges,
+  //     automationId: automation?.id || null,
+  //   };
     
-    console.log("Saving automation with payload:", payload);
-    saveMutation.mutate(payload);
+  //   console.log("Saving automation with payload:", payload);
+  //   saveMutation.mutate(payload);
+  // };
+
+
+  // Updated handleSave function with edge normalization
+const handleSave = () => {
+  if (!name.trim()) {
+    toast({
+      title: "Name required",
+      description: "Please enter a name for your automation.",
+      variant: "destructive",
+    });
+    return;
+  }
+
+  const backendNodes = nodes.filter(n => n.id !== 'start');
+  
+  // FIXED: Normalize edges for backend storage
+  const normalizedEdges = edges.map(edge => ({
+    id: edge.id,
+    source: edge.source,
+    target: edge.target,
+    type: edge.type || "custom",
+    animated: edge.animated || true,
+    // Remove any ReactFlow-specific properties that shouldn't be stored
+  }));
+
+  // Remove duplicate edges (same source-target combination)
+  const uniqueEdges = [];
+  const seenConnections = new Set();
+  
+  normalizedEdges.forEach(edge => {
+    const connectionKey = `${edge.source}-${edge.target}`;
+    if (!seenConnections.has(connectionKey)) {
+      seenConnections.add(connectionKey);
+      uniqueEdges.push(edge);
+    }
+  });
+
+  const payload = {
+    name,
+    description,
+    trigger,
+    triggerConfig: {},
+    nodes: backendNodes,
+    edges: uniqueEdges, // Send deduplicated, normalized edges
+    automationId: automation?.id || null,
   };
+  
+  console.log("Saving automation with payload:", payload);
+  console.log("Normalized edges:", uniqueEdges);
+  saveMutation.mutate(payload);
+};
+
+
+
+
+// Additional helper function to clean up edge data periodically
+const cleanupEdges = useCallback(() => {
+  setEdges(currentEdges => {
+    const cleaned = [];
+    const seen = new Set();
+    
+    currentEdges.forEach(edge => {
+      const key = `${edge.source}-${edge.target}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        cleaned.push(edge);
+      }
+    });
+    
+    return cleaned;
+  });
+}, [setEdges]);
+
+// Call cleanup when component mounts or edges change significantly
+useEffect(() => {
+  if (edges.length > nodes.length * 2) { // If too many edges, cleanup
+    cleanupEdges();
+  }
+}, [edges.length, nodes.length, cleanupEdges]);
 
   const onInit = useCallback((reactFlowInstance) => {
     reactFlowInstance.setViewport({ x: 0, y: 0, zoom: 1 });
