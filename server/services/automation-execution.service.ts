@@ -402,298 +402,664 @@ export class AutomationExecutionService {
   /**
    * Execute custom reply node
    */
-  private async executeCustomReply(node: any, context: ExecutionContext) {
-    const message = this.replaceVariables(node.data.message || '', context.variables);
-    console.log(`Sending message to conversation ${context.conversationId}: "${message}"`);
+  // private async executeCustomReply(node: any, context: ExecutionContext) {
+  //   const message = this.replaceVariables(node.data.message || '', context.variables);
+  //   console.log(`Sending message to conversation ${context.conversationId}: "${message}"`);
 
-    const getContact = await db.query.contacts.findFirst({
-      where: eq(contacts?.id, context.contactId),
-    });
+  //   const getContact = await db.query.contacts.findFirst({
+  //     where: eq(contacts?.id, context.contactId),
+  //   });
 
-    if (getContact?.phone) {
-      await sendBusinessMessage({
-        to: getContact?.phone,
-        message,
-        channelId: getContact?.channelId,
-      });
-    }
+  //   if (getContact?.phone) {
+  //     await sendBusinessMessage({
+  //       to: getContact?.phone,
+  //       message,
+  //       channelId: getContact?.channelId,
+  //     });
+  //   }
     
-    console.log(`✅ Message sent: ${message}`);
+  //   console.log(`✅ Message sent: ${message}`);
     
-    return {
-      action: 'message_sent',
-      message,
-      conversationId: context.conversationId
-    };
-  }
+  //   return {
+  //     action: 'message_sent',
+  //     message,
+  //     conversationId: context.conversationId
+  //   };
+  // }
 
   /**
    * Enhanced handleUserResponse to update context with user message for conditions
    */
-  async handleUserResponse(conversationId: string, userResponse: string, interactiveData?: any) {
-    console.log(`📨 Received user response for conversation ${conversationId}: "${userResponse}"`);
+  // async handleUserResponse(conversationId: string, userResponse: string, interactiveData?: any) {
+  //   console.log(`📨 Received user response for conversation ${conversationId}: "${userResponse}"`);
     
-    // Find pending execution for this conversation
-    const pendingExecution = this.findPendingExecutionByConversation(conversationId);
-    if (!pendingExecution) {
-      console.warn(`No pending execution found for conversation ${conversationId}`);
-      return null;
-    }
+  //   // Find pending execution for this conversation
+  //   const pendingExecution = this.findPendingExecutionByConversation(conversationId);
+  //   if (!pendingExecution) {
+  //     console.warn(`No pending execution found for conversation ${conversationId}`);
+  //     return null;
+  //   }
 
-    try {
-      // Remove from pending
-      this.pendingExecutions.delete(pendingExecution.pendingId);
+  //   try {
+  //     // Remove from pending
+  //     this.pendingExecutions.delete(pendingExecution.pendingId);
       
-      // Process the response
-      let processedResponse = userResponse;
-      let selectedButtonId = null;
+  //     // Process the response
+  //     let processedResponse = userResponse;
+  //     let selectedButtonId = null;
       
-      // If this was a button click response
-      if (interactiveData && interactiveData.type === 'button_reply') {
-        selectedButtonId = interactiveData.button_reply.id;
-        processedResponse = interactiveData.button_reply.title;
-        console.log(`🔘 Button clicked: ${selectedButtonId} - "${processedResponse}"`);
-      } else if (pendingExecution.expectedButtons && pendingExecution.expectedButtons.length > 0) {
-        // Try to match text response to button options
-        const matchedButton = this.matchTextToButton(userResponse, pendingExecution.expectedButtons);
-        if (matchedButton) {
-          selectedButtonId = matchedButton.id;
-          processedResponse = matchedButton.text;
-          console.log(`🎯 Matched text "${userResponse}" to button: ${selectedButtonId} - "${processedResponse}"`);
-        }
-      }
+  //     // If this was a button click response
+  //     if (interactiveData && interactiveData.type === 'button_reply') {
+  //       selectedButtonId = interactiveData.button_reply.id;
+  //       processedResponse = interactiveData.button_reply.title;
+  //       console.log(`🔘 Button clicked: ${selectedButtonId} - "${processedResponse}"`);
+  //     } else if (pendingExecution.expectedButtons && pendingExecution.expectedButtons.length > 0) {
+  //       // Try to match text response to button options
+  //       const matchedButton = this.matchTextToButton(userResponse, pendingExecution.expectedButtons);
+  //       if (matchedButton) {
+  //         selectedButtonId = matchedButton.id;
+  //         processedResponse = matchedButton.text;
+  //         console.log(`🎯 Matched text "${userResponse}" to button: ${selectedButtonId} - "${processedResponse}"`);
+  //       }
+  //     }
       
-      // Update context with user response
-      const context = pendingExecution.context;
-      context.lastUserMessage = processedResponse; // ✅ Update for conditions
+  //     // Update context with user response
+  //     const context = pendingExecution.context;
+  //     context.lastUserMessage = processedResponse; // ✅ Update for conditions
       
-      if (pendingExecution.saveAs) {
-        context.variables[pendingExecution.saveAs] = processedResponse;
+  //     if (pendingExecution.saveAs) {
+  //       context.variables[pendingExecution.saveAs] = processedResponse;
         
-        // Also save button ID if available
-        if (selectedButtonId) {
-          context.variables[`${pendingExecution.saveAs}_button_id`] = selectedButtonId;
-        }
+  //       // Also save button ID if available
+  //       if (selectedButtonId) {
+  //         context.variables[`${pendingExecution.saveAs}_button_id`] = selectedButtonId;
+  //       }
         
-        console.log(`💾 Saved user response to variable: ${pendingExecution.saveAs} = "${processedResponse}"`);
-      }
+  //       console.log(`💾 Saved user response to variable: ${pendingExecution.saveAs} = "${processedResponse}"`);
+  //     }
 
-      // Log the response received
-      await this.logNodeExecution(
-        context.executionId,
-        pendingExecution.nodeId,
-        'user_reply',
-        'completed',
-        { question: 'User response received', interactiveData },
-        { 
-          userResponse: processedResponse, 
-          selectedButtonId,
-          savedAs: pendingExecution.saveAs 
-        },
-        null
-      );
+  //     // Log the response received
+  //     await this.logNodeExecution(
+  //       context.executionId,
+  //       pendingExecution.nodeId,
+  //       'user_reply',
+  //       'completed',
+  //       { question: 'User response received', interactiveData },
+  //       { 
+  //         userResponse: processedResponse, 
+  //         selectedButtonId,
+  //         savedAs: pendingExecution.saveAs 
+  //       },
+  //       null
+  //     );
 
-      // Resume execution status
-      await db.update(automationExecutions)
-        .set({
-          status: 'running',
-          result: null
-        })
-        .where(eq(automationExecutions.id, context.executionId));
+  //     // Resume execution status
+  //     await db.update(automationExecutions)
+  //       .set({
+  //         status: 'running',
+  //         result: null
+  //       })
+  //       .where(eq(automationExecutions.id, context.executionId));
 
-      console.log(`▶️  Resuming execution ${context.executionId} with user response`);
+  //     console.log(`▶️  Resuming execution ${context.executionId} with user response`);
 
-      // Get fresh automation data and continue
-      const automation = await this.getAutomationWithFlow(context.automationId);
-      if (!automation) {
-        throw new Error(`Automation ${context.automationId} not found during resume`);
-      }
+  //     // Get fresh automation data and continue
+  //     const automation = await this.getAutomationWithFlow(context.automationId);
+  //     if (!automation) {
+  //       throw new Error(`Automation ${context.automationId} not found during resume`);
+  //     }
 
-      const currentNode = automation.nodes.find((n: any) => n.nodeId === pendingExecution.nodeId);
-      if (currentNode) {
-        await this.continueToNextNode(currentNode, automation, context);
-      } else {
-        throw new Error(`Node ${pendingExecution.nodeId} not found during resume`);
-      }
+  //     const currentNode = automation.nodes.find((n: any) => n.nodeId === pendingExecution.nodeId);
+  //     if (currentNode) {
+  //       await this.continueToNextNode(currentNode, automation, context);
+  //     } else {
+  //       throw new Error(`Node ${pendingExecution.nodeId} not found during resume`);
+  //     }
 
-      return {
-        success: true,
-        executionId: context.executionId,
-        userResponse: processedResponse,
-        selectedButtonId,
-        savedVariable: pendingExecution.saveAs,
-        resumedAt: new Date()
-      };
+  //     return {
+  //       success: true,
+  //       executionId: context.executionId,
+  //       userResponse: processedResponse,
+  //       selectedButtonId,
+  //       savedVariable: pendingExecution.saveAs,
+  //       resumedAt: new Date()
+  //     };
 
-    } catch (error) {
-      console.error(`Error resuming execution for conversation ${conversationId}:`, error);
+  //   } catch (error) {
+  //     console.error(`Error resuming execution for conversation ${conversationId}:`, error);
       
-      await this.completeExecution(
-        pendingExecution.executionId, 
-        'failed', 
-        `Failed to resume after user response: ${error.message}`
-      );
+  //     await this.completeExecution(
+  //       pendingExecution.executionId, 
+  //       'failed', 
+  //       `Failed to resume after user response: ${error.message}`
+  //     );
       
-      throw error;
-    }
+  //     throw error;
+  //   }
+  // }
+
+  // // ... [Rest of your existing methods remain the same] ...
+  
+  // private async executeUserReply(node: any, context: ExecutionContext) {
+  //   const question = this.replaceVariables(node.data.question || '', context.variables);
+  //   const buttons = node.data.buttons || [];
+    
+  //   console.log(`Asking question to conversation ${context.conversationId}: "${question}"`);
+  //   console.log('Question buttons:', buttons);
+    
+  //   // Get contact information
+  //   const getContact = await db.query.contacts.findFirst({
+  //     where: eq(contacts?.id, context.contactId),
+  //   });
+
+  //   if (!getContact?.phone) {
+  //     throw new Error('Contact phone number not found');
+  //   }
+
+  //   // Send the question with buttons (if any)
+  //   if (buttons.length > 0) {
+  //     // Send interactive message with buttons
+  //     await this.sendInteractiveMessage(
+  //       getContact.phone,
+  //       question,
+  //       buttons,
+  //       getContact.channelId,
+  //       context.conversationId
+  //     );
+  //   } else {
+  //     // Send regular text message
+  //     await sendBusinessMessage({
+  //       to: getContact.phone,
+  //       message: question,
+  //       channelId: getContact.channelId,
+  //       conversationId: context.conversationId,
+  //     });
+  //   }
+    
+  //   // Create a unique pending execution ID
+  //   const pendingId = `${context.executionId}_${node.nodeId}_${Date.now()}`;
+    
+  //   // Store the execution state for resumption
+  //   const pendingExecution: PendingExecution = {
+  //     executionId: context.executionId,
+  //     automationId: context.automationId,
+  //     nodeId: node.nodeId,
+  //     conversationId: context.conversationId,
+  //     contactId: context.contactId,
+  //     context: { ...context },
+  //     saveAs: node.data.saveAs,
+  //     timestamp: new Date(),
+  //     status: 'waiting_for_response',
+  //     expectedButtons: buttons // Store buttons for validation
+  //   };
+    
+  //   this.pendingExecutions.set(pendingId, pendingExecution);
+    
+  //   // Update execution status to paused
+  //   await db.update(automationExecutions)
+  //     .set({
+  //       status: 'paused',
+  //       result: `Waiting for user response to: "${question}"`
+  //     })
+  //     .where(eq(automationExecutions.id, context.executionId));
+    
+  //   // Log that we're waiting
+  //   await this.logNodeExecution(
+  //     context.executionId,
+  //     node.nodeId,
+  //     node.type,
+  //     'waiting_for_response',
+  //     { ...node.data, question, buttons },
+  //     { pendingId, action: 'interactive_question_sent' },
+  //     null
+  //   );
+    
+  //   console.log(`✅ Interactive question sent: ${question} with ${buttons.length} buttons`);
+  //   console.log(`⏸️  Execution paused. Waiting for user response (pending ID: ${pendingId})`);
+    
+  //   return {
+  //     action: 'execution_paused',
+  //     question,
+  //     buttons,
+  //     conversationId: context.conversationId,
+  //     pendingId,
+  //     saveAs: node.data.saveAs
+  //   };
+  // }
+
+
+
+  // Enhanced executeCustomReply method with media support
+private async executeCustomReply(node: any, context: ExecutionContext) {
+  const message = this.replaceVariables(node.data.message || '', context.variables);
+  const nodeData = node.data;
+  
+  console.log(`Sending message to conversation ${context.conversationId}: "${message}"`);
+
+  const getContact = await db.query.contacts.findFirst({
+    where: eq(contacts?.id, context.contactId),
+  });
+
+  if (!getContact?.phone) {
+    throw new Error('Contact phone number not found');
   }
 
-  // ... [Rest of your existing methods remain the same] ...
+  // Check for media attachments
+  const hasMedia = nodeData.imageFile || nodeData.videoFile || nodeData.audioFile || nodeData.documentFile;
   
-  private async executeUserReply(node: any, context: ExecutionContext) {
-    const question = this.replaceVariables(node.data.question || '', context.variables);
-    const buttons = node.data.buttons || [];
+  if (hasMedia) {
+    await this.sendMediaMessage(getContact, nodeData, message, context);
+  } else {
+    // Regular text message
+    await sendBusinessMessage({
+      to: getContact.phone,
+      message,
+      channelId: getContact.channelId,
+    });
+  }
+  
+  console.log(`✅ Message sent: ${message}`);
+  
+  return {
+    action: 'message_sent',
+    message,
+    conversationId: context.conversationId,
+    hasMedia
+  };
+}
+
+/**
+ * Send media message with WhatsApp API
+ */
+private async sendMediaMessage(contact: any, nodeData: any, caption: string, context: ExecutionContext) {
+  try {
+    // Get channel information
+    const channel = await storage.getChannel(contact.channelId);
+    if (!channel) {
+      throw new Error(`Channel ${contact.channelId} not found`);
+    }
+
+    const whatsappApi = new WhatsAppApiService(channel);
+    const formattedPhone = this.formatPhoneNumber(contact.phone);
     
-    console.log(`Asking question to conversation ${context.conversationId}: "${question}"`);
-    console.log('Question buttons:', buttons);
+    let mediaPayload: any = {
+      messaging_product: "whatsapp",
+      to: formattedPhone,
+    };
+
+    // Determine media type and construct payload
+    if (nodeData.imageFile) {
+      mediaPayload.type = "image";
+      mediaPayload.image = {
+        link: await this.getPublicMediaUrl(nodeData.imageFile.path),
+        caption: caption || undefined
+      };
+    } else if (nodeData.videoFile) {
+      mediaPayload.type = "video";
+      mediaPayload.video = {
+        link: await this.getPublicMediaUrl(nodeData.videoFile.path),
+        caption: caption || undefined
+      };
+    } else if (nodeData.audioFile) {
+      mediaPayload.type = "audio";
+      mediaPayload.audio = {
+        link: await this.getPublicMediaUrl(nodeData.audioFile.path)
+      };
+      // Note: Audio doesn't support captions in WhatsApp API
+      if (caption) {
+        // Send caption as separate text message after audio
+        await this.sendTextMessage(whatsappApi, formattedPhone, caption);
+      }
+    } else if (nodeData.documentFile) {
+      mediaPayload.type = "document";
+      mediaPayload.document = {
+        link: await this.getPublicMediaUrl(nodeData.documentFile.path),
+        filename: nodeData.documentFile.filename,
+        caption: caption || undefined
+      };
+    }
+
+    // Send media message
+    const response = await fetch(
+      `https://graph.facebook.com/v23.0/${channel.phoneNumberId}/messages`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${channel.accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(mediaPayload)
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error('WhatsApp Media API Error:', error);
+      throw new Error(error.error?.message || 'Failed to send media message');
+    }
+
+    const result = await response.json();
     
-    // Get contact information
-    const getContact = await db.query.contacts.findFirst({
-      where: eq(contacts?.id, context.contactId),
+    // Save message to database
+    await this.saveMediaMessage(contact, nodeData, caption, context, result);
+    
+    console.log(`✅ Media message sent successfully to ${contact.phone}`);
+    return result;
+
+  } catch (error) {
+    console.error('Error sending media message:', error);
+    
+    // Fallback: send as text message with media info
+    const fallbackMessage = `${caption}\n\n[Media file: ${this.getMediaFileName(nodeData)}]`;
+    await sendBusinessMessage({
+      to: contact.phone,
+      message: fallbackMessage,
+      channelId: contact.channelId,
+    });
+    
+    throw error;
+  }
+}
+
+/**
+ * Enhanced executeUserReply with media support
+ */
+private async executeUserReply(node: any, context: ExecutionContext) {
+  const question = this.replaceVariables(node.data.question || '', context.variables);
+  const buttons = node.data.buttons || [];
+  const nodeData = node.data;
+  
+  console.log(`Asking question to conversation ${context.conversationId}: "${question}"`);
+  console.log('Question buttons:', buttons);
+  
+  // Get contact information
+  const getContact = await db.query.contacts.findFirst({
+    where: eq(contacts?.id, context.contactId),
+  });
+
+  if (!getContact?.phone) {
+    throw new Error('Contact phone number not found');
+  }
+
+  // Check for media attachments in the question
+  const hasMedia = nodeData.imageFile || nodeData.videoFile || nodeData.audioFile || nodeData.documentFile;
+  
+  if (hasMedia) {
+    // Send media with question first
+    await this.sendMediaMessage(getContact, nodeData, question, context);
+  }
+
+  // Send the question with buttons (if any)
+  if (buttons.length > 0) {
+    // Send interactive message with buttons
+    await this.sendInteractiveMessage(
+      getContact.phone,
+      hasMedia ? "Please choose an option:" : question, // Avoid duplicate text if media was sent
+      buttons,
+      getContact.channelId,
+      context.conversationId
+    );
+  } else if (!hasMedia) {
+    // Send regular text message only if no media was sent
+    await sendBusinessMessage({
+      to: getContact.phone,
+      message: question,
+      channelId: getContact.channelId,
+      conversationId: context.conversationId,
+    });
+  }
+  
+  // Create a unique pending execution ID
+  const pendingId = `${context.executionId}_${node.nodeId}_${Date.now()}`;
+  
+  // Store the execution state for resumption
+  const pendingExecution: PendingExecution = {
+    executionId: context.executionId,
+    automationId: context.automationId,
+    nodeId: node.nodeId,
+    conversationId: context.conversationId,
+    contactId: context.contactId,
+    context: { ...context },
+    saveAs: node.data.saveAs,
+    timestamp: new Date(),
+    status: 'waiting_for_response',
+    expectedButtons: buttons
+  };
+  
+  this.pendingExecutions.set(pendingId, pendingExecution);
+  
+  // Update execution status to paused
+  await db.update(automationExecutions)
+    .set({
+      status: 'paused',
+      result: `Waiting for user response to: "${question}"`
+    })
+    .where(eq(automationExecutions.id, context.executionId));
+  
+  // Log that we're waiting
+  await this.logNodeExecution(
+    context.executionId,
+    node.nodeId,
+    node.type,
+    'waiting_for_response',
+    { ...node.data, question, buttons, hasMedia },
+    { pendingId, action: 'interactive_question_sent' },
+    null
+  );
+  
+  console.log(`✅ Interactive question sent: ${question} with ${buttons.length} buttons and media: ${hasMedia}`);
+  console.log(`⏸️  Execution paused. Waiting for user response (pending ID: ${pendingId})`);
+  
+  return {
+    action: 'execution_paused',
+    question,
+    buttons,
+    hasMedia,
+    conversationId: context.conversationId,
+    pendingId,
+    saveAs: node.data.saveAs
+  };
+}
+
+/**
+ * Helper method to send text message
+ */
+private async sendTextMessage(whatsappApi: any, to: string, message: string) {
+  const payload = {
+    messaging_product: "whatsapp",
+    to,
+    type: "text",
+    text: { body: message }
+  };
+
+  const response = await fetch(
+    `https://graph.facebook.com/v23.0/${whatsappApi.channel.phoneNumberId}/messages`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${whatsappApi.channel.accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || 'Failed to send text message');
+  }
+
+  return await response.json();
+}
+
+/**
+ * Convert relative media path to public URL
+ */
+private async getPublicMediaUrl(relativePath: string): Promise<string> {
+  // Assuming your uploads are served at /uploads endpoint
+  // Adjust this based on your server configuration
+  const baseUrl = process.env.APP_URL || 'https://whatsway.diploy.in';
+  
+  // Remove leading slash if present
+  const cleanPath = relativePath.startsWith('/') ? relativePath.substring(1) : relativePath;
+  
+  return `${baseUrl}/${cleanPath}`;
+}
+
+/**
+ * Save media message to database
+ */
+private async saveMediaMessage(
+  contact: any, 
+  nodeData: any, 
+  caption: string, 
+  context: ExecutionContext, 
+  whatsappResult: any
+) {
+  try {
+    // Determine message type and content
+    let messageType = 'text';
+    let messageContent = caption;
+    let metadata: any = {};
+
+    if (nodeData.imageFile) {
+      messageType = 'image';
+      metadata = {
+        mediaType: 'image',
+        mediaPath: nodeData.imageFile.path,
+        fileName: nodeData.imageFile.filename,
+        fileSize: nodeData.imageFile.size,
+        mimeType: nodeData.imageFile.mimetype
+      };
+    } else if (nodeData.videoFile) {
+      messageType = 'video';
+      metadata = {
+        mediaType: 'video',
+        mediaPath: nodeData.videoFile.path,
+        fileName: nodeData.videoFile.filename,
+        fileSize: nodeData.videoFile.size,
+        mimeType: nodeData.videoFile.mimetype
+      };
+    } else if (nodeData.audioFile) {
+      messageType = 'audio';
+      metadata = {
+        mediaType: 'audio',
+        mediaPath: nodeData.audioFile.path,
+        fileName: nodeData.audioFile.filename,
+        fileSize: nodeData.audioFile.size,
+        mimeType: nodeData.audioFile.mimetype
+      };
+    } else if (nodeData.documentFile) {
+      messageType = 'document';
+      metadata = {
+        mediaType: 'document',
+        mediaPath: nodeData.documentFile.path,
+        fileName: nodeData.documentFile.filename,
+        fileSize: nodeData.documentFile.size,
+        mimeType: nodeData.documentFile.mimetype
+      };
+    }
+
+    // Find conversation
+    const conversation = await storage.getConversation(context.conversationId);
+    if (!conversation) {
+      console.warn('Conversation not found for media message');
+      return;
+    }
+
+    // Create message record
+    const createdMessage = await storage.createMessage({
+      conversationId: conversation.id,
+      content: messageContent,
+      sender: "business",
+      status: "sent",
+      whatsappMessageId: whatsappResult.messages?.[0]?.id,
+      messageType,
+      metadata: JSON.stringify(metadata)
     });
 
-    if (!getContact?.phone) {
-      throw new Error('Contact phone number not found');
-    }
+    // Update conversation
+    await storage.updateConversation(conversation.id, {
+      lastMessageAt: new Date(),
+      lastMessageText: messageContent || `[${messageType}]`,
+    });
 
-    // Send the question with buttons (if any)
-    if (buttons.length > 0) {
-      // Send interactive message with buttons
-      await this.sendInteractiveMessage(
-        getContact.phone,
-        question,
-        buttons,
-        getContact.channelId,
-        context.conversationId
-      );
-    } else {
-      // Send regular text message
-      await sendBusinessMessage({
-        to: getContact.phone,
-        message: question,
-        channelId: getContact.channelId,
-        conversationId: context.conversationId,
+    // Broadcast to websocket
+    if ((global as any).broadcastToConversation) {
+      (global as any).broadcastToConversation(conversation.id, {
+        type: "new-message",
+        message: createdMessage,
       });
     }
-    
-    // Create a unique pending execution ID
-    const pendingId = `${context.executionId}_${node.nodeId}_${Date.now()}`;
-    
-    // Store the execution state for resumption
-    const pendingExecution: PendingExecution = {
-      executionId: context.executionId,
-      automationId: context.automationId,
-      nodeId: node.nodeId,
-      conversationId: context.conversationId,
-      contactId: context.contactId,
-      context: { ...context },
-      saveAs: node.data.saveAs,
-      timestamp: new Date(),
-      status: 'waiting_for_response',
-      expectedButtons: buttons // Store buttons for validation
-    };
-    
-    this.pendingExecutions.set(pendingId, pendingExecution);
-    
-    // Update execution status to paused
-    await db.update(automationExecutions)
-      .set({
-        status: 'paused',
-        result: `Waiting for user response to: "${question}"`
-      })
-      .where(eq(automationExecutions.id, context.executionId));
-    
-    // Log that we're waiting
-    await this.logNodeExecution(
-      context.executionId,
-      node.nodeId,
-      node.type,
-      'waiting_for_response',
-      { ...node.data, question, buttons },
-      { pendingId, action: 'interactive_question_sent' },
-      null
-    );
-    
-    console.log(`✅ Interactive question sent: ${question} with ${buttons.length} buttons`);
-    console.log(`⏸️  Execution paused. Waiting for user response (pending ID: ${pendingId})`);
-    
-    return {
-      action: 'execution_paused',
-      question,
-      buttons,
-      conversationId: context.conversationId,
-      pendingId,
-      saveAs: node.data.saveAs
-    };
+
+  } catch (error) {
+    console.error('Error saving media message to database:', error);
   }
+}
 
-  private async sendInteractiveMessage(
-    to: string, 
-    question: string, 
-    buttons: any[], 
-    channelId: string, 
-    conversationId?: string
-  ) {
-    try {
-      // Get channel information
-      const channel = await storage.getChannel(channelId);
-      if (!channel) {
-        throw new Error(`Channel ${channelId} not found`);
-      }
+/**
+ * Get media file name for fallback messages
+ */
+private getMediaFileName(nodeData: any): string {
+  if (nodeData.imageFile) return nodeData.imageFile.filename;
+  if (nodeData.videoFile) return nodeData.videoFile.filename;
+  if (nodeData.audioFile) return nodeData.audioFile.filename;
+  if (nodeData.documentFile) return nodeData.documentFile.filename;
+  return 'media file';
+}
 
-      // Create WhatsApp interactive message payload
-      const interactivePayload = {
-        messaging_product: "whatsapp",
-        to: this.formatPhoneNumber(to),
-        type: "interactive",
-        interactive: {
-          type: "button",
-          body: {
-            text: question
-          },
-          action: {
-            buttons: buttons.slice(0, 3).map((btn, index) => ({ // WhatsApp allows max 3 buttons
-              type: "reply",
-              reply: {
-                id: btn.id || `btn_${index}`,
-                title: btn.text?.substring(0, 20) || `Option ${index + 1}` // Max 20 chars
-              }
-            }))
-          }
+/**
+ * Enhanced sendInteractiveMessage to handle media better
+ */
+private async sendInteractiveMessage(
+  to: string, 
+  question: string, 
+  buttons: any[], 
+  channelId: string, 
+  conversationId?: string
+) {
+  try {
+    // Get channel information
+    const channel = await storage.getChannel(channelId);
+    if (!channel) {
+      throw new Error(`Channel ${channelId} not found`);
+    }
+
+    // Create WhatsApp interactive message payload
+    const interactivePayload = {
+      messaging_product: "whatsapp",
+      to: this.formatPhoneNumber(to),
+      type: "interactive",
+      interactive: {
+        type: "button",
+        body: {
+          text: question
+        },
+        action: {
+          buttons: buttons.slice(0, 3).map((btn, index) => ({
+            type: "reply",
+            reply: {
+              id: btn.id || `btn_${index}`,
+              title: btn.text?.substring(0, 20) || `Option ${index + 1}`
+            }
+          }))
         }
-      };
-
-      // Send via WhatsApp API
-      const whatsappApi = new WhatsAppApiService(channel);
-      const result = await this.sendInteractiveMessageDirect(whatsappApi, interactivePayload);
-
-      // Save the message to database
-      const messageContent = `${question}\n\nOptions:\n${buttons.map((btn, i) => `${i + 1}. ${btn.text}`).join('\n')}`;
-      
-      // Find or create conversation
-      let conversation = conversationId
-        ? await storage.getConversation(conversationId)
-        : await storage.getConversationByPhone(to);
-
-      if (!conversation) {
-        let contact = await storage.getContactByPhone(to);
-        if (!contact) {
-          contact = await storage.createContact({
-            name: to,
-            phone: to,
-            channelId,
-          });
-        }
-
-        conversation = await storage.createConversation({
-          contactId: contact.id,
-          contactPhone: to,
-          contactName: contact.name || to,
-          channelId,
-          unreadCount: 0,
-        });
       }
+    };
 
+    // Send via WhatsApp API
+    const whatsappApi = new WhatsAppApiService(channel);
+    const result = await this.sendInteractiveMessageDirect(whatsappApi, interactivePayload);
+
+    // Save the message to database
+    const messageContent = `${question}\n\nOptions:\n${buttons.map((btn, i) => `${i + 1}. ${btn.text}`).join('\n')}`;
+    
+    // Find conversation
+    const conversation = conversationId
+      ? await storage.getConversation(conversationId)
+      : await storage.getConversationByPhone(to);
+
+    if (conversation) {
       // Save message
       const createdMessage = await storage.createMessage({
         conversationId: conversation.id,
@@ -718,25 +1084,137 @@ export class AutomationExecutionService {
           message: createdMessage,
         });
       }
-
-      console.log(`✅ Interactive message sent successfully to ${to}`);
-      return result;
-
-    } catch (error) {
-      console.error('Error sending interactive message:', error);
-      
-      // Fallback to regular text message with numbered options
-      console.log('📱 Falling back to text message with options...');
-      const fallbackMessage = `${question}\n\nReply with:\n${buttons.map((btn, i) => `${i + 1}. ${btn.text}`).join('\n')}`;
-      
-      return await sendBusinessMessage({
-        to,
-        message: fallbackMessage,
-        channelId,
-        conversationId
-      });
     }
+
+    console.log(`✅ Interactive message sent successfully to ${to}`);
+    return result;
+
+  } catch (error) {
+    console.error('Error sending interactive message:', error);
+    
+    // Fallback to regular text message with numbered options
+    console.log('📱 Falling back to text message with options...');
+    const fallbackMessage = `${question}\n\nReply with:\n${buttons.map((btn, i) => `${i + 1}. ${btn.text}`).join('\n')}`;
+    
+    return await sendBusinessMessage({
+      to,
+      message: fallbackMessage,
+      channelId,
+      conversationId
+    });
   }
+}
+
+  // private async sendInteractiveMessage(
+  //   to: string, 
+  //   question: string, 
+  //   buttons: any[], 
+  //   channelId: string, 
+  //   conversationId?: string
+  // ) {
+  //   try {
+  //     // Get channel information
+  //     const channel = await storage.getChannel(channelId);
+  //     if (!channel) {
+  //       throw new Error(`Channel ${channelId} not found`);
+  //     }
+
+  //     // Create WhatsApp interactive message payload
+  //     const interactivePayload = {
+  //       messaging_product: "whatsapp",
+  //       to: this.formatPhoneNumber(to),
+  //       type: "interactive",
+  //       interactive: {
+  //         type: "button",
+  //         body: {
+  //           text: question
+  //         },
+  //         action: {
+  //           buttons: buttons.slice(0, 3).map((btn, index) => ({ // WhatsApp allows max 3 buttons
+  //             type: "reply",
+  //             reply: {
+  //               id: btn.id || `btn_${index}`,
+  //               title: btn.text?.substring(0, 20) || `Option ${index + 1}` // Max 20 chars
+  //             }
+  //           }))
+  //         }
+  //       }
+  //     };
+
+  //     // Send via WhatsApp API
+  //     const whatsappApi = new WhatsAppApiService(channel);
+  //     const result = await this.sendInteractiveMessageDirect(whatsappApi, interactivePayload);
+
+  //     // Save the message to database
+  //     const messageContent = `${question}\n\nOptions:\n${buttons.map((btn, i) => `${i + 1}. ${btn.text}`).join('\n')}`;
+      
+  //     // Find or create conversation
+  //     let conversation = conversationId
+  //       ? await storage.getConversation(conversationId)
+  //       : await storage.getConversationByPhone(to);
+
+  //     if (!conversation) {
+  //       let contact = await storage.getContactByPhone(to);
+  //       if (!contact) {
+  //         contact = await storage.createContact({
+  //           name: to,
+  //           phone: to,
+  //           channelId,
+  //         });
+  //       }
+
+  //       conversation = await storage.createConversation({
+  //         contactId: contact.id,
+  //         contactPhone: to,
+  //         contactName: contact.name || to,
+  //         channelId,
+  //         unreadCount: 0,
+  //       });
+  //     }
+
+  //     // Save message
+  //     const createdMessage = await storage.createMessage({
+  //       conversationId: conversation.id,
+  //       content: messageContent,
+  //       sender: "business",
+  //       status: "sent",
+  //       whatsappMessageId: result.messages?.[0]?.id,
+  //       messageType: "interactive",
+  //       metadata: JSON.stringify({ buttons, interactiveType: "button" })
+  //     });
+
+  //     // Update conversation
+  //     await storage.updateConversation(conversation.id, {
+  //       lastMessageAt: new Date(),
+  //       lastMessageText: question,
+  //     });
+
+  //     // Broadcast to websocket
+  //     if ((global as any).broadcastToConversation) {
+  //       (global as any).broadcastToConversation(conversation.id, {
+  //         type: "new-message",
+  //         message: createdMessage,
+  //       });
+  //     }
+
+  //     console.log(`✅ Interactive message sent successfully to ${to}`);
+  //     return result;
+
+  //   } catch (error) {
+  //     console.error('Error sending interactive message:', error);
+      
+  //     // Fallback to regular text message with numbered options
+  //     console.log('📱 Falling back to text message with options...');
+  //     const fallbackMessage = `${question}\n\nReply with:\n${buttons.map((btn, i) => `${i + 1}. ${btn.text}`).join('\n')}`;
+      
+  //     return await sendBusinessMessage({
+  //       to,
+  //       message: fallbackMessage,
+  //       channelId,
+  //       conversationId
+  //     });
+  //   }
+  // }
 
   private async sendInteractiveMessageDirect(whatsappApi: any, payload: any) {
     const response = await fetch(
