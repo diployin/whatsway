@@ -430,113 +430,113 @@ export class AutomationExecutionService {
   /**
    * Enhanced handleUserResponse to update context with user message for conditions
    */
-  // async handleUserResponse(conversationId: string, userResponse: string, interactiveData?: any) {
-  //   console.log(`📨 Received user response for conversation ${conversationId}: "${userResponse}"`);
+  async handleUserResponse(conversationId: string, userResponse: string, interactiveData?: any) {
+    console.log(`📨 Received user response for conversation ${conversationId}: "${userResponse}"`);
     
-  //   // Find pending execution for this conversation
-  //   const pendingExecution = this.findPendingExecutionByConversation(conversationId);
-  //   if (!pendingExecution) {
-  //     console.warn(`No pending execution found for conversation ${conversationId}`);
-  //     return null;
-  //   }
+    // Find pending execution for this conversation
+    const pendingExecution = this.findPendingExecutionByConversation(conversationId);
+    if (!pendingExecution) {
+      console.warn(`No pending execution found for conversation ${conversationId}`);
+      return null;
+    }
 
-  //   try {
-  //     // Remove from pending
-  //     this.pendingExecutions.delete(pendingExecution.pendingId);
+    try {
+      // Remove from pending
+      this.pendingExecutions.delete(pendingExecution.pendingId);
       
-  //     // Process the response
-  //     let processedResponse = userResponse;
-  //     let selectedButtonId = null;
+      // Process the response
+      let processedResponse = userResponse;
+      let selectedButtonId = null;
       
-  //     // If this was a button click response
-  //     if (interactiveData && interactiveData.type === 'button_reply') {
-  //       selectedButtonId = interactiveData.button_reply.id;
-  //       processedResponse = interactiveData.button_reply.title;
-  //       console.log(`🔘 Button clicked: ${selectedButtonId} - "${processedResponse}"`);
-  //     } else if (pendingExecution.expectedButtons && pendingExecution.expectedButtons.length > 0) {
-  //       // Try to match text response to button options
-  //       const matchedButton = this.matchTextToButton(userResponse, pendingExecution.expectedButtons);
-  //       if (matchedButton) {
-  //         selectedButtonId = matchedButton.id;
-  //         processedResponse = matchedButton.text;
-  //         console.log(`🎯 Matched text "${userResponse}" to button: ${selectedButtonId} - "${processedResponse}"`);
-  //       }
-  //     }
+      // If this was a button click response
+      if (interactiveData && interactiveData.type === 'button_reply') {
+        selectedButtonId = interactiveData.button_reply.id;
+        processedResponse = interactiveData.button_reply.title;
+        console.log(`🔘 Button clicked: ${selectedButtonId} - "${processedResponse}"`);
+      } else if (pendingExecution.expectedButtons && pendingExecution.expectedButtons.length > 0) {
+        // Try to match text response to button options
+        const matchedButton = this.matchTextToButton(userResponse, pendingExecution.expectedButtons);
+        if (matchedButton) {
+          selectedButtonId = matchedButton.id;
+          processedResponse = matchedButton.text;
+          console.log(`🎯 Matched text "${userResponse}" to button: ${selectedButtonId} - "${processedResponse}"`);
+        }
+      }
       
-  //     // Update context with user response
-  //     const context = pendingExecution.context;
-  //     context.lastUserMessage = processedResponse; // ✅ Update for conditions
+      // Update context with user response
+      const context = pendingExecution.context;
+      context.lastUserMessage = processedResponse; // ✅ Update for conditions
       
-  //     if (pendingExecution.saveAs) {
-  //       context.variables[pendingExecution.saveAs] = processedResponse;
+      if (pendingExecution.saveAs) {
+        context.variables[pendingExecution.saveAs] = processedResponse;
         
-  //       // Also save button ID if available
-  //       if (selectedButtonId) {
-  //         context.variables[`${pendingExecution.saveAs}_button_id`] = selectedButtonId;
-  //       }
+        // Also save button ID if available
+        if (selectedButtonId) {
+          context.variables[`${pendingExecution.saveAs}_button_id`] = selectedButtonId;
+        }
         
-  //       console.log(`💾 Saved user response to variable: ${pendingExecution.saveAs} = "${processedResponse}"`);
-  //     }
+        console.log(`💾 Saved user response to variable: ${pendingExecution.saveAs} = "${processedResponse}"`);
+      }
 
-  //     // Log the response received
-  //     await this.logNodeExecution(
-  //       context.executionId,
-  //       pendingExecution.nodeId,
-  //       'user_reply',
-  //       'completed',
-  //       { question: 'User response received', interactiveData },
-  //       { 
-  //         userResponse: processedResponse, 
-  //         selectedButtonId,
-  //         savedAs: pendingExecution.saveAs 
-  //       },
-  //       null
-  //     );
+      // Log the response received
+      await this.logNodeExecution(
+        context.executionId,
+        pendingExecution.nodeId,
+        'user_reply',
+        'completed',
+        { question: 'User response received', interactiveData },
+        { 
+          userResponse: processedResponse, 
+          selectedButtonId,
+          savedAs: pendingExecution.saveAs 
+        },
+        null
+      );
 
-  //     // Resume execution status
-  //     await db.update(automationExecutions)
-  //       .set({
-  //         status: 'running',
-  //         result: null
-  //       })
-  //       .where(eq(automationExecutions.id, context.executionId));
+      // Resume execution status
+      await db.update(automationExecutions)
+        .set({
+          status: 'running',
+          result: null
+        })
+        .where(eq(automationExecutions.id, context.executionId));
 
-  //     console.log(`▶️  Resuming execution ${context.executionId} with user response`);
+      console.log(`▶️  Resuming execution ${context.executionId} with user response`);
 
-  //     // Get fresh automation data and continue
-  //     const automation = await this.getAutomationWithFlow(context.automationId);
-  //     if (!automation) {
-  //       throw new Error(`Automation ${context.automationId} not found during resume`);
-  //     }
+      // Get fresh automation data and continue
+      const automation = await this.getAutomationWithFlow(context.automationId);
+      if (!automation) {
+        throw new Error(`Automation ${context.automationId} not found during resume`);
+      }
 
-  //     const currentNode = automation.nodes.find((n: any) => n.nodeId === pendingExecution.nodeId);
-  //     if (currentNode) {
-  //       await this.continueToNextNode(currentNode, automation, context);
-  //     } else {
-  //       throw new Error(`Node ${pendingExecution.nodeId} not found during resume`);
-  //     }
+      const currentNode = automation.nodes.find((n: any) => n.nodeId === pendingExecution.nodeId);
+      if (currentNode) {
+        await this.continueToNextNode(currentNode, automation, context);
+      } else {
+        throw new Error(`Node ${pendingExecution.nodeId} not found during resume`);
+      }
 
-  //     return {
-  //       success: true,
-  //       executionId: context.executionId,
-  //       userResponse: processedResponse,
-  //       selectedButtonId,
-  //       savedVariable: pendingExecution.saveAs,
-  //       resumedAt: new Date()
-  //     };
+      return {
+        success: true,
+        executionId: context.executionId,
+        userResponse: processedResponse,
+        selectedButtonId,
+        savedVariable: pendingExecution.saveAs,
+        resumedAt: new Date()
+      };
 
-  //   } catch (error) {
-  //     console.error(`Error resuming execution for conversation ${conversationId}:`, error);
+    } catch (error) {
+      console.error(`Error resuming execution for conversation ${conversationId}:`, error);
       
-  //     await this.completeExecution(
-  //       pendingExecution.executionId, 
-  //       'failed', 
-  //       `Failed to resume after user response: ${error.message}`
-  //     );
+      await this.completeExecution(
+        pendingExecution.executionId, 
+        'failed', 
+        `Failed to resume after user response: ${error.message}`
+      );
       
-  //     throw error;
-  //   }
-  // }
+      throw error;
+    }
+  }
 
   // // ... [Rest of your existing methods remain the same] ...
   
