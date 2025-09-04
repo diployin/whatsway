@@ -24,6 +24,7 @@ import {
   triggerMessageReceived
 } from "../controllers/automation.controller";
 import { cleanupExpiredExecutions, getAllPendingExecutions } from "server/controllers/webhooks.controller";
+import { upload } from "server/middlewares/upload.middleware";
 
 // Schema for automation + nodes (used for builder save)
 const automationWithNodesSchema = z.object({
@@ -31,10 +32,15 @@ const automationWithNodesSchema = z.object({
   nodes: z.array(insertAutomationNodeSchema),
 });
 
+
+
+
+
 export function registerAutomationRoutes(app: Express) {
   //
   // ─── AUTOMATION CRUD ──────────────────────────────────────────────
   //
+
 
   // Get all automations
   app.get(
@@ -57,6 +63,7 @@ export function registerAutomationRoutes(app: Express) {
     "/api/automations",
     requireAuth,
     extractChannelId,
+    upload.any(),
     createAutomation
   );
 
@@ -65,6 +72,7 @@ export function registerAutomationRoutes(app: Express) {
     "/api/automations/:id",
     requireAuth,
     extractChannelId,
+    upload.any(),
     updateAutomation
   );
 
