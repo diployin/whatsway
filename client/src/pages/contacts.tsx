@@ -47,7 +47,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertContactSchema, type Contact, type InsertContact } from "@shared/schema";
-
+import Papa from "papaparse";
+import * as XLSX from "xlsx";
 
 // Edit Contact Form Component
 function EditContactForm({ 
@@ -397,6 +398,120 @@ export default function Contacts() {
     setShowDeleteDialog(true);
   };
 
+
+  const importContactsMutation = useMutation({
+    mutationFn: async (contacts: InsertContact[]) => {
+      const response = await fetch(`/api/contacts/import${activeChannel?.id ? `?channelId=${activeChannel.id}` : ""}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contacts }),
+      });
+      if (!response.ok) throw new Error("Failed to import contacts");
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
+      toast({
+        title: "Import Completed",
+        description: `Imported: ${data.created}, Duplicates: ${data.duplicates}, Failed: ${data.failed}`,
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to import contacts. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+  
+  const handleCSVUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+  
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        try {
+          const parsedContacts: InsertContact[] = (results.data as any[])
+            .filter((row) => row && Object.keys(row).length > 0) // filter out empty rows
+            .map((row: any) => ({
+              name: row?.name?.toString().trim() || "",
+              phone: row?.phone ? String(row.phone).trim() : "",
+              email: row?.email?.toString().trim() || "",
+              groups: row?.groups
+                ? row.groups.split(",").map((g: string) => g.trim())
+                : [],
+              tags: row?.tags
+                ? row.tags.split(",").map((t: string) => t.trim())
+                : [],
+            }))
+            .filter((c) => c.name || c.phone); // ignore completely empty rows
+  
+          if (parsedContacts.length === 0) {
+            toast({
+              title: "CSV Error",
+              description: "No valid contacts found in the file.",
+              variant: "destructive",
+            });
+            return;
+          }
+  
+          importContactsMutation.mutate(parsedContacts);
+        } catch (err: any) {
+          toast({
+            title: "CSV Parse Error",
+            description: err.message || "Failed to parse CSV file.",
+            variant: "destructive",
+          });
+        }
+      },
+      error: (err) => {
+        toast({
+          title: "CSV Error",
+          description: err.message,
+          variant: "destructive",
+        });
+      },
+    });
+  
+    // Reset input so same file can be selected again
+    event.target.value = "";
+  };
+
+
+  const handleExcelUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+  
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const data = new Uint8Array(e.target?.result as ArrayBuffer);
+      const workbook = XLSX.read(data, { type: "array" });
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      const rows: any[] = XLSX.utils.sheet_to_json(sheet);
+  
+      const parsedContacts: InsertContact[] = rows.map((row: any) => ({
+        name: row?.name?.toString().trim() || "",
+        phone: row?.phone ? String(row.phone).trim() : "",
+        email: row?.email?.toString().trim() || "",
+        groups: row?.groups
+          ? row.groups.split(",").map((g: string) => g.trim())
+          : [],
+        tags: row?.tags
+          ? row.tags.split(",").map((t: string) => t.trim())
+          : [],
+      }));
+  
+      importContactsMutation.mutate(parsedContacts);
+    };
+    reader.readAsArrayBuffer(file);
+  
+    event.target.value = "";
+  };
+
   if (isLoading) {
     return (
       <div className="flex-1 dots-bg">
@@ -407,6 +522,11 @@ export default function Contacts() {
       </div>
     );
   }
+
+
+
+
+  
 
   return (
     <div className="flex-1 dots-bg min-h-screen">
@@ -476,10 +596,26 @@ export default function Contacts() {
                 <Filter className="w-4 h-4 mr-2" />
                 All Status
               </Button>
-              <Button variant="outline" className="bg-gray-100">
-                <Upload className="w-4 h-4 mr-2" />
-                Import CSV
+            <label className="cursor-pointer">
+              <input
+                type="file"
+                accept=".csv,.xlsx"
+                className="hidden"
+                onChange={(e) => {
+                  if (e.target.files?.[0]?.name.endsWith(".csv")) {
+                    handleCSVUpload(e);
+                  } else {
+                    handleExcelUpload(e);
+                  }
+                }}
+              />
+              <Button variant="outline" className="" asChild>
+                <span>
+                  <Upload className="w-4 h-4 mr-2" />
+                  Import CSV
+                </span>
               </Button>
+            </label>
             </div>
           </CardContent>
         </Card>

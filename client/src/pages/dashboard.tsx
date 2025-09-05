@@ -406,7 +406,7 @@ export default function Dashboard() {
               <div className="grid grid-cols-2 gap-4">
                 <Button
                   variant="outline"
-                  className="p-4 h-auto text-left flex flex-col items-start space-y-2 hover:bg-blue-50"
+                  className="p-4 h-auto text-left flex flex-col items-start space-y-2 hover:bg-blue-50" onClick={() => setLocation("/contacts")}
                 >
                   <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                     <Upload className="w-4 h-4 text-white" />
@@ -423,7 +423,7 @@ export default function Dashboard() {
 
                 <Button
                   variant="outline"
-                  className="p-4 h-auto text-left flex flex-col items-start space-y-2 hover:bg-green-50"
+                  className="p-4 h-auto text-left flex flex-col items-start space-y-2 hover:bg-green-50" onClick={() => setLocation("/templates")}
                 >
                   <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
                     <FileText className="w-4 h-4 text-white" />
@@ -440,7 +440,7 @@ export default function Dashboard() {
 
                 <Button
                   variant="outline"
-                  className="p-4 h-auto text-left flex flex-col items-start space-y-2 hover:bg-purple-50"
+                  className="p-4 h-auto text-left flex flex-col items-start space-y-2 hover:bg-purple-50" onClick={() => setLocation("/automation")}
                 >
                   <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
                     <Zap className="w-4 h-4 text-white" />
@@ -457,7 +457,7 @@ export default function Dashboard() {
 
                 <Button
                   variant="outline"
-                  className="p-4 h-auto text-left flex flex-col items-start space-y-2 hover:bg-orange-50"
+                  className="p-4 h-auto text-left flex flex-col items-start space-y-2 hover:bg-orange-50" onClick={() => setLocation("/analytics")}
                 >
                   <div className="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center">
                     <BarChart3 className="w-4 h-4 text-white" />
@@ -485,20 +485,16 @@ export default function Dashboard() {
                 {/* WhatsApp Cloud API */}
                 <div
                   className={`flex items-center justify-between p-3 rounded-lg ${
-                    activeChannel?.status === "active"
+                    activeChannel?.isActive === true
                       ? "bg-green-50"
-                      : activeChannel?.status === "warning"
-                      ? "bg-yellow-50"
                       : "bg-red-50"
                   }`}
                 >
                   <div className="flex items-center space-x-3">
                     <div
                       className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                        activeChannel?.status === "active"
+                        activeChannel?.isActive === true
                           ? "bg-green-600"
-                          : activeChannel?.status === "warning"
-                          ? "bg-yellow-600"
                           : "bg-red-600"
                       }`}
                     >
@@ -518,25 +514,21 @@ export default function Dashboard() {
                   <div className="flex items-center space-x-2">
                     <div
                       className={`w-2 h-2 rounded-full ${
-                        activeChannel?.status === "active"
+                        activeChannel?.isActive === true
                           ? "bg-green-500 pulse-gentle"
-                          : activeChannel?.status === "warning"
-                          ? "bg-yellow-500"
                           : "bg-red-500"
                       }`}
                     />
                     <span
                       className={`text-sm font-medium ${
-                        activeChannel?.status === "active"
+                        activeChannel?.isActive === true
                           ? "text-green-600"
-                          : activeChannel?.status === "warning"
-                          ? "text-yellow-600"
                           : "text-red-600"
                       }`}
                     >
-                      {activeChannel?.status === "active"
+                      {activeChannel?.isActive === true
                         ? t("dashboard.connected")
-                        : activeChannel?.status === "warning"
+                        : activeChannel?.isActive === false
                         ? t("dashboard.warning")
                         : activeChannel
                         ? t("dashboard.error")
@@ -554,18 +546,18 @@ export default function Dashboard() {
                       </div>
                       <div>
                         <h4 className="font-medium text-gray-900">
-                          {t("dashboard.channelQuality")}
+                          Health Details
                         </h4>
                         <p className="text-sm text-gray-600">
                           {t("dashboard.rating")}:{" "}
-                          {activeChannel.qualityRating || "N/A"}
+                          {activeChannel?.healthDetails.quality_rating || "N/A"}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
                       <span className="text-sm text-blue-600 font-medium">
                         {t("dashboard.tier")}:{" "}
-                        {activeChannel.messagingLimitTier || "N/A"}
+                        {activeChannel?.healthDetails.messaging_limit || "N/A"}
                       </span>
                     </div>
                   </div>
@@ -575,7 +567,7 @@ export default function Dashboard() {
                 <div className="grid grid-cols-2 gap-4 mt-4">
                   <div className="text-center p-3 bg-gray-50 rounded-lg">
                     <p className="text-lg font-bold text-gray-900">
-                      {activeChannel?.lastCheckedAt ? "100%" : "N/A"}
+                      {activeChannel?.lastHealthCheck ? "100%" : "N/A"}
                     </p>
                     <p className="text-xs text-gray-600">
                       {t("dashboard.apiUptime")}
@@ -583,10 +575,10 @@ export default function Dashboard() {
                   </div>
                   <div className="text-center p-3 bg-gray-50 rounded-lg">
                     <p className="text-lg font-bold text-gray-900">
-                      {activeChannel ? "~200ms" : "N/A"}
+                      {activeChannel?.healthDetails.name_status  || "N/A"}
                     </p>
                     <p className="text-xs text-gray-600">
-                      {t("dashboard.avgResponse")}
+                    Status
                     </p>
                   </div>
                 </div>
@@ -598,14 +590,14 @@ export default function Dashboard() {
                       {t("dashboard.dailyMessageLimit")}
                     </span>
                     <span className="text-sm text-gray-600">
-                      {stats?.totalMessages || 0} /{" "}
-                      {activeChannel?.messagingLimitTier === "TIER_1K"
+                      {messageAnalytics?.overall?.totalMessages || 0} /{" "}
+                      {activeChannel?.healthDetails.messaging_limit === "TIER_1K"
                         ? "1,000"
-                        : activeChannel?.messagingLimitTier === "TIER_10K"
+                        : activeChannel?.healthDetails.messaging_limit === "TIER_10K"
                         ? "10,000"
-                        : activeChannel?.messagingLimitTier === "TIER_100K"
+                        : activeChannel?.healthDetails.messaging_limit === "TIER_100K"
                         ? "100,000"
-                        : activeChannel?.messagingLimitTier === "TIER_UNLIMITED"
+                        : activeChannel?.healthDetails.messaging_limit === "TIER_UNLIMITED"
                         ? "Unlimited"
                         : "1,000"}
                     </span>
@@ -615,12 +607,12 @@ export default function Dashboard() {
                       className="bg-yellow-500 h-2 rounded-full"
                       style={{
                         width: `${Math.min(
-                          ((stats?.totalMessages || 0) /
-                            (activeChannel?.messagingLimitTier === "TIER_1K"
+                          ((messageAnalytics?.overall?.totalMessages || 0) /
+                            (activeChannel?.healthDetails.messaging_limit === "TIER_1K"
                               ? 1000
-                              : activeChannel?.messagingLimitTier === "TIER_10K"
+                              : activeChannel?.healthDetails.messaging_limit === "TIER_10K"
                               ? 10000
-                              : activeChannel?.messagingLimitTier ===
+                              : activeChannel?.healthDetails.messaging_limit ===
                                 "TIER_100K"
                               ? 100000
                               : 1000)) *
