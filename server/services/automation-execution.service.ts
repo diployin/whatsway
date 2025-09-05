@@ -687,6 +687,8 @@ private async sendMediaMessage(contact: any, nodeData: any, caption: string, con
       to: formattedPhone,
     };
 
+    console.log("nodeData for media:", nodeData);
+
     // Determine media type and construct payload
     if (nodeData.imageFile) {
       mediaPayload.type = "image";
@@ -718,7 +720,7 @@ private async sendMediaMessage(contact: any, nodeData: any, caption: string, con
         caption: caption || undefined
       };
     }
-
+console.log("Media payload:", mediaPayload);
     // Send media message
     const response = await fetch(
       `https://graph.facebook.com/v23.0/${channel.phoneNumberId}/messages`,
