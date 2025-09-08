@@ -200,6 +200,8 @@ export default function Contacts() {
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [selectedContactIds, setSelectedContactIds] = useState<string[]>([]);
+
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -210,7 +212,7 @@ export default function Contacts() {
     console.log("Initial search query from URL:", phone);
   }, []);
 
-  
+ 
 
 // const { data: contacts, isLoading } = useQuery({
 //   queryKey: ["/api/contacts", searchQuery, activeChannel?.id],
@@ -524,9 +526,51 @@ export default function Contacts() {
   }
 
 
+  const allSelected = filteredContacts.length > 0 && selectedContactIds.length === filteredContacts.length;
 
-
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      setSelectedContactIds([]);
+    } else {
+      setSelectedContactIds(filteredContacts.map((contact) => contact.id));
+    }
+  };
   
+  const toggleSelectOne = (id: string) => {
+    setSelectedContactIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
+  
+
+const handleExportSelectedContacts = () => {
+  const selectedContacts = filteredContacts.filter((contact) =>
+    selectedContactIds.includes(contact.id)
+  );
+
+  if (selectedContacts.length === 0) {
+    alert("No contacts selected.");
+    return;
+  }
+
+  // Format data for Excel
+  const data = selectedContacts.map((contact) => ({
+    Name: contact.name,
+    Email: contact.email || "",
+    Phone: contact.phone || "",
+    Groups: contact.groups?.join(", ") || "",
+    Status: contact.status,
+    LastContact: contact.lastContact
+      ? new Date(contact.lastContact).toLocaleDateString()
+      : "Never",
+  }));
+
+  const worksheet = XLSX.utils.json_to_sheet(data);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Contacts");
+
+  XLSX.writeFile(workbook, "selected_contacts.xlsx");
+};
 
   return (
     <div className="flex-1 dots-bg min-h-screen">
@@ -596,6 +640,15 @@ export default function Contacts() {
                 <Filter className="w-4 h-4 mr-2" />
                 All Status
               </Button>
+              <Button 
+                variant="outline" 
+                onClick={handleExportSelectedContacts} 
+                disabled={selectedContactIds.length === 0}
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Export Excel
+              </Button>
+
             <label className="cursor-pointer">
               <input
                 type="file"
@@ -646,7 +699,13 @@ export default function Contacts() {
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <input type="checkbox" className="rounded border-gray-300" />
+                      <input
+                        type="checkbox"
+                        className="rounded border-gray-300"
+                        checked={allSelected}
+                        onChange={toggleSelectAll}
+                      />
+
                       </th>
                       <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Contact
@@ -672,7 +731,13 @@ export default function Contacts() {
                     {filteredContacts.map((contact: Contact) => (
                       <tr key={contact.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4">
-                          <input type="checkbox" className="rounded border-gray-300" />
+                        <input
+                          type="checkbox"
+                          className="rounded border-gray-300"
+                          checked={selectedContactIds.includes(contact.id)}
+                          onChange={() => toggleSelectOne(contact.id)}
+                        />
+
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center">

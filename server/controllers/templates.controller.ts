@@ -7,6 +7,7 @@ import type { RequestWithChannel } from '../middlewares/channel.middleware';
 
 export const getTemplates = asyncHandler(async (req: RequestWithChannel, res: Response) => {
   const channelId = req.query.channelId as string | undefined;
+  console.log("Fetching templates for channelId:", channelId);
   const templates = channelId 
     ? await storage.getTemplatesByChannel(channelId)
     : await storage.getTemplates();
