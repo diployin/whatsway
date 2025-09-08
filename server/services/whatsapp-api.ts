@@ -25,7 +25,7 @@ export class WhatsAppApiService {
   }
 
   // Static method for sending template messages
-  static async sendTemplateMessage(
+  static async  sendTemplateMessage(
     channel: Channel,
     to: string,
     templateName: string,

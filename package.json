@@ -10,6 +10,7 @@
     "check": "tsc",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
+    "db:update": "drizzle-kit generate && drizzle-kit push",
     "seed": "tsx server/seed.ts",
     "studio": "drizzle-kit studio",
     "update:code": "git pull && npm run build && pm2 restart all && pm2 logs"
