@@ -77,9 +77,9 @@ export default function CampaignAnalytics() {
       ? ((campaign.failedCount || 0) / campaign.sentCount) * 100
       : 0;
 
-
-      console.log("Daily Stats:", dailyStats);
-  // ✅ Fixed: Ensure all values are properly converted to numbers
+  console.log("Daily Stats:", dailyStats);
+  
+  // ✅ Fixed: More robust data processing with better error handling
   const chartData = dailyStats.map((stat: any) => {
     // Helper function to safely convert to number
     const toNumber = (value: any): number => {
@@ -87,17 +87,53 @@ export default function CampaignAnalytics() {
       return isNaN(num) ? 0 : num;
     };
 
+    // Helper function to safely format date
+    const formatDate = (dateValue: any): string => {
+      try {
+        if (!dateValue) return "Unknown";
+        
+        // Handle different date formats
+        let date: Date;
+        if (typeof dateValue === 'string') {
+          date = new Date(dateValue);
+        } else if (dateValue instanceof Date) {
+          date = dateValue;
+        } else {
+          return "Unknown";
+        }
+        
+        // Check if date is valid
+        if (isNaN(date.getTime())) {
+          return "Unknown";
+        }
+        
+        return date.toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric'
+        });
+      } catch (error) {
+        console.error("Error formatting date:", error, dateValue);
+        return "Unknown";
+      }
+    };
+
     console.log("Raw stat:", stat);
 
-    return {
-      date: new Date(stat.date).toLocaleDateString() || "Unknown",
-      sent: toNumber(stat.sent) || 0,
-      delivered: toNumber(stat.delivered) || 0,
-      read: toNumber(stat.read)  || 0,
-      failed: toNumber(stat.failed) || 0,
+    const processedStat = {
+      date: formatDate(stat.date),
+      sent: toNumber(stat.sent),
+      delivered: toNumber(stat.delivered),
+      read: toNumber(stat.read),
+      failed: toNumber(stat.failed),
     };
+    
+    console.log("Processed stat:", processedStat);
+    return processedStat;
   });
-console.log("Processed chartData:", chartData);
+  
+  console.log("Processed chartData:", chartData);
+  
   // Handle export
   const handleExport = async (format: "pdf" | "excel") => {
     setExportLoading(true);
@@ -115,7 +151,7 @@ console.log("Processed chartData:", chartData);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `campaign-${campaign.name}-${
+      a.download = `campaign-${campaign.name || 'unknown'}-${
         new Date().toISOString().split("T")[0]
       }.${format === "pdf" ? "pdf" : "xlsx"}`;
       document.body.appendChild(a);
@@ -128,6 +164,7 @@ console.log("Processed chartData:", chartData);
         description: `Campaign report exported as ${format.toUpperCase()}`,
       });
     } catch (error) {
+      console.error("Export error:", error);
       toast({
         title: "Export failed",
         description: "Failed to export campaign report",
@@ -149,7 +186,34 @@ console.log("Processed chartData:", chartData);
     );
   }
 
-  if (!campaign.id) {
+  if (error) {
+    return (
+      <div className="flex-1 dots-bg">
+        <Header title="Campaign Analytics" subtitle="Error loading campaign" />
+        <div className="p-6">
+          <Card>
+            <CardContent className="text-center py-12">
+              <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Error Loading Campaign
+              </h3>
+              <p className="text-gray-500 mb-4">
+                {error}
+              </p>
+              <Link href="/analytics">
+                <Button variant="outline">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Analytics
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  if (!campaign?.id) {
     return (
       <div className="flex-1 dots-bg">
         <Header title="Campaign Analytics" subtitle="Campaign not found" />
@@ -179,7 +243,7 @@ console.log("Processed chartData:", chartData);
   return (
     <div className="flex-1 dots-bg min-h-screen">
       <Header
-        title={`Campaign: ${campaign.name}`}
+        title={`Campaign: ${campaign.name || 'Unnamed Campaign'}`}
         subtitle="Detailed campaign performance analytics"
       />
 
@@ -227,7 +291,7 @@ console.log("Processed chartData:", chartData);
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <p className="text-sm text-gray-600">Type</p>
-                <p className="font-medium">{campaign.type}</p>
+                <p className="font-medium">{campaign.type || 'Unknown'}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Status</p>
@@ -241,17 +305,20 @@ console.log("Processed chartData:", chartData);
                       : "bg-gray-100 text-gray-800"
                   }`}
                 >
-                  {campaign.status}
+                  {campaign.status || 'Unknown'}
                 </span>
               </div>
               <div>
                 <p className="text-sm text-gray-600">API Type</p>
-                <p className="font-medium">{campaign.apiType}</p>
+                <p className="font-medium">{campaign.apiType || 'Unknown'}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Created</p>
                 <p className="font-medium">
-                  {new Date(campaign.createdAt).toLocaleString()}
+                  {campaign.createdAt 
+                    ? new Date(campaign.createdAt).toLocaleString()
+                    : 'Unknown'
+                  }
                 </p>
               </div>
               <div>
@@ -319,7 +386,7 @@ console.log("Processed chartData:", chartData);
                   <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
                     <div
                       className="bg-green-500 h-2 rounded-full"
-                      style={{ width: `${deliveryRate}%` }}
+                      style={{ width: `${Math.min(deliveryRate, 100)}%` }}
                     />
                   </div>
                 </div>
@@ -341,7 +408,7 @@ console.log("Processed chartData:", chartData);
                   <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
                     <div
                       className="bg-orange-500 h-2 rounded-full"
-                      style={{ width: `${readRate}%` }}
+                      style={{ width: `${Math.min(readRate, 100)}%` }}
                     />
                   </div>
                 </div>
@@ -363,7 +430,7 @@ console.log("Processed chartData:", chartData);
                   <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
                     <div
                       className="bg-red-500 h-2 rounded-full"
-                      style={{ width: `${failureRate}%` }}
+                      style={{ width: `${Math.min(failureRate, 100)}%` }}
                     />
                   </div>
                 </div>
@@ -383,10 +450,15 @@ console.log("Processed chartData:", chartData);
             </CardHeader>
             <CardContent>
               {chartData.length > 0 ? (
-                <MessageChart data={chartData} />
+                <div className="w-full">
+                  <MessageChart data={chartData} />
+                </div>
               ) : (
                 <div className="h-64 flex items-center justify-center text-gray-500">
-                  No daily data available
+                  <div className="text-center">
+                    <AlertCircle className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                    <p>No daily performance data available</p>
+                  </div>
                 </div>
               )}
             </CardContent>
@@ -397,49 +469,58 @@ console.log("Processed chartData:", chartData);
               <CardTitle>Message Status Distribution</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {recipientStats.map((stat: any) => {
-                  const total = recipientStats.reduce(
-                    (sum: number, s: any) => sum + s.count,
-                    0
-                  );
-                  const percentage = total > 0 ? (stat.count / total) * 100 : 0;
+              {recipientStats.length > 0 ? (
+                <div className="space-y-4">
+                  {recipientStats.map((stat: any) => {
+                    const total = recipientStats.reduce(
+                      (sum: number, s: any) => sum + (s.count || 0),
+                      0
+                    );
+                    const percentage = total > 0 ? ((stat.count || 0) / total) * 100 : 0;
 
-                  return (
-                    <div
-                      key={stat.status}
-                      className="flex items-center justify-between"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <div
-                          className={`w-3 h-3 rounded-full ${
-                            stat.status === "delivered"
-                              ? "bg-green-500"
-                              : stat.status === "read"
-                              ? "bg-blue-500"
-                              : stat.status === "failed"
-                              ? "bg-red-500"
-                              : stat.status === "pending"
-                              ? "bg-yellow-500"
-                              : "bg-gray-500"
-                          }`}
-                        />
-                        <span className="text-sm capitalize">
-                          {stat.status}
-                        </span>
+                    return (
+                      <div
+                        key={stat.status}
+                        className="flex items-center justify-between"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <div
+                            className={`w-3 h-3 rounded-full ${
+                              stat.status === "delivered"
+                                ? "bg-green-500"
+                                : stat.status === "read"
+                                ? "bg-blue-500"
+                                : stat.status === "failed"
+                                ? "bg-red-500"
+                                : stat.status === "pending"
+                                ? "bg-yellow-500"
+                                : "bg-gray-500"
+                            }`}
+                          />
+                          <span className="text-sm capitalize">
+                            {stat.status || 'Unknown'}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm font-medium">
+                            {stat.count || 0}
+                          </span>
+                          <span className="text-sm text-gray-500">
+                            ({percentage.toFixed(1)}%)
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm font-medium">
-                          {stat.count}
-                        </span>
-                        <span className="text-sm text-gray-500">
-                          ({percentage.toFixed(1)}%)
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="h-32 flex items-center justify-center text-gray-500">
+                  <div className="text-center">
+                    <AlertCircle className="w-6 h-6 mx-auto mb-1 text-gray-400" />
+                    <p className="text-sm">No status data available</p>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -476,7 +557,7 @@ console.log("Processed chartData:", chartData);
                           {error.errorMessage || "No message provided"}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
-                          {error.count}
+                          {error.count || 0}
                         </td>
                       </tr>
                     ))}
