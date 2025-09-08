@@ -153,7 +153,7 @@ export const campaignsController = {
       name: campaign.name,
       status: campaign.status,
       metrics: {
-        recipientCount: campaign.recipientCount,
+        recipientCount: campaign.recipientCount, 
         sentCount: campaign.sentCount,
         deliveredCount: campaign.deliveredCount,
         readCount: campaign.readCount,
