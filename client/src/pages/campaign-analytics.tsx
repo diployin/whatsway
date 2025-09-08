@@ -136,7 +136,7 @@ console.log("Processed chartData:", chartData);
     }
   };
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="flex-1 dots-bg">
         <Header title="Campaign Analytics" subtitle="Loading..." />
