@@ -176,10 +176,10 @@ export default function CampaignAnalytics() {
   const repliedCount = safeNumber(campaign.repliedCount);
   const failedCount = safeNumber(campaign.failedCount);
 
-  const deliveryRate = sentCount > 0 ? (deliveredCount / recipientCount) * 100 : 0;
+  const deliveryRate = recipientCount > 0 ? (deliveredCount / recipientCount) * 100 : 0;
   const readRate = deliveredCount > 0 ? (readCount / deliveredCount) * 100 : 0;
   const replyRate = readCount > 0 ? (repliedCount / readCount) * 100 : 0;
-  const failureRate = sentCount > 0 ? (failedCount / recipientCount) * 100 : 0;
+  const failureRate = recipientCount > 0 ? (failedCount / recipientCount) * 100 : 0;
 
   // Process chart data with robust error handling
   const chartData = dailyStats.map((stat: any, index: number) => {
