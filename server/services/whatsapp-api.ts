@@ -69,6 +69,8 @@ export class WhatsAppApiService {
       ? `${baseUrl}/${channel.phoneNumberId}/marketing_messages`
       : `${baseUrl}/${channel.phoneNumberId}/messages`;
 
+      console.log('WhatsApp API endpoint:', endpoint);
+
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
