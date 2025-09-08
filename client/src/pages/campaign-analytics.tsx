@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, Link } from "wouter";
 import Header from "@/components/layout/header";
@@ -22,19 +22,35 @@ export default function CampaignAnalytics() {
   // ✅ fixed useParams (typed)
   const { campaignId } = useParams<{ campaignId: string }>();
   const [exportLoading, setExportLoading] = useState(false);
-
+  const [campaignData, setCampaignData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
   // Fetch campaign details and analytics
-  const { data: campaignData, isLoading, isError, error } = useQuery({
-    queryKey: ["/api/analytics/campaigns", campaignId],
-    queryFn: async () => {
-      const response = await fetch(`/api/analytics/campaigns/${campaignId}`);
-      if (!response.ok) throw new Error("Failed to fetch campaign analytics");
-      return await response.json();
-    },
-    enabled: !!campaignId,
-  });
+  useEffect(() => {
+    if (!campaignId) return;
+
+    const fetchCampaignData = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const response = await fetch(`/api/analytics/campaigns/${campaignId}`);
+        if (!response.ok) throw new Error("Failed to fetch campaign analytics");
+        const data = await response.json();
+        setCampaignData(data);
+      } catch (err: any) {
+        setError(err.message || "Unknown error");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCampaignData();
+  }, [campaignId]);
 
   console.log("Campaign Data:37", campaignData);
+  console.log("error Data:38", error);
 
   const campaign = campaignData?.campaign || {};
   const dailyStats = campaignData?.dailyStats || [];
