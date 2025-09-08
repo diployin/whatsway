@@ -65,6 +65,8 @@ export default function CampaignAnalytics() {
       return isNaN(num) ? 0 : num;
     };
 
+    console.log("Raw stat:", stat);
+
     return {
       date: new Date(stat.date).toLocaleDateString(),
       sent: toNumber(stat.sent),
@@ -73,7 +75,7 @@ export default function CampaignAnalytics() {
       failed: toNumber(stat.failed),
     };
   });
-
+console.log("Processed chartData:", chartData);
   // Handle export
   const handleExport = async (format: "pdf" | "excel") => {
     setExportLoading(true);

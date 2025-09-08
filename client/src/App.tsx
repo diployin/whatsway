@@ -124,61 +124,61 @@ function ProtectedRoutes() {
           <Route path="/contacts">
             <PermissionRoute 
               component={Contacts} 
-              requiredPermission="contacts.view" 
+              requiredPermission="contacts:view" 
             />
           </Route>
           <Route path="/campaigns">
             <PermissionRoute 
               component={Campaigns} 
-              requiredPermission="campaigns.view" 
+              requiredPermission="campaigns:view" 
             />
           </Route>
           <Route path="/templates">
             <PermissionRoute 
               component={Templates} 
-              requiredPermission="templates.view" 
+              requiredPermission="templates:view" 
             />
           </Route>
           <Route path="/inbox">
             <PermissionRoute 
               component={Inbox} 
-              requiredPermission="inbox.view" 
+              requiredPermission="inbox:view" 
             />
           </Route>
           <Route path="/team">
             <PermissionRoute 
               component={Team} 
-              requiredPermission="team.view" 
+              requiredPermission="team:view" 
             />
           </Route>
           <Route path="/automation">
             <PermissionRoute 
               component={Automations} 
-              requiredPermission="automations.view" 
+              requiredPermission="automations:view" 
             />
           </Route>
           <Route path="/analytics">
             <PermissionRoute 
               component={Analytics} 
-              requiredPermission="analytics.view" 
+              requiredPermission="analytics:view" 
             />
           </Route>
           <Route path="/analytics/campaign/:campaignId">
             <PermissionRoute 
               component={CampaignAnalytics} 
-              requiredPermission="analytics.view" 
+              requiredPermission="analytics:view" 
             />
           </Route>
           <Route path="/logs">
             <PermissionRoute 
               component={Logs} 
-              requiredPermission="logs.view" 
+              requiredPermission="logs:view" 
             />
           </Route>
           <Route path="/settings">
             <PermissionRoute 
               component={Settings} 
-              requiredPermission="settings.view" 
+              requiredPermission="settings:view" 
             />
           </Route>
           <Route path="/account">
