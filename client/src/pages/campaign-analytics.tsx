@@ -84,7 +84,8 @@ export default function CampaignAnalytics() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `campaign-${campaign.name}-${new Date().toISOString().split('T')[0]}.${format === 'pdf' ? 'pdf' : 'xlsx'}`;
+      const safeName = (campaign.name ?? 'unnamed').replace(/[^a-z0-9_\-]/gi, '_');
+      a.download = `campaign-${safeName}-${new Date().toISOString().split('T')[0]}.${format === 'pdf' ? 'pdf' : 'xlsx'}`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
