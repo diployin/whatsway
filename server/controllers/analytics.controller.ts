@@ -203,8 +203,12 @@ console.log("Campaign details:", campaign);
     ))
     .groupBy(sql`${messages.errorDetails}->>'code'`, sql`${messages.errorDetails}->>'message'`)
     .orderBy(desc(count(messages.id)));
+console.log("Data", {campaign,
+  dailyStats,
+  recipientStats,
+  errorAnalysis,});
 
-  res.json({
+  res.status(200).json({
     campaign,
     dailyStats,
     recipientStats,
