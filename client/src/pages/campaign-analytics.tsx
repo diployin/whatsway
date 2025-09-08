@@ -8,24 +8,19 @@ import { Button } from "@/components/ui/button";
 import { MessageChart } from "@/components/charts/message-chart";
 import { 
   ArrowLeft,
-  BarChart3, 
-  MessageSquare, 
   Eye, 
-  Reply, 
   XCircle,
   Download,
-  Calendar,
   CheckCircle,
-  Clock,
   Send,
   AlertCircle,
-  Users,
-  Target
+  Users
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 export default function CampaignAnalytics() {
-  const { campaignId } = useParams();
+  // ✅ fixed useParams (typed)
+  const { campaignId } = useParams<{ campaignId: string }>();
   const [exportLoading, setExportLoading] = useState(false);
 
   // Fetch campaign details and analytics
@@ -33,7 +28,7 @@ export default function CampaignAnalytics() {
     queryKey: ["/api/analytics/campaigns", campaignId],
     queryFn: async () => {
       const response = await fetch(`/api/analytics/campaigns/${campaignId}`);
-      if (!response.ok) throw new Error('Failed to fetch campaign analytics');
+      if (!response.ok) throw new Error("Failed to fetch campaign analytics");
       return await response.json();
     },
     enabled: !!campaignId,
@@ -45,52 +40,57 @@ export default function CampaignAnalytics() {
   const errorAnalysis = campaignData?.errorAnalysis || [];
 
   // Calculate metrics
-  const deliveryRate = campaign.sentCount > 0 
-    ? ((campaign.deliveredCount || 0) / campaign.sentCount) * 100 
-    : 0;
-  const readRate = campaign.deliveredCount > 0 
-    ? ((campaign.readCount || 0) / campaign.deliveredCount) * 100 
-    : 0;
-  const replyRate = campaign.readCount > 0 
-    ? ((campaign.repliedCount || 0) / campaign.readCount) * 100 
-    : 0;
-  const failureRate = campaign.sentCount > 0 
-    ? ((campaign.failedCount || 0) / campaign.sentCount) * 100 
-    : 0;
+  const deliveryRate =
+    campaign.sentCount > 0
+      ? ((campaign.deliveredCount || 0) / campaign.sentCount) * 100
+      : 0;
+  const readRate =
+    campaign.deliveredCount > 0
+      ? ((campaign.readCount || 0) / campaign.deliveredCount) * 100
+      : 0;
+  const replyRate =
+    campaign.readCount > 0
+      ? ((campaign.repliedCount || 0) / campaign.readCount) * 100
+      : 0;
+  const failureRate =
+    campaign.sentCount > 0
+      ? ((campaign.failedCount || 0) / campaign.sentCount) * 100
+      : 0;
 
-  // Transform daily stats for chart
+  // ✅ Safe number conversion for chart
   const chartData = dailyStats.map((stat: any) => ({
     date: new Date(stat.date).toLocaleDateString(),
-    sent: stat.sent || 0,
-    delivered: stat.delivered || 0,
-    read: stat.read || 0,
-    failed: stat.failed || 0,
+    sent: Number(stat.sent) || 0,
+    delivered: Number(stat.delivered) || 0,
+    read: Number(stat.read) || 0,
+    failed: Number(stat.failed) || 0,
   }));
 
   // Handle export
-  const handleExport = async (format: 'pdf' | 'excel') => {
+  const handleExport = async (format: "pdf" | "excel") => {
     setExportLoading(true);
     try {
       const params = new URLSearchParams({
         format,
-        type: 'campaigns',
-        campaignId: campaignId || '',
+        type: "campaigns",
+        campaignId: campaignId || "",
       });
-      
+
       const response = await fetch(`/api/analytics/export?${params}`);
-      if (!response.ok) throw new Error('Export failed');
-      
+      if (!response.ok) throw new Error("Export failed");
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
-      const safeName = (campaign.name ?? 'unnamed').replace(/[^a-z0-9_\-]/gi, '_');
-      a.download = `campaign-${safeName}-${new Date().toISOString().split('T')[0]}.${format === 'pdf' ? 'pdf' : 'xlsx'}`;
+      a.download = `campaign-${campaign.name}-${
+        new Date().toISOString().split("T")[0]
+      }.${format === "pdf" ? "pdf" : "xlsx"}`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-      
+
       toast({
         title: "Export successful",
         description: `Campaign report exported as ${format.toUpperCase()}`,
@@ -125,8 +125,12 @@ export default function CampaignAnalytics() {
           <Card>
             <CardContent className="text-center py-12">
               <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Campaign Not Found</h3>
-              <p className="text-gray-500 mb-4">The requested campaign could not be found</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Campaign Not Found
+              </h3>
+              <p className="text-gray-500 mb-4">
+                The requested campaign could not be found
+              </p>
               <Link href="/analytics">
                 <Button variant="outline">
                   <ArrowLeft className="w-4 h-4 mr-2" />
@@ -142,7 +146,7 @@ export default function CampaignAnalytics() {
 
   return (
     <div className="flex-1 dots-bg min-h-screen">
-      <Header 
+      <Header
         title={`Campaign: ${campaign.name}`}
         subtitle="Detailed campaign performance analytics"
       />
@@ -162,20 +166,20 @@ export default function CampaignAnalytics() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleExport('pdf')}
+                  onClick={() => handleExport("pdf")}
                   disabled={exportLoading}
                 >
                   <Download className="w-4 h-4 mr-2" />
-                  {exportLoading ? 'Exporting...' : 'Export PDF'}
+                  {exportLoading ? "Exporting..." : "Export PDF"}
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleExport('excel')}
+                  onClick={() => handleExport("excel")}
                   disabled={exportLoading}
                 >
                   <Download className="w-4 h-4 mr-2" />
-                  {exportLoading ? 'Exporting...' : 'Export Excel'}
+                  {exportLoading ? "Exporting..." : "Export Excel"}
                 </Button>
               </div>
             </div>
@@ -195,10 +199,16 @@ export default function CampaignAnalytics() {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Status</p>
-                <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full
-                  ${campaign.status === 'active' ? 'bg-green-100 text-green-800' : 
-                    campaign.status === 'completed' ? 'bg-blue-100 text-blue-800' : 
-                    'bg-gray-100 text-gray-800'}`}>
+                <span
+                  className={`inline-flex px-2 py-1 text-xs font-medium rounded-full
+                  ${
+                    campaign.status === "active"
+                      ? "bg-green-100 text-green-800"
+                      : campaign.status === "completed"
+                      ? "bg-blue-100 text-blue-800"
+                      : "bg-gray-100 text-gray-800"
+                  }`}
+                >
                   {campaign.status}
                 </span>
               </div>
@@ -208,18 +218,24 @@ export default function CampaignAnalytics() {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Created</p>
-                <p className="font-medium">{new Date(campaign.createdAt).toLocaleString()}</p>
+                <p className="font-medium">
+                  {new Date(campaign.createdAt).toLocaleString()}
+                </p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Scheduled</p>
                 <p className="font-medium">
-                  {campaign.scheduledAt ? new Date(campaign.scheduledAt).toLocaleString() : 'Immediate'}
+                  {campaign.scheduledAt
+                    ? new Date(campaign.scheduledAt).toLocaleString()
+                    : "Immediate"}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Completed</p>
                 <p className="font-medium">
-                  {campaign.completedAt ? new Date(campaign.completedAt).toLocaleString() : 'In Progress'}
+                  {campaign.completedAt
+                    ? new Date(campaign.completedAt).toLocaleString()
+                    : "In Progress"}
                 </p>
               </div>
             </div>
@@ -269,8 +285,8 @@ export default function CampaignAnalytics() {
                     {deliveryRate.toFixed(1)}%
                   </p>
                   <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                    <div 
-                      className="bg-green-500 h-2 rounded-full" 
+                    <div
+                      className="bg-green-500 h-2 rounded-full"
                       style={{ width: `${deliveryRate}%` }}
                     />
                   </div>
@@ -291,8 +307,8 @@ export default function CampaignAnalytics() {
                     {readRate.toFixed(1)}%
                   </p>
                   <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                    <div 
-                      className="bg-orange-500 h-2 rounded-full" 
+                    <div
+                      className="bg-orange-500 h-2 rounded-full"
                       style={{ width: `${readRate}%` }}
                     />
                   </div>
@@ -313,8 +329,8 @@ export default function CampaignAnalytics() {
                     {failureRate.toFixed(1)}%
                   </p>
                   <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                    <div 
-                      className="bg-red-500 h-2 rounded-full" 
+                    <div
+                      className="bg-red-500 h-2 rounded-full"
                       style={{ width: `${failureRate}%` }}
                     />
                   </div>
@@ -351,24 +367,42 @@ export default function CampaignAnalytics() {
             <CardContent>
               <div className="space-y-4">
                 {recipientStats.map((stat: any) => {
-                  const total = recipientStats.reduce((sum: number, s: any) => sum + s.count, 0);
+                  const total = recipientStats.reduce(
+                    (sum: number, s: any) => sum + s.count,
+                    0
+                  );
                   const percentage = total > 0 ? (stat.count / total) * 100 : 0;
-                  
+
                   return (
-                    <div key={stat.status} className="flex items-center justify-between">
+                    <div
+                      key={stat.status}
+                      className="flex items-center justify-between"
+                    >
                       <div className="flex items-center space-x-2">
-                        <div className={`w-3 h-3 rounded-full ${
-                          stat.status === 'delivered' ? 'bg-green-500' :
-                          stat.status === 'read' ? 'bg-blue-500' :
-                          stat.status === 'failed' ? 'bg-red-500' :
-                          stat.status === 'pending' ? 'bg-yellow-500' :
-                          'bg-gray-500'
-                        }`} />
-                        <span className="text-sm capitalize">{stat.status}</span>
+                        <div
+                          className={`w-3 h-3 rounded-full ${
+                            stat.status === "delivered"
+                              ? "bg-green-500"
+                              : stat.status === "read"
+                              ? "bg-blue-500"
+                              : stat.status === "failed"
+                              ? "bg-red-500"
+                              : stat.status === "pending"
+                              ? "bg-yellow-500"
+                              : "bg-gray-500"
+                          }`}
+                        />
+                        <span className="text-sm capitalize">
+                          {stat.status}
+                        </span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <span className="text-sm font-medium">{stat.count}</span>
-                        <span className="text-sm text-gray-500">({percentage.toFixed(1)}%)</span>
+                        <span className="text-sm font-medium">
+                          {stat.count}
+                        </span>
+                        <span className="text-sm text-gray-500">
+                          ({percentage.toFixed(1)}%)
+                        </span>
                       </div>
                     </div>
                   );
@@ -404,10 +438,10 @@ export default function CampaignAnalytics() {
                     {errorAnalysis.map((error: any, index: number) => (
                       <tr key={index}>
                         <td className="px-6 py-4 text-sm text-gray-900">
-                          {error.errorCode || 'Unknown'}
+                          {error.errorCode || "Unknown"}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
-                          {error.errorMessage || 'No message provided'}
+                          {error.errorMessage || "No message provided"}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
                           {error.count}
