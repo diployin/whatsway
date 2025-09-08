@@ -375,9 +375,10 @@ async function startCampaignExecution(campaignId: string) {
       });
 console.log("Message logged:", sendMsg);
       // Update sent count
-      await storage.updateCampaign(campaignId, {
+    const updateCampaign =   await storage.updateCampaign(campaignId, {
         sentCount: (campaign.sentCount || 0) + 1,
       });
+      console.log("Campaign updated:", updateCampaign);
     } catch (error) {
       console.error(`Failed to send message to ${contact.phone}:`, error);
       // Update failed count
