@@ -178,7 +178,7 @@ export default function Campaigns() {
       csvData: campaignType === "csv" ? csvData : [],
       recipientCount,
       type: "marketing",
-      apiType: "marketing_messages",
+      apiType: "mm_lite",
       campaignType: campaignType,
       variableMapping: campaignData.variableMapping || {},
       autoRetry: autoRetry
