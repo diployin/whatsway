@@ -5,6 +5,7 @@ import { AppError, asyncHandler } from '../middlewares/error.middleware';
 import { eq, and, gte, lte, count, sql, desc } from 'drizzle-orm';
 import PDFDocument from 'pdfkit';
 import * as XLSX from 'xlsx';
+import { storage } from 'server/storage';
 
 // Get message analytics with real-time data
 export const getMessageAnalytics = asyncHandler(async (req: Request, res: Response) => {
@@ -153,16 +154,13 @@ export const getCampaignAnalyticsById = asyncHandler(async (req: Request, res: R
   const { campaignId } = req.params;
 
   // Get campaign details
-  const campaign = await db
-    .select()
-    .from(campaigns)
-    .where(eq(campaigns.id, campaignId))
-    .limit(1);
+  console.log("Fetching campaign analytics for ID:", campaignId);
 
-  if (!campaign[0]) {
-    res.status(404).json({ error: 'Campaign not found' });
-    return;
-  }
+  const campaign = await storage.getCampaign(campaignId);
+      if (!campaign) {
+        return res.status(404).json({ error: "Campaign not found" });
+      }
+
 
   // Get daily message stats for this campaign
   const endDate = new Date();

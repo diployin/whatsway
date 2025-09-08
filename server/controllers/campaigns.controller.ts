@@ -334,11 +334,11 @@ async function startCampaignExecution(campaignId: string) {
         });
       }
 
-      console.log("Sending message with params:", {
-        phone: contact.phone,
-        template: template.name,
-        parameters: templateParams.map(p => p.text)
-      });
+      // console.log("Sending message with params:", {
+      //   phone: contact.phone,
+      //   template: template.name,
+      //   parameters: templateParams.map(p => p.text)
+      // });
 
       // Send template message - always use MM Lite for marketing campaigns
       const response = await WhatsAppApiService.sendTemplateMessage(
@@ -351,9 +351,9 @@ async function startCampaignExecution(campaignId: string) {
       );
       const messageId = response.messages?.[0]?.id || `msg_${randomUUID()}`;
 
-      console.log( "Message sent, response:",{
-        sentCount: (campaign.sentCount || 0) + 1,
-      })
+      // console.log( "Message sent, response:",{
+      //   sentCount: (campaign.sentCount || 0) + 1,
+      // })
       
       // Create message log entry
     const sendMsg =  await storage.createMessage({
@@ -373,7 +373,7 @@ async function startCampaignExecution(campaignId: string) {
         timestamp: new Date(),
         campaignId: campaignId,
       });
-console.log("Message logged:", sendMsg);
+// console.log("Message logged:", sendMsg);
       // Update sent count
     const updateCampaign =   await storage.updateCampaign(campaignId, {
         sentCount: (campaign.sentCount || 0) + 1,
