@@ -18,8 +18,108 @@ import {
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
+// Simple fallback chart component
+const SimpleDailyChart = ({ data }: { data: any[] }) => {
+  if (!data || data.length === 0) {
+    return (
+      <div className="h-64 flex items-center justify-center text-gray-500">
+        <div className="text-center">
+          <AlertCircle className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+          <p>No chart data available</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="text-sm text-gray-600 mb-4">
+        Daily Performance Overview
+      </div>
+      {data.map((item, index) => (
+        <div key={index} className="border rounded-lg p-4 bg-white">
+          <div className="flex justify-between items-center mb-3">
+            <span className="font-medium text-gray-900">{item.date}</span>
+            <div className="text-sm text-gray-500">
+              Total: {(item.sent || 0) + (item.delivered || 0) + (item.read || 0) + (item.failed || 0)}
+            </div>
+          </div>
+          <div className="grid grid-cols-4 gap-4 text-sm">
+            <div className="text-center p-2 bg-blue-50 rounded">
+              <div className="text-blue-600 font-bold text-lg">{item.sent || 0}</div>
+              <div className="text-gray-600 text-xs">Sent</div>
+            </div>
+            <div className="text-center p-2 bg-green-50 rounded">
+              <div className="text-green-600 font-bold text-lg">{item.delivered || 0}</div>
+              <div className="text-gray-600 text-xs">Delivered</div>
+            </div>
+            <div className="text-center p-2 bg-orange-50 rounded">
+              <div className="text-orange-600 font-bold text-lg">{item.read || 0}</div>
+              <div className="text-gray-600 text-xs">Read</div>
+            </div>
+            <div className="text-center p-2 bg-red-50 rounded">
+              <div className="text-red-600 font-bold text-lg">{item.failed || 0}</div>
+              <div className="text-gray-600 text-xs">Failed</div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// Safe chart wrapper component
+const SafeMessageChart = ({ data }: { data: any[] }) => {
+  const [hasError, setHasError] = useState(false);
+  
+  useEffect(() => {
+    setHasError(false);
+  }, [data]);
+
+  if (hasError) {
+    return <SimpleDailyChart data={data} />;
+  }
+
+  try {
+    // Validate data before passing to chart
+    if (!data || !Array.isArray(data) || data.length === 0) {
+      return (
+        <div className="h-64 flex items-center justify-center text-gray-500">
+          <div className="text-center">
+            <AlertCircle className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+            <p>No chart data available</p>
+          </div>
+        </div>
+      );
+    }
+
+    // Check if we have valid data for the chart
+    const hasValidData = data.some(item => 
+      item && 
+      typeof item === 'object' && 
+      item.date && 
+      item.date !== "Unknown" &&
+      (item.sent > 0 || item.delivered > 0 || item.read > 0 || item.failed > 0)
+    );
+
+    if (!hasValidData) {
+      return <SimpleDailyChart data={data} />;
+    }
+
+    // Try to render the MessageChart with error handling
+    return (
+      <div>
+        <MessageChart data={data} />
+      </div>
+    );
+  } catch (error) {
+    console.error("Chart error:", error);
+    setHasError(true);
+    return <SimpleDailyChart data={data} />;
+  }
+};
+
 export default function CampaignAnalytics() {
-  // ✅ fixed useParams (typed)
   const { campaignId } = useParams<{ campaignId: string }>();
   const [exportLoading, setExportLoading] = useState(false);
   const [campaignData, setCampaignData] = useState<any>(null);
@@ -37,12 +137,15 @@ export default function CampaignAnalytics() {
       try {
         const response = await fetch(`/api/analytics/campaigns/${campaignId}`);
         console.log("Response status:", response);
-        if (!response.ok) throw new Error("Failed to fetch campaign analytics");
+        if (!response.ok) {
+          throw new Error(`Failed to fetch campaign analytics: ${response.status} ${response.statusText}`);
+        }
         const data = await response.json();
         console.log("Fetched campaign data:", data);
         setCampaignData(data);
       } catch (err: any) {
-        setError(err.message || "Unknown error");
+        console.error("Fetch error:", err);
+        setError(err.message || "Unknown error occurred while fetching campaign data");
       } finally {
         setLoading(false);
       }
@@ -51,38 +154,37 @@ export default function CampaignAnalytics() {
     fetchCampaignData();
   }, [campaignId]);
 
-  console.log("Campaign Data:37", campaignData);
-  console.log("error Data:38", error);
-
+  // Safely extract data with fallbacks
   const campaign = campaignData?.campaign || {};
-  const dailyStats = campaignData?.dailyStats || [];
-  const recipientStats = campaignData?.recipientStats || [];
-  const errorAnalysis = campaignData?.errorAnalysis || [];
+  const dailyStats = Array.isArray(campaignData?.dailyStats) ? campaignData.dailyStats : [];
+  const recipientStats = Array.isArray(campaignData?.recipientStats) ? campaignData.recipientStats : [];
+  const errorAnalysis = Array.isArray(campaignData?.errorAnalysis) ? campaignData.errorAnalysis : [];
 
-  // Calculate metrics
-  const deliveryRate =
-    campaign.sentCount > 0
-      ? ((campaign.deliveredCount || 0) / campaign.sentCount) * 100
-      : 0;
-  const readRate =
-    campaign.deliveredCount > 0
-      ? ((campaign.readCount || 0) / campaign.deliveredCount) * 100
-      : 0;
-  const replyRate =
-    campaign.readCount > 0
-      ? ((campaign.repliedCount || 0) / campaign.readCount) * 100
-      : 0;
-  const failureRate =
-    campaign.sentCount > 0
-      ? ((campaign.failedCount || 0) / campaign.sentCount) * 100
-      : 0;
-
+  console.log("Campaign Data:", campaignData);
   console.log("Daily Stats:", dailyStats);
-  
-  // ✅ Fixed: More robust data processing with better error handling
-  const chartData = dailyStats.map((stat: any) => {
+
+  // Calculate metrics with safe math
+  const safeNumber = (value: any): number => {
+    const num = Number(value);
+    return isNaN(num) || num < 0 ? 0 : num;
+  };
+
+  const sentCount = safeNumber(campaign.sentCount);
+  const deliveredCount = safeNumber(campaign.deliveredCount);
+  const readCount = safeNumber(campaign.readCount);
+  const repliedCount = safeNumber(campaign.repliedCount);
+  const failedCount = safeNumber(campaign.failedCount);
+
+  const deliveryRate = sentCount > 0 ? (deliveredCount / sentCount) * 100 : 0;
+  const readRate = deliveredCount > 0 ? (readCount / deliveredCount) * 100 : 0;
+  const replyRate = readCount > 0 ? (repliedCount / readCount) * 100 : 0;
+  const failureRate = sentCount > 0 ? (failedCount / sentCount) * 100 : 0;
+
+  // Process chart data with robust error handling
+  const chartData = dailyStats.map((stat: any, index: number) => {
     // Helper function to safely convert to number
     const toNumber = (value: any): number => {
+      if (value === null || value === undefined) return 0;
       const num = Number(value);
       return isNaN(num) ? 0 : num;
     };
@@ -90,35 +192,49 @@ export default function CampaignAnalytics() {
     // Helper function to safely format date
     const formatDate = (dateValue: any): string => {
       try {
-        if (!dateValue) return "Unknown";
+        if (!dateValue) return `Day ${index + 1}`;
         
-        // Handle different date formats
         let date: Date;
         if (typeof dateValue === 'string') {
-          date = new Date(dateValue);
+          // Handle date strings like "2025-09-08"
+          if (dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            date = new Date(dateValue + 'T00:00:00.000Z');
+          } else {
+            date = new Date(dateValue);
+          }
         } else if (dateValue instanceof Date) {
           date = dateValue;
         } else {
-          return "Unknown";
+          return `Day ${index + 1}`;
         }
         
         // Check if date is valid
         if (isNaN(date.getTime())) {
-          return "Unknown";
+          console.warn("Invalid date:", dateValue);
+          return `Day ${index + 1}`;
         }
         
         return date.toLocaleDateString('en-US', {
           month: 'short',
-          day: 'numeric',
-          year: 'numeric'
+          day: 'numeric'
         });
       } catch (error) {
         console.error("Error formatting date:", error, dateValue);
-        return "Unknown";
+        return `Day ${index + 1}`;
       }
     };
 
-    console.log("Raw stat:", stat);
+    // Ensure we have a valid stat object
+    if (!stat || typeof stat !== 'object') {
+      console.warn("Invalid stat object:", stat);
+      return {
+        date: `Day ${index + 1}`,
+        sent: 0,
+        delivered: 0,
+        read: 0,
+        failed: 0,
+      };
+    }
 
     const processedStat = {
       date: formatDate(stat.date),
@@ -132,16 +248,25 @@ export default function CampaignAnalytics() {
     return processedStat;
   });
   
-  console.log("Processed chartData:", chartData);
-  
+  console.log("Final chartData:", chartData);
+
   // Handle export
   const handleExport = async (format: "pdf" | "excel") => {
+    if (!campaignId) {
+      toast({
+        title: "Export failed",
+        description: "Campaign ID is missing",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setExportLoading(true);
     try {
       const params = new URLSearchParams({
         format,
         type: "campaigns",
-        campaignId: campaignId || "",
+        campaignId: campaignId,
       });
 
       const response = await fetch(`/api/analytics/export?${params}`);
@@ -151,7 +276,7 @@ export default function CampaignAnalytics() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `campaign-${campaign.name || 'unknown'}-${
+      a.download = `campaign-${campaign.name || 'unnamed'}-${
         new Date().toISOString().split("T")[0]
       }.${format === "pdf" ? "pdf" : "xlsx"}`;
       document.body.appendChild(a);
@@ -175,6 +300,7 @@ export default function CampaignAnalytics() {
     }
   };
 
+  // Loading state
   if (loading) {
     return (
       <div className="flex-1 dots-bg">
@@ -186,6 +312,7 @@ export default function CampaignAnalytics() {
     );
   }
 
+  // Error state
   if (error) {
     return (
       <div className="flex-1 dots-bg">
@@ -197,15 +324,21 @@ export default function CampaignAnalytics() {
               <h3 className="text-lg font-medium text-gray-900 mb-2">
                 Error Loading Campaign
               </h3>
-              <p className="text-gray-500 mb-4">
-                {error}
-              </p>
-              <Link href="/analytics">
-                <Button variant="outline">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Analytics
+              <p className="text-gray-500 mb-4">{error}</p>
+              <div className="flex justify-center space-x-2">
+                <Link href="/analytics">
+                  <Button variant="outline">
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Back to Analytics
+                  </Button>
+                </Link>
+                <Button 
+                  onClick={() => window.location.reload()}
+                  variant="default"
+                >
+                  Try Again
                 </Button>
-              </Link>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -213,6 +346,7 @@ export default function CampaignAnalytics() {
     );
   }
 
+  // Campaign not found state
   if (!campaign?.id) {
     return (
       <div className="flex-1 dots-bg">
@@ -225,7 +359,7 @@ export default function CampaignAnalytics() {
                 Campaign Not Found
               </h3>
               <p className="text-gray-500 mb-4">
-                The requested campaign could not be found
+                The requested campaign could not be found or you don't have access to it.
               </p>
               <Link href="/analytics">
                 <Button variant="outline">
@@ -240,6 +374,7 @@ export default function CampaignAnalytics() {
     );
   }
 
+  // Main render
   return (
     <div className="flex-1 dots-bg min-h-screen">
       <Header
@@ -302,6 +437,8 @@ export default function CampaignAnalytics() {
                       ? "bg-green-100 text-green-800"
                       : campaign.status === "completed"
                       ? "bg-blue-100 text-blue-800"
+                      : campaign.status === "failed"
+                      ? "bg-red-100 text-red-800"
                       : "bg-gray-100 text-gray-800"
                   }`}
                 >
@@ -311,6 +448,18 @@ export default function CampaignAnalytics() {
               <div>
                 <p className="text-sm text-gray-600">API Type</p>
                 <p className="font-medium">{campaign.apiType || 'Unknown'}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Campaign Type</p>
+                <p className="font-medium capitalize">{campaign.campaignType || 'Unknown'}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Template</p>
+                <p className="font-medium">{campaign.templateName || 'No template'}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Language</p>
+                <p className="font-medium">{campaign.templateLanguage || 'Unknown'}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Created</p>
@@ -338,6 +487,14 @@ export default function CampaignAnalytics() {
                 </p>
               </div>
             </div>
+            
+            {/* Description */}
+            {campaign.description && (
+              <div className="mt-4 pt-4 border-t">
+                <p className="text-sm text-gray-600">Description</p>
+                <p className="font-medium">{campaign.description}</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -349,7 +506,7 @@ export default function CampaignAnalytics() {
                 <div>
                   <p className="text-sm text-gray-600">Recipients</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {(campaign.recipientCount || 0).toLocaleString()}
+                    {safeNumber(campaign.recipientCount).toLocaleString()}
                   </p>
                 </div>
                 <div className="p-2 bg-blue-50 rounded-lg">
@@ -365,7 +522,7 @@ export default function CampaignAnalytics() {
                 <div>
                   <p className="text-sm text-gray-600">Messages Sent</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {(campaign.sentCount || 0).toLocaleString()}
+                    {sentCount.toLocaleString()}
                   </p>
                 </div>
                 <div className="p-2 bg-green-50 rounded-lg">
@@ -385,7 +542,7 @@ export default function CampaignAnalytics() {
                   </p>
                   <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
                     <div
-                      className="bg-green-500 h-2 rounded-full"
+                      className="bg-green-500 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${Math.min(deliveryRate, 100)}%` }}
                     />
                   </div>
@@ -407,7 +564,7 @@ export default function CampaignAnalytics() {
                   </p>
                   <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
                     <div
-                      className="bg-orange-500 h-2 rounded-full"
+                      className="bg-orange-500 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${Math.min(readRate, 100)}%` }}
                     />
                   </div>
@@ -429,7 +586,7 @@ export default function CampaignAnalytics() {
                   </p>
                   <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
                     <div
-                      className="bg-red-500 h-2 rounded-full"
+                      className="bg-red-500 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${Math.min(failureRate, 100)}%` }}
                     />
                   </div>
@@ -450,14 +607,15 @@ export default function CampaignAnalytics() {
             </CardHeader>
             <CardContent>
               {chartData.length > 0 ? (
-                <div className="w-full">
-                  <MessageChart data={chartData} />
-                </div>
+                <SafeMessageChart data={chartData} />
               ) : (
                 <div className="h-64 flex items-center justify-center text-gray-500">
                   <div className="text-center">
                     <AlertCircle className="w-8 h-8 mx-auto mb-2 text-gray-400" />
                     <p>No daily performance data available</p>
+                    <p className="text-sm text-gray-400 mt-1">
+                      This campaign may not have detailed daily tracking data.
+                    </p>
                   </div>
                 </div>
               )}
@@ -471,17 +629,18 @@ export default function CampaignAnalytics() {
             <CardContent>
               {recipientStats.length > 0 ? (
                 <div className="space-y-4">
-                  {recipientStats.map((stat: any) => {
+                  {recipientStats.map((stat: any, index: number) => {
                     const total = recipientStats.reduce(
-                      (sum: number, s: any) => sum + (s.count || 0),
+                      (sum: number, s: any) => sum + safeNumber(s.count),
                       0
                     );
-                    const percentage = total > 0 ? ((stat.count || 0) / total) * 100 : 0;
+                    const count = safeNumber(stat.count);
+                    const percentage = total > 0 ? (count / total) * 100 : 0;
 
                     return (
                       <div
-                        key={stat.status}
-                        className="flex items-center justify-between"
+                        key={`${stat.status}-${index}`}
+                        className="flex items-center justify-between p-2 rounded-lg bg-gray-50"
                       >
                         <div className="flex items-center space-x-2">
                           <div
@@ -494,16 +653,18 @@ export default function CampaignAnalytics() {
                                 ? "bg-red-500"
                                 : stat.status === "pending"
                                 ? "bg-yellow-500"
+                                : stat.status === "sent"
+                                ? "bg-purple-500"
                                 : "bg-gray-500"
                             }`}
                           />
-                          <span className="text-sm capitalize">
+                          <span className="text-sm capitalize font-medium">
                             {stat.status || 'Unknown'}
                           </span>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <span className="text-sm font-medium">
-                            {stat.count || 0}
+                          <span className="text-sm font-bold">
+                            {count}
                           </span>
                           <span className="text-sm text-gray-500">
                             ({percentage.toFixed(1)}%)
@@ -549,20 +710,47 @@ export default function CampaignAnalytics() {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {errorAnalysis.map((error: any, index: number) => (
-                      <tr key={index}>
+                      <tr key={index} className="hover:bg-gray-50">
                         <td className="px-6 py-4 text-sm text-gray-900">
-                          {error.errorCode || "Unknown"}
+                          <code className="bg-gray-100 px-2 py-1 rounded text-xs">
+                            {error.errorCode || "N/A"}
+                          </code>
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
-                          {error.errorMessage || "No message provided"}
+                          {error.errorMessage || "No error message provided"}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          {error.count || 0}
+                        <td className="px-6 py-4 text-sm text-gray-900 font-medium">
+                          {safeNumber(error.count)}
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Additional Campaign Stats */}
+        {(campaign.contactGroups?.length > 0 || campaign.csvData?.length > 0) && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Target Audience</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {campaign.contactGroups?.length > 0 && (
+                  <div>
+                    <p className="text-sm text-gray-600 mb-2">Contact Groups</p>
+                    <p className="font-medium">{campaign.contactGroups.length} group(s) selected</p>
+                  </div>
+                )}
+                {campaign.csvData?.length > 0 && (
+                  <div>
+                    <p className="text-sm text-gray-600 mb-2">CSV Data</p>
+                    <p className="font-medium">{campaign.csvData.length} records imported</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
