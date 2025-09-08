@@ -36,8 +36,10 @@ export default function CampaignAnalytics() {
 
       try {
         const response = await fetch(`/api/analytics/campaigns/${campaignId}`);
+        console.log("Response status:", response);
         if (!response.ok) throw new Error("Failed to fetch campaign analytics");
         const data = await response.json();
+        console.log("Fetched campaign data:", data);
         setCampaignData(data);
       } catch (err: any) {
         setError(err.message || "Unknown error");
