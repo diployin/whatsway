@@ -11,7 +11,7 @@ const createCampaignSchema = z.object({
   description: z.string().optional(),
   campaignType: z.enum(["contacts", "csv", "api"]),
   type: z.enum(["marketing", "transactional"]),
-  apiType: z.enum(["cloud_api", "marketing_messages"]),
+  apiType: z.enum(["cloud_api", "marketing_messages" , "mm_lite"]),
   templateId: z.string(),
   templateName: z.string(),
   templateLanguage: z.string(),
