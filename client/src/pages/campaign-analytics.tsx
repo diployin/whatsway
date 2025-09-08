@@ -57,6 +57,8 @@ export default function CampaignAnalytics() {
       ? ((campaign.failedCount || 0) / campaign.sentCount) * 100
       : 0;
 
+      console.log("Campaign Data:", campaignData);
+      console.log("Daily Stats:", dailyStats);
   // ✅ Fixed: Ensure all values are properly converted to numbers
   const chartData = dailyStats.map((stat: any) => {
     // Helper function to safely convert to number
@@ -68,11 +70,11 @@ export default function CampaignAnalytics() {
     console.log("Raw stat:", stat);
 
     return {
-      date: new Date(stat.date).toLocaleDateString(),
-      sent: toNumber(stat.sent),
-      delivered: toNumber(stat.delivered),
-      read: toNumber(stat.read),
-      failed: toNumber(stat.failed),
+      date: new Date(stat.date).toLocaleDateString() || "Unknown",
+      sent: toNumber(stat.sent) || 0,
+      delivered: toNumber(stat.delivered) || 0,
+      read: toNumber(stat.read)  || 0,
+      failed: toNumber(stat.failed) || 0,
     };
   });
 console.log("Processed chartData:", chartData);
