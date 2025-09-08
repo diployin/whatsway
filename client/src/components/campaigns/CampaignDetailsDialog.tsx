@@ -36,8 +36,8 @@ interface CampaignDetailsDialogProps {
 export function CampaignDetailsDialog({ campaign, onClose }: CampaignDetailsDialogProps) {
   if (!campaign) return null;
 
-  const deliveryRate = campaign.sentCount && campaign.sentCount > 0
-    ? Math.round((campaign.deliveredCount || 0) / campaign.sentCount * 100)
+  const deliveryRate = campaign.recipientCount && campaign.recipientCount > 0
+    ? Math.round((campaign.deliveredCount || 0) / campaign.recipientCount * 100)
     : 0;
 
   const readRate = campaign.deliveredCount && campaign.deliveredCount > 0

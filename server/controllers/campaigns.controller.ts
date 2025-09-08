@@ -159,7 +159,7 @@ export const campaignsController = {
         readCount: campaign.readCount,
         repliedCount: campaign.repliedCount,
         failedCount: campaign.failedCount,
-        deliveryRate: campaign.sentCount ? (campaign.deliveredCount / campaign.sentCount * 100).toFixed(2) : 0,
+        deliveryRate: campaign.sentCount ? (campaign.deliveredCount / campaign.recipientCount * 100).toFixed(2) : 0,
         readRate: campaign.deliveredCount ? (campaign.readCount / campaign.deliveredCount * 100).toFixed(2) : 0,
       },
       createdAt: campaign.createdAt,
