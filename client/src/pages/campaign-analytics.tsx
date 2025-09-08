@@ -24,7 +24,7 @@ export default function CampaignAnalytics() {
   const [exportLoading, setExportLoading] = useState(false);
 
   // Fetch campaign details and analytics
-  const { data: campaignData, isLoading } = useQuery({
+  const { data: campaignData, isLoading, isError, error } = useQuery({
     queryKey: ["/api/analytics/campaigns", campaignId],
     queryFn: async () => {
       const response = await fetch(`/api/analytics/campaigns/${campaignId}`);
@@ -33,6 +33,8 @@ export default function CampaignAnalytics() {
     },
     enabled: !!campaignId,
   });
+
+  console.log("Campaign Data:37", campaignData);
 
   const campaign = campaignData?.campaign || {};
   const dailyStats = campaignData?.dailyStats || [];
@@ -57,7 +59,7 @@ export default function CampaignAnalytics() {
       ? ((campaign.failedCount || 0) / campaign.sentCount) * 100
       : 0;
 
-      console.log("Campaign Data:", campaignData);
+
       console.log("Daily Stats:", dailyStats);
   // ✅ Fixed: Ensure all values are properly converted to numbers
   const chartData = dailyStats.map((stat: any) => {
