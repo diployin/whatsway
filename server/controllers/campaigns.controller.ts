@@ -350,9 +350,13 @@ async function startCampaignExecution(campaignId: string) {
         true // Always use MM Lite
       );
       const messageId = response.messages?.[0]?.id || `msg_${randomUUID()}`;
+
+      console.log( "Message sent, response:",{
+        sentCount: (campaign.sentCount || 0) + 1,
+      })
       
       // Create message log entry
-      await storage.createMessage({
+    const sendMsg =  await storage.createMessage({
         channelId: channel.id,
         conversationId: null, // Campaign messages may not have conversation
         to: contact.phone,
@@ -369,7 +373,7 @@ async function startCampaignExecution(campaignId: string) {
         timestamp: new Date(),
         campaignId: campaignId,
       });
-
+console.log("Message logged:", sendMsg);
       // Update sent count
       await storage.updateCampaign(campaignId, {
         sentCount: (campaign.sentCount || 0) + 1,
