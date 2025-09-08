@@ -57,14 +57,22 @@ export default function CampaignAnalytics() {
       ? ((campaign.failedCount || 0) / campaign.sentCount) * 100
       : 0;
 
-  // ✅ Safe number conversion for chart
-  const chartData = dailyStats.map((stat: any) => ({
-    date: new Date(stat.date).toLocaleDateString(),
-    sent: Number(stat.sent) || 0,
-    delivered: Number(stat.delivered) || 0,
-    read: Number(stat.read) || 0,
-    failed: Number(stat.failed) || 0,
-  }));
+  // ✅ Fixed: Ensure all values are properly converted to numbers
+  const chartData = dailyStats.map((stat: any) => {
+    // Helper function to safely convert to number
+    const toNumber = (value: any): number => {
+      const num = Number(value);
+      return isNaN(num) ? 0 : num;
+    };
+
+    return {
+      date: new Date(stat.date).toLocaleDateString(),
+      sent: toNumber(stat.sent),
+      delivered: toNumber(stat.delivered),
+      read: toNumber(stat.read),
+      failed: toNumber(stat.failed),
+    };
+  });
 
   // Handle export
   const handleExport = async (format: "pdf" | "excel") => {
