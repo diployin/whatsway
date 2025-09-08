@@ -160,11 +160,11 @@ export const getCampaignAnalyticsById = asyncHandler(async (req: Request, res: R
       if (!campaign) {
         return res.status(404).json({ error: "Campaign not found" });
       }
-
+console.log("Campaign details:", campaign);
 
   // Get daily message stats for this campaign
   const endDate = new Date();
-  const startDate = new Date(campaign[0].createdAt || new Date());
+  const startDate = new Date(campaign.createdAt || new Date());
   
   const dailyStats = await db
     .select({
@@ -205,7 +205,7 @@ export const getCampaignAnalyticsById = asyncHandler(async (req: Request, res: R
     .orderBy(desc(count(messages.id)));
 
   res.json({
-    campaign: campaign[0],
+    campaign,
     dailyStats,
     recipientStats,
     errorAnalysis,
