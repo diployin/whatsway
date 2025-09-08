@@ -190,7 +190,9 @@ export const conversations = pgTable("conversations", {
 
 export const messages = pgTable("messages", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  conversationId: varchar("conversation_id").notNull().references(() => conversations.id, { onDelete: "cascade" }),
+  conversationId: varchar("conversation_id").references(() => conversations.id, {
+    onDelete: "cascade",
+  }),
   whatsappMessageId: varchar("whatsapp_message_id"), // Store WhatsApp message ID
   fromUser: boolean("from_user").default(false),
   direction: varchar("direction").default("outbound"), // inbound, outbound

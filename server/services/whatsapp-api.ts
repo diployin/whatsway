@@ -25,7 +25,7 @@ export class WhatsAppApiService {
   }
 
   // Static method for sending template messages
-  static async sendTemplateMessage(
+  static async  sendTemplateMessage(
     channel: Channel,
     to: string,
     templateName: string,
@@ -68,6 +68,8 @@ export class WhatsAppApiService {
     const endpoint = isMarketing 
       ? `${baseUrl}/${channel.phoneNumberId}/marketing_messages`
       : `${baseUrl}/${channel.phoneNumberId}/messages`;
+
+      console.log('WhatsApp API endpoint:', endpoint);
 
     const response = await fetch(endpoint, {
       method: 'POST',
