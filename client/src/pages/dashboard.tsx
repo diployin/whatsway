@@ -17,6 +17,7 @@ import {
   FileText,
   BarChart3,
   ExternalLink,
+  TrendingDown,
 } from "lucide-react";
 import { useDashboardStats, useAnalytics } from "@/hooks/use-dashboard";
 import { useTranslation } from "@/lib/i18n";
@@ -81,6 +82,8 @@ export default function Dashboard() {
     },
     enabled: !!activeChannel,
   });
+
+  console.log("this is stats ", stats);
 
   if (statsLoading) {
     return (
@@ -147,6 +150,26 @@ export default function Dashboard() {
     }
   };
 
+  const getWeekComparison = (stats) => {
+    const thisWeek = parseInt(stats?.weekContacts) || 0;
+    const lastWeek = parseInt(stats?.lastWeekContacts) || 0;
+
+    if (lastWeek === 0) {
+      return {
+        percentage: thisWeek > 0 ? "+100.0" : "0.0",
+        isUp: thisWeek > 0,
+      };
+    }
+
+    const change = ((thisWeek - lastWeek) / lastWeek) * 100;
+    const sign = change >= 0 ? "+" : "";
+
+    return {
+      percentage: `${sign}${change.toFixed(1)}`,
+      isUp: change >= 0,
+    };
+  };
+
   return (
     <div className="flex-1 dots-bg min-h-screen">
       <Header
@@ -154,10 +177,10 @@ export default function Dashboard() {
         subtitle={t("dashboard.subtitle")}
         action={{
           label: t("dashboard.newCampaign"),
-          onClick: () => setLocation("/campaigns")
+          onClick: () => setLocation("/campaigns"),
         }}
       />
-    
+
       <main className="p-6 space-y-6">
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -237,13 +260,13 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="hover-lift fade-in">
+          {/* <Card className="hover-lift fade-in">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">New Leads</p>
                   <p className="text-2xl font-bold text-gray-900 mt-1">
-                    {stats?.newLeads?.toLocaleString() || "0"}
+                    {stats?.todayContacts?.toLocaleString() || "0"}
                   </p>
                   <div className="flex items-center mt-2">
                     <TrendingUp className="w-4 h-4 text-purple-500 mr-1" />
@@ -255,6 +278,50 @@ export default function Dashboard() {
                     </span>
                   </div>
                 </div>
+                <div className="p-3 bg-purple-50 rounded-lg">
+                  <Users className="w-6 h-6 text-purple-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card> */}
+          <Card className="hover-lift fade-in">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">New Leads</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">
+                    {stats?.todayContacts || "0"}
+                  </p>
+
+                  {/* Yahan simple comparison */}
+                  <div className="flex items-center mt-2">
+                    {(() => {
+                      const comparison = getWeekComparison(stats);
+                      return (
+                        <>
+                          {comparison.isUp ? (
+                            <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
+                          ) : (
+                            <TrendingDown className="w-4 h-4 text-red-500 mr-1" />
+                          )}
+                          <span
+                            className={`text-sm font-medium ${
+                              comparison.isUp
+                                ? "text-green-600"
+                                : "text-red-600"
+                            }`}
+                          >
+                            {comparison.percentage}%
+                          </span>
+                          <span className="text-sm text-gray-500 ml-1">
+                            vs last week
+                          </span>
+                        </>
+                      );
+                    })()}
+                  </div>
+                </div>
+
                 <div className="p-3 bg-purple-50 rounded-lg">
                   <Users className="w-6 h-6 text-purple-600" />
                 </div>
@@ -407,7 +474,8 @@ export default function Dashboard() {
               <div className="grid grid-cols-2 gap-4">
                 <Button
                   variant="outline"
-                  className="p-4 h-auto text-left flex flex-col items-start space-y-2 hover:bg-blue-50" onClick={() => setLocation("/contacts")}
+                  className="p-4 h-auto text-left flex flex-col items-start space-y-2 hover:bg-blue-50"
+                  onClick={() => setLocation("/contacts")}
                 >
                   <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                     <Upload className="w-4 h-4 text-white" />
@@ -424,7 +492,8 @@ export default function Dashboard() {
 
                 <Button
                   variant="outline"
-                  className="p-4 h-auto text-left flex flex-col items-start space-y-2 hover:bg-green-50" onClick={() => setLocation("/templates")}
+                  className="p-4 h-auto text-left flex flex-col items-start space-y-2 hover:bg-green-50"
+                  onClick={() => setLocation("/templates")}
                 >
                   <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
                     <FileText className="w-4 h-4 text-white" />
@@ -441,7 +510,8 @@ export default function Dashboard() {
 
                 <Button
                   variant="outline"
-                  className="p-4 h-auto text-left flex flex-col items-start space-y-2 hover:bg-purple-50" onClick={() => setLocation("/automation")}
+                  className="p-4 h-auto text-left flex flex-col items-start space-y-2 hover:bg-purple-50"
+                  onClick={() => setLocation("/automation")}
                 >
                   <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
                     <Zap className="w-4 h-4 text-white" />
@@ -458,7 +528,8 @@ export default function Dashboard() {
 
                 <Button
                   variant="outline"
-                  className="p-4 h-auto text-left flex flex-col items-start space-y-2 hover:bg-orange-50" onClick={() => setLocation("/analytics")}
+                  className="p-4 h-auto text-left flex flex-col items-start space-y-2 hover:bg-orange-50"
+                  onClick={() => setLocation("/analytics")}
                 >
                   <div className="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center">
                     <BarChart3 className="w-4 h-4 text-white" />
@@ -576,11 +647,9 @@ export default function Dashboard() {
                   </div>
                   <div className="text-center p-3 bg-gray-50 rounded-lg">
                     <p className="text-lg font-bold text-gray-900">
-                      {activeChannel?.healthDetails.name_status  || "N/A"}
+                      {activeChannel?.healthDetails.name_status || "N/A"}
                     </p>
-                    <p className="text-xs text-gray-600">
-                    Status
-                    </p>
+                    <p className="text-xs text-gray-600">Status</p>
                   </div>
                 </div>
 
@@ -592,13 +661,17 @@ export default function Dashboard() {
                     </span>
                     <span className="text-sm text-gray-600">
                       {messageAnalytics?.overall?.totalMessages || 0} /{" "}
-                      {activeChannel?.healthDetails.messaging_limit === "TIER_1K"
+                      {activeChannel?.healthDetails.messaging_limit ===
+                      "TIER_1K"
                         ? "1,000"
-                        : activeChannel?.healthDetails.messaging_limit === "TIER_10K"
+                        : activeChannel?.healthDetails.messaging_limit ===
+                          "TIER_10K"
                         ? "10,000"
-                        : activeChannel?.healthDetails.messaging_limit === "TIER_100K"
+                        : activeChannel?.healthDetails.messaging_limit ===
+                          "TIER_100K"
                         ? "100,000"
-                        : activeChannel?.healthDetails.messaging_limit === "TIER_UNLIMITED"
+                        : activeChannel?.healthDetails.messaging_limit ===
+                          "TIER_UNLIMITED"
                         ? "Unlimited"
                         : "1,000"}
                     </span>
@@ -609,9 +682,11 @@ export default function Dashboard() {
                       style={{
                         width: `${Math.min(
                           ((messageAnalytics?.overall?.totalMessages || 0) /
-                            (activeChannel?.healthDetails.messaging_limit === "TIER_1K"
+                            (activeChannel?.healthDetails.messaging_limit ===
+                            "TIER_1K"
                               ? 1000
-                              : activeChannel?.healthDetails.messaging_limit === "TIER_10K"
+                              : activeChannel?.healthDetails.messaging_limit ===
+                                "TIER_10K"
                               ? 10000
                               : activeChannel?.healthDetails.messaging_limit ===
                                 "TIER_100K"
