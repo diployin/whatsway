@@ -381,13 +381,16 @@ export class DatabaseStorage implements IStorage {
 
   // Dashboard Stats
   async getDashboardStats(): Promise<any> {
-    const totalContacts = await this.contactRepo.getTotalCount();
+    const { totalCount, todayCount, weekCount , lastWeekCount } = await this.contactRepo.getContactStats();
     const totalCampaigns = await this.campaignRepo.getAll().then(c => c.length);
     const totalTemplates = await this.templateRepo.getAll().then(t => t.length);
     const messageStats = await this.messageQueueRepo.getMessageStats();
 
     return {
-      totalContacts,
+      totalContacts: totalCount,
+      todayContacts: todayCount,
+      weekContacts: weekCount,
+      lastWeekContacts: lastWeekCount,
       totalCampaigns,
       totalTemplates,
       ...messageStats
