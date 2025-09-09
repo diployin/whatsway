@@ -126,7 +126,11 @@
     "apiUptime": "Temps de fonctionnement de l'API",
     "avgResponse": "Temps de réponse moyen",
     "dailyMessageLimit": "Limite de messages quotidiens",
-     "totalCampaigns": "Campagnes Totales"
+     "totalCampaigns": "Campagnes Totales",
+      "textLead": "Nouveaux Prospects",
+      "apiStatusText": "Approuvé",
+      "apiStatusUpTime": "Disponibilité de l'API",
+    "apiStatus": "Statut"
   },
   "contacts": {
     "title": "Contacts",

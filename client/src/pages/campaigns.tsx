@@ -2,7 +2,13 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useChannelContext } from "@/contexts/channel-context";
@@ -18,7 +24,7 @@ export default function Campaigns() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { selectedChannel } = useChannelContext();
-  
+
   // Log selected channel for debugging
   useEffect(() => {
     // console.log("Selected channel in campaigns:", selectedChannel);
@@ -97,7 +103,9 @@ export default function Campaigns() {
   // Update campaign status mutation
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      return await apiRequest("PATCH", `/api/campaigns/${id}/status`, { status });
+      return await apiRequest("PATCH", `/api/campaigns/${id}/status`, {
+        status,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/campaigns"] });
@@ -123,8 +131,15 @@ export default function Campaigns() {
   });
 
   const handleCreateCampaign = async (campaignData: any) => {
-    const { selectedTemplate, selectedContacts, csvData, campaignType, scheduledTime, autoRetry } = campaignData;
-    
+    const {
+      selectedTemplate,
+      selectedContacts,
+      csvData,
+      campaignType,
+      scheduledTime,
+      autoRetry,
+    } = campaignData;
+
     if (!selectedTemplate) {
       toast({
         title: "Error",
@@ -181,7 +196,7 @@ export default function Campaigns() {
       apiType: "mm_lite",
       campaignType: campaignType,
       variableMapping: campaignData.variableMapping || {},
-      autoRetry: autoRetry
+      autoRetry: autoRetry,
     };
 
     createCampaignMutation.mutate(finalCampaignData);
@@ -198,7 +213,11 @@ export default function Campaigns() {
   };
 
   if (campaignsLoading) {
-    return <div className="flex items-center justify-center h-96">Loading campaigns...</div>;
+    return (
+      <div className="flex items-center justify-center h-96">
+        Loading campaigns...
+      </div>
+    );
   }
 
   return (
@@ -207,9 +226,11 @@ export default function Campaigns() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Campaigns</h1>
-          <p className="text-muted-foreground">Create and manage your WhatsApp marketing campaigns</p>
+          <p className="text-muted-foreground">
+            Create and manage your WhatsApp marketing campaigns
+          </p>
         </div>
-        <Button 
+        <Button
           className="flex items-center gap-2"
           onClick={() => setCreateDialogOpen(true)}
         >
@@ -228,7 +249,7 @@ export default function Campaigns() {
           <CardDescription>Manage and monitor your campaigns</CardDescription>
         </CardHeader>
         <CardContent>
-          <CampaignsTable 
+          <CampaignsTable
             campaigns={campaigns}
             onViewCampaign={setSelectedCampaign}
             onUpdateStatus={handleUpdateStatus}

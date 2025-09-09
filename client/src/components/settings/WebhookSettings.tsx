@@ -1,13 +1,26 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
-  Webhook, Plus, Copy, RefreshCw, CheckCircle, 
-  AlertCircle, HelpCircle, Edit, Trash2 
+import {
+  Webhook,
+  Plus,
+  Copy,
+  RefreshCw,
+  CheckCircle,
+  AlertCircle,
+  HelpCircle,
+  Edit,
+  Trash2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -18,11 +31,17 @@ import { WebhookFlowDiagram } from "@/components/webhook-flow-diagram";
 
 export function WebhookSettings() {
   const [showWebhookDialog, setShowWebhookDialog] = useState(false);
-  const [editingWebhook, setEditingWebhook] = useState<WebhookConfig | null>(null);
+  const [editingWebhook, setEditingWebhook] = useState<WebhookConfig | null>(
+    null
+  );
   const { toast } = useToast();
 
   // Fetch webhook configs
-  const { data: webhookConfigs = [], isLoading: webhooksLoading, refetch: refetchWebhookConfigs } = useQuery<WebhookConfig[]>({
+  const {
+    data: webhookConfigs = [],
+    isLoading: webhooksLoading,
+    refetch: refetchWebhookConfigs,
+  } = useQuery<WebhookConfig[]>({
     queryKey: ["/api/webhook-configs"],
   });
 
@@ -81,22 +100,35 @@ export function WebhookSettings() {
   };
 
   const handleDeleteWebhook = (webhookId: string) => {
-    if (confirm("Are you sure you want to delete this webhook configuration?")) {
+    if (
+      confirm("Are you sure you want to delete this webhook configuration?")
+    ) {
       deleteWebhookMutation.mutate(webhookId);
     }
   };
 
   const getWebhookStatus = (webhook: WebhookConfig) => {
-    if (!webhook.lastPingAt) return { icon: <AlertCircle className="w-4 h-4" />, text: "No events received" };
-    
+    if (!webhook.lastPingAt)
+      return {
+        icon: <AlertCircle className="w-4 h-4" />,
+        text: "No events received",
+      };
+
     const lastPingDate = new Date(webhook.lastPingAt);
     const now = new Date();
-    const hoursSinceLastPing = (now.getTime() - lastPingDate.getTime()) / (1000 * 60 * 60);
-    
+    const hoursSinceLastPing =
+      (now.getTime() - lastPingDate.getTime()) / (1000 * 60 * 60);
+
     if (hoursSinceLastPing < 24) {
-      return { icon: <CheckCircle className="w-4 h-4 text-green-500" />, text: "Active" };
+      return {
+        icon: <CheckCircle className="w-4 h-4 text-green-500" />,
+        text: "Active",
+      };
     } else {
-      return { icon: <AlertCircle className="w-4 h-4 text-yellow-500" />, text: "Inactive" };
+      return {
+        icon: <AlertCircle className="w-4 h-4 text-yellow-500" />,
+        text: "Inactive",
+      };
     }
   };
 
@@ -119,10 +151,12 @@ export function WebhookSettings() {
                   <RefreshCw className="w-4 h-4 mr-1" />
                   Refresh
                 </Button>
-                <Button onClick={() => {
-                  setEditingWebhook(null);
-                  setShowWebhookDialog(true);
-                }}>
+                <Button
+                  onClick={() => {
+                    setEditingWebhook(null);
+                    setShowWebhookDialog(true);
+                  }}
+                >
                   <Plus className="w-4 h-4 mr-2" />
                   Configure Webhook
                 </Button>
@@ -149,12 +183,17 @@ export function WebhookSettings() {
                 {webhookConfigs.map((webhook) => {
                   const status = getWebhookStatus(webhook);
                   return (
-                    <div key={webhook.id} className="border border-gray-200 rounded-lg p-4">
+                    <div
+                      key={webhook.id}
+                      className="border border-gray-200 rounded-lg p-4"
+                    >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center space-x-2 mb-2">
                             <h3 className="font-semibold">
-                              {webhook.channelId ? `Channel Webhook` : "Global Webhook"}
+                              {webhook.channelId
+                                ? `Channel Webhook`
+                                : "Global Webhook"}
                             </h3>
                             <Badge variant="secondary" className="text-xs">
                               {status.icon}
@@ -170,7 +209,9 @@ export function WebhookSettings() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => copyToClipboard(webhook.webhookUrl)}
+                                onClick={() =>
+                                  copyToClipboard(webhook.webhookUrl)
+                                }
                               >
                                 <Copy className="w-3 h-3" />
                               </Button>
@@ -179,7 +220,11 @@ export function WebhookSettings() {
                               <Label className="text-sm">Events:</Label>
                               <div className="flex flex-wrap gap-1">
                                 {webhook.events.map((event) => (
-                                  <Badge key={event} variant="outline" className="text-xs">
+                                  <Badge
+                                    key={event}
+                                    variant="outline"
+                                    className="text-xs"
+                                  >
                                     {event}
                                   </Badge>
                                 ))}
@@ -187,7 +232,8 @@ export function WebhookSettings() {
                             </div>
                             {webhook.lastPingAt && (
                               <div className="text-sm text-gray-500">
-                                Last event: {new Date(webhook.lastPingAt).toLocaleString()}
+                                Last event:{" "}
+                                {new Date(webhook.lastPingAt).toLocaleString()}
                               </div>
                             )}
                           </div>
@@ -196,7 +242,9 @@ export function WebhookSettings() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => testWebhookMutation.mutate(webhook.id)}
+                            onClick={() =>
+                              testWebhookMutation.mutate(webhook.id)
+                            }
                             disabled={testWebhookMutation.isPending}
                           >
                             Test
@@ -249,15 +297,19 @@ export function WebhookSettings() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <h4 className="font-medium mb-2">1. Configure Webhook in Meta App</h4>
+              <h4 className="font-medium mb-2">
+                1. Configure Webhook in Meta App
+              </h4>
               <p className="text-sm text-gray-600">
-                Go to your Meta App Dashboard → WhatsApp → Configuration → Webhook
+                Go to your Meta App Dashboard → WhatsApp → Configuration →
+                Webhook
               </p>
             </div>
             <div>
               <h4 className="font-medium mb-2">2. Set Webhook URL</h4>
               <p className="text-sm text-gray-600">
-                Copy the webhook URL from above and paste it in the Meta App webhook URL field
+                Copy the webhook URL from above and paste it in the Meta App
+                webhook URL field
               </p>
             </div>
             <div>
@@ -269,7 +321,8 @@ export function WebhookSettings() {
             <div>
               <h4 className="font-medium mb-2">4. Subscribe to Events</h4>
               <p className="text-sm text-gray-600">
-                Subscribe to messages, message_status, and other required webhook fields
+                Subscribe to messages, message_status, and other required
+                webhook fields
               </p>
             </div>
           </CardContent>

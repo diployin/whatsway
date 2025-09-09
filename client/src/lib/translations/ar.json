@@ -126,7 +126,11 @@
     "apiUptime": "وقت تشغيل واجهة برمجة التطبيقات",
     "avgResponse": "متوسط الاستجابة",
     "dailyMessageLimit": "حد الرسائل اليومي",
-    "totalCampaigns":"إجمالي الحملات"
+    "totalCampaigns":"إجمالي الحملات",
+     "textLead": "عملاء جدد",
+     "apiStatusText": "موافَق عليه",
+     "apiStatusUpTime": "وقت تشغيل API",
+    "apiStatus": "الحالة"
   },
   "contacts": {
     "title": "جهات الاتصال",
