@@ -5,7 +5,7 @@ import {
   type MessageQueue, 
   type InsertMessageQueue 
 } from "@shared/schema";
-import { startOfMonth, subMonths } from "date-fns";
+import { startOfDay, startOfMonth, subMonths } from "date-fns";
 
 
 export class MessageQueueRepository {
@@ -102,7 +102,9 @@ export class MessageQueueRepository {
     const thisMonthStart = startOfMonth(now);
     const lastMonthStart = startOfMonth(subMonths(now, 1));
     const lastMonthEnd = thisMonthStart;
-  
+    const todayStart = startOfDay(now);
+
+
     const result = await db
       .select({
         // Status-wise counts
@@ -151,7 +153,9 @@ export class MessageQueueRepository {
     const thisMonthStart = startOfMonth(now);
     const lastMonthStart = startOfMonth(subMonths(now, 1));
     const lastMonthEnd = thisMonthStart;
-  
+    const todayStart = startOfDay(now);
+
+
     const result = await db
       .select({
         messagesSent: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'sent' THEN 1 END)`.mapWith(Number),
