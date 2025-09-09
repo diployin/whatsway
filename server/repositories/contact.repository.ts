@@ -1,10 +1,12 @@
 import { db } from "../db";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, and, gte, sql } from "drizzle-orm";
 import { 
   contacts, 
   type Contact, 
   type InsertContact 
 } from "@shared/schema";
+import { startOfDay, startOfWeek } from "date-fns";
+
 
 export class ContactRepository {
   async getAll(): Promise<Contact[]> {
@@ -17,6 +19,48 @@ export class ContactRepository {
       .from(contacts)
       .where(eq(contacts.channelId, channelId))
       .orderBy(desc(contacts.createdAt));
+  }
+
+  async getContactStats(channelId?: string) {
+    const todayStart = startOfDay(new Date());
+    const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 }); // Monday start
+  
+    // Build condition dynamically
+    const channelFilter = channelId ? eq(contacts.channelId, channelId) : undefined;
+  
+    // Total
+    const total = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(contacts)
+      .where(channelFilter ?? sql`true`);
+  
+    // Today
+    const today = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(contacts)
+      .where(
+        and(
+          channelFilter ?? sql`true`,
+          gte(contacts.createdAt, todayStart)
+        )
+      );
+  
+    // This week
+    const week = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(contacts)
+      .where(
+        and(
+          channelFilter ?? sql`true`,
+          gte(contacts.createdAt, weekStart)
+        )
+      );
+  
+    return {
+      totalCount: total[0]?.count ?? 0,
+      todayCount: today[0]?.count ?? 0,
+      weekCount: week[0]?.count ?? 0,
+    };
   }
 
   async getById(id: string): Promise<Contact | undefined> {

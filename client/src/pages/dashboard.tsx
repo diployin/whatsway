@@ -272,9 +272,10 @@ export default function Dashboard() {
                 <CardTitle>{t("dashboard.messageAnalytics")}</CardTitle>
                 <div className="flex space-x-2">
                   {[
+                    { value: 1, label: "Today's" },
                     { value: 7, label: "7 Days" },
                     { value: 30, label: "30 Days" },
-                    { value: 90, label: "3 Months" },
+                    // { value: 90, label: "3 Months" },
                   ].map((range) => (
                     <Button
                       key={range.value}
