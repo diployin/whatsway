@@ -17,8 +17,10 @@ export function useDashboardStats(channelId?: string) {
           contactsGrowth: 0,
         };
       }
-      
-      const response = await fetch(`/api/dashboard/stats?channelId=${channelId}`);
+
+      const response = await fetch(
+        `/api/dashboard/stats?channelId=${channelId}`
+      );
       if (!response.ok) {
         throw new Error("Failed to fetch dashboard stats");
       }
@@ -37,8 +39,10 @@ export function useAnalytics(days: number = 7, channelId?: string) {
         // Return empty data if no channel is selected
         return [];
       }
-      
-      const response = await fetch(`/api/analytics?days=${days}&channelId=${channelId}`);
+
+      const response = await fetch(
+        `/api/analytics?days=${days}&channelId=${channelId}`
+      );
       if (!response.ok) {
         throw new Error("Failed to fetch analytics data");
       }
