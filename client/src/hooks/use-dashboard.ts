@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { DashboardStarApiDataType } from "@/pages/types/type";
 
 export function useDashboardStats(channelId?: string) {
-  return useQuery({
+  return useQuery<DashboardStarApiDataType>({
     queryKey: ["/api/dashboard/stats", channelId],
     queryFn: async () => {
       if (!channelId) {
@@ -15,6 +16,7 @@ export function useDashboardStats(channelId?: string) {
           deliveryRate: 0,
           activeContacts: 0,
           contactsGrowth: 0,
+          lastWeekContacts: 0,
         };
       }
 

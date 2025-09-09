@@ -83,7 +83,7 @@ export default function Dashboard() {
     enabled: !!activeChannel,
   });
 
-  console.log("this is stats ", stats);
+  console.log("this is messageAnalytics ", messageAnalytics);
 
   if (statsLoading) {
     return (
@@ -216,7 +216,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">
-                    {t("dashboard.activeCampaigns")}
+                    {t("dashboard.totalCampaigns")}
                   </p>
                   <p className="text-2xl font-bold text-gray-900 mt-1">
                     {campaignAnalytics?.summary?.totalCampaigns || 0}

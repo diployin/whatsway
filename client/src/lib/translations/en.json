@@ -126,7 +126,8 @@
     "tier": "Tier",
     "apiUptime": "API Uptime",
     "avgResponse": "Avg Response",
-    "dailyMessageLimit": "Daily Message Limit"
+    "dailyMessageLimit": "Daily Message Limit",
+    "totalCampaigns":"Total Campaigns"
   },
   "contacts": {
     "uploadCSV": "Upload CSV file",

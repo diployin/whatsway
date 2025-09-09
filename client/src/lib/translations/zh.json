@@ -125,7 +125,8 @@
     "tier": "等级",
     "apiUptime": "API 正常运行时间",
     "avgResponse": "平均响应时间",
-    "dailyMessageLimit": "每日消息限制"
+    "dailyMessageLimit": "每日消息限制",
+     "totalCampaigns": "总活动"
   },
   "contacts": {
     "title": "联系人",

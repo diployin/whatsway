@@ -127,7 +127,8 @@
     "tier": "टियर",
     "apiUptime": "API अपटाइम",
     "avgResponse": "औसत प्रतिक्रिया",
-    "dailyMessageLimit": "दैनिक संदेश सीमा"
+    "dailyMessageLimit": "दैनिक संदेश सीमा",
+     "totalCampaigns":"कुल अभियान"
   },
   "contacts": {
     "title": "संपर्क",
