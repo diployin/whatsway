@@ -33,8 +33,10 @@ const ROUTE_PERMISSIONS: Record<string, string> = {
   "/team": "team.view",
   "/automation": "automations.view",
   "/analytics": "analytics.view",
+  "/analytics/campaign/:campaignId": "analytics.view",
   "/logs": "logs.view",
   "/settings": "settings.view",
+  "/account": "",
 };
 
 // Unauthorized component
@@ -160,15 +162,14 @@ function ProtectedRoutes() {
           <Route path="/analytics">
             <PermissionRoute 
               component={Analytics} 
-              requiredPermission="analytics:view" 
             />
           </Route>
-          {/* <Route path="/analytics/campaign/:campaignId">
+          <Route path="/analytics/campaign/:campaignId">
             <PermissionRoute 
               component={CampaignAnalytics} 
               requiredPermission="analytics:view" 
             />
-          </Route> */}
+          </Route>
           <Route path="/logs">
             <PermissionRoute 
               component={Logs} 
@@ -241,7 +242,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/login" component={LoginPage} />
-      <Route path="/analytics/campaign/:campaignId" component={CampaignAnalytics}/>
+      {/* <Route path="/analytics/campaign/:campaignId" component={CampaignAnalytics}/> */}
       <Route component={ProtectedRoutes} />
     </Switch>
   );

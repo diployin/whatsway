@@ -160,8 +160,8 @@ export default function CampaignAnalytics() {
   const recipientStats = Array.isArray(campaignData?.recipientStats) ? campaignData.recipientStats : [];
   const errorAnalysis = Array.isArray(campaignData?.errorAnalysis) ? campaignData.errorAnalysis : [];
 
-  console.log("Campaign Data:", campaignData);
-  console.log("Daily Stats:", dailyStats);
+  // console.log("Campaign Data:", campaignData);
+  // console.log("Daily Stats:", dailyStats);
 
   // Calculate metrics with safe math
   const safeNumber = (value: any): number => {

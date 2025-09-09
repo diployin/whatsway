@@ -395,7 +395,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getDashboardStatsByChannel(channelId: string): Promise<any> {
-    const { totalCount, todayCount, weekCount } = await this.contactRepo.getContactStats(channelId);
+    const { totalCount, todayCount, weekCount , lastWeekCount } = await this.contactRepo.getContactStats(channelId);
     const totalCampaigns = await this.campaignRepo.getByChannel(channelId).then(c => c.length);
     const totalTemplates = await this.templateRepo.getByChannel(channelId).then(t => t.length);
     const messageStats = await this.messageQueueRepo.getMessageStatsByChannel(channelId);
@@ -404,6 +404,7 @@ export class DatabaseStorage implements IStorage {
       totalContacts: totalCount,
       todayContacts: todayCount,
       weekContacts: weekCount,
+      lastWeekContacts: lastWeekCount,
       totalCampaigns,
       totalTemplates,
       ...messageStats

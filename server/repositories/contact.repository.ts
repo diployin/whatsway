@@ -1,11 +1,11 @@
 import { db } from "../db";
-import { eq, desc, and, gte, sql } from "drizzle-orm";
+import { eq, desc, and, gte, sql,lt } from "drizzle-orm";
 import { 
   contacts, 
   type Contact, 
   type InsertContact 
 } from "@shared/schema";
-import { startOfDay, startOfWeek } from "date-fns";
+import { startOfDay, startOfWeek,subWeeks } from "date-fns";
 
 
 export class ContactRepository {
@@ -24,7 +24,8 @@ export class ContactRepository {
   async getContactStats(channelId?: string) {
     const todayStart = startOfDay(new Date());
     const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 }); // Monday start
-  
+    const lastWeekStart = subWeeks(weekStart, 1);
+    const lastWeekEnd = weekStart;
     // Build condition dynamically
     const channelFilter = channelId ? eq(contacts.channelId, channelId) : undefined;
   
@@ -55,11 +56,24 @@ export class ContactRepository {
           gte(contacts.createdAt, weekStart)
         )
       );
+
+        // Last week
+      const lastWeek = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(contacts)
+      .where(
+        and(
+          channelFilter,
+          gte(contacts.createdAt, lastWeekStart),
+          lt(contacts.createdAt, lastWeekEnd)
+        )
+      );
   
     return {
       totalCount: total[0]?.count ?? 0,
       todayCount: today[0]?.count ?? 0,
       weekCount: week[0]?.count ?? 0,
+      lastWeekCount: lastWeek[0]?.count ?? 0,
     };
   }
 
