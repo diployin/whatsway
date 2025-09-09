@@ -139,7 +139,11 @@
     "avgResponse": "Respuesta Promedio",
     "dailyMessageLimit": "Límite Diario de Mensajes",
     "newCampaign": "Nueva Campaña",
-    "totalCampaigns": "Campañas Totales"
+    "totalCampaigns": "Campañas Totales",
+    "textLead": "Nuevos Clientes Potenciales",
+     "apiStatusText": "Aprobado",
+     "apiStatusUpTime": "Tiempo de actividad de la API",
+    "apiStatus": "Estado"
   },
   "contacts": {
     "title": "Contactos",

@@ -1,14 +1,33 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Users, FileSpreadsheet, Code } from "lucide-react";
 import { CreateCampaignForm } from "./CreateCampaignForm";
 
@@ -21,17 +40,21 @@ interface CreateCampaignDialogProps {
   isCreating: boolean;
 }
 
-export function CreateCampaignDialog({ 
-  open, 
-  onOpenChange, 
-  templates, 
-  contacts, 
+export function CreateCampaignDialog({
+  open,
+  onOpenChange,
+  templates,
+  contacts,
   onCreateCampaign,
-  isCreating 
+  isCreating,
 }: CreateCampaignDialogProps) {
-  const [campaignType, setCampaignType] = useState<"contacts" | "csv" | "api">("contacts");
+  const [campaignType, setCampaignType] = useState<"contacts" | "csv" | "api">(
+    "contacts"
+  );
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
-  const [variableMapping, setVariableMapping] = useState<Record<string, string>>({});
+  const [variableMapping, setVariableMapping] = useState<
+    Record<string, string>
+  >({});
   const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
   const [csvData, setCsvData] = useState<any[]>([]);
   const [scheduledTime, setScheduledTime] = useState("");
@@ -53,12 +76,12 @@ export function CreateCampaignDialog({
     const reader = new FileReader();
     reader.onload = (e) => {
       const text = e.target?.result as string;
-      const rows = text.split('\n').map(row => row.split(','));
+      const rows = text.split("\n").map((row) => row.split(","));
       const headers = rows[0];
-      const data = rows.slice(1).map(row => {
+      const data = rows.slice(1).map((row) => {
         const obj: any = {};
         headers.forEach((header, index) => {
-          obj[header.trim()] = row[index]?.trim() || '';
+          obj[header.trim()] = row[index]?.trim() || "";
         });
         return obj;
       });
@@ -70,14 +93,14 @@ export function CreateCampaignDialog({
   const extractTemplateVariables = (template: any) => {
     const variables: string[] = [];
     const regex = /\{\{(\d+)\}\}/g;
-    
+
     if (template?.body) {
       let match;
       while ((match = regex.exec(template.body)) !== null) {
         variables.push(match[1]);
       }
     }
-    
+
     return variables;
   };
 
@@ -86,15 +109,21 @@ export function CreateCampaignDialog({
       ["name", "phone", "email", "custom_field_1", "custom_field_2"],
       ["John Doe", "+1234567890", "john@example.com", "Value 1", "Value 2"],
       ["Jane Smith", "+0987654321", "jane@example.com", "Value 3", "Value 4"],
-      ["Example User", "+1122334455", "example@email.com", "Value 5", "Value 6"]
+      [
+        "Example User",
+        "+1122334455",
+        "example@email.com",
+        "Value 5",
+        "Value 6",
+      ],
     ];
-    
-    const csvContent = sampleData.map(row => row.join(",")).join("\n");
-    const blob = new Blob([csvContent], { type: 'text/csv' });
+
+    const csvContent = sampleData.map((row) => row.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = 'campaign_contacts_template.csv';
+    a.download = "campaign_contacts_template.csv";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -115,10 +144,13 @@ export function CreateCampaignDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={(newOpen) => {
-      if (!newOpen) resetForm();
-      onOpenChange(newOpen);
-    }}>
+    <Dialog
+      open={open}
+      onOpenChange={(newOpen) => {
+        if (!newOpen) resetForm();
+        onOpenChange(newOpen);
+      }}
+    >
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create New Campaign</DialogTitle>
@@ -127,7 +159,10 @@ export function CreateCampaignDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs value={campaignType} onValueChange={(v) => setCampaignType(v as any)}>
+        <Tabs
+          value={campaignType}
+          onValueChange={(v) => setCampaignType(v as any)}
+        >
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="contacts" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
@@ -137,9 +172,13 @@ export function CreateCampaignDialog({
               <FileSpreadsheet className="h-4 w-4" />
               CSV Import
             </TabsTrigger>
-            <TabsTrigger value="api" className="flex items-center gap-2">
+            <TabsTrigger
+              disabled={true}
+              value="api"
+              className="flex items-center gap-2"
+            >
               <Code className="h-4 w-4" />
-              API Campaign
+              API Campaign (Coming soon)
             </TabsTrigger>
           </TabsList>
 
@@ -164,7 +203,10 @@ export function CreateCampaignDialog({
                   <Label>Select Contacts</Label>
                   <div className="flex items-center space-x-2">
                     <Checkbox
-                      checked={selectedContacts.length === contacts.length && contacts.length > 0}
+                      checked={
+                        selectedContacts.length === contacts.length &&
+                        contacts.length > 0
+                      }
                       onCheckedChange={(checked) => {
                         if (checked) {
                           setSelectedContacts(contacts.map((c: any) => c.id));
@@ -180,14 +222,22 @@ export function CreateCampaignDialog({
                 </div>
                 <ScrollArea className="h-64 border rounded-md p-4">
                   {contacts.map((contact: any) => (
-                    <div key={contact.id} className="flex items-center space-x-2 mb-2">
+                    <div
+                      key={contact.id}
+                      className="flex items-center space-x-2 mb-2"
+                    >
                       <Checkbox
                         checked={selectedContacts.includes(contact.id)}
                         onCheckedChange={(checked) => {
                           if (checked) {
-                            setSelectedContacts([...selectedContacts, contact.id]);
+                            setSelectedContacts([
+                              ...selectedContacts,
+                              contact.id,
+                            ]);
                           } else {
-                            setSelectedContacts(selectedContacts.filter(id => id !== contact.id));
+                            setSelectedContacts(
+                              selectedContacts.filter((id) => id !== contact.id)
+                            );
                           }
                         }}
                       />
@@ -203,15 +253,15 @@ export function CreateCampaignDialog({
             <TabsContent value="csv" className="space-y-4">
               <div>
                 <Label htmlFor="csvFile">Upload CSV File</Label>
-                <Input 
-                  id="csvFile" 
-                  type="file" 
+                <Input
+                  id="csvFile"
+                  type="file"
                   accept=".csv"
                   onChange={handleFileUpload}
                 />
                 <p className="text-sm text-muted-foreground mt-2">
-                  <a 
-                    href="#" 
+                  <a
+                    href="#"
                     onClick={(e) => {
                       e.preventDefault();
                       downloadSampleCSV();
@@ -222,7 +272,7 @@ export function CreateCampaignDialog({
                   </a>
                 </p>
               </div>
-              
+
               {csvData.length > 0 && (
                 <div>
                   <Label>CSV Preview ({csvData.length} rows)</Label>
@@ -253,8 +303,9 @@ export function CreateCampaignDialog({
             <TabsContent value="api" className="space-y-4">
               <div className="bg-blue-50 p-4 rounded-md">
                 <p className="text-sm text-blue-800">
-                  API campaigns allow external applications to trigger messages using your templates.
-                  After creating the campaign, you'll receive an API endpoint and key.
+                  API campaigns allow external applications to trigger messages
+                  using your templates. After creating the campaign, you'll
+                  receive an API endpoint and key.
                 </p>
               </div>
             </TabsContent>

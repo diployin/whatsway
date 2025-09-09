@@ -14,19 +14,32 @@ import { ApiLogRepository } from "./repositories/api-log.repository";
 import { WhatsappChannelRepository } from "./repositories/whatsapp-channel.repository";
 
 import type {
-  User, InsertUser,
-  Contact, InsertContact,
-  Campaign, InsertCampaign,
-  Channel, InsertChannel,
-  Template, InsertTemplate,
-  Conversation, InsertConversation,
-  Message, InsertMessage,
-  Automation, InsertAutomation,
-  Analytics, InsertAnalytics,
-  WhatsappChannel, InsertWhatsappChannel,
-  WebhookConfig, InsertWebhookConfig,
-  MessageQueue, InsertMessageQueue,
-  ApiLog, InsertApiLog,
+  User,
+  InsertUser,
+  Contact,
+  InsertContact,
+  Campaign,
+  InsertCampaign,
+  Channel,
+  InsertChannel,
+  Template,
+  InsertTemplate,
+  Conversation,
+  InsertConversation,
+  Message,
+  InsertMessage,
+  Automation,
+  InsertAutomation,
+  Analytics,
+  InsertAnalytics,
+  WhatsappChannel,
+  InsertWhatsappChannel,
+  WebhookConfig,
+  InsertWebhookConfig,
+  MessageQueue,
+  InsertMessageQueue,
+  ApiLog,
+  InsertApiLog,
 } from "@shared/schema";
 
 export class DatabaseStorage implements IStorage {
@@ -86,7 +99,10 @@ export class DatabaseStorage implements IStorage {
     return this.contactRepo.create(insertContact);
   }
 
-  async updateContact(id: string, contact: Partial<Contact>): Promise<Contact | undefined> {
+  async updateContact(
+    id: string,
+    contact: Partial<Contact>
+  ): Promise<Contact | undefined> {
     return this.contactRepo.update(id, contact);
   }
 
@@ -98,11 +114,16 @@ export class DatabaseStorage implements IStorage {
     return this.contactRepo.search(query);
   }
 
-  async createBulkContacts(insertContacts: InsertContact[]): Promise<Contact[]> {
+  async createBulkContacts(
+    insertContacts: InsertContact[]
+  ): Promise<Contact[]> {
     return this.contactRepo.createBulk(insertContacts);
   }
 
-  async checkExistingPhones(phones: string[], channelId: string): Promise<string[]> {
+  async checkExistingPhones(
+    phones: string[],
+    channelId: string
+  ): Promise<string[]> {
     return this.contactRepo.checkExistingPhones(phones, channelId);
   }
 
@@ -123,7 +144,10 @@ export class DatabaseStorage implements IStorage {
     return this.campaignRepo.create(insertCampaign);
   }
 
-  async updateCampaign(id: string, campaign: Partial<Campaign>): Promise<Campaign | undefined> {
+  async updateCampaign(
+    id: string,
+    campaign: Partial<Campaign>
+  ): Promise<Campaign | undefined> {
     return this.campaignRepo.update(id, campaign);
   }
 
@@ -140,7 +164,9 @@ export class DatabaseStorage implements IStorage {
     return this.channelRepo.getById(id);
   }
 
-  async getChannelByPhoneNumberId(phoneNumberId: string): Promise<Channel | undefined> {
+  async getChannelByPhoneNumberId(
+    phoneNumberId: string
+  ): Promise<Channel | undefined> {
     return this.channelRepo.getByPhoneNumberId(phoneNumberId);
   }
 
@@ -148,7 +174,10 @@ export class DatabaseStorage implements IStorage {
     return this.channelRepo.create(insertChannel);
   }
 
-  async updateChannel(id: string, channel: Partial<Channel>): Promise<Channel | undefined> {
+  async updateChannel(
+    id: string,
+    channel: Partial<Channel>
+  ): Promise<Channel | undefined> {
     return this.channelRepo.update(id, channel);
   }
 
@@ -160,7 +189,6 @@ export class DatabaseStorage implements IStorage {
     return this.channelRepo.getActive();
   }
 
-
   // Templates
   async getTemplates(): Promise<Template[]> {
     return this.templateRepo.getAll();
@@ -169,7 +197,7 @@ export class DatabaseStorage implements IStorage {
   async getTemplatesByChannel(channelId: string): Promise<Template[]> {
     return this.templateRepo.getByChannel(channelId);
   }
-  
+
   async getTemplatesByName(name: string): Promise<Template[]> {
     return this.templateRepo.getByName(name);
   }
@@ -182,7 +210,10 @@ export class DatabaseStorage implements IStorage {
     return this.templateRepo.create(insertTemplate);
   }
 
-  async updateTemplate(id: string, template: Partial<Template>): Promise<Template | undefined> {
+  async updateTemplate(
+    id: string,
+    template: Partial<Template>
+  ): Promise<Template | undefined> {
     return this.templateRepo.update(id, template);
   }
 
@@ -199,12 +230,13 @@ export class DatabaseStorage implements IStorage {
     return this.conversationRepo.getByChannel(channelId);
   }
 
-
   async getConversationsNew(): Promise<Conversation[]> {
     return this.conversationRepo.getAllNew();
   }
 
-  async getConversationsByChannelNew(channelId: string): Promise<Conversation[]> {
+  async getConversationsByChannelNew(
+    channelId: string
+  ): Promise<Conversation[]> {
     return this.conversationRepo.getByChannelNew(channelId);
   }
 
@@ -212,15 +244,22 @@ export class DatabaseStorage implements IStorage {
     return this.conversationRepo.getById(id);
   }
 
-  async getConversationByPhone(phone: string): Promise<Conversation | undefined> {
+  async getConversationByPhone(
+    phone: string
+  ): Promise<Conversation | undefined> {
     return this.conversationRepo.getByPhone(phone);
   }
 
-  async createConversation(insertConversation: InsertConversation): Promise<Conversation> {
+  async createConversation(
+    insertConversation: InsertConversation
+  ): Promise<Conversation> {
     return this.conversationRepo.create(insertConversation);
   }
 
-  async updateConversation(id: string, conversation: Partial<Conversation>): Promise<Conversation | undefined> {
+  async updateConversation(
+    id: string,
+    conversation: Partial<Conversation>
+  ): Promise<Conversation | undefined> {
     return this.conversationRepo.update(id, conversation);
   }
 
@@ -241,18 +280,23 @@ export class DatabaseStorage implements IStorage {
     return this.messageRepo.create(insertMessage);
   }
 
-  async updateMessage(id: string, message: Partial<Message>): Promise<Message | undefined> {
+  async updateMessage(
+    id: string,
+    message: Partial<Message>
+  ): Promise<Message | undefined> {
     return this.messageRepo.update(id, message);
   }
 
-  async getMessageByWhatsAppId(whatsappMessageId: string): Promise<Message | undefined> {
+  async getMessageByWhatsAppId(
+    whatsappMessageId: string
+  ): Promise<Message | undefined> {
     return this.messageRepo.getByWhatsAppId(whatsappMessageId);
   }
 
   // Automations
   async getAutomations(): Promise<Automation[]> {
     // Get all automations by not filtering by channel
-    return this.automationRepo.findByChannel('');
+    return this.automationRepo.findByChannel("");
   }
 
   async getAutomationsByChannel(channelId: string): Promise<Automation[]> {
@@ -263,11 +307,16 @@ export class DatabaseStorage implements IStorage {
     return this.automationRepo.findById(id);
   }
 
-  async createAutomation(insertAutomation: InsertAutomation): Promise<Automation> {
+  async createAutomation(
+    insertAutomation: InsertAutomation
+  ): Promise<Automation> {
     return this.automationRepo.create(insertAutomation);
   }
 
-  async updateAutomation(id: string, automation: Partial<InsertAutomation>): Promise<Automation | undefined> {
+  async updateAutomation(
+    id: string,
+    automation: Partial<InsertAutomation>
+  ): Promise<Automation | undefined> {
     const result = await this.automationRepo.update(id, automation);
     return result || undefined;
   }
@@ -282,7 +331,9 @@ export class DatabaseStorage implements IStorage {
   //   return this.analyticsRepo.getAnalytics(days);
   // }
 
-  async createOrUpdateAnalytics(insertAnalytics: InsertAnalytics): Promise<Analytics> {
+  async createOrUpdateAnalytics(
+    insertAnalytics: InsertAnalytics
+  ): Promise<Analytics> {
     return this.analyticsRepo.createOrUpdate(insertAnalytics);
   }
 
@@ -291,15 +342,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   // WhatsApp Channels
-  async getWhatsappChannel(channelId: string): Promise<WhatsappChannel | undefined> {
+  async getWhatsappChannel(
+    channelId: string
+  ): Promise<WhatsappChannel | undefined> {
     return this.whatsappChannelRepo.getByChannelId(channelId);
   }
 
-  async createWhatsappChannel(insertChannel: InsertWhatsappChannel): Promise<WhatsappChannel> {
+  async createWhatsappChannel(
+    insertChannel: InsertWhatsappChannel
+  ): Promise<WhatsappChannel> {
     return this.whatsappChannelRepo.create(insertChannel);
   }
 
-  async updateWhatsappChannel(id: string, channel: Partial<WhatsappChannel>): Promise<WhatsappChannel | undefined> {
+  async updateWhatsappChannel(
+    id: string,
+    channel: Partial<WhatsappChannel>
+  ): Promise<WhatsappChannel | undefined> {
     return this.whatsappChannelRepo.update(id, channel);
   }
 
@@ -312,11 +370,16 @@ export class DatabaseStorage implements IStorage {
     return this.webhookConfigRepo.getById(id);
   }
 
-  async createWebhookConfig(insertConfig: InsertWebhookConfig): Promise<WebhookConfig> {
+  async createWebhookConfig(
+    insertConfig: InsertWebhookConfig
+  ): Promise<WebhookConfig> {
     return this.webhookConfigRepo.create(insertConfig);
   }
 
-  async updateWebhookConfig(id: string, config: Partial<WebhookConfig>): Promise<WebhookConfig | undefined> {
+  async updateWebhookConfig(
+    id: string,
+    config: Partial<WebhookConfig>
+  ): Promise<WebhookConfig | undefined> {
     return this.webhookConfigRepo.update(id, config);
   }
 
@@ -337,19 +400,29 @@ export class DatabaseStorage implements IStorage {
     return this.messageQueueRepo.getMessagesToCheck();
   }
 
-  async createMessageQueueItem(insertMessage: InsertMessageQueue): Promise<MessageQueue> {
+  async createMessageQueueItem(
+    insertMessage: InsertMessageQueue
+  ): Promise<MessageQueue> {
     return this.messageQueueRepo.create(insertMessage);
   }
 
-  async createBulkMessageQueue(insertMessages: InsertMessageQueue[]): Promise<MessageQueue[]> {
+  async createBulkMessageQueue(
+    insertMessages: InsertMessageQueue[]
+  ): Promise<MessageQueue[]> {
     return this.messageQueueRepo.createBulk(insertMessages);
   }
 
-  async updateMessageQueueItem(id: string, message: Partial<MessageQueue>): Promise<MessageQueue | undefined> {
+  async updateMessageQueueItem(
+    id: string,
+    message: Partial<MessageQueue>
+  ): Promise<MessageQueue | undefined> {
     return this.messageQueueRepo.update(id, message);
   }
 
-  async updateMessageQueueByWhatsAppId(whatsappMessageId: string, updates: Partial<MessageQueue>): Promise<boolean> {
+  async updateMessageQueueByWhatsAppId(
+    whatsappMessageId: string,
+    updates: Partial<MessageQueue>
+  ): Promise<boolean> {
     return this.messageQueueRepo.updateByWhatsAppId(whatsappMessageId, updates);
   }
 
@@ -367,7 +440,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Analytics
-  async getAnalyticsByChannel(channelId: string, days?: number): Promise<Analytics[]> {
+  async getAnalyticsByChannel(
+    channelId: string,
+    days?: number
+  ): Promise<Analytics[]> {
     return this.analyticsRepo.getAnalyticsByChannel(channelId, days);
   }
 
@@ -381,9 +457,14 @@ export class DatabaseStorage implements IStorage {
 
   // Dashboard Stats
   async getDashboardStats(): Promise<any> {
-    const { totalCount, todayCount, weekCount , lastWeekCount } = await this.contactRepo.getContactStats();
-    const totalCampaigns = await this.campaignRepo.getAll().then(c => c.length);
-    const totalTemplates = await this.templateRepo.getAll().then(t => t.length);
+    const { totalCount, todayCount, weekCount, lastWeekCount } =
+      await this.contactRepo.getContactStats();
+    const totalCampaigns = await this.campaignRepo
+      .getAll()
+      .then((c) => c.length);
+    const totalTemplates = await this.templateRepo
+      .getAll()
+      .then((t) => t.length);
     const messageStats = await this.messageQueueRepo.getMessageStats();
 
     return {
@@ -393,24 +474,31 @@ export class DatabaseStorage implements IStorage {
       lastWeekContacts: lastWeekCount,
       totalCampaigns,
       totalTemplates,
-      ...messageStats
+      ...messageStats,
     };
   }
 
   async getDashboardStatsByChannel(channelId: string): Promise<any> {
-    const { totalCount, todayCount, weekCount , lastWeekCount } = await this.contactRepo.getContactStats(channelId);
-    const totalCampaigns = await this.campaignRepo.getByChannel(channelId).then(c => c.length);
-    const totalTemplates = await this.templateRepo.getByChannel(channelId).then(t => t.length);
-    const messageStats = await this.messageQueueRepo.getMessageStatsByChannel(channelId);
+    const { totalCount, todayCount, weekCount, lastWeekCount } =
+      await this.contactRepo.getContactStats(channelId);
+    const totalCampaigns = await this.campaignRepo
+      .getByChannel(channelId)
+      .then((c) => c.length);
+    const totalTemplates = await this.templateRepo
+      .getByChannel(channelId)
+      .then((t) => t.length);
+    const messageStats = await this.messageQueueRepo.getMessageStatsByChannel(
+      channelId
+    );
 
     return {
-      totalContacts: totalCount,
-      todayContacts: todayCount,
-      weekContacts: weekCount,
-      lastWeekContacts: lastWeekCount,
+      totalContacts: Number(totalCount),
+      todayContacts: Number(todayCount),
+      weekContacts: Number(weekCount),
+      lastWeekContacts: Number(lastWeekCount),
       totalCampaigns,
       totalTemplates,
-      ...messageStats
+      ...messageStats,
     };
   }
 }

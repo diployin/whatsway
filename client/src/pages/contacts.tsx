@@ -14,51 +14,58 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogHeader, 
-  DialogTitle 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
-import { 
+import {
   Form,
   FormControl,
   FormDescription,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
+  FormMessage,
 } from "@/components/ui/form";
-import { 
-  Users, 
-  Search, 
-  Filter, 
-  MoreHorizontal, 
-  Edit, 
+import {
+  Users,
+  Search,
+  Filter,
+  MoreHorizontal,
+  Edit,
   Trash2,
   Upload,
   Plus,
   MessageSquare,
-  Phone
+  Phone,
+  Download,
+  Shield,
+  CheckCircle,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertContactSchema, type Contact, type InsertContact } from "@shared/schema";
+import {
+  insertContactSchema,
+  type Contact,
+  type InsertContact,
+} from "@shared/schema";
 import Papa from "papaparse";
 import * as XLSX from "xlsx";
 
 // Edit Contact Form Component
-function EditContactForm({ 
-  contact, 
-  onSuccess, 
-  onCancel 
-}: { 
-  contact: Contact; 
-  onSuccess: () => void; 
-  onCancel: () => void; 
+function EditContactForm({
+  contact,
+  onSuccess,
+  onCancel,
+}: {
+  contact: Contact;
+  onSuccess: () => void;
+  onCancel: () => void;
 }) {
   const form = useForm<InsertContact>({
     resolver: zodResolver(insertContactSchema),
@@ -147,15 +154,17 @@ function EditContactForm({
             <FormItem>
               <FormLabel>Groups</FormLabel>
               <FormControl>
-                <Input 
-                  {...field} 
+                <Input
+                  {...field}
                   placeholder="Enter groups separated by commas"
-                  value={Array.isArray(field.value) ? field.value.join(", ") : ""}
+                  value={
+                    Array.isArray(field.value) ? field.value.join(", ") : ""
+                  }
                   onChange={(e) => {
                     const groups = e.target.value
                       .split(",")
-                      .map(g => g.trim())
-                      .filter(g => g.length > 0);
+                      .map((g) => g.trim())
+                      .filter((g) => g.length > 0);
                     field.onChange(groups);
                   }}
                 />
@@ -169,8 +178,8 @@ function EditContactForm({
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             disabled={updateContactMutation.isPending}
             className="bg-green-600 hover:bg-green-700 text-white"
           >
@@ -193,7 +202,9 @@ export default function Contacts() {
   const [messageText, setMessageText] = useState("");
   const [messageType, setMessageType] = useState("text");
   const [selectedTemplateId, setSelectedTemplateId] = useState("");
-  const [templateVariables, setTemplateVariables] = useState<Record<string, string>>({});
+  const [templateVariables, setTemplateVariables] = useState<
+    Record<string, string>
+  >({});
   const [contactToDelete, setContactToDelete] = useState<string | null>(null);
   const [groupName, setGroupName] = useState("");
   const [groupDescription, setGroupDescription] = useState("");
@@ -201,7 +212,6 @@ export default function Contacts() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedContactIds, setSelectedContactIds] = useState<string[]>([]);
-
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -212,16 +222,14 @@ export default function Contacts() {
     console.log("Initial search query from URL:", phone);
   }, []);
 
- 
-
-// const { data: contacts, isLoading } = useQuery({
-//   queryKey: ["/api/contacts", searchQuery, activeChannel?.id],
-//   queryFn: async () => {
-//     const response = await api.getContacts(searchQuery, activeChannel?.id);
-//     return await response.json();
-//   },
-//   enabled: !!activeChannel,
-// });
+  // const { data: contacts, isLoading } = useQuery({
+  //   queryKey: ["/api/contacts", searchQuery, activeChannel?.id],
+  //   queryFn: async () => {
+  //     const response = await api.getContacts(searchQuery, activeChannel?.id);
+  //     return await response.json();
+  //   },
+  //   enabled: !!activeChannel,
+  // });
 
   // Form for adding contacts
   const form = useForm<InsertContact>({
@@ -262,7 +270,7 @@ export default function Contacts() {
       return await response.json();
     },
   });
-  
+
   const { data: availableTemplates = [] } = useQuery({
     queryKey: ["/api/templates", activeChannel?.id],
     queryFn: async () => {
@@ -288,19 +296,25 @@ export default function Contacts() {
   const filteredContacts = useMemo(() => {
     if (!contacts) return [];
     if (!selectedGroup) return contacts;
-    
-    return contacts.filter((contact: Contact) => 
-      Array.isArray(contact.groups) && contact.groups.includes(selectedGroup)
+
+    return contacts.filter(
+      (contact: Contact) =>
+        Array.isArray(contact.groups) && contact.groups.includes(selectedGroup)
     );
   }, [contacts, selectedGroup]);
 
   const createContactMutation = useMutation({
     mutationFn: async (data: InsertContact) => {
-      const response = await fetch(`/api/contacts${activeChannel?.id ? `?channelId=${activeChannel.id}` : ""}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
+      const response = await fetch(
+        `/api/contacts${
+          activeChannel?.id ? `?channelId=${activeChannel.id}` : ""
+        }`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        }
+      );
       if (!response.ok) throw new Error("Failed to create contact");
       return response.json();
     },
@@ -349,29 +363,42 @@ export default function Contacts() {
 
   const sendMessageMutation = useMutation({
     mutationFn: async (data: any) => {
-      const { phone, type, message, templateName, templateLanguage, templateVariables } = data;
-      
+      const {
+        phone,
+        type,
+        message,
+        templateName,
+        templateLanguage,
+        templateVariables,
+      } = data;
+
       if (!activeChannel?.id) {
         throw new Error("No active channel selected");
       }
-      
-      const payload = type === "template" ? {
-        to: phone,
-        type: "template",
-        templateName,
-        templateLanguage,
-        templateVariables
-      } : {
-        to: phone,
-        type: "text",
-        message
-      };
-      
-      const response = await fetch(`/api/whatsapp/channels/${activeChannel.id}/send`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+
+      const payload =
+        type === "template"
+          ? {
+              to: phone,
+              type: "template",
+              templateName,
+              templateLanguage,
+              templateVariables,
+            }
+          : {
+              to: phone,
+              type: "text",
+              message,
+            };
+
+      const response = await fetch(
+        `/api/whatsapp/channels/${activeChannel.id}/send`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
       if (!response.ok) throw new Error("Failed to send message");
       return response.json();
     },
@@ -389,7 +416,8 @@ export default function Contacts() {
     onError: () => {
       toast({
         title: "Error",
-        description: "Failed to send message. Please check your WhatsApp configuration and template settings.",
+        description:
+          "Failed to send message. Please check your WhatsApp configuration and template settings.",
         variant: "destructive",
       });
     },
@@ -400,14 +428,18 @@ export default function Contacts() {
     setShowDeleteDialog(true);
   };
 
-
   const importContactsMutation = useMutation({
     mutationFn: async (contacts: InsertContact[]) => {
-      const response = await fetch(`/api/contacts/import${activeChannel?.id ? `?channelId=${activeChannel.id}` : ""}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contacts }),
-      });
+      const response = await fetch(
+        `/api/contacts/import${
+          activeChannel?.id ? `?channelId=${activeChannel.id}` : ""
+        }`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contacts }),
+        }
+      );
       if (!response.ok) throw new Error("Failed to import contacts");
       return response.json();
     },
@@ -426,11 +458,58 @@ export default function Contacts() {
       });
     },
   });
-  
+
+  const toggleContactStatusMutation = useMutation({
+    mutationFn: async ({
+      id,
+      newStatus,
+    }: {
+      id: string;
+      newStatus: "active" | "blocked";
+    }) => {
+      const response = await fetch(`/api/contacts/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (!response.ok)
+        throw new Error(
+          `Failed to ${newStatus === "blocked" ? "block" : "unblock"} contact`
+        );
+    },
+    onSuccess: (_, { newStatus }) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
+      toast({
+        title: `Contact ${newStatus === "blocked" ? "blocked" : "unblocked"}`,
+        description: `The contact has been ${
+          newStatus === "blocked" ? "blocked" : "unblocked"
+        } successfully.`,
+      });
+    },
+    onError: (_, { newStatus }) => {
+      toast({
+        title: "Error",
+        description: `Failed to ${
+          newStatus === "blocked" ? "block" : "unblock"
+        } contact. Please try again.`,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Single handler function
+  const handleToggleContactStatus = (
+    id: string,
+    currentStatus: string | null
+  ): void => {
+    const newStatus = currentStatus === "active" ? "blocked" : "active";
+    toggleContactStatusMutation.mutate({ id, newStatus });
+  };
+
   const handleCSVUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-  
+
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
@@ -450,7 +529,7 @@ export default function Contacts() {
                 : [],
             }))
             .filter((c) => c.name || c.phone); // ignore completely empty rows
-  
+
           if (parsedContacts.length === 0) {
             toast({
               title: "CSV Error",
@@ -459,7 +538,7 @@ export default function Contacts() {
             });
             return;
           }
-  
+
           importContactsMutation.mutate(parsedContacts);
         } catch (err: any) {
           toast({
@@ -477,16 +556,15 @@ export default function Contacts() {
         });
       },
     });
-  
+
     // Reset input so same file can be selected again
     event.target.value = "";
   };
 
-
   const handleExcelUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-  
+
     const reader = new FileReader();
     reader.onload = (e) => {
       const data = new Uint8Array(e.target?.result as ArrayBuffer);
@@ -494,7 +572,7 @@ export default function Contacts() {
       const sheetName = workbook.SheetNames[0];
       const sheet = workbook.Sheets[sheetName];
       const rows: any[] = XLSX.utils.sheet_to_json(sheet);
-  
+
       const parsedContacts: InsertContact[] = rows.map((row: any) => ({
         name: row?.name?.toString().trim() || "",
         phone: row?.phone ? String(row.phone).trim() : "",
@@ -502,15 +580,13 @@ export default function Contacts() {
         groups: row?.groups
           ? row.groups.split(",").map((g: string) => g.trim())
           : [],
-        tags: row?.tags
-          ? row.tags.split(",").map((t: string) => t.trim())
-          : [],
+        tags: row?.tags ? row.tags.split(",").map((t: string) => t.trim()) : [],
       }));
-  
+
       importContactsMutation.mutate(parsedContacts);
     };
     reader.readAsArrayBuffer(file);
-  
+
     event.target.value = "";
   };
 
@@ -525,8 +601,9 @@ export default function Contacts() {
     );
   }
 
-
-  const allSelected = filteredContacts.length > 0 && selectedContactIds.length === filteredContacts.length;
+  const allSelected =
+    filteredContacts.length > 0 &&
+    selectedContactIds.length === filteredContacts.length;
 
   const toggleSelectAll = () => {
     if (allSelected) {
@@ -535,51 +612,87 @@ export default function Contacts() {
       setSelectedContactIds(filteredContacts.map((contact) => contact.id));
     }
   };
-  
+
   const toggleSelectOne = (id: string) => {
     setSelectedContactIds((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
   };
-  
 
-const handleExportSelectedContacts = () => {
-  const selectedContacts = filteredContacts.filter((contact) =>
-    selectedContactIds.includes(contact.id)
-  );
+  const handleExportSelectedContacts = () => {
+    const selectedContacts = filteredContacts.filter((contact) =>
+      selectedContactIds.includes(contact.id)
+    );
 
-  if (selectedContacts.length === 0) {
-    alert("No contacts selected.");
-    return;
-  }
+    if (selectedContacts.length === 0) {
+      alert("No contacts selected.");
+      return;
+    }
 
-  // Format data for Excel
-  const data = selectedContacts.map((contact) => ({
-    Name: contact.name,
-    Email: contact.email || "",
-    Phone: contact.phone || "",
-    Groups: contact.groups?.join(", ") || "",
-    Status: contact.status,
-    LastContact: contact.lastContact
-      ? new Date(contact.lastContact).toLocaleDateString()
-      : "Never",
-  }));
+    // Format data for Excel
+    const data = selectedContacts.map((contact) => ({
+      Name: contact.name,
+      Email: contact.email || "",
+      Phone: contact.phone || "",
+      Groups: contact.groups?.join(", ") || "",
+      Status: contact.status,
+      LastContact: contact.lastContact
+        ? new Date(contact.lastContact).toLocaleDateString()
+        : "Never",
+    }));
 
-  const worksheet = XLSX.utils.json_to_sheet(data);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Contacts");
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Contacts");
 
-  XLSX.writeFile(workbook, "selected_contacts.xlsx");
-};
+    XLSX.writeFile(workbook, "selected_contacts.xlsx");
+  };
+
+  const handleExcelDownload = () => {
+    // Sample data structure (same format as your upload expects)
+    const sampleContacts = [
+      {
+        name: "Alice Smith",
+        phone: "1234567890",
+        email: "alice@example.com",
+        groups: "Friends, Work",
+        tags: "VIP, Newsletter",
+      },
+      {
+        name: "Bob Johnson",
+        phone: "9876543210",
+        email: "bob@example.com",
+        groups: "Family",
+        tags: "New",
+      },
+      {
+        name: "Charlie Brown",
+        phone: "5555555555",
+        email: "charlie@example.com",
+        groups: "Customers, Support",
+        tags: "Premium, Active",
+      },
+    ];
+
+    // Create worksheet from data
+    const worksheet = XLSX.utils.json_to_sheet(sampleContacts);
+
+    // Create workbook and add worksheet
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Contacts");
+
+    // Generate Excel file and download
+    XLSX.writeFile(workbook, "sample_contacts.xlsx");
+  };
 
   return (
     <div className="flex-1 dots-bg min-h-screen">
-      <Header 
-        title="Contacts Management" 
+      <Header
+        title="Contacts Management"
         subtitle="Manage your WhatsApp contacts and groups"
         action={{
           label: "Add Contact",
-          onClick: () => setShowAddDialog(true)
+          onClick: () => setShowAddDialog(true),
         }}
       />
 
@@ -605,13 +718,13 @@ const handleExportSelectedContacts = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     onClick={() => setSelectedGroup(null)}
                     className={!selectedGroup ? "bg-gray-100" : ""}
                   >
                     All Groups
                   </DropdownMenuItem>
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     onClick={() => setShowGroupDialog(true)}
                     className="text-green-600"
                   >
@@ -621,13 +734,17 @@ const handleExportSelectedContacts = () => {
                   {uniqueGroups.length > 0 && (
                     <>
                       <DropdownMenuItem disabled className="py-1">
-                        <span className="text-xs text-gray-500 uppercase">Available Groups</span>
+                        <span className="text-xs text-gray-500 uppercase">
+                          Available Groups
+                        </span>
                       </DropdownMenuItem>
                       {uniqueGroups.map((group) => (
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           key={group}
                           onClick={() => setSelectedGroup(group)}
-                          className={selectedGroup === group ? "bg-gray-100" : ""}
+                          className={
+                            selectedGroup === group ? "bg-gray-100" : ""
+                          }
                         >
                           {group}
                         </DropdownMenuItem>
@@ -640,35 +757,43 @@ const handleExportSelectedContacts = () => {
                 <Filter className="w-4 h-4 mr-2" />
                 All Status
               </Button>
-              <Button 
-                variant="outline" 
-                onClick={handleExportSelectedContacts} 
+              <Button
+                variant="outline"
+                onClick={handleExportSelectedContacts}
                 disabled={selectedContactIds.length === 0}
               >
                 <Upload className="w-4 h-4 mr-2" />
                 Export Excel
               </Button>
 
-            <label className="cursor-pointer">
-              <input
-                type="file"
-                accept=".csv,.xlsx"
-                className="hidden"
-                onChange={(e) => {
-                  if (e.target.files?.[0]?.name.endsWith(".csv")) {
-                    handleCSVUpload(e);
-                  } else {
-                    handleExcelUpload(e);
-                  }
-                }}
-              />
-              <Button variant="outline" className="" asChild>
-                <span>
-                  <Upload className="w-4 h-4 mr-2" />
-                  Import CSV
-                </span>
+              <label className="cursor-pointer">
+                <input
+                  type="file"
+                  accept=".csv,.xlsx"
+                  className="hidden"
+                  onChange={(e) => {
+                    if (e.target.files?.[0]?.name.endsWith(".csv")) {
+                      handleCSVUpload(e);
+                    } else {
+                      handleExcelUpload(e);
+                    }
+                  }}
+                />
+                <Button variant="outline" className="" asChild>
+                  <span>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Import CSV
+                  </span>
+                </Button>
+              </label>
+              <Button
+                variant="outline"
+                className="cursor-pointer"
+                onClick={handleExcelDownload}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Sample Excel
               </Button>
-            </label>
             </div>
           </CardContent>
         </Card>
@@ -681,16 +806,20 @@ const handleExportSelectedContacts = () => {
                 icon={Users}
                 title="No contacts found"
                 description={
-                  searchQuery ? 
-                    "No contacts match your search criteria. Try adjusting your search." :
-                  selectedGroup ?
-                    `No contacts found in the "${selectedGroup}" group. Try selecting a different group.` :
-                    "You haven't added any contacts yet. Import contacts or add them manually to get started."
+                  searchQuery
+                    ? "No contacts match your search criteria. Try adjusting your search."
+                    : selectedGroup
+                    ? `No contacts found in the "${selectedGroup}" group. Try selecting a different group.`
+                    : "You haven't added any contacts yet. Import contacts or add them manually to get started."
                 }
-                action={!searchQuery ? {
-                  label: "Add First Contact",
-                  onClick: () => setShowAddDialog(true)
-                } : undefined}
+                action={
+                  !searchQuery
+                    ? {
+                        label: "Add First Contact",
+                        onClick: () => setShowAddDialog(true),
+                      }
+                    : undefined
+                }
                 className="py-12"
               />
             ) : (
@@ -699,13 +828,12 @@ const handleExportSelectedContacts = () => {
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <input
-                        type="checkbox"
-                        className="rounded border-gray-300"
-                        checked={allSelected}
-                        onChange={toggleSelectAll}
-                      />
-
+                        <input
+                          type="checkbox"
+                          className="rounded border-gray-300"
+                          checked={allSelected}
+                          onChange={toggleSelectAll}
+                        />
                       </th>
                       <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Contact
@@ -729,15 +857,17 @@ const handleExportSelectedContacts = () => {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {filteredContacts.map((contact: Contact) => (
-                      <tr key={contact.id} className="hover:bg-gray-50 transition-colors">
+                      <tr
+                        key={contact.id}
+                        className="hover:bg-gray-50 transition-colors"
+                      >
                         <td className="px-6 py-4">
-                        <input
-                          type="checkbox"
-                          className="rounded border-gray-300"
-                          checked={selectedContactIds.includes(contact.id)}
-                          onChange={() => toggleSelectOne(contact.id)}
-                        />
-
+                          <input
+                            type="checkbox"
+                            className="rounded border-gray-300"
+                            checked={selectedContactIds.includes(contact.id)}
+                            onChange={() => toggleSelectOne(contact.id)}
+                          />
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center">
@@ -763,47 +893,63 @@ const handleExportSelectedContacts = () => {
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex space-x-1">
-                            {Array.isArray(contact.groups) && contact.groups.length > 0 ? (
-                              contact.groups.map((group: string, index: number) => (
-                                <Badge key={index} variant="secondary">
-                                  {group}
-                                </Badge>
-                              ))
+                            {Array.isArray(contact.groups) &&
+                            contact.groups.length > 0 ? (
+                              contact.groups.map(
+                                (group: string, index: number) => (
+                                  <Badge key={index} variant="secondary">
+                                    {group}
+                                  </Badge>
+                                )
+                              )
                             ) : (
-                              <span className="text-sm text-gray-400">No groups</span>
+                              <span className="text-sm text-gray-400">
+                                No groups
+                              </span>
                             )}
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <Badge 
-                            variant={contact.status === "active" ? "default" : "secondary"}
-                            className={contact.status === "active" ? "bg-green-100 text-green-800" : ""}
+                          <Badge
+                            variant={
+                              contact.status === "active"
+                                ? "default"
+                                : "secondary"
+                            }
+                            className={
+                              contact.status === "active"
+                                ? "bg-green-100 text-green-800"
+                                : ""
+                            }
                           >
                             {contact.status}
                           </Badge>
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
-                          {contact.lastContact 
+                          {contact.lastContact
                             ? new Date(contact.lastContact).toLocaleDateString()
-                            : "Never"
-                          }
+                            : "Never"}
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex space-x-2">
-                            <Button 
-                              variant="ghost" 
+                            <Button
+                              variant="ghost"
                               size="sm"
                               onClick={() => {
                                 setSelectedContact(contact);
                                 setShowMessageDialog(true);
                               }}
                               disabled={!channels || channels.length === 0}
-                              title={!channels || channels.length === 0 ? "No WhatsApp channels configured" : "Send message"}
+                              title={
+                                !channels || channels.length === 0
+                                  ? "No WhatsApp channels configured"
+                                  : "Send message"
+                              }
                             >
                               <MessageSquare className="w-4 h-4 text-blue-600" />
                             </Button>
-                            <Button 
-                              variant="ghost" 
+                            <Button
+                              variant="ghost"
                               size="sm"
                               onClick={() => {
                                 setSelectedContact(contact);
@@ -812,8 +958,8 @@ const handleExportSelectedContacts = () => {
                             >
                               <Edit className="w-4 h-4" />
                             </Button>
-                            <Button 
-                              variant="ghost" 
+                            <Button
+                              variant="ghost"
                               size="sm"
                               onClick={() => handleDeleteContact(contact.id)}
                               disabled={deleteContactMutation.isPending}
@@ -827,7 +973,7 @@ const handleExportSelectedContacts = () => {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem 
+                                <DropdownMenuItem
                                   onClick={() => {
                                     setSelectedContact(contact);
                                     setShowEditDialog(true);
@@ -836,7 +982,7 @@ const handleExportSelectedContacts = () => {
                                   <Edit className="h-4 w-4 mr-2" />
                                   Edit Contact
                                 </DropdownMenuItem>
-                                <DropdownMenuItem 
+                                <DropdownMenuItem
                                   onClick={() => {
                                     setSelectedContact(contact);
                                     setShowMessageDialog(true);
@@ -846,8 +992,35 @@ const handleExportSelectedContacts = () => {
                                   <MessageSquare className="h-4 w-4 mr-2" />
                                   Send Message
                                 </DropdownMenuItem>
-                                <DropdownMenuItem 
-                                  onClick={() => handleDeleteContact(contact.id)}
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    handleToggleContactStatus(
+                                      contact.id,
+                                      contact.status
+                                    )
+                                  }
+                                  className={
+                                    contact.status === "active"
+                                      ? "text-red-600 focus:text-red-600"
+                                      : "text-green-600 focus:text-green-600"
+                                  }
+                                >
+                                  {contact.status === "active" ? (
+                                    <>
+                                      <Shield className="h-4 w-4 mr-2" />
+                                      Block Contact
+                                    </>
+                                  ) : (
+                                    <>
+                                      <CheckCircle className="h-4 w-4 mr-2" />
+                                      Unblock Contact
+                                    </>
+                                  )}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    handleDeleteContact(contact.id)
+                                  }
                                   className="text-red-600"
                                 >
                                   <Trash2 className="h-4 w-4 mr-2" />
@@ -869,15 +1042,23 @@ const handleExportSelectedContacts = () => {
               <div className="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
                 <div className="text-sm text-gray-700">
                   Showing <span className="font-medium">1</span> to{" "}
-                  <span className="font-medium">{Math.min(10, filteredContacts.length)}</span> of{" "}
-                  <span className="font-medium">{filteredContacts.length}</span> contacts
+                  <span className="font-medium">
+                    {Math.min(10, filteredContacts.length)}
+                  </span>{" "}
+                  of{" "}
+                  <span className="font-medium">{filteredContacts.length}</span>{" "}
+                  contacts
                   {selectedGroup && ` in "${selectedGroup}" group`}
                 </div>
                 <div className="flex space-x-2">
                   <Button variant="outline" size="sm" disabled>
                     Previous
                   </Button>
-                  <Button variant="outline" size="sm" className="bg-green-600 text-white">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-green-600 text-white"
+                  >
                     1
                   </Button>
                   <Button variant="outline" size="sm" disabled>
@@ -900,7 +1081,12 @@ const handleExportSelectedContacts = () => {
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit((data) => createContactMutation.mutate(data))} className="space-y-4">
+            <form
+              onSubmit={form.handleSubmit((data) =>
+                createContactMutation.mutate(data)
+              )}
+              className="space-y-4"
+            >
               <FormField
                 control={form.control}
                 name="name"
@@ -910,9 +1096,7 @@ const handleExportSelectedContacts = () => {
                     <FormControl>
                       <Input placeholder="John Doe" {...field} />
                     </FormControl>
-                    <FormDescription>
-                      Contact's full name
-                    </FormDescription>
+                    <FormDescription>Contact's full name</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -940,10 +1124,10 @@ const handleExportSelectedContacts = () => {
                   <FormItem>
                     <FormLabel>Email (Optional)</FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder="john@example.com" 
-                        {...field} 
-                        value={field.value || ""} 
+                      <Input
+                        placeholder="john@example.com"
+                        {...field}
+                        value={field.value || ""}
                       />
                     </FormControl>
                     <FormMessage />
@@ -951,11 +1135,20 @@ const handleExportSelectedContacts = () => {
                 )}
               />
               <div className="flex justify-end space-x-2">
-                <Button type="button" variant="outline" onClick={() => setShowAddDialog(false)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowAddDialog(false)}
+                >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={createContactMutation.isPending}>
-                  {createContactMutation.isPending ? "Adding..." : "Add Contact"}
+                <Button
+                  type="submit"
+                  disabled={createContactMutation.isPending}
+                >
+                  {createContactMutation.isPending
+                    ? "Adding..."
+                    : "Add Contact"}
                 </Button>
               </div>
             </form>
@@ -969,7 +1162,8 @@ const handleExportSelectedContacts = () => {
           <DialogHeader>
             <DialogTitle>Send WhatsApp Message</DialogTitle>
             <DialogDescription>
-              Send a message to {selectedContact?.name} ({selectedContact?.phone})
+              Send a message to {selectedContact?.name} (
+              {selectedContact?.phone})
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -984,18 +1178,19 @@ const handleExportSelectedContacts = () => {
                 </div>
               </div>
             )}
-            
+
             {!activeChannel && (
               <div className="p-3 bg-yellow-50 rounded-md border border-yellow-200">
                 <p className="text-sm text-yellow-800">
-                  No active channel selected. Please select a channel from the header to send messages.
+                  No active channel selected. Please select a channel from the
+                  header to send messages.
                 </p>
               </div>
             )}
-            
+
             <div className="space-y-2">
               <label className="text-sm font-medium">Message Type</label>
-              <select 
+              <select
                 className="w-full p-2 border rounded-md"
                 value={messageType}
                 onChange={(e) => {
@@ -1013,12 +1208,14 @@ const handleExportSelectedContacts = () => {
               <>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Select Template</label>
-                  <select 
+                  <select
                     className="w-full p-2 border rounded-md"
                     value={selectedTemplateId}
                     onChange={(e) => {
                       setSelectedTemplateId(e.target.value);
-                      const template = availableTemplates?.find((t: any) => t.id === e.target.value);
+                      const template = availableTemplates?.find(
+                        (t: any) => t.id === e.target.value
+                      );
                       if (template && template.variables) {
                         const vars: any = {};
                         (template.variables as string[]).forEach((v, i) => {
@@ -1029,30 +1226,42 @@ const handleExportSelectedContacts = () => {
                     }}
                   >
                     <option value="">Select a template</option>
-                    {availableTemplates?.filter((t: any) => t.status?.toLowerCase() === "approved").map((template: any) => (
-                      <option key={template.id} value={template.id}>
-                        {template.name} ({template.category})
-                      </option>
-                    ))}
+                    {availableTemplates
+                      ?.filter(
+                        (t: any) => t.status?.toLowerCase() === "approved"
+                      )
+                      .map((template: any) => (
+                        <option key={template.id} value={template.id}>
+                          {template.name} ({template.category})
+                        </option>
+                      ))}
                   </select>
                 </div>
 
                 {selectedTemplateId && (
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Template Variables</label>
+                    <label className="text-sm font-medium">
+                      Template Variables
+                    </label>
                     {Object.keys(templateVariables).map((key) => {
-                      const template = availableTemplates?.find((t: any) => t.id === selectedTemplateId);
-                      const variableName = template?.variables?.[parseInt(key) - 1] || `Variable ${key}`;
+                      const template = availableTemplates?.find(
+                        (t: any) => t.id === selectedTemplateId
+                      );
+                      const variableName =
+                        template?.variables?.[parseInt(key) - 1] ||
+                        `Variable ${key}`;
                       return (
                         <div key={key} className="space-y-1">
                           <label className="text-xs text-gray-600">{`{{${key}}} - ${variableName}`}</label>
                           <Input
                             placeholder={`Enter ${variableName}`}
                             value={templateVariables[key] || ""}
-                            onChange={(e) => setTemplateVariables({
-                              ...templateVariables,
-                              [key]: e.target.value
-                            })}
+                            onChange={(e) =>
+                              setTemplateVariables({
+                                ...templateVariables,
+                                [key]: e.target.value,
+                              })
+                            }
                           />
                         </div>
                       );
@@ -1074,9 +1283,9 @@ const handleExportSelectedContacts = () => {
             )}
 
             <div className="flex justify-end space-x-2">
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={() => {
                   setShowMessageDialog(false);
                   setMessageText("");
@@ -1087,17 +1296,21 @@ const handleExportSelectedContacts = () => {
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 disabled={
-                  !activeChannel || 
+                  !activeChannel ||
                   sendMessageMutation.isPending ||
                   (messageType === "text" && !messageText) ||
-                  (messageType === "template" && (!selectedTemplateId || Object.values(templateVariables).some(v => !v)))
+                  (messageType === "template" &&
+                    (!selectedTemplateId ||
+                      Object.values(templateVariables).some((v) => !v)))
                 }
                 onClick={() => {
                   if (selectedContact && activeChannel) {
                     if (messageType === "template" && selectedTemplateId) {
-                      const template = availableTemplates?.find((t: any) => t.id === selectedTemplateId);
+                      const template = availableTemplates?.find(
+                        (t: any) => t.id === selectedTemplateId
+                      );
                       if (template) {
                         sendMessageMutation.mutate({
                           phone: selectedContact.phone,
@@ -1130,12 +1343,13 @@ const handleExportSelectedContacts = () => {
           <DialogHeader>
             <DialogTitle>Delete Contact</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this contact? This action cannot be undone.
+              Are you sure you want to delete this contact? This action cannot
+              be undone.
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end space-x-2 mt-4">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => {
                 setShowDeleteDialog(false);
                 setContactToDelete(null);
@@ -1143,7 +1357,7 @@ const handleExportSelectedContacts = () => {
             >
               Cancel
             </Button>
-            <Button 
+            <Button
               variant="destructive"
               onClick={() => {
                 if (contactToDelete) {
@@ -1163,9 +1377,7 @@ const handleExportSelectedContacts = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Contact</DialogTitle>
-            <DialogDescription>
-              Update contact information
-            </DialogDescription>
+            <DialogDescription>Update contact information</DialogDescription>
           </DialogHeader>
           {selectedContact && (
             <EditContactForm
@@ -1200,16 +1412,18 @@ const handleExportSelectedContacts = () => {
           <div className="space-y-4 mt-4">
             <div>
               <label className="text-sm font-medium">Group Name</label>
-              <Input 
-                placeholder="e.g., VIP Customers, Marketing List" 
+              <Input
+                placeholder="e.g., VIP Customers, Marketing List"
                 className="mt-1"
                 value={groupName}
                 onChange={(e) => setGroupName(e.target.value)}
               />
             </div>
             <div>
-              <label className="text-sm font-medium">Description (Optional)</label>
-              <Textarea 
+              <label className="text-sm font-medium">
+                Description (Optional)
+              </label>
+              <Textarea
                 placeholder="Describe the purpose of this group..."
                 className="mt-1"
                 rows={3}
@@ -1218,8 +1432,8 @@ const handleExportSelectedContacts = () => {
               />
             </div>
             <div className="flex justify-end space-x-2">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => {
                   setShowGroupDialog(false);
                   setGroupName("");
@@ -1228,7 +1442,7 @@ const handleExportSelectedContacts = () => {
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 className="bg-green-600 hover:bg-green-700 text-white"
                 onClick={() => {
                   if (groupName.trim()) {

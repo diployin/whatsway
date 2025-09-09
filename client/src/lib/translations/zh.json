@@ -126,7 +126,11 @@
     "apiUptime": "API 正常运行时间",
     "avgResponse": "平均响应时间",
     "dailyMessageLimit": "每日消息限制",
-     "totalCampaigns": "总活动"
+     "totalCampaigns": "总活动",
+     "textLead": "新线索",
+      "apiStatusText": "已批准",
+       "apiStatusUpTime": "API 正常运行时间",
+    "apiStatus": "状态"
   },
   "contacts": {
     "title": "联系人",

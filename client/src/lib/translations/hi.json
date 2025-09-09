@@ -128,7 +128,11 @@
     "apiUptime": "API अपटाइम",
     "avgResponse": "औसत प्रतिक्रिया",
     "dailyMessageLimit": "दैनिक संदेश सीमा",
-     "totalCampaigns":"कुल अभियान"
+     "totalCampaigns":"कुल अभियान",
+     "textLead": "नए लीड्स",
+     "apiStatusText": "स्वीकृत",
+     "apiStatusUpTime": "API अपटाइम",
+    "apiStatus": "स्थिति"
   },
   "contacts": {
     "title": "संपर्क",

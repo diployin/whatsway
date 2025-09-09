@@ -9,14 +9,20 @@ export function useDashboardStats(channelId?: string) {
       if (!channelId) {
         // Return default stats if no channel is selected
         return {
-          totalMessages: 0,
-          messagesGrowth: 0,
-          activeCampaigns: 0,
-          campaignsRunning: 0,
-          deliveryRate: 0,
-          activeContacts: 0,
-          contactsGrowth: 0,
+          totalContacts: 0,
+          todayContacts: 0,
+          weekContacts: 0,
           lastWeekContacts: 0,
+          totalCampaigns: 0,
+          totalTemplates: 0,
+          messagesSent: 0,
+          messagesDelivered: 0,
+          messagesFailed: 0,
+          messagesRead: 0,
+          totalMessages: 0,
+          todayMessages: 0,
+          thisMonthMessages: 0,
+          lastMonthMessages: 0,
         };
       }
 

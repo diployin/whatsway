@@ -39,6 +39,8 @@
     "active":"Active",
     "aiAssistant":"AI Assistant",
     "myAccount":"My Account"
+   
+    
   },
   "auth": {
     "login": "Login",
@@ -127,7 +129,11 @@
     "apiUptime": "API Uptime",
     "avgResponse": "Avg Response",
     "dailyMessageLimit": "Daily Message Limit",
-    "totalCampaigns":"Total Campaigns"
+    "totalCampaigns":"Total Campaigns",
+     "textLead":"New Leads",
+    "apiStatusText": "Approved",
+     "apiStatusUpTime": "API Uptime",
+    "apiStatus": "Status"
   },
   "contacts": {
     "uploadCSV": "Upload CSV file",

@@ -25,6 +25,7 @@ import { useState } from "react";
 import { User, LogOut, LogIn, Edit, PlusCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useLocation } from "wouter";
+import { DashboardStarApiDataType } from "./types/type";
 
 export default function Dashboard() {
   const { t } = useTranslation();
@@ -83,7 +84,7 @@ export default function Dashboard() {
     enabled: !!activeChannel,
   });
 
-  console.log("this is messageAnalytics ", messageAnalytics);
+  console.log("this is stats ", stats);
 
   if (statsLoading) {
     return (
@@ -150,9 +151,9 @@ export default function Dashboard() {
     }
   };
 
-  const getWeekComparison = (stats) => {
-    const thisWeek = parseInt(stats?.weekContacts) || 0;
-    const lastWeek = parseInt(stats?.lastWeekContacts) || 0;
+  const getWeekComparison = (stats: DashboardStarApiDataType) => {
+    const thisWeek = stats?.weekContacts || 0;
+    const lastWeek = stats?.lastWeekContacts || 0;
 
     if (lastWeek === 0) {
       return {
@@ -170,6 +171,27 @@ export default function Dashboard() {
     };
   };
 
+  const getMonthlyGrowth = (stats: DashboardStarApiDataType) => {
+    const thisMonth = stats?.thisMonthMessages || 0;
+    const lastMonth = stats?.lastMonthMessages || 0;
+
+    if (lastMonth === 0) {
+      return {
+        growth: thisMonth > 0 ? 100 : 0,
+        isPositive: thisMonth > 0,
+        isFlat: thisMonth === 0,
+      };
+    }
+
+    const growthRate = ((thisMonth - lastMonth) / lastMonth) * 100;
+
+    return {
+      growth: Math.abs(growthRate).toFixed(1),
+      isPositive: growthRate >= 0,
+      isFlat: growthRate === 0,
+    };
+  };
+
   return (
     <div className="flex-1 dots-bg min-h-screen">
       <Header
@@ -184,7 +206,7 @@ export default function Dashboard() {
       <main className="p-6 space-y-6">
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="hover-lift fade-in">
+          {/* <Card className="hover-lift fade-in">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -202,6 +224,54 @@ export default function Dashboard() {
                     <span className="text-sm text-gray-500 ml-1">
                       {t("dashboard.vsLastMonth")}
                     </span>
+                  </div>
+                </div>
+                <div className="p-3 bg-blue-50 rounded-lg">
+                  <MessageSquare className="w-6 h-6 text-blue-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card> */}
+
+          <Card className="hover-lift fade-in">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">
+                    {t("dashboard.totalMessagesSent")}
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">
+                    {stats?.totalMessages?.toLocaleString() || "0"}
+                  </p>
+                  <div className="flex items-center mt-2">
+                    {(() => {
+                      const monthlyGrowth = getMonthlyGrowth(stats);
+
+                      return (
+                        <>
+                          {monthlyGrowth.isPositive ? (
+                            <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
+                          ) : (
+                            <TrendingDown className="w-4 h-4 text-red-500 mr-1" />
+                          )}
+                          <span
+                            className={`text-sm font-medium ${
+                              monthlyGrowth.isFlat
+                                ? "text-gray-600"
+                                : monthlyGrowth.isPositive
+                                ? "text-green-600"
+                                : "text-red-600"
+                            }`}
+                          >
+                            {monthlyGrowth.isPositive ? "+" : "-"}
+                            {monthlyGrowth.growth}%
+                          </span>
+                          <span className="text-sm text-gray-500 ml-1">
+                            {t("dashboard.vsLastMonth")}
+                          </span>
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
                 <div className="p-3 bg-blue-50 rounded-lg">
@@ -260,35 +330,13 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          {/* <Card className="hover-lift fade-in">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">New Leads</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">
-                    {stats?.todayContacts?.toLocaleString() || "0"}
-                  </p>
-                  <div className="flex items-center mt-2">
-                    <TrendingUp className="w-4 h-4 text-purple-500 mr-1" />
-                    <span className="text-sm text-purple-600 font-medium">
-                      +18.2%
-                    </span>
-                    <span className="text-sm text-gray-500 ml-1">
-                      this week
-                    </span>
-                  </div>
-                </div>
-                <div className="p-3 bg-purple-50 rounded-lg">
-                  <Users className="w-6 h-6 text-purple-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card> */}
           <Card className="hover-lift fade-in">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">New Leads</p>
+                  <p className="text-sm font-medium text-gray-600">
+                    {t("dashboard.textLead")}
+                  </p>
                   <p className="text-2xl font-bold text-gray-900 mt-1">
                     {stats?.todayContacts || "0"}
                   </p>
@@ -649,7 +697,9 @@ export default function Dashboard() {
                     <p className="text-lg font-bold text-gray-900">
                       {activeChannel?.healthDetails.name_status || "N/A"}
                     </p>
-                    <p className="text-xs text-gray-600">Status</p>
+                    <p className="text-xs text-gray-600">
+                      {t("dashboard.apiStatus")}
+                    </p>
                   </div>
                 </div>
 
@@ -660,7 +710,7 @@ export default function Dashboard() {
                       {t("dashboard.dailyMessageLimit")}
                     </span>
                     <span className="text-sm text-gray-600">
-                      {messageAnalytics?.overall?.totalMessages || 0} /{" "}
+                      {stats?.totalMessages || 0} /{" "}
                       {activeChannel?.healthDetails.messaging_limit ===
                       "TIER_1K"
                         ? "1,000"
