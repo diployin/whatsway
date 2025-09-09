@@ -125,7 +125,8 @@
     "tier": "الفئة",
     "apiUptime": "وقت تشغيل واجهة برمجة التطبيقات",
     "avgResponse": "متوسط الاستجابة",
-    "dailyMessageLimit": "حد الرسائل اليومي"
+    "dailyMessageLimit": "حد الرسائل اليومي",
+    "totalCampaigns":"إجمالي الحملات"
   },
   "contacts": {
     "title": "جهات الاتصال",

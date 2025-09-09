@@ -124,7 +124,8 @@
     "tier": "Nível",
     "apiUptime": "Tempo de Atividade da API",
     "avgResponse": "Resposta Média",
-    "dailyMessageLimit": "Limite Diário de Mensagens"
+    "dailyMessageLimit": "Limite Diário de Mensagens",
+    "totalCampaigns": "Campanhas Totais"
   },
   "contacts": {
     "title": "Contatos",

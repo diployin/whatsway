@@ -125,7 +125,8 @@
     "tier": "Stufe",
     "apiUptime": "API-Betriebszeit",
     "avgResponse": "Durchschnittliche Antwortzeit",
-    "dailyMessageLimit": "Tägliches Nachrichtenlimit"
+    "dailyMessageLimit": "Tägliches Nachrichtenlimit",
+    "totalCampaigns":"Totaal aantal campagnes"
   },
   "contacts": {
     "title": "Kontakte",
