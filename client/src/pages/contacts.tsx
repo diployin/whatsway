@@ -44,6 +44,7 @@ import {
   Download,
   Shield,
   CheckCircle,
+  X,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
@@ -56,6 +57,13 @@ import {
 } from "@shared/schema";
 import Papa from "papaparse";
 import * as XLSX from "xlsx";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Edit Contact Form Component
 function EditContactForm({
@@ -190,7 +198,7 @@ function EditContactForm({
     </Form>
   );
 }
-
+const ITEMS_PER_PAGE = 10;
 export default function Contacts() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -212,6 +220,9 @@ export default function Contacts() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedContactIds, setSelectedContactIds] = useState<string[]>([]);
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null); // Add status filter
+  const [currentPage, setCurrentPage] = useState(1);
+  const [limit, setLimit] = useState(10);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -253,15 +264,133 @@ export default function Contacts() {
     },
   });
 
-  // Then use it in other queries
-  const { data: contacts, isLoading } = useQuery({
-    queryKey: ["/api/contacts", searchQuery, activeChannel?.id],
+  // Updated query to fetch contacts with proper server-side filtering
+  const { data: contactsResponse, isLoading } = useQuery({
+    queryKey: [
+      "/api/contacts",
+      activeChannel?.id,
+      currentPage,
+      limit,
+      selectedGroup,
+      selectedStatus,
+      searchQuery,
+    ],
     queryFn: async () => {
-      const response = await api.getContacts(searchQuery, activeChannel?.id);
+      const response = await api.getContacts(
+        searchQuery || undefined,
+        activeChannel?.id,
+        currentPage,
+        limit,
+        selectedGroup !== "all" && selectedGroup ? selectedGroup : undefined,
+        selectedStatus !== "all" && selectedStatus ? selectedStatus : undefined
+      );
       return await response.json();
     },
+    keepPreviousData: true,
     enabled: !!activeChannel,
   });
+
+  const contacts = contactsResponse?.data || [];
+  const pagination = contactsResponse?.pagination || {
+    page: 1,
+    limit: limit,
+    count: 0,
+    total: 0,
+    totalPages: 1,
+  };
+
+  // Destructure values from backend
+  const { page, totalPages, total, count } = pagination;
+  // console.log("Contacts fetched:", contacts, pagination);
+
+  // Pagination helpers
+  const goToPage = (p: number) => setCurrentPage(p);
+  const goToPreviousPage = () => setCurrentPage((p) => Math.max(1, p - 1));
+  const goToNextPage = () => setCurrentPage((p) => Math.min(totalPages, p + 1));
+
+  const getPageNumbers = () => {
+    const pages: number[] = [];
+    const maxPagesToShow = 5;
+    const halfRange = Math.floor(maxPagesToShow / 2);
+
+    let startPage = Math.max(1, page - halfRange);
+    let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+
+    // Adjust start if we're near the end
+    if (endPage - startPage < maxPagesToShow - 1) {
+      startPage = Math.max(1, endPage - maxPagesToShow + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    return pages;
+  };
+
+  // Extract unique groups from all contacts for filter dropdown
+  const uniqueGroups = useMemo(() => {
+    if (!contacts.length) return [];
+    const groups = new Set<string>();
+    contacts.forEach((contact: Contact) => {
+      if (Array.isArray(contact.groups)) {
+        contact.groups.forEach((group: string) => groups.add(group));
+      }
+    });
+    return Array.from(groups).sort();
+  }, [contacts]);
+
+  // Extract unique statuses for filter dropdown
+  const uniqueStatuses = useMemo(() => {
+    if (!contacts.length) return [];
+    const statuses = new Set<string>();
+    contacts.forEach((contact: Contact) => {
+      if (contact.status) {
+        statuses.add(contact.status);
+      }
+    });
+    return Array.from(statuses).sort();
+  }, [contacts]);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedGroup, selectedStatus]);
+
+  // Selection handlers - using contacts directly since pagination is server-side
+  const allSelected =
+    contacts.length > 0 &&
+    contacts.every((contact: Contact) =>
+      selectedContactIds.includes(contact.id)
+    );
+
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      setSelectedContactIds((prev) =>
+        prev.filter((id) => !contacts.some((contact) => contact.id === id))
+      );
+    } else {
+      setSelectedContactIds((prev) => [
+        ...prev,
+        ...contacts
+          .map((contact) => contact.id)
+          .filter((id) => !prev.includes(id)),
+      ]);
+    }
+  };
+
+  const toggleSelectOne = (id: string) => {
+    setSelectedContactIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
+
+  // Clear filters function
+  const clearAllFilters = () => {
+    setSearchQuery("");
+    setSelectedGroup(null);
+    setSelectedStatus(null);
+    setCurrentPage(1);
+  };
 
   const { data: channels } = useQuery({
     queryKey: ["/api/whatsapp/channels"],
@@ -279,29 +408,6 @@ export default function Contacts() {
     },
     enabled: !!activeChannel,
   });
-
-  // Extract unique groups from all contacts
-  const uniqueGroups = useMemo(() => {
-    if (!contacts) return [];
-    const groups = new Set<string>();
-    contacts.forEach((contact: Contact) => {
-      if (Array.isArray(contact.groups)) {
-        contact.groups.forEach((group: string) => groups.add(group));
-      }
-    });
-    return Array.from(groups).sort();
-  }, [contacts]);
-
-  // Filter contacts based on selected group
-  const filteredContacts = useMemo(() => {
-    if (!contacts) return [];
-    if (!selectedGroup) return contacts;
-
-    return contacts.filter(
-      (contact: Contact) =>
-        Array.isArray(contact.groups) && contact.groups.includes(selectedGroup)
-    );
-  }, [contacts, selectedGroup]);
 
   const createContactMutation = useMutation({
     mutationFn: async (data: InsertContact) => {
@@ -601,23 +707,23 @@ export default function Contacts() {
     );
   }
 
-  const allSelected =
-    filteredContacts.length > 0 &&
-    selectedContactIds.length === filteredContacts.length;
+  // const allSelected =
+  //   filteredContacts.length > 0 &&
+  //   selectedContactIds.length === filteredContacts.length;
 
-  const toggleSelectAll = () => {
-    if (allSelected) {
-      setSelectedContactIds([]);
-    } else {
-      setSelectedContactIds(filteredContacts.map((contact) => contact.id));
-    }
-  };
+  // const toggleSelectAll = () => {
+  //   if (allSelected) {
+  //     setSelectedContactIds([]);
+  //   } else {
+  //     setSelectedContactIds(filteredContacts.map((contact) => contact.id));
+  //   }
+  // };
 
-  const toggleSelectOne = (id: string) => {
-    setSelectedContactIds((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-    );
-  };
+  // const toggleSelectOne = (id: string) => {
+  //   setSelectedContactIds((prev) =>
+  //     prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+  //   );
+  // };
 
   const handleExportSelectedContacts = () => {
     const selectedContacts = filteredContacts.filter((contact) =>
@@ -753,10 +859,36 @@ export default function Contacts() {
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Button variant="outline">
-                <Filter className="w-4 h-4 mr-2" />
-                All Status
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline">
+                    <Filter className="w-4 h-4 mr-2" />
+                    {selectedStatus || "All Status"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={() => setSelectedStatus(null)}
+                    className={!selectedStatus ? "bg-gray-100" : ""}
+                  >
+                    All Status
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setSelectedStatus("active")}
+                    className={selectedStatus === "active" ? "bg-gray-100" : ""}
+                  >
+                    Active
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setSelectedStatus("blocked")}
+                    className={
+                      selectedStatus === "blocked" ? "bg-gray-100" : ""
+                    }
+                  >
+                    Blocked
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <Button
                 variant="outline"
                 onClick={handleExportSelectedContacts}
@@ -798,27 +930,60 @@ export default function Contacts() {
           </CardContent>
         </Card>
 
-        {/* Contacts List */}
+        {/* Bulk Actions */}
+        {selectedContactIds.length > 0 && (
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">
+                  {selectedContactIds.length} contact
+                  {selectedContactIds.length > 1 ? "s" : ""} selected
+                </span>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm">
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    Send Bulk Message
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleExportSelectedContacts}
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Export Selected
+                  </Button>
+                  <Button variant="outline" size="sm" className="text-red-600">
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete Selected
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Contacts Table */}
         <Card>
           <CardContent className="p-0">
-            {!filteredContacts?.length ? (
+            {!contacts.length ? (
               <EmptyState
                 icon={Users}
                 title="No contacts found"
                 description={
-                  searchQuery
-                    ? "No contacts match your search criteria. Try adjusting your search."
-                    : selectedGroup
-                    ? `No contacts found in the "${selectedGroup}" group. Try selecting a different group.`
+                  searchQuery || selectedGroup || selectedStatus
+                    ? "No contacts match your current filters. Try adjusting your search criteria."
                     : "You haven't added any contacts yet. Import contacts or add them manually to get started."
                 }
                 action={
-                  !searchQuery
+                  !(searchQuery || selectedGroup || selectedStatus)
                     ? {
                         label: "Add First Contact",
                         onClick: () => setShowAddDialog(true),
                       }
-                    : undefined
+                    : {
+                        label: "Clear Filters",
+                        onClick: clearAllFilters,
+                      }
                 }
                 className="py-12"
               />
@@ -856,7 +1021,7 @@ export default function Contacts() {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredContacts.map((contact: Contact) => (
+                    {contacts.map((contact: Contact) => (
                       <tr
                         key={contact.id}
                         className="hover:bg-gray-50 transition-colors"
@@ -919,10 +1084,10 @@ export default function Contacts() {
                             className={
                               contact.status === "active"
                                 ? "bg-green-100 text-green-800"
-                                : ""
+                                : "bg-red-100 text-red-800"
                             }
                           >
-                            {contact.status}
+                            {contact.status?.toLocaleUpperCase() || "N/A"}
                           </Badge>
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
@@ -1037,31 +1202,74 @@ export default function Contacts() {
               </div>
             )}
 
-            {/* Pagination */}
-            {filteredContacts?.length > 0 && (
+            {/* Enhanced Pagination */}
+            {contacts.length > 0 && (
               <div className="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
-                <div className="text-sm text-gray-700">
-                  Showing <span className="font-medium">1</span> to{" "}
-                  <span className="font-medium">
-                    {Math.min(10, filteredContacts.length)}
-                  </span>{" "}
-                  of{" "}
-                  <span className="font-medium">{filteredContacts.length}</span>{" "}
-                  contacts
-                  {selectedGroup && ` in "${selectedGroup}" group`}
+                <div className="flex items-center gap-4">
+                  <div className="text-sm text-gray-700">
+                    Showing{" "}
+                    <span className="font-medium">
+                      {(page - 1) * limit + 1}
+                    </span>{" "}
+                    to{" "}
+                    <span className="font-medium">
+                      {Math.min((page - 1) * limit + limit, total)}
+                    </span>{" "}
+                    of <span className="font-medium">{total}</span> contacts
+                  </div>
+
+                  {/* Items per page selector */}
+                  <Select
+                    value={limit.toString()}
+                    onValueChange={(value) => {
+                      setLimit(Number(value));
+                      setCurrentPage(1); // reset page when limit changes
+                    }}
+                  >
+                    <SelectTrigger className="w-20 h-8">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                      <SelectItem value="500">500</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div className="flex space-x-2">
-                  <Button variant="outline" size="sm" disabled>
-                    Previous
-                  </Button>
+
+                <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="bg-green-600 text-white"
+                    onClick={goToPreviousPage}
+                    disabled={page === 1}
                   >
-                    1
+                    Previous
                   </Button>
-                  <Button variant="outline" size="sm" disabled>
+
+                  {getPageNumbers().map((pageNum) => (
+                    <Button
+                      key={pageNum}
+                      variant={page === pageNum ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => goToPage(pageNum)}
+                      className={
+                        page === pageNum
+                          ? "bg-green-600 text-white hover:bg-green-700"
+                          : ""
+                      }
+                    >
+                      {pageNum}
+                    </Button>
+                  ))}
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={goToNextPage}
+                    disabled={page === totalPages}
+                  >
                     Next
                   </Button>
                 </div>

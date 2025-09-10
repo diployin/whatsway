@@ -10,12 +10,32 @@ export const api = {
     return apiRequest("GET", `/api/analytics${params.toString() ? `?${params.toString()}` : ""}`);
   },
 
-  // Contacts
-  getContacts: (search?: string, channelId?: string) => {
+  getContacts: (search?: string, channelId?: string, page?: number, limit?: number, groupFilter?: string, statusFilter?: string) => {
     const params = new URLSearchParams();
-    if (search) params.append('search', search);
-    if (channelId) params.append('channelId', channelId);
-    return apiRequest("GET", `/api/contacts${params.toString() ? `?${params.toString()}` : ""}`);
+    
+    if (search && search.trim()) {
+      params.append('search', search.trim());
+    }
+    if (channelId) {
+      params.append('channelId', channelId);
+    }
+    if (page) {
+      params.append('page', page.toString());
+    }
+    if (limit) {
+      params.append('limit', limit.toString());
+    }
+    if (groupFilter) {
+      params.append('group', groupFilter);
+    }
+    if (statusFilter) {
+      params.append('status', statusFilter);
+    }
+    
+    const queryString = params.toString();
+
+    // console.log(`Fetching contacts with query:===>> /api/contacts${queryString ? `?${queryString}` : ""}`);
+    return apiRequest("GET", `/api/contacts${queryString ? `?${queryString}` : ""}`);
   },
   getContact: (id: string) => apiRequest("GET", `/api/contacts/${id}`),
   createContact: (data: any, channelId?: string) => apiRequest("POST", `/api/contacts${channelId ? `?channelId=${channelId}` : ""}`, data),

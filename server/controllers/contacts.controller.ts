@@ -1,8 +1,20 @@
 import type { Request, Response } from "express";
 import { storage } from "../storage";
-import { insertContactSchema } from "@shared/schema";
+import { contacts, insertContactSchema } from "@shared/schema";
 import { AppError, asyncHandler } from "../middlewares/error.middleware";
 import type { RequestWithChannel } from "../middlewares/channel.middleware";
+import { db } from "server/db";
+import { and, eq, ilike, or, sql } from "drizzle-orm";
+
+
+interface RequestWithChannel extends Request {
+  query: {
+    search?: string;
+    channelId?: string;
+    page?: string;
+    limit?: string;
+  };
+}
 
 export const getContacts = asyncHandler(
   async (req: RequestWithChannel, res: Response) => {
@@ -10,7 +22,7 @@ export const getContacts = asyncHandler(
 
     let contacts;
     if (channelId && typeof channelId === "string") {
-      contacts = await storage.getContactsByChannel(channelId);
+      contacts = await storage.getContactsByChannel({channelId});
     } else {
       contacts = await storage.getContacts();
     }
@@ -29,6 +41,87 @@ export const getContacts = asyncHandler(
     res.json(contacts);
   }
 );
+
+export const getContactsWithPagination = asyncHandler(
+  async (req: RequestWithChannel, res: Response) => {
+    const { search, channelId, page = "1", limit = "10" , group , status } = req.query;
+
+    // console.log("Query Params:", { search, channelId, page, limit, group, status });
+
+    const currentPage = parseInt(page, 10);
+    const pageSize = parseInt(limit, 10);
+    const offset = (currentPage - 1) * pageSize;
+
+    // Build dynamic WHERE conditions
+    const conditions = [];
+
+    if (channelId && typeof channelId === "string") {
+      conditions.push(eq(contacts.channelId, channelId));
+    }
+
+    if (search && typeof search === "string") {
+      const searchTerm = `%${search.toLowerCase()}%`;
+      conditions.push(
+        or(
+          ilike(contacts.name, searchTerm),
+          ilike(contacts.email, searchTerm),
+          ilike(contacts.phone, `%${search}%`)
+        )
+      );
+    }
+
+    if (group && typeof group === "string") {
+      const groupList = group.split(',').map(g => g.trim());
+      if (groupList.length > 0) {
+        const jsonArray = JSON.stringify(groupList);
+        conditions.push(
+          sql`${contacts.groups} @> ${sql.raw(`'${jsonArray}'::jsonb`)}`
+        );
+      }
+    }
+    
+
+    
+    
+    
+    if (status && typeof status === "string") {
+      conditions.push(eq(contacts.status, status)); // Assuming `contacts.status` is the column name
+    }
+
+    // Prepare the WHERE clause
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    // 1. Get total count
+    const totalQuery = db
+      .select({ count: sql<number>`count(*)` })
+      .from(contacts)
+      .where(whereClause);
+    const totalResult = await totalQuery;
+    const total = totalResult[0]?.count ?? 0;
+
+    // 2. Get paginated data
+    const dataQuery = db
+      .select()
+      .from(contacts)
+      .where(whereClause)
+      .limit(pageSize)
+      .offset(offset);
+    const data = await dataQuery;
+
+    // Response
+    res.json({
+      data,
+      pagination: {
+        page: currentPage,
+        limit: pageSize,
+        count: data.length,
+        total,
+        totalPages: Math.ceil(total / pageSize),
+      },
+    });
+  }
+);
+
 
 export const getContact = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
