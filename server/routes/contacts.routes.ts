@@ -7,11 +7,18 @@ import { requireAuth, requirePermission } from "../middlewares/auth.middleware";
 
 export function registerContactRoutes(app: Express) {
   // Get all contacts
-  app.get("/api/contacts", 
+  app.get("/api/contacts-all", 
   requireAuth,
   requirePermission(PERMISSIONS.CONTACTS_VIEW),
     extractChannelId,
     contactsController.getContacts
+  );
+
+  app.get("/api/contacts", 
+  requireAuth,
+  requirePermission(PERMISSIONS.CONTACTS_VIEW),
+    extractChannelId,
+    contactsController.getContactsWithPagination
   );
 
   // Get single contact
