@@ -34,7 +34,7 @@ export const api = {
     
     const queryString = params.toString();
 
-    console.log(`Fetching contacts with query:===>> /api/contacts${queryString ? `?${queryString}` : ""}`);
+    // console.log(`Fetching contacts with query:===>> /api/contacts${queryString ? `?${queryString}` : ""}`);
     return apiRequest("GET", `/api/contacts${queryString ? `?${queryString}` : ""}`);
   },
   getContact: (id: string) => apiRequest("GET", `/api/contacts/${id}`),

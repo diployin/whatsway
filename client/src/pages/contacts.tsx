@@ -57,7 +57,13 @@ import {
 } from "@shared/schema";
 import Papa from "papaparse";
 import * as XLSX from "xlsx";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Edit Contact Form Component
 function EditContactForm({
@@ -258,131 +264,133 @@ export default function Contacts() {
     },
   });
 
-    // Updated query to fetch contacts with proper server-side filtering
-    const { data: contactsResponse, isLoading } = useQuery({
-      queryKey: [
-        "/api/contacts", 
-        activeChannel?.id, 
-        currentPage, 
-        limit, 
-        selectedGroup, 
-        selectedStatus, 
-        searchQuery
-      ],
-      queryFn: async () => {
-        const response = await api.getContacts(
-          searchQuery || undefined,
-          activeChannel?.id,
-          currentPage,
-          limit,
-          selectedGroup !== "all" && selectedGroup ? selectedGroup : undefined,
-          selectedStatus !== "all" && selectedStatus ? selectedStatus : undefined
-        );
-        return await response.json();
-      },
-      keepPreviousData: true,
-      enabled: !!activeChannel,
-    });
-    
-    const contacts = contactsResponse?.data || [];
-    const pagination = contactsResponse?.pagination || {
-      page: 1,
-      limit: limit,
-      count: 0,
-      total: 0,
-      totalPages: 1,
-    };
-    
-    // Destructure values from backend
-    const { page, totalPages, total, count } = pagination;
-    console.log("Contacts fetched:", contacts, pagination);
-  
-    // Pagination helpers
-    const goToPage = (p: number) => setCurrentPage(p);
-    const goToPreviousPage = () => setCurrentPage((p) => Math.max(1, p - 1));
-    const goToNextPage = () => setCurrentPage((p) => Math.min(totalPages, p + 1));
-    
-    const getPageNumbers = () => {
-      const pages: number[] = [];
-      const maxPagesToShow = 5;
-      const halfRange = Math.floor(maxPagesToShow / 2);
-      
-      let startPage = Math.max(1, page - halfRange);
-      let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
-      
-      // Adjust start if we're near the end
-      if (endPage - startPage < maxPagesToShow - 1) {
-        startPage = Math.max(1, endPage - maxPagesToShow + 1);
-      }
-      
-      for (let i = startPage; i <= endPage; i++) {
-        pages.push(i);
-      }
-      return pages;
-    };
-  
-    // Extract unique groups from all contacts for filter dropdown
-    const uniqueGroups = useMemo(() => {
-      if (!contacts.length) return [];
-      const groups = new Set<string>();
-      contacts.forEach((contact: Contact) => {
-        if (Array.isArray(contact.groups)) {
-          contact.groups.forEach((group: string) => groups.add(group));
-        }
-      });
-      return Array.from(groups).sort();
-    }, [contacts]);
-  
-    // Extract unique statuses for filter dropdown
-    const uniqueStatuses = useMemo(() => {
-      if (!contacts.length) return [];
-      const statuses = new Set<string>();
-      contacts.forEach((contact: Contact) => {
-        if (contact.status) {
-          statuses.add(contact.status);
-        }
-      });
-      return Array.from(statuses).sort();
-    }, [contacts]);
-  
-    // Reset to first page when filters change
-    useEffect(() => {
-      setCurrentPage(1);
-    }, [searchQuery, selectedGroup, selectedStatus]);
-  
-    // Selection handlers - using contacts directly since pagination is server-side
-    const allSelected = contacts.length > 0 && 
-      contacts.every((contact: Contact) => selectedContactIds.includes(contact.id));
-  
-    const toggleSelectAll = () => {
-      if (allSelected) {
-        setSelectedContactIds(prev => 
-          prev.filter(id => !contacts.some(contact => contact.id === id))
-        );
-      } else {
-        setSelectedContactIds(prev => [
-          ...prev,
-          ...contacts
-            .map(contact => contact.id)
-            .filter(id => !prev.includes(id))
-        ]);
-      }
-    };
-  
-    const toggleSelectOne = (id: string) => {
-      setSelectedContactIds(prev =>
-        prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+  // Updated query to fetch contacts with proper server-side filtering
+  const { data: contactsResponse, isLoading } = useQuery({
+    queryKey: [
+      "/api/contacts",
+      activeChannel?.id,
+      currentPage,
+      limit,
+      selectedGroup,
+      selectedStatus,
+      searchQuery,
+    ],
+    queryFn: async () => {
+      const response = await api.getContacts(
+        searchQuery || undefined,
+        activeChannel?.id,
+        currentPage,
+        limit,
+        selectedGroup !== "all" && selectedGroup ? selectedGroup : undefined,
+        selectedStatus !== "all" && selectedStatus ? selectedStatus : undefined
       );
-    };
-  
-    // Clear filters function
-    const clearAllFilters = () => {
-      setSearchQuery("");
-      setSelectedGroup(null);
-      setSelectedStatus(null);
-      setCurrentPage(1);
-    };
+      return await response.json();
+    },
+    keepPreviousData: true,
+    enabled: !!activeChannel,
+  });
 
+  const contacts = contactsResponse?.data || [];
+  const pagination = contactsResponse?.pagination || {
+    page: 1,
+    limit: limit,
+    count: 0,
+    total: 0,
+    totalPages: 1,
+  };
+
+  // Destructure values from backend
+  const { page, totalPages, total, count } = pagination;
+  // console.log("Contacts fetched:", contacts, pagination);
+
+  // Pagination helpers
+  const goToPage = (p: number) => setCurrentPage(p);
+  const goToPreviousPage = () => setCurrentPage((p) => Math.max(1, p - 1));
+  const goToNextPage = () => setCurrentPage((p) => Math.min(totalPages, p + 1));
+
+  const getPageNumbers = () => {
+    const pages: number[] = [];
+    const maxPagesToShow = 5;
+    const halfRange = Math.floor(maxPagesToShow / 2);
+
+    let startPage = Math.max(1, page - halfRange);
+    let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+
+    // Adjust start if we're near the end
+    if (endPage - startPage < maxPagesToShow - 1) {
+      startPage = Math.max(1, endPage - maxPagesToShow + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    return pages;
+  };
+
+  // Extract unique groups from all contacts for filter dropdown
+  const uniqueGroups = useMemo(() => {
+    if (!contacts.length) return [];
+    const groups = new Set<string>();
+    contacts.forEach((contact: Contact) => {
+      if (Array.isArray(contact.groups)) {
+        contact.groups.forEach((group: string) => groups.add(group));
+      }
+    });
+    return Array.from(groups).sort();
+  }, [contacts]);
+
+  // Extract unique statuses for filter dropdown
+  const uniqueStatuses = useMemo(() => {
+    if (!contacts.length) return [];
+    const statuses = new Set<string>();
+    contacts.forEach((contact: Contact) => {
+      if (contact.status) {
+        statuses.add(contact.status);
+      }
+    });
+    return Array.from(statuses).sort();
+  }, [contacts]);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedGroup, selectedStatus]);
+
+  // Selection handlers - using contacts directly since pagination is server-side
+  const allSelected =
+    contacts.length > 0 &&
+    contacts.every((contact: Contact) =>
+      selectedContactIds.includes(contact.id)
+    );
+
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      setSelectedContactIds((prev) =>
+        prev.filter((id) => !contacts.some((contact) => contact.id === id))
+      );
+    } else {
+      setSelectedContactIds((prev) => [
+        ...prev,
+        ...contacts
+          .map((contact) => contact.id)
+          .filter((id) => !prev.includes(id)),
+      ]);
+    }
+  };
+
+  const toggleSelectOne = (id: string) => {
+    setSelectedContactIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
+
+  // Clear filters function
+  const clearAllFilters = () => {
+    setSearchQuery("");
+    setSelectedGroup(null);
+    setSelectedStatus(null);
+    setCurrentPage(1);
+  };
 
   const { data: channels } = useQuery({
     queryKey: ["/api/whatsapp/channels"],
@@ -400,7 +408,6 @@ export default function Contacts() {
     },
     enabled: !!activeChannel,
   });
-
 
   const createContactMutation = useMutation({
     mutationFn: async (data: InsertContact) => {
@@ -795,477 +802,482 @@ export default function Contacts() {
         }}
       />
 
-<main className="p-6 space-y-6">
-      {/* Search and Filters */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex-1 min-w-64 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input
-                placeholder="Search contacts..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline">
-                  <Filter className="w-4 h-4 mr-2" />
-                  {selectedGroup || "All Groups"}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  onClick={() => setSelectedGroup(null)}
-                  className={!selectedGroup ? "bg-gray-100" : ""}
-                >
-                  All Groups
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setShowGroupDialog(true)}
-                  className="text-green-600"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create New Group
-                </DropdownMenuItem>
-                {uniqueGroups.length > 0 && (
-                  <>
-                    <DropdownMenuItem disabled className="py-1">
-                      <span className="text-xs text-gray-500 uppercase">
-                        Available Groups
-                      </span>
-                    </DropdownMenuItem>
-                    {uniqueGroups.map((group) => (
-                      <DropdownMenuItem
-                        key={group}
-                        onClick={() => setSelectedGroup(group)}
-                        className={
-                          selectedGroup === group ? "bg-gray-100" : ""
-                        }
-                      >
-                        {group}
-                      </DropdownMenuItem>
-                    ))}
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline">
-                  <Filter className="w-4 h-4 mr-2" />
-                  {selectedStatus || "All Status"}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  onClick={() => setSelectedStatus(null)}
-                  className={!selectedStatus ? "bg-gray-100" : ""}
-                >
-                  All Status
-                </DropdownMenuItem>
-                {uniqueStatuses.length > 0 && (
-                  <>
-                    <DropdownMenuItem disabled className="py-1">
-                      <span className="text-xs text-gray-500 uppercase">
-                        Available Status
-                      </span>
-                    </DropdownMenuItem>
-                    {uniqueStatuses.map((status) => (
-                      <DropdownMenuItem
-                        key={status}
-                        onClick={() => setSelectedStatus(status)}
-                        className={
-                          selectedStatus === status ? "bg-gray-100" : ""
-                        }
-                      >
-                        {status}
-                      </DropdownMenuItem>
-                    ))}
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <Button
-              variant="outline"
-              onClick={handleExportSelectedContacts}
-              disabled={selectedContactIds.length === 0}
-            >
-              <Upload className="w-4 h-4 mr-2" />
-              Export Excel
-            </Button>
-
-            <label className="cursor-pointer">
-              <input
-                type="file"
-                accept=".csv,.xlsx"
-                className="hidden"
-                onChange={(e) => {
-                  if (e.target.files?.[0]?.name.endsWith(".csv")) {
-                    handleCSVUpload(e);
-                  } else {
-                    handleExcelUpload(e);
-                  }
-                }}
-              />
-              <Button variant="outline" className="" asChild>
-                <span>
-                  <Upload className="w-4 h-4 mr-2" />
-                  Import CSV
-                </span>
-              </Button>
-            </label>
-            <Button
-              variant="outline"
-              className="cursor-pointer"
-              onClick={handleExcelDownload}
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Sample Excel
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Bulk Actions */}
-      {selectedContactIds.length > 0 && (
+      <main className="p-6 space-y-6">
+        {/* Search and Filters */}
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">
-                {selectedContactIds.length} contact{selectedContactIds.length > 1 ? 's' : ''} selected
-              </span>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm">
-                  <MessageSquare className="w-4 h-4 mr-2" />
-                  Send Bulk Message
-                </Button>
-                <Button variant="outline" size="sm" onClick={handleExportSelectedContacts}>
-                  <Download className="w-4 h-4 mr-2" />
-                  Export Selected
-                </Button>
-                <Button variant="outline" size="sm" className="text-red-600">
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete Selected
-                </Button>
+          <CardContent className="p-6">
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex-1 min-w-64 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input
+                  placeholder="Search contacts..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
               </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline">
+                    <Filter className="w-4 h-4 mr-2" />
+                    {selectedGroup || "All Groups"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={() => setSelectedGroup(null)}
+                    className={!selectedGroup ? "bg-gray-100" : ""}
+                  >
+                    All Groups
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setShowGroupDialog(true)}
+                    className="text-green-600"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create New Group
+                  </DropdownMenuItem>
+                  {uniqueGroups.length > 0 && (
+                    <>
+                      <DropdownMenuItem disabled className="py-1">
+                        <span className="text-xs text-gray-500 uppercase">
+                          Available Groups
+                        </span>
+                      </DropdownMenuItem>
+                      {uniqueGroups.map((group) => (
+                        <DropdownMenuItem
+                          key={group}
+                          onClick={() => setSelectedGroup(group)}
+                          className={
+                            selectedGroup === group ? "bg-gray-100" : ""
+                          }
+                        >
+                          {group}
+                        </DropdownMenuItem>
+                      ))}
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline">
+                    <Filter className="w-4 h-4 mr-2" />
+                    {selectedStatus || "All Status"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={() => setSelectedStatus(null)}
+                    className={!selectedStatus ? "bg-gray-100" : ""}
+                  >
+                    All Status
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setSelectedStatus("active")}
+                    className={selectedStatus === "active" ? "bg-gray-100" : ""}
+                  >
+                    Active
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setSelectedStatus("blocked")}
+                    className={
+                      selectedStatus === "blocked" ? "bg-gray-100" : ""
+                    }
+                  >
+                    Blocked
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Button
+                variant="outline"
+                onClick={handleExportSelectedContacts}
+                disabled={selectedContactIds.length === 0}
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Export Excel
+              </Button>
+
+              <label className="cursor-pointer">
+                <input
+                  type="file"
+                  accept=".csv,.xlsx"
+                  className="hidden"
+                  onChange={(e) => {
+                    if (e.target.files?.[0]?.name.endsWith(".csv")) {
+                      handleCSVUpload(e);
+                    } else {
+                      handleExcelUpload(e);
+                    }
+                  }}
+                />
+                <Button variant="outline" className="" asChild>
+                  <span>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Import CSV
+                  </span>
+                </Button>
+              </label>
+              <Button
+                variant="outline"
+                className="cursor-pointer"
+                onClick={handleExcelDownload}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Sample Excel
+              </Button>
             </div>
           </CardContent>
         </Card>
-      )}
 
-      {/* Contacts Table */}
-      <Card>
-        <CardContent className="p-0">
-          {!contacts.length ? (
-            <EmptyState
-              icon={Users}
-              title="No contacts found"
-              description={
-                searchQuery || selectedGroup || selectedStatus
-                  ? "No contacts match your current filters. Try adjusting your search criteria."
-                  : "You haven't added any contacts yet. Import contacts or add them manually to get started."
-              }
-              action={
-                !(searchQuery || selectedGroup || selectedStatus)
-                  ? {
-                      label: "Add First Contact",
-                      onClick: () => setShowAddDialog(true),
-                    }
-                  : {
-                      label: "Clear Filters",
-                      onClick: clearAllFilters,
-                    }
-              }
-              className="py-12"
-            />
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <input
-                        type="checkbox"
-                        className="rounded border-gray-300"
-                        checked={allSelected}
-                        onChange={toggleSelectAll}
-                      />
-                    </th>
-                    <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Contact
-                    </th>
-                    <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Phone
-                    </th>
-                    <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Groups
-                    </th>
-                    <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Last Contact
-                    </th>
-                    <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {contacts.map((contact: Contact) => (
-                    <tr key={contact.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4">
+        {/* Bulk Actions */}
+        {selectedContactIds.length > 0 && (
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">
+                  {selectedContactIds.length} contact
+                  {selectedContactIds.length > 1 ? "s" : ""} selected
+                </span>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm">
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    Send Bulk Message
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleExportSelectedContacts}
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Export Selected
+                  </Button>
+                  <Button variant="outline" size="sm" className="text-red-600">
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete Selected
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Contacts Table */}
+        <Card>
+          <CardContent className="p-0">
+            {!contacts.length ? (
+              <EmptyState
+                icon={Users}
+                title="No contacts found"
+                description={
+                  searchQuery || selectedGroup || selectedStatus
+                    ? "No contacts match your current filters. Try adjusting your search criteria."
+                    : "You haven't added any contacts yet. Import contacts or add them manually to get started."
+                }
+                action={
+                  !(searchQuery || selectedGroup || selectedStatus)
+                    ? {
+                        label: "Add First Contact",
+                        onClick: () => setShowAddDialog(true),
+                      }
+                    : {
+                        label: "Clear Filters",
+                        onClick: clearAllFilters,
+                      }
+                }
+                className="py-12"
+              />
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
                         <input
                           type="checkbox"
                           className="rounded border-gray-300"
-                          checked={selectedContactIds.includes(contact.id)}
-                          onChange={() => toggleSelectOne(contact.id)}
+                          checked={allSelected}
+                          onChange={toggleSelectAll}
                         />
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center">
-                          <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                            <span className="text-sm font-medium text-gray-600">
-                              {contact.name.charAt(0).toUpperCase()}
-                            </span>
-                          </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">
-                              {contact.name}
+                      </th>
+                      <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Contact
+                      </th>
+                      <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Phone
+                      </th>
+                      <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Groups
+                      </th>
+                      <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Last Contact
+                      </th>
+                      <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {contacts.map((contact: Contact) => (
+                      <tr
+                        key={contact.id}
+                        className="hover:bg-gray-50 transition-colors"
+                      >
+                        <td className="px-6 py-4">
+                          <input
+                            type="checkbox"
+                            className="rounded border-gray-300"
+                            checked={selectedContactIds.includes(contact.id)}
+                            onChange={() => toggleSelectOne(contact.id)}
+                          />
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center">
+                            <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                              <span className="text-sm font-medium text-gray-600">
+                                {contact.name.charAt(0).toUpperCase()}
+                              </span>
                             </div>
-                            {contact.email && (
-                              <div className="text-sm text-gray-500">
-                                {contact.email}
+                            <div className="ml-4">
+                              <div className="text-sm font-medium text-gray-900">
+                                {contact.name}
                               </div>
+                              {contact.email && (
+                                <div className="text-sm text-gray-500">
+                                  {contact.email}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900">
+                          {contact.phone}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex space-x-1">
+                            {Array.isArray(contact.groups) &&
+                            contact.groups.length > 0 ? (
+                              contact.groups.map(
+                                (group: string, index: number) => (
+                                  <Badge key={index} variant="secondary">
+                                    {group}
+                                  </Badge>
+                                )
+                              )
+                            ) : (
+                              <span className="text-sm text-gray-400">
+                                No groups
+                              </span>
                             )}
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {contact.phone}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex space-x-1">
-                          {Array.isArray(contact.groups) &&
-                          contact.groups.length > 0 ? (
-                            contact.groups.map(
-                              (group: string, index: number) => (
-                                <Badge key={index} variant="secondary">
-                                  {group}
-                                </Badge>
-                              )
-                            )
-                          ) : (
-                            <span className="text-sm text-gray-400">
-                              No groups
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <Badge
-                          variant={
-                            contact.status === "active"
-                              ? "default"
-                              : "secondary"
-                          }
-                          className={
-                            contact.status === "active"
-                              ? "bg-green-100 text-green-800"
-                              : ""
-                          }
-                        >
-                          {contact.status}
-                        </Badge>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {contact.lastContact
-                          ? new Date(contact.lastContact).toLocaleDateString()
-                          : "Never"}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex space-x-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedContact(contact);
-                              setShowMessageDialog(true);
-                            }}
-                            disabled={!channels || channels.length === 0}
-                            title={
-                              !channels || channels.length === 0
-                                ? "No WhatsApp channels configured"
-                                : "Send message"
+                        </td>
+                        <td className="px-6 py-4">
+                          <Badge
+                            variant={
+                              contact.status === "active"
+                                ? "default"
+                                : "secondary"
+                            }
+                            className={
+                              contact.status === "active"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-red-100 text-red-800"
                             }
                           >
-                            <MessageSquare className="w-4 h-4 text-blue-600" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedContact(contact);
-                              setShowEditDialog(true);
-                            }}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteContact(contact.id)}
-                            disabled={deleteContactMutation.isPending}
-                          >
-                            <Trash2 className="w-4 h-4 text-red-600" />
-                          </Button>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <MoreHorizontal className="w-4 h-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setSelectedContact(contact);
-                                  setShowEditDialog(true);
-                                }}
-                              >
-                                <Edit className="h-4 w-4 mr-2" />
-                                Edit Contact
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setSelectedContact(contact);
-                                  setShowMessageDialog(true);
-                                }}
-                                disabled={!channels || channels.length === 0}
-                              >
-                                <MessageSquare className="h-4 w-4 mr-2" />
-                                Send Message
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() =>
-                                  handleToggleContactStatus(
-                                    contact.id,
-                                    contact.status
-                                  )
-                                }
-                                className={
-                                  contact.status === "active"
-                                    ? "text-red-600 focus:text-red-600"
-                                    : "text-green-600 focus:text-green-600"
-                                }
-                              >
-                                {contact.status === "active" ? (
-                                  <>
-                                    <Shield className="h-4 w-4 mr-2" />
-                                    Block Contact
-                                  </>
-                                ) : (
-                                  <>
-                                    <CheckCircle className="h-4 w-4 mr-2" />
-                                    Unblock Contact
-                                  </>
-                                )}
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() =>
-                                  handleDeleteContact(contact.id)
-                                }
-                                className="text-red-600"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete Contact
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                            {contact.status?.toLocaleUpperCase() || "N/A"}
+                          </Badge>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900">
+                          {contact.lastContact
+                            ? new Date(contact.lastContact).toLocaleDateString()
+                            : "Never"}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex space-x-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedContact(contact);
+                                setShowMessageDialog(true);
+                              }}
+                              disabled={!channels || channels.length === 0}
+                              title={
+                                !channels || channels.length === 0
+                                  ? "No WhatsApp channels configured"
+                                  : "Send message"
+                              }
+                            >
+                              <MessageSquare className="w-4 h-4 text-blue-600" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedContact(contact);
+                                setShowEditDialog(true);
+                              }}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteContact(contact.id)}
+                              disabled={deleteContactMutation.isPending}
+                            >
+                              <Trash2 className="w-4 h-4 text-red-600" />
+                            </Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                  <MoreHorizontal className="w-4 h-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setSelectedContact(contact);
+                                    setShowEditDialog(true);
+                                  }}
+                                >
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  Edit Contact
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setSelectedContact(contact);
+                                    setShowMessageDialog(true);
+                                  }}
+                                  disabled={!channels || channels.length === 0}
+                                >
+                                  <MessageSquare className="h-4 w-4 mr-2" />
+                                  Send Message
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    handleToggleContactStatus(
+                                      contact.id,
+                                      contact.status
+                                    )
+                                  }
+                                  className={
+                                    contact.status === "active"
+                                      ? "text-red-600 focus:text-red-600"
+                                      : "text-green-600 focus:text-green-600"
+                                  }
+                                >
+                                  {contact.status === "active" ? (
+                                    <>
+                                      <Shield className="h-4 w-4 mr-2" />
+                                      Block Contact
+                                    </>
+                                  ) : (
+                                    <>
+                                      <CheckCircle className="h-4 w-4 mr-2" />
+                                      Unblock Contact
+                                    </>
+                                  )}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    handleDeleteContact(contact.id)
+                                  }
+                                  className="text-red-600"
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Delete Contact
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
-          {/* Enhanced Pagination */}
-          {contacts.length > 0 && (
-            <div className="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
-              <div className="flex items-center gap-4">
-                <div className="text-sm text-gray-700">
-                  Showing{" "}
-                  <span className="font-medium">{(page - 1) * limit + 1}</span>{" "}
-                  to{" "}
-                  <span className="font-medium">{Math.min((page - 1) * limit + limit, total)}</span>{" "}
-                  of <span className="font-medium">{total}</span> contacts
+            {/* Enhanced Pagination */}
+            {contacts.length > 0 && (
+              <div className="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
+                <div className="flex items-center gap-4">
+                  <div className="text-sm text-gray-700">
+                    Showing{" "}
+                    <span className="font-medium">
+                      {(page - 1) * limit + 1}
+                    </span>{" "}
+                    to{" "}
+                    <span className="font-medium">
+                      {Math.min((page - 1) * limit + limit, total)}
+                    </span>{" "}
+                    of <span className="font-medium">{total}</span> contacts
+                  </div>
+
+                  {/* Items per page selector */}
+                  <Select
+                    value={limit.toString()}
+                    onValueChange={(value) => {
+                      setLimit(Number(value));
+                      setCurrentPage(1); // reset page when limit changes
+                    }}
+                  >
+                    <SelectTrigger className="w-20 h-8">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                      <SelectItem value="500">500</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
-                {/* Items per page selector */}
-                <Select 
-                  value={limit.toString()} 
-                  onValueChange={(value) => {
-                    setLimit(Number(value));
-                    setCurrentPage(1); // reset page when limit changes
-                  }}
-                >
-                  <SelectTrigger className="w-20 h-8">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="10">10</SelectItem>
-                    <SelectItem value="50">50</SelectItem>
-                    <SelectItem value="100">100</SelectItem>
-                    <SelectItem value="500">500</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={goToPreviousPage}
-                  disabled={page === 1}
-                >
-                  Previous
-                </Button>
-
-                {getPageNumbers().map((pageNum) => (
+                <div className="flex items-center gap-2">
                   <Button
-                    key={pageNum}
-                    variant={page === pageNum ? "default" : "outline"}
+                    variant="outline"
                     size="sm"
-                    onClick={() => goToPage(pageNum)}
-                    className={
-                      page === pageNum 
-                        ? "bg-green-600 text-white hover:bg-green-700" 
-                        : ""
-                    }
+                    onClick={goToPreviousPage}
+                    disabled={page === 1}
                   >
-                    {pageNum}
+                    Previous
                   </Button>
-                ))}
 
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={goToNextPage}
-                  disabled={page === totalPages}
-                >
-                  Next
-                </Button>
+                  {getPageNumbers().map((pageNum) => (
+                    <Button
+                      key={pageNum}
+                      variant={page === pageNum ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => goToPage(pageNum)}
+                      className={
+                        page === pageNum
+                          ? "bg-green-600 text-white hover:bg-green-700"
+                          : ""
+                      }
+                    >
+                      {pageNum}
+                    </Button>
+                  ))}
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={goToNextPage}
+                    disabled={page === totalPages}
+                  >
+                    Next
+                  </Button>
+                </div>
               </div>
-            </div>
-          )}
-
-        </CardContent>
-      </Card>
-    </main>
+            )}
+          </CardContent>
+        </Card>
+      </main>
 
       {/* Add Contact Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>

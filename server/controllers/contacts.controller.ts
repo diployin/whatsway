@@ -44,7 +44,9 @@ export const getContacts = asyncHandler(
 
 export const getContactsWithPagination = asyncHandler(
   async (req: RequestWithChannel, res: Response) => {
-    const { search, channelId, page = "1", limit = "10" } = req.query;
+    const { search, channelId, page = "1", limit = "10" , group , status } = req.query;
+
+    // console.log("Query Params:", { search, channelId, page, limit, group, status });
 
     const currentPage = parseInt(page, 10);
     const pageSize = parseInt(limit, 10);
@@ -66,6 +68,24 @@ export const getContactsWithPagination = asyncHandler(
           ilike(contacts.phone, `%${search}%`)
         )
       );
+    }
+
+    if (group && typeof group === "string") {
+      const groupList = group.split(',').map(g => g.trim());
+      if (groupList.length > 0) {
+        const jsonArray = JSON.stringify(groupList);
+        conditions.push(
+          sql`${contacts.groups} @> ${sql.raw(`'${jsonArray}'::jsonb`)}`
+        );
+      }
+    }
+    
+
+    
+    
+    
+    if (status && typeof status === "string") {
+      conditions.push(eq(contacts.status, status)); // Assuming `contacts.status` is the column name
     }
 
     // Prepare the WHERE clause
