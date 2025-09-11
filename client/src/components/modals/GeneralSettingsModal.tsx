@@ -22,6 +22,7 @@ import {
   Tag,
   Globe,
   AlertCircle,
+  CheckCircle,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -38,8 +39,8 @@ interface BrandSettings {
 interface FormData {
   title: string;
   tagline: string;
-  logo: string;
-  favicon: string;
+  logo?: File | null;
+  favicon?: File | null;
 }
 
 interface ValidationErrors {
@@ -71,6 +72,10 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
   const [logoPreview, setLogoPreview] = useState<string>("");
   const [faviconPreview, setFaviconPreview] = useState<string>("");
   const [errors, setErrors] = useState<ValidationErrors>({});
+  const [uploadStatus, setUploadStatus] = useState<{
+    logo?: 'uploading' | 'success' | 'error';
+    favicon?: 'uploading' | 'success' | 'error';
+  }>({});
   const { toast } = useToast();
 
   // Initialize form data when modal opens
@@ -85,13 +90,21 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
       setLogoPreview(brandSettings.logo || "");
       setFaviconPreview(brandSettings.favicon || "");
       setErrors({});
+      setUploadStatus({});
     }
   }, [open, brandSettings]);
 
   // Update brand settings mutation
   const updateBrandMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      return await apiRequest("PUT", "/api/brand-settings", data);
+      const res = await fetch(`/api/brand-settings`, {
+        method: "PUT",
+        body: data, // FormData object
+      });
+      if (!res.ok) {
+        throw new Error("Failed to update settings");
+      }
+      return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/brand-settings"] });
@@ -100,15 +113,17 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
         description: "Your general settings have been saved successfully.",
       });
       onSuccess?.();
+      handleClose();
     },
     onError: (error: Error) => {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to update settings",
         variant: "destructive",
       });
     },
   });
+  
 
   const handleInputChange = (field: keyof FormData, value: string): void => {
     setFormData((prev) => ({
@@ -125,58 +140,29 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
     }
   };
 
-  const handleFileUpload = async (
+  const handleFileUpload = (
     file: File | null,
     type: "logo" | "favicon"
-  ): Promise<void> => {
+  ): void => {
     if (!file) return;
-
-    // Validate file size (2MB max)
-    if (file.size > 2 * 1024 * 1024) {
-      setErrors((prev) => ({
-        ...prev,
-        [type]: "File size should be less than 2MB",
-      }));
-      return;
+  
+    // Save file in state for sending later
+    setFormData((prev) => ({
+      ...prev,
+      [type]: file,
+    }));
+  
+    // Create preview URL
+    const previewUrl = URL.createObjectURL(file);
+    if (type === "logo") {
+      setLogoPreview(previewUrl);
+    } else {
+      setFaviconPreview(previewUrl);
     }
-
-    // Validate file type
-    const validTypes =
-      type === "logo"
-        ? ["image/png", "image/jpeg", "image/svg+xml"]
-        : ["image/png", "image/x-icon", "image/vnd.microsoft.icon"];
-
-    if (!validTypes.includes(file.type)) {
-      setErrors((prev) => ({
-        ...prev,
-        [type]: `Invalid file type. Please use ${validTypes.join(", ")}`,
-      }));
-      return;
-    }
-
-    // Convert to base64 or upload to server
-    const reader = new FileReader();
-    reader.onload = (e: ProgressEvent<FileReader>) => {
-      const result = e.target?.result as string;
-      setFormData((prev) => ({
-        ...prev,
-        [type]: result,
-      }));
-
-      if (type === "logo") {
-        setLogoPreview(result);
-      } else {
-        setFaviconPreview(result);
-      }
-
-      // Clear any existing errors
-      setErrors((prev) => ({
-        ...prev,
-        [type]: undefined,
-      }));
-    };
-    reader.readAsDataURL(file);
+  
+    setUploadStatus((prev) => ({ ...prev, [type]: "success" }));
   };
+  
 
   const validateForm = (): boolean => {
     const newErrors: ValidationErrors = {};
@@ -199,9 +185,18 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
 
   const handleSubmit = (): void => {
     if (!validateForm()) return;
-
-    updateBrandMutation.mutate(formData);
+  
+    const formDataToSend = new FormData();
+    formDataToSend.append("title", formData.title);
+    formDataToSend.append("tagline", formData.tagline);
+  
+    if (formData.logo) formDataToSend.append("logo", formData.logo);
+    if (formData.favicon) formDataToSend.append("favicon", formData.favicon);    
+  
+    updateBrandMutation.mutate(formDataToSend);
   };
+  
+  
 
   const handleClose = (): void => {
     onOpenChange(false);
@@ -215,6 +210,7 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
     setLogoPreview("");
     setFaviconPreview("");
     setErrors({});
+    setUploadStatus({});
   };
 
   const removeImage = (type: "logo" | "favicon"): void => {
@@ -228,6 +224,8 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
     } else {
       setFaviconPreview("");
     }
+
+    setUploadStatus(prev => ({ ...prev, [type]: undefined }));
   };
 
   const handleFileInputChange = (
@@ -236,6 +234,20 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
   ): void => {
     const file = e.target.files?.[0] || null;
     handleFileUpload(file, type);
+  };
+
+  const getUploadStatusIcon = (type: "logo" | "favicon") => {
+    const status = uploadStatus[type];
+    switch (status) {
+      case 'uploading':
+        return <div className="animate-spin w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full" />;
+      case 'success':
+        return <CheckCircle className="w-4 h-4 text-green-500" />;
+      case 'error':
+        return <AlertCircle className="w-4 h-4 text-red-500" />;
+      default:
+        return null;
+    }
   };
 
   return (
@@ -299,6 +311,11 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
             <Label className="flex items-center font-medium">
               <ImageIcon className="w-4 h-4 mr-2 text-purple-500" />
               Logo
+              {getUploadStatusIcon('logo') && (
+                <span className="ml-2">
+                  {getUploadStatusIcon('logo')}
+                </span>
+              )}
             </Label>
             <Card className="border-dashed border-2">
               <CardContent className="p-4">
@@ -330,13 +347,13 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                       Upload your logo
                     </p>
                     <p className="text-xs text-gray-400">
-                      PNG, JPG, SVG up to 2MB
+                      PNG, JPG, JPEG, SVG up to 2MB
                     </p>
                   </div>
                 )}
                 <Input
                   type="file"
-                  accept="image/png,image/jpeg,image/svg+xml"
+                  accept="image/png,image/jpeg,image/jpg,image/svg+xml"
                   onChange={(e) => handleFileInputChange(e, "logo")}
                   className="mt-2"
                 />
@@ -355,6 +372,11 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
             <Label className="flex items-center font-medium">
               <Globe className="w-4 h-4 mr-2 text-orange-500" />
               Favicon
+              {getUploadStatusIcon('favicon') && (
+                <span className="ml-2">
+                  {getUploadStatusIcon('favicon')}
+                </span>
+              )}
             </Label>
             <Card className="border-dashed border-2">
               <CardContent className="p-4">
@@ -386,7 +408,7 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                       Upload your favicon
                     </p>
                     <p className="text-xs text-gray-400">
-                      ICO, PNG 32x32px up to 1MB
+                      ICO, PNG 32x32px up to 2MB
                     </p>
                   </div>
                 )}
@@ -418,7 +440,7 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={updateBrandMutation.isPending}
+            disabled={updateBrandMutation.isPending || uploadStatus.logo === 'uploading' || uploadStatus.favicon === 'uploading'}
             type="button"
           >
             {updateBrandMutation.isPending ? "Saving..." : "Save Changes"}

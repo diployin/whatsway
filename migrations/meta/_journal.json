@@ -43,6 +43,13 @@
       "when": 1757311551247,
       "tag": "0005_greedy_carmella_unuscione",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1757489966163,
+      "tag": "0006_furry_rattler",
+      "breakpoints": true
     }
   ]
 }
