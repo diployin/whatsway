@@ -22,6 +22,7 @@ import authRoutes from "./auth.routes";
 
 // Import error handler middleware
 import { errorHandler } from "../middlewares/error.middleware";
+import { registerPanelConfigRoutes } from "./panel.config.routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes (no authentication required)
@@ -42,6 +43,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerWebhookRoutes(app);
   registerMessageRoutes(app);
   registerMessageLogsRoutes(app);
+  registerPanelConfigRoutes(app)
   
   // Team management routes
   app.use("/api/team", teamRoutes);

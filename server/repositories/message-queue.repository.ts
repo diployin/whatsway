@@ -3,7 +3,9 @@ import { eq, and, gte, isNull, desc, lt, sql } from "drizzle-orm";
 import { 
   messageQueue, 
   type MessageQueue, 
-  type InsertMessageQueue 
+  type InsertMessageQueue, 
+  messages,
+  conversations
 } from "@shared/schema";
 import { startOfDay, startOfMonth, subMonths } from "date-fns";
 
@@ -158,31 +160,18 @@ export class MessageQueueRepository {
 
     const result = await db
       .select({
-        messagesSent: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'sent' THEN 1 END)`.mapWith(Number),
-        messagesDelivered: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'delivered' THEN 1 END)`.mapWith(Number),
-        messagesFailed: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'failed' THEN 1 END)`.mapWith(Number),
-        messagesRead: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'read' THEN 1 END)`.mapWith(Number),
-  
+        messagesSent: sql<number>`COUNT(CASE WHEN ${messages.status} = 'sent' THEN 1 END)`.mapWith(Number),
+        messagesDelivered: sql<number>`COUNT(CASE WHEN ${messages.status} = 'delivered' THEN 1 END)`.mapWith(Number),
+        messagesFailed: sql<number>`COUNT(CASE WHEN ${messages.status} = 'failed' THEN 1 END)`.mapWith(Number),
+        messagesRead: sql<number>`COUNT(CASE WHEN ${messages.status} = 'read' THEN 1 END)`.mapWith(Number),
         totalMessages: sql<number>`COUNT(*)`.mapWith(Number),
-
-        todayMessages: sql<number>`
-        COUNT(CASE WHEN ${messageQueue.createdAt} >= ${todayStart} THEN 1 END)
-      `.mapWith(Number),
-
-        // This month
-        thisMonthMessages: sql<number>`
-          COUNT(CASE WHEN ${messageQueue.createdAt} >= ${thisMonthStart} THEN 1 END)
-        `.mapWith(Number),
-  
-        // Last month
-        lastMonthMessages: sql<number>`
-          COUNT(CASE WHEN ${messageQueue.createdAt} >= ${lastMonthStart} 
-                     AND ${messageQueue.createdAt} < ${lastMonthEnd} 
-          THEN 1 END)
-        `.mapWith(Number),
+        todayMessages: sql<number>`COUNT(CASE WHEN ${messages.createdAt} >= ${todayStart} THEN 1 END)`.mapWith(Number),
+        thisMonthMessages: sql<number>`COUNT(CASE WHEN ${messages.createdAt} >= ${thisMonthStart} THEN 1 END)`.mapWith(Number),
+        lastMonthMessages: sql<number>`COUNT(CASE WHEN ${messages.createdAt} >= ${lastMonthStart} AND ${messages.createdAt} < ${lastMonthEnd} THEN 1 END)`.mapWith(Number),
       })
-      .from(messageQueue)
-      .where(eq(messageQueue.channelId, channelId));
+      .from(messages)
+      .innerJoin(conversations, eq(messages.conversationId, conversations.id)) // <-- Join here
+      .where(eq(conversations.channelId, channelId)); // <-- Now this works
   
     return (
       result[0] || {

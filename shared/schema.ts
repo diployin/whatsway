@@ -556,6 +556,24 @@ export const apiLogs = pgTable("api_logs", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Panel configuration table for branding and settings
+
+export const panelConfig = pgTable("panel_config", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(),
+  tagline: varchar("tagline"),
+  description: text("description"),
+  logo: varchar("logo"),
+  favicon: varchar("favicon"),
+  defaultLanguage: varchar("default_language", { length: 5 }).default("en"),
+  supportedLanguages: jsonb("supported_languages").default(sql`'["en"]'`),
+  companyName: varchar("company_name"),
+  companyWebsite: varchar("company_website"),
+  supportEmail: varchar("support_email"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Permissions type definition
 export const PERMISSIONS = {
   // Dashboard permissions
@@ -787,6 +805,8 @@ export type InsertConversationAssignment = z.infer<
 >;
 export type UserActivityLog = typeof userActivityLogs.$inferSelect;
 export type InsertUserActivityLog = z.infer<typeof insertUserActivityLogSchema>;
+export type PanelConfig = typeof panelConfig.$inferSelect;
+export type NewPanelConfig = typeof panelConfig.$inferInsert;
 
 // Drizzle Relations for proper joins and queries
 export const channelsRelations = relations(channels, ({ many }) => ({
