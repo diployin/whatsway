@@ -5,6 +5,7 @@ import { AppError, asyncHandler } from '../middlewares/error.middleware';
 import crypto from 'crypto';
 import { startAutomationExecutionFunction } from './automation.controller';
 import { triggerService } from 'server/services/automation-execution.service';
+import { WhatsAppApiService } from 'server/services/whatsapp-api';
 
 export const getWebhookConfigs = asyncHandler(async (req: Request, res: Response) => {
   const configs = await storage.getWebhookConfigs();
@@ -105,7 +106,7 @@ export const testWebhook = asyncHandler(async (req: Request, res: Response) => {
     }
     res.json({ success: true, message: 'Test webhook sent successfully' });
   } catch (error) {
-    throw new AppError(500, `Failed to send test webhook: ${error.message}`);
+    throw new AppError(500, `Failed to send test webhook: ${(error as Error).message}`);
   }
 });
 
@@ -388,85 +389,117 @@ export const handleWebhook = asyncHandler(async (req: Request, res: Response) =>
 // Enhanced webhook handler with better automation integration
 async function handleMessageChange(value: any) {
   const { messages, contacts, metadata, statuses } = value;
-  
+
   // Handle message status updates (sent, delivered, read, failed)
   if (statuses && statuses.length > 0) {
     await handleMessageStatuses(statuses, metadata);
     return;
   }
-  
+
   if (!messages || messages.length === 0) {
     return;
   }
-  
+
   // Find channel by phone number ID
   const phoneNumberId = metadata?.phone_number_id;
   if (!phoneNumberId) {
-    console.error('No phone_number_id in webhook');
+    console.error("No phone_number_id in webhook");
     return;
   }
-  
+
   const channel = await storage.getChannelByPhoneNumberId(phoneNumberId);
   if (!channel) {
     console.error(`No channel found for phone_number_id: ${phoneNumberId}`);
     return;
   }
-  
+
+  // Create WhatsApp API service instance for fetching media
+  const waApi = new WhatsAppApiService(channel);
+
   for (const message of messages) {
     const { from, id: whatsappMessageId, text, type, timestamp, interactive } = message;
-    
+
     // Extract message content and interactive data
-    let messageContent = '';
-    let interactiveData = null;
-    
-    if (type === 'text' && text) {
+    let messageContent = "";
+    let interactiveData: any = null;
+
+    // Media fields
+    let mediaId: string | null = null;
+    let mediaUrl: string | null = null;
+    let mediaMimeType: string | null = null;
+    let mediaSha256: string | null = null;
+
+    if (type === "text" && text) {
       messageContent = text.body;
-    } else if (type === 'interactive' && interactive) {
-      // Handle button click responses
-      if (interactive.type === 'button_reply') {
+    } else if (type === "interactive" && interactive) {
+      if (interactive.type === "button_reply") {
         messageContent = interactive.button_reply.title;
         interactiveData = interactive;
-        console.log('Interactive button response:', interactive.button_reply);
-      } else if (interactive.type === 'list_reply') {
+        console.log("Interactive button response:", interactive.button_reply);
+      } else if (interactive.type === "list_reply") {
         messageContent = interactive.list_reply.title;
         interactiveData = interactive;
-        console.log('Interactive list response:', interactive.list_reply);
+        console.log("Interactive list response:", interactive.list_reply);
       }
-    } else if (type === 'image' && message.image) {
-      messageContent = message.image.caption || '[Image]';
-    } else if (type === 'document' && message.document) {
-      messageContent = message.document.caption || `[Document: ${message.document.filename || 'file'}]`;
-    } else if (type === 'audio' && message.audio) {
-      messageContent = '[Audio message]';
-    } else if (type === 'video' && message.video) {
-      messageContent = message.video.caption || '[Video]';
+    } else if (type === "image" && message.image) {
+      messageContent = message.image.caption || "[Image]";
+      mediaId = message.image.id;
+      mediaMimeType = message.image.mime_type;
+      mediaSha256 = message.image.sha256;
+    } else if (type === "document" && message.document) {
+      messageContent =
+        message.document.caption ||
+        `[Document: ${message.document.filename || "file"}]`;
+      mediaId = message.document.id;
+      mediaMimeType = message.document.mime_type;
+      mediaSha256 = message.document.sha256;
+    } else if (type === "audio" && message.audio) {
+      messageContent = "[Audio message]";
+      mediaId = message.audio.id;
+      mediaMimeType = message.audio.mime_type;
+      mediaSha256 = message.audio.sha256;
+    } else if (type === "video" && message.video) {
+      messageContent = message.video.caption || "[Video]";
+      mediaId = message.video.id;
+      mediaMimeType = message.video.mime_type;
+      mediaSha256 = message.video.sha256;
     } else {
       messageContent = `[${type} message]`;
     }
-    
+
+    // If media exists, fetch its temporary URL
+    if (mediaId) {
+      try {
+        mediaUrl = await waApi.fetchMediaUrl(mediaId);
+      } catch (err) {
+        console.error("❌ Failed to fetch media URL:", err);
+      }
+    }
+
     // Find or create conversation
     let conversation = await storage.getConversationByPhone(from);
     let contact = await storage.getContactByPhone(from);
     let isNewConversation = false;
-    
+
     if (!conversation) {
       isNewConversation = true;
-      
+
       if (!contact) {
-        const contactName = contacts?.find((c: any) => c.wa_id === from)?.profile?.name || from;
+        const contactName =
+          contacts?.find((c: any) => c.wa_id === from)?.profile?.name || from;
         contact = await storage.createContact({
           name: contactName,
           phone: from,
-          channelId: channel.id
+          channelId: channel.id,
         });
       }
-      
+
       conversation = await storage.createConversation({
         contactId: contact.id,
         contactPhone: from,
         contactName: contact.name || from,
         channelId: channel.id,
-        unreadCount: 1
+        unreadCount: 1,
       });
     } else {
       await storage.updateConversation(conversation.id, {
@@ -475,131 +508,146 @@ async function handleMessageChange(value: any) {
         lastMessageText: messageContent,
       });
     }
-    
-    console.log("Webhook Message:", messageContent, "Type:", type, "Interactive:", !!interactiveData);
+
+    console.log(
+      "Webhook Message:",
+      messageContent,
+      "Type:",
+      type,
+      "Interactive:",
+      !!interactiveData
+    );
 
     // Create message record
     const newMessage = await storage.createMessage({
       conversationId: conversation.id,
       content: messageContent,
-      fromUser: false,  // This might need to be true for customer messages
-      sender: 'customer', // Add sender field
-      direction: 'inbound',
-      status: 'received',
+      fromUser: false,
+      direction: "inbound",
+      status: "received",
       whatsappMessageId,
       messageType: type,
       metadata: interactiveData ? JSON.stringify(interactiveData) : null,
-      timestamp: new Date(parseInt(timestamp, 10) * 1000)
+      timestamp: new Date(parseInt(timestamp, 10) * 1000),
+
+      // Media fields
+      mediaId,
+      mediaUrl,
+      mediaMimeType,
+      mediaSha256,
     });
 
     // Broadcast new message via WebSocket
     if ((global as any).broadcastToConversation) {
       (global as any).broadcastToConversation(conversation.id, {
-        type: 'new-message',
-        message: newMessage
+        type: "new-message",
+        message: newMessage,
       });
     }
 
-    // ENHANCED AUTOMATION HANDLING WITH DEBUG
+    // --- Automation handling (unchanged) ---
     try {
-      // DEBUG: Check automation setup for this channel
-      if (messageContent.toLowerCase() === 'debug-automation') {
-        console.log(`🔧 Debug command received, checking automation setup...`);
-        await triggerService.debugAutomationSetup(channel.id);
-        return; // Don't process normal automation triggers
-      }
-      
-      // Check if there's a pending automation execution waiting for this response
-      const hasPendingExecution = triggerService.getExecutionService().hasPendingExecution(conversation.id);
-      
+      const hasPendingExecution =
+        triggerService.getExecutionService().hasPendingExecution(conversation.id);
+
       if (hasPendingExecution) {
-        console.log(`Processing as user response to pending automation execution`);
-        
-        // Handle user response to pending execution
-        const result = await triggerService.getExecutionService().handleUserResponse(
-          conversation.id, 
-          messageContent, 
-          interactiveData
+        console.log(
+          `Processing as user response to pending automation execution`
         );
-        
+
+        const result =
+          await triggerService.getExecutionService().handleUserResponse(
+            conversation.id,
+            messageContent,
+            interactiveData
+          );
+
         if (result && result.success) {
-          console.log(`Successfully processed user response for execution ${result.executionId}`);
-          
-          // Broadcast automation update
+          console.log(
+            `Successfully processed user response for execution ${result.executionId}`
+          );
+
           if ((global as any).broadcastToConversation) {
             (global as any).broadcastToConversation(conversation.id, {
-              type: 'automation-resumed',
+              type: "automation-resumed",
               data: {
                 executionId: result.executionId,
                 userResponse: result.userResponse,
                 savedVariable: result.savedVariable,
-                resumedAt: result.resumedAt
-              }
+                resumedAt: result.resumedAt,
+              },
             });
           }
-          
-          // Don't trigger new automations since this was a response to existing automation
+
           continue;
         } else {
-          console.warn(`Failed to process user response, will try triggering new automations`);
+          console.warn(
+            `Failed to process user response, will try triggering new automations`
+          );
         }
       }
-      
-      // Handle new conversation triggers
+
       if (isNewConversation) {
-        console.log(`New conversation automation trigger for: ${conversation.id}`);
+        console.log(
+          `New conversation automation trigger for: ${conversation.id}`
+        );
         await triggerService.handleNewConversation(
-          conversation.id, 
-          channel.id, 
-          contact.id
+          conversation.id,
+          channel.id,
+          contact?.id
         );
       } else {
-        console.log(`Message received automation trigger for: ${conversation.id}`);
-        console.log(`Debug info - Channel ID: ${channel.id}, Message: "${messageContent}"`);
-        
-        // Enhanced message data for automation triggers
+        console.log(
+          `Message received automation trigger for: ${conversation.id}`
+        );
+        console.log(
+          `Debug info - Channel ID: ${channel.id}, Message: "${messageContent}"`
+        );
+
         const messageData = {
           content: messageContent,
           text: messageContent,
-          body: messageContent, // Alternative field name
+          body: messageContent,
           type: type,
           from: from,
           whatsappMessageId: whatsappMessageId,
           timestamp: timestamp,
           interactive: interactiveData,
-          // Additional metadata for conditions
           messageType: type,
           hasInteraction: !!interactiveData,
           buttonId: interactiveData?.button_reply?.id || null,
           buttonTitle: interactiveData?.button_reply?.title || null,
           listId: interactiveData?.list_reply?.id || null,
-          listTitle: interactiveData?.list_reply?.title || null
+          listTitle: interactiveData?.list_reply?.title || null,
         };
-        
+
         await triggerService.handleMessageReceived(
-          conversation.id, 
-          messageData, 
-          channel.id, 
-          contact.id
+          conversation.id,
+          messageData,
+          channel.id,
+          contact?.id
         );
       }
     } catch (automationError) {
-      console.error(`❌ Automation error for conversation ${conversation.id}:`, automationError);
-      
-      // Optionally notify via webhook or broadcast error
+      console.error(
+        `❌ Automation error for conversation ${conversation.id}:`,
+        automationError
+      );
+
       if ((global as any).broadcastToConversation) {
         (global as any).broadcastToConversation(conversation.id, {
-          type: 'automation-error',
+          type: "automation-error",
           error: {
-            message: automationError.message,
+            message: (automationError as Error).message,
             conversationId: conversation.id,
-            timestamp: new Date()
-          }
+            timestamp: new Date(),
+          },
         });
       }
     }
   }
 }
+
 
 async function handleMessageStatuses(statuses: any[], metadata: any) {
   const phoneNumberId = metadata?.phone_number_id;

@@ -1,5 +1,8 @@
 import type { Channel } from '@shared/schema';
-
+import * as fs from "fs";
+import path from "path";
+import axios from 'axios';
+import FormData from "form-data";
 interface WhatsAppTemplate {
   id: string;
   status: string;
@@ -90,6 +93,49 @@ export class WhatsAppApiService {
     console.log('WhatsApp message sent successfully:', responseData);
     return responseData;
   }
+
+
+  /**
+   * Get a temporary media download URL for a WhatsApp mediaId
+   */
+  async fetchMediaUrl(mediaId: string): Promise<string> {
+    const url = `${this.baseUrl}/${mediaId}`;
+    console.log(`Fetching media URL: ${url}`);
+
+    const response = await fetch(url, { headers: this.headers });
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error("❌ WhatsApp API Media Fetch Error:", data);
+      throw new Error(data.error?.message || "Failed to fetch media URL");
+    }
+
+    if (!data.url) {
+      throw new Error("No media URL returned by WhatsApp API");
+    }
+
+    console.log("✅ Media URL fetched successfully:", data.url);
+    return data.url; // Temporary signed URL
+  }
+
+  /**
+   * Download the media file (image, video, document, etc.)
+   * and save it locally
+   */
+
+  // async downloadMedia(mediaId: string, savePath: string): Promise<void> {
+  //   const mediaUrl = await this.fetchMediaUrl(mediaId);
+
+  //   const response = await fetch(mediaUrl, { headers: this.headers });
+  //   if (!response.ok) {
+  //     throw new Error(`Failed to download media: ${response.statusText}`);
+  //   }
+
+  //   await streamPipeline(response.body as any, fs.createWriteStream(savePath));
+
+  //   console.log(`✅ Media downloaded and saved to ${savePath}`);
+  // }
+  
 
   // Static method for checking rate limits
   static async checkRateLimit(channelId: string): Promise<boolean> {
@@ -255,6 +301,190 @@ export class WhatsAppApiService {
 
     return await response.json();
   }
+
+   async getPublicMediaUrl(relativePath: string): Promise<string> {
+    // Assuming your uploads are served at /uploads endpoint
+    // Adjust this based on your server configuration
+    const baseUrl = process.env.APP_URL || 'https://whatsway.diploy.in';
+    
+    // Remove leading slash if present
+    const cleanPath = relativePath.startsWith('/') ? relativePath.substring(1) : relativePath;
+    
+    return `${baseUrl}/${cleanPath}`;
+  }
+
+
+  async uploadMedia(filePath: string, mimeType: string): Promise<string> {
+    const resolvedPath = path.resolve(filePath);
+  
+    const formData = new FormData();
+    formData.append("messaging_product", "whatsapp");
+    formData.append("file", fs.createReadStream(resolvedPath), {
+      filename: path.basename(resolvedPath),
+      contentType: mimeType,
+    });
+  
+    console.log("Uploading local media:", resolvedPath, mimeType);
+  
+    try {
+      const response = await axios.post(
+        `${this.baseUrl}/${this.channel.phoneNumberId}/media`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${this.channel.accessToken}`,
+            ...formData.getHeaders(),
+          },
+        }
+      );
+  
+      console.log("Media uploaded successfully, ID:", response.data.id);
+      return response.data.id;
+    } catch (error: any) {
+      console.error("WhatsApp upload error:", error.response?.data || error.message);
+      throw new Error(
+        error.response?.data?.error?.message || "Failed to upload media"
+      );
+    }
+  }
+
+  async uploadMediaManual(filePath: string, mimeType: string): Promise<string> {
+    const resolvedPath = path.resolve(filePath);
+    const fileBuffer = fs.readFileSync(resolvedPath);
+    const fileName = path.basename(resolvedPath);
+    
+    // Create boundary for multipart form
+    const boundary = `----formdata-node-${Math.random().toString(36)}`;
+    
+    // Construct multipart body manually
+    const chunks: Buffer[] = [];
+    
+    // Add messaging_product field
+    chunks.push(Buffer.from(`--${boundary}\r\n`));
+    chunks.push(Buffer.from(`Content-Disposition: form-data; name="messaging_product"\r\n\r\n`));
+    chunks.push(Buffer.from(`whatsapp\r\n`));
+    
+    // Add file field
+    chunks.push(Buffer.from(`--${boundary}\r\n`));
+    chunks.push(Buffer.from(`Content-Disposition: form-data; name="file"; filename="${fileName}"\r\n`));
+    chunks.push(Buffer.from(`Content-Type: ${mimeType}\r\n\r\n`));
+    chunks.push(fileBuffer);
+    chunks.push(Buffer.from(`\r\n`));
+    
+    // End boundary
+    chunks.push(Buffer.from(`--${boundary}--\r\n`));
+    
+    const body = Buffer.concat(chunks);
+  
+    console.log("Uploading local media:", resolvedPath, mimeType);
+  
+    const response = await fetch(
+      `${this.baseUrl}/${this.channel.phoneNumberId}/media`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${this.channel.accessToken}`,
+          'Content-Type': `multipart/form-data; boundary=${boundary}`,
+        },
+        body,
+      }
+    );
+  
+    const data = await response.json();
+  
+    if (!response.ok) {
+      console.error("WhatsApp upload error response:", data);
+      throw new Error(data.error?.message || "Failed to upload media");
+    }
+  
+    console.log("Media uploaded successfully, ID:", data.id);
+    return data.id;
+  }
+
+
+  async getMediaUrl(mediaId: string): Promise<string> {
+    console.log("Fetching media URL for ID:", mediaId);
+  
+    const response = await fetch(
+      `${this.baseUrl}/${mediaId}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${this.channel.accessToken}`,
+        },
+      }
+    );
+  
+    const data = await response.json();
+  
+    if (!response.ok) {
+      console.error("WhatsApp get media URL error:", data);
+      throw new Error(data.error?.message || "Failed to get media URL");
+    }
+  
+    // WhatsApp returns the media URL that can be used to download the file
+    return data.url;
+  }
+  
+  // Optional: Method to download and save media locally
+  async downloadAndSaveMedia(mediaUrl: string, fileName: string): Promise<string> {
+    const response = await fetch(mediaUrl, {
+      headers: {
+        Authorization: `Bearer ${this.channel.accessToken}`,
+      },
+    });
+  
+    if (!response.ok) {
+      throw new Error("Failed to download media");
+    }
+  
+    const buffer = await response.arrayBuffer();
+    const localPath = path.join("uploads", "media", fileName);
+    
+    // Ensure directory exists
+    const dir = path.dirname(localPath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  
+    fs.writeFileSync(localPath, Buffer.from(buffer));
+    return localPath;
+  }
+
+  
+  async sendMediaMessage(to: string, mediaId: string, type: "image" | "video" | "audio" | "document", caption?: string): Promise<any> {
+    const formattedPhone = this.formatPhoneNumber(to);
+  
+    const body: any = {
+      messaging_product: "whatsapp",
+      to: formattedPhone,
+      type: type,
+      [type]: {
+        id: mediaId
+      }
+    };
+  
+    if (caption && (type === "image" || type === "video" || type === "document")) {
+      body[type].caption = caption;
+    }
+  
+    const response = await fetch(
+      `${this.baseUrl}/${this.channel.phoneNumberId}/messages`,
+      {
+        method: "POST",
+        headers: this.headers,
+        body: JSON.stringify(body)
+      }
+    );
+  
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error?.message || "Failed to send media message");
+    }
+  
+    return data;
+  }
+  
 
   async sendDirectMessage(payload: any): Promise<any> {
     // Format phone number if 'to' field exists

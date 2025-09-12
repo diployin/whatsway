@@ -2,12 +2,13 @@ import type { Express } from "express";
 import { storage } from "../storage";
 import { insertWhatsappChannelSchema } from "@shared/schema";
 import { WhatsAppApiService } from "../services/whatsapp-api";
+import { channelHealthMonitor } from "server/cron/channel-health-monitor";
 
 export function registerWhatsAppRoutes(app: Express) {
   // Get all WhatsApp channels
   app.get("/api/whatsapp/channels", async (req, res) => {
     try {
-      const channels = await storage.getWhatsappChannels();
+      const channels = await storage.getActiveChannel();
       res.json(channels);
     } catch (error) {
       console.error("Error fetching WhatsApp channels:", error);
@@ -58,7 +59,7 @@ export function registerWhatsAppRoutes(app: Express) {
   // Delete WhatsApp channel
   app.delete("/api/whatsapp/channels/:id", async (req, res) => {
     try {
-      const deleted = await storage.deleteWhatsappChannel(req.params.id);
+      const deleted = await storage.deleteChannel(req.params.id);
       if (!deleted) {
         return res.status(404).json({ message: "WhatsApp channel not found" });
       }
@@ -110,7 +111,7 @@ export function registerWhatsAppRoutes(app: Express) {
           }
         };
 
-        newMsg =  await storage.getTemplatesByName(templateName)
+        newMsg =  (await storage.getTemplatesByName(templateName))[0] ?? null
 
       // return  console.log("New msg ==>" , newMsg?.body)
         
@@ -267,41 +268,45 @@ export function registerWhatsAppRoutes(app: Express) {
   });
 
   // Get WhatsApp channel health
-  app.get("/api/whatsapp/channels/:id/health", async (req, res) => {
-    try {
-      const channel = await storage.getWhatsappChannel(req.params.id);
-      if (!channel) {
-        return res.status(404).json({ message: "Channel not found" });
-      }
+  // app.get("/api/whatsapp/channels/:id/health", async (req, res) => {
+  //   try {
+  //     const channel = await storage.getWhatsappChannel(req.params.id);
+  //     if (!channel) {
+  //       return res.status(404).json({ message: "Channel not found" });
+  //     }
 
-      const result = await WhatsAppApiService.checkHealth(channel);
+  //     const result = await channelHealthMonitor.checkChannelHealth(channel);
       
-      // Update last health check time if health check succeeded
-      if ('status' in result && result.status === 'active') {
-        await storage.updateWhatsappChannel(req.params.id, {
-          lastHealthCheck: new Date(),
-          status: "active"
-        });
-      }
+  //     // Update last health check time if health check succeeded
+  //     if ('status' in result && result.status === 'active') {
+  //       await storage.updateWhatsappChannel(req.params.id, {
+  //         lastHealthCheck: new Date(),
+  //         status: "active"
+  //       });
+  //     }
 
-      res.json(result);
-    } catch (error) {
-      console.error("Error checking WhatsApp channel health:", error);
-      res.status(500).json({ message: "Failed to check channel health" });
-    }
-  });
+  //     res.json(result);
+  //   } catch (error) {
+  //     console.error("Error checking WhatsApp channel health:", error);
+  //     res.status(500).json({ message: "Failed to check channel health" });
+  //   }
+  // });
 
   // Get API logs
   app.get("/api/whatsapp/api-logs", async (req, res) => {
     try {
       const channelId = req.query.channelId as string | undefined;
       const limit = parseInt(req.query.limit as string) || 100;
-      
+  
+      if (!channelId) {
+        return res.status(400).json({ message: "Missing required query parameter: channelId" });
+      }
+  
       const logs = await storage.getApiLogs(channelId, limit);
       res.json(logs);
     } catch (error) {
       console.error("Error fetching API logs:", error);
       res.status(500).json({ message: "Failed to fetch API logs" });
     }
-  });
+  });  
 }
