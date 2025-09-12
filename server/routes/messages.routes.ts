@@ -15,4 +15,12 @@ export function registerMessageRoutes(app: Express) {
 
   // Send WhatsApp message
   app.post("/api/messages/send", messagesController.sendMessage);
+
+  // get media url
+  app.get("/api/messages/media-url", messagesController.getMediaUrl);
+  
+  
+  // get media proxy
+  app.get("/api/messages/media-proxy", messagesController.getMediaProxy);
+  
 }
