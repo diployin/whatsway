@@ -39,4 +39,13 @@ export class MessageRepository {
       .where(eq(messages.whatsappMessageId, whatsappMessageId));
     return message || undefined;
   }
+
+
+  async getById(id: string): Promise<Message | undefined> {
+    const [message] = await db
+      .select()
+      .from(messages)
+      .where(eq(messages.id, id));
+    return message || undefined;
+  }
 }
