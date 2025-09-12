@@ -216,171 +216,226 @@ const MessageItem = ({
   const isOutbound = message.direction === "outbound";
   
   const renderMediaContent = () => {
-    if (!message.mediaId || !message.mediaUrl) {
-      return <p className="text-sm whitespace-pre-wrap">{message.content || ""}</p>;
-    }
+    // Check if message has media content
+    const hasMedia = message.mediaId || message.mediaUrl;
+    const messageType = message.messageType || message.type;
+    
+    // Use backend proxy for Facebook/WhatsApp URLs, direct URL for others
+    const needsProxy = hasMedia && message.mediaUrl && message.mediaUrl.includes('lookaside.fbsbx.com');
+    const mediaUrl = hasMedia 
+      ? (needsProxy 
+          ? `/api/messages/media-proxy?messageId=${message.id}` 
+          : message.mediaUrl)
+      : null;
+    const downloadUrl = hasMedia 
+      ? (needsProxy 
+          ? `/api/messages/media-proxy?messageId=${message.id}&download=true` 
+          : message.mediaUrl)
+      : null;
+    
+    // Helper function to render text content
+    const renderTextContent = () => {
+      if (!message.content || 
+          message.content === '[image]' || 
+          message.content === '[video]' || 
+          message.content === '[audio]' || 
+          message.content === '[document]') {
+        return null;
+      }
+      return <p className="text-sm whitespace-pre-wrap">{message.content}</p>;
+    };
 
-    // Use your backend proxy endpoint instead of direct WhatsApp URL
-    const mediaUrl = `/api/messages/media-proxy?messageId=${message.id}`;
-    const downloadUrl = `/api/messages/media-proxy?messageId=${message.id}&download=true`;
-
-    switch (message.messageType) {
+    // Handle different message types
+    switch (messageType) {
       case 'image':
         return (
           <div className="space-y-2">
-            <div className="relative group">
-              <img 
-                src={mediaUrl}
-                alt="Image message"
-                className="max-w-[250px] max-h-[300px] rounded-lg object-cover cursor-pointer transition-opacity group-hover:opacity-90"
-                onError={(e) => {
-                  console.error('Failed to load image:', mediaUrl);
-                  e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+PC9zdmc+';
-                }}
-                onClick={() => window.open(mediaUrl, '_blank')}
-              />
-              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <div className="bg-black bg-opacity-50 rounded-full p-2">
-                  <Image className="w-6 h-6 text-white" />
+            {hasMedia && (
+              <div className="relative group">
+                <img 
+                  src={mediaUrl}
+                  alt="Image message"
+                  className="max-w-[250px] max-h-[300px] rounded-lg object-cover cursor-pointer transition-opacity group-hover:opacity-90"
+                  onError={(e) => {
+                    console.error('Failed to load image:', mediaUrl);
+                    e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+PC9zdmc+';
+                  }}
+                  onClick={() => window.open(mediaUrl, '_blank')}
+                />
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="bg-black bg-opacity-50 rounded-full p-2">
+                    <Image className="w-6 h-6 text-white" />
+                  </div>
                 </div>
               </div>
-            </div>
-            {message.content && message.content !== '[image]' && (
-              <p className="text-sm whitespace-pre-wrap">{message.content}</p>
             )}
+            {renderTextContent()}
           </div>
         );
 
       case 'video':
         return (
           <div className="space-y-2">
-            <div className="relative">
-              <video 
-                controls 
-                className="max-w-[250px] max-h-[300px] rounded-lg"
-                preload="metadata"
-                onError={(e) => {
-                  console.error('Failed to load video:', mediaUrl);
-                }}
-              >
-                <source src={`${mediaUrl}#t=0.1`} type={message.mediaMimeType} />
-                Your browser does not support the video tag.
-              </video>
-              <div className="absolute top-2 right-2 bg-black bg-opacity-50 rounded-full p-1">
-                <Video className="w-4 h-4 text-white" />
+            {hasMedia && (
+              <div className="relative">
+                <video 
+                  controls 
+                  className="max-w-[250px] max-h-[300px] rounded-lg"
+                  preload="metadata"
+                  onError={(e) => {
+                    console.error('Failed to load video:', mediaUrl);
+                  }}
+                >
+                  <source src={`${mediaUrl}#t=0.1`} type={message.mediaMimeType} />
+                  Your browser does not support the video tag.
+                </video>
+                <div className="absolute top-2 right-2 bg-black bg-opacity-50 rounded-full p-1">
+                  <Video className="w-4 h-4 text-white" />
+                </div>
               </div>
-            </div>
-            {message.content && message.content !== '[video]' && (
-              <p className="text-sm whitespace-pre-wrap">{message.content}</p>
             )}
+            {renderTextContent()}
           </div>
         );
 
       case 'audio':
         return (
           <div className="space-y-2">
-            <div className={cn(
-              "flex items-center space-x-3 p-3 rounded-lg min-w-[200px]",
-              isOutbound ? "bg-green-700" : "bg-gray-200"
-            )}>
+            {hasMedia && (
               <div className={cn(
-                "p-2 rounded-full",
-                isOutbound ? "bg-green-800" : "bg-gray-300"
+                "flex items-center space-x-3 p-3 rounded-lg min-w-[200px]",
+                isOutbound ? "bg-green-700" : "bg-gray-200"
               )}>
-                <Volume2 className={cn(
-                  "w-4 h-4",
-                  isOutbound ? "text-white" : "text-gray-600"
-                )} />
+                <div className={cn(
+                  "p-2 rounded-full",
+                  isOutbound ? "bg-green-800" : "bg-gray-300"
+                )}>
+                  <Volume2 className={cn(
+                    "w-4 h-4",
+                    isOutbound ? "text-white" : "text-gray-600"
+                  )} />
+                </div>
+                <div className="flex-1">
+                  <audio 
+                    controls 
+                    className="w-full h-8"
+                    style={{ 
+                      filter: isOutbound ? 'invert(1)' : 'none'
+                    }}
+                    onError={(e) => {
+                      console.error('Failed to load audio:', mediaUrl);
+                    }}
+                  >
+                    <source src={mediaUrl} type={message.mediaMimeType} />
+                    Your browser does not support the audio tag.
+                  </audio>
+                </div>
               </div>
-              <div className="flex-1">
-                <audio 
-                  controls 
-                  className="w-full h-8"
-                  style={{ 
-                    filter: isOutbound ? 'invert(1)' : 'none'
-                  }}
-                  onError={(e) => {
-                    console.error('Failed to load audio:', mediaUrl);
-                  }}
-                >
-                  <source src={mediaUrl} type={message.mediaMimeType} />
-                  Your browser does not support the audio tag.
-                </audio>
-              </div>
-            </div>
-            {message.content && message.content !== '[audio]' && (
-              <p className="text-sm whitespace-pre-wrap">{message.content}</p>
             )}
+            {renderTextContent()}
           </div>
         );
 
       case 'document':
-        const fileName = message.metadata?.originalName || 'Document';
+        const fileName = message.metadata?.originalName || 
+                        message.metadata?.fileName || 
+                        'Document';
         const fileSize = message.metadata?.fileSize 
           ? `${Math.round(message.metadata.fileSize / 1024)} KB`
           : '';
         
         return (
           <div className="space-y-2">
-            <div className={cn(
-              "flex items-center space-x-3 p-3 rounded-lg border",
-              isOutbound 
-                ? "bg-green-700 border-green-600" 
-                : "bg-white border-gray-200"
-            )}>
+            {hasMedia && (
               <div className={cn(
-                "p-2 rounded-full",
-                isOutbound ? "bg-green-800" : "bg-blue-100"
+                "flex items-center space-x-3 p-3 rounded-lg border",
+                isOutbound 
+                  ? "bg-green-700 border-green-600" 
+                  : "bg-white border-gray-200"
               )}>
-                <FileText className={cn(
-                  "w-5 h-5",
-                  isOutbound ? "text-white" : "text-blue-600"
-                )} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className={cn(
-                  "text-sm font-medium truncate",
-                  isOutbound ? "text-white" : "text-gray-900"
+                <div className={cn(
+                  "p-2 rounded-full",
+                  isOutbound ? "bg-green-800" : "bg-blue-100"
                 )}>
-                  {fileName}
-                </p>
-                <div className="flex items-center space-x-2">
-                  {fileSize && (
-                    <p className={cn(
-                      "text-xs",
-                      isOutbound ? "text-green-100" : "text-gray-500"
-                    )}>
-                      {fileSize}
-                    </p>
-                  )}
-                  {message.mediaMimeType && (
-                    <p className={cn(
-                      "text-xs",
-                      isOutbound ? "text-green-100" : "text-gray-500"
-                    )}>
-                      {message.mediaMimeType.split('/')[1]?.toUpperCase() || 'FILE'}
-                    </p>
-                  )}
+                  <FileText className={cn(
+                    "w-5 h-5",
+                    isOutbound ? "text-white" : "text-blue-600"
+                  )} />
                 </div>
+                <div className="flex-1 min-w-0">
+                  <p className={cn(
+                    "text-sm font-medium truncate",
+                    isOutbound ? "text-white" : "text-gray-900"
+                  )}>
+                    {fileName}
+                  </p>
+                  <div className="flex items-center space-x-2">
+                    {fileSize && (
+                      <p className={cn(
+                        "text-xs",
+                        isOutbound ? "text-green-100" : "text-gray-500"
+                      )}>
+                        {fileSize}
+                      </p>
+                    )}
+                    {(message.mediaMimeType || message.metadata?.mimeType) && (
+                      <p className={cn(
+                        "text-xs",
+                        isOutbound ? "text-green-100" : "text-gray-500"
+                      )}>
+                        {(message.mediaMimeType || message.metadata?.mimeType)
+                          .split('/')[1]?.toUpperCase() || 'FILE'}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <a
+                  href={downloadUrl}
+                  download={fileName}
+                  className={cn(
+                    "p-1 rounded-full hover:bg-opacity-80 transition-colors",
+                    isOutbound ? "hover:bg-green-800" : "hover:bg-gray-100"
+                  )}
+                  onClick={(e) => e.stopPropagation()}
+                  title="Download file"
+                >
+                  <Download className={cn(
+                    "w-4 h-4",
+                    isOutbound ? "text-white" : "text-gray-600"
+                  )} />
+                </a>
               </div>
-              <a
-                href={downloadUrl}
-                download={fileName}
-                className={cn(
-                  "p-1 rounded-full hover:bg-opacity-80 transition-colors",
-                  isOutbound ? "hover:bg-green-800" : "hover:bg-gray-100"
-                )}
-                onClick={(e) => e.stopPropagation()}
-                title="Download file"
-              >
-                <Download className={cn(
-                  "w-4 h-4",
-                  isOutbound ? "text-white" : "text-gray-600"
-                )} />
-              </a>
-            </div>
-            {message.content && message.content !== '[document]' && (
-              <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+            )}
+            {renderTextContent()}
+          </div>
+        );
+
+      case 'interactive':
+        // Handle interactive messages (buttons/lists)
+        const buttons = message.metadata?.buttons;
+        return (
+          <div className="space-y-3">
+            {renderTextContent()}
+            {buttons && buttons.length > 0 && (
+              <div className="space-y-2">
+                {buttons.map((button, index) => (
+                  <button
+                    key={button.id || index}
+                    className={cn(
+                      "w-full text-left px-3 py-2 rounded-lg border text-sm transition-colors",
+                      isOutbound 
+                        ? "border-green-300 text-green-100 hover:bg-green-700" 
+                        : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                    )}
+                    onClick={() => {
+                      // Handle button click - you might want to emit an event or call a callback
+                      console.log('Button clicked:', button);
+                    }}
+                  >
+                    {button.text}
+                  </button>
+                ))}
+              </div>
             )}
           </div>
         );
@@ -388,26 +443,193 @@ const MessageItem = ({
       case 'template':
         return (
           <div className={cn(
-            "flex items-center space-x-2 p-2 rounded border-l-4",
+            "flex items-start space-x-2 p-3 rounded border-l-4",
             isOutbound 
               ? "border-green-300 bg-green-700" 
               : "border-blue-400 bg-blue-50"
           )}>
-            <div className="text-lg">📧</div>
-            <div>
+            <div className="text-lg mt-1">📧</div>
+            <div className="flex-1">
               <p className={cn(
-                "text-xs font-medium",
+                "text-xs font-medium mb-1",
                 isOutbound ? "text-green-100" : "text-blue-700"
               )}>
                 Template Message
               </p>
-              <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+              {renderTextContent()}
             </div>
           </div>
         );
 
+      case 'text':
       default:
-        return <p className="text-sm whitespace-pre-wrap">{message.content || ""}</p>;
+        // Handle text messages that might also have media
+        if (hasMedia) {
+          // Determine media type from MIME type or URL
+          const mimeType = message.mediaMimeType || message.metadata?.mimeType || '';
+          const isImage = mimeType.startsWith('image/') || 
+                         mediaUrl?.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+          const isVideo = mimeType.startsWith('video/') || 
+                         mediaUrl?.match(/\.(mp4|webm|ogg|mov)$/i);
+          const isAudio = mimeType.startsWith('audio/') || 
+                         mediaUrl?.match(/\.(mp3|wav|ogg|m4a)$/i);
+          
+          if (isImage) {
+            return (
+              <div className="space-y-2">
+                <div className="relative group">
+                  <img 
+                    src={mediaUrl}
+                    alt="Image attachment"
+                    className="max-w-[250px] max-h-[300px] rounded-lg object-cover cursor-pointer transition-opacity group-hover:opacity-90"
+                    onError={(e) => {
+                      console.error('Failed to load image:', mediaUrl);
+                      e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+PC9zdmc+';
+                    }}
+                    onClick={() => window.open(mediaUrl, '_blank')}
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="bg-black bg-opacity-50 rounded-full p-2">
+                      <Image className="w-6 h-6 text-white" />
+                    </div>
+                  </div>
+                </div>
+                {renderTextContent()}
+              </div>
+            );
+          } else if (isVideo) {
+            return (
+              <div className="space-y-2">
+                <div className="relative">
+                  <video 
+                    controls 
+                    className="max-w-[250px] max-h-[300px] rounded-lg"
+                    preload="metadata"
+                    onError={(e) => {
+                      console.error('Failed to load video:', mediaUrl);
+                    }}
+                  >
+                    <source src={`${mediaUrl}#t=0.1`} type={mimeType} />
+                    Your browser does not support the video tag.
+                  </video>
+                  <div className="absolute top-2 right-2 bg-black bg-opacity-50 rounded-full p-1">
+                    <Video className="w-4 h-4 text-white" />
+                  </div>
+                </div>
+                {renderTextContent()}
+              </div>
+            );
+          } else if (isAudio) {
+            return (
+              <div className="space-y-2">
+                <div className={cn(
+                  "flex items-center space-x-3 p-3 rounded-lg min-w-[200px]",
+                  isOutbound ? "bg-green-700" : "bg-gray-200"
+                )}>
+                  <div className={cn(
+                    "p-2 rounded-full",
+                    isOutbound ? "bg-green-800" : "bg-gray-300"
+                  )}>
+                    <Volume2 className={cn(
+                      "w-4 h-4",
+                      isOutbound ? "text-white" : "text-gray-600"
+                    )} />
+                  </div>
+                  <div className="flex-1">
+                    <audio 
+                      controls 
+                      className="w-full h-8"
+                      style={{ 
+                        filter: isOutbound ? 'invert(1)' : 'none'
+                      }}
+                      onError={(e) => {
+                        console.error('Failed to load audio:', mediaUrl);
+                      }}
+                    >
+                      <source src={mediaUrl} type={mimeType} />
+                      Your browser does not support the audio tag.
+                    </audio>
+                  </div>
+                </div>
+                {renderTextContent()}
+              </div>
+            );
+          } else {
+            // Generic file/document
+            const fileName = message.metadata?.originalName || 
+                            message.metadata?.fileName || 
+                            'Attachment';
+            const fileSize = message.metadata?.fileSize 
+              ? `${Math.round(message.metadata.fileSize / 1024)} KB`
+              : '';
+            
+            return (
+              <div className="space-y-2">
+                <div className={cn(
+                  "flex items-center space-x-3 p-3 rounded-lg border",
+                  isOutbound 
+                    ? "bg-green-700 border-green-600" 
+                    : "bg-white border-gray-200"
+                )}>
+                  <div className={cn(
+                    "p-2 rounded-full",
+                    isOutbound ? "bg-green-800" : "bg-blue-100"
+                  )}>
+                    <FileText className={cn(
+                      "w-5 h-5",
+                      isOutbound ? "text-white" : "text-blue-600"
+                    )} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={cn(
+                      "text-sm font-medium truncate",
+                      isOutbound ? "text-white" : "text-gray-900"
+                    )}>
+                      {fileName}
+                    </p>
+                    <div className="flex items-center space-x-2">
+                      {fileSize && (
+                        <p className={cn(
+                          "text-xs",
+                          isOutbound ? "text-green-100" : "text-gray-500"
+                        )}>
+                          {fileSize}
+                        </p>
+                      )}
+                      {mimeType && (
+                        <p className={cn(
+                          "text-xs",
+                          isOutbound ? "text-green-100" : "text-gray-500"
+                        )}>
+                          {mimeType.split('/')[1]?.toUpperCase() || 'FILE'}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <a
+                    href={downloadUrl}
+                    download={fileName}
+                    className={cn(
+                      "p-1 rounded-full hover:bg-opacity-80 transition-colors",
+                      isOutbound ? "hover:bg-green-800" : "hover:bg-gray-100"
+                    )}
+                    onClick={(e) => e.stopPropagation()}
+                    title="Download file"
+                  >
+                    <Download className={cn(
+                      "w-4 h-4",
+                      isOutbound ? "text-white" : "text-gray-600"
+                    )} />
+                  </a>
+                </div>
+                {renderTextContent()}
+              </div>
+            );
+          }
+        }
+        
+        // Pure text message
+        return renderTextContent() || <p className="text-sm whitespace-pre-wrap">{message.content || ""}</p>;
     }
   };
 
