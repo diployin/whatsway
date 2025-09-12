@@ -35,9 +35,10 @@ export function CampaignStatistics({ campaigns }: CampaignStatisticsProps) {
     totalFailed: 0,
   });
 
-  const deliveryRate = stats.totalRecipients > 0 
-    ? Math.round((stats.totalDelivered / stats.totalRecipients) * 100) 
-    : 0;
+  const deliveryRate = stats.totalRecipients > 0 && stats.totalDelivered > 0
+  ? Math.round(((Number(stats.totalDelivered) - Number(stats.totalFailed)) / Number(stats.totalDelivered)) * 100)
+  : 0;
+
 
   const readRate = stats.totalDelivered > 0 
     ? Math.round((stats.totalRead / stats.totalDelivered) * 100) 
