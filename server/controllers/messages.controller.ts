@@ -4,7 +4,6 @@ import { insertMessageSchema, insertConversationSchema } from '@shared/schema';
 import { AppError, asyncHandler } from '../middlewares/error.middleware';
 import { WhatsAppApiService } from '../services/whatsapp-api';
 import type { RequestWithChannel } from '../middlewares/channel.middleware';
-import { randomUUID } from 'crypto';
 import { triggerService } from "../services/automation-execution.service";
 
 export const getMessages = asyncHandler(async (req: Request, res: Response) => {
@@ -33,6 +32,9 @@ export const createMessage = asyncHandler(async (req: Request, res: Response) =>
   // If message is from user, send it via WhatsApp
   if (fromUser && content) {
     // Get active channel
+    if (!conversation.channelId) {
+      throw new Error("ChannelId is missing");
+    }
     const channel = await storage.getChannel(conversation.channelId);
     if (!channel) {
       throw new AppError(404, 'Channel not found');
@@ -42,6 +44,9 @@ export const createMessage = asyncHandler(async (req: Request, res: Response) =>
     
     try {
       // Send text message via WhatsApp
+      if (!conversation.contactPhone) {
+        throw new Error("Contact phone is missing");
+      }
       const result = await whatsappApi.sendTextMessage(conversation.contactPhone, content);
 
       console.log("sendTextMessage : ===> "  , conversation.contactPhone, content)
@@ -49,8 +54,8 @@ export const createMessage = asyncHandler(async (req: Request, res: Response) =>
       // Create message record with WhatsApp message ID
       const message = await storage.createMessage({
         conversationId,
+        fromUser: true,
         content,
-        sender: 'business',
         status: 'sent',
         whatsappMessageId: result.messages?.[0]?.id
       });
@@ -87,7 +92,16 @@ export const createMessage = asyncHandler(async (req: Request, res: Response) =>
     const message = await storage.createMessage(validatedMessage);
 
       // 🎯 TRIGGER MESSAGE-BASED AUTOMATIONS
+
+
   try {
+
+    if (!conversation.channelId) {
+      throw new Error("ChannelId is missing");
+    }
+    if (!conversation.contactId) {
+      throw new Error("contactId is missing");
+    }
     await triggerService.handleMessageReceived(
       conversationId,
       message,
@@ -176,8 +190,7 @@ export const sendMessage = asyncHandler(async (req: RequestWithChannel, res: Res
     // Create message record
     const createdMessage = await storage.createMessage({
       conversationId: conversation.id,
-      content: message || newMsg?.body,
-      sender: 'business',
+      content: message || newMsg[0].body,
       status: 'sent',
       whatsappMessageId: result.messages?.[0]?.id
     });
@@ -185,7 +198,7 @@ export const sendMessage = asyncHandler(async (req: RequestWithChannel, res: Res
         // Update conversation's last message
         await storage.updateConversation(conversation.id, {
           lastMessageAt: new Date(),
-            lastMessageText: message ||  newMsg?.body,
+            lastMessageText: message ||  newMsg[0].body,
         });
     
     // Broadcast new message to WebSocket clients
