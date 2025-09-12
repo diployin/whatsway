@@ -79,7 +79,10 @@ export function CampaignsTable({ campaigns, onViewCampaign, onUpdateStatus, onDe
       </TableHeader>
       <TableBody>
         {campaigns.map((campaign) => {
-          const deliveryRate = calculateDeliveryRate(campaign.recipientCount, campaign.deliveredCount);
+          // const deliveryRate = calculateDeliveryRate(campaign.recipientCount, campaign.deliveredCount);
+          const deliveryRate = campaign.deliveredCount > 0
+          ? Math.round(((Number(campaign.deliveredCount) - Number(campaign.failedCount)) / Number(campaign.deliveredCount)) * 100)
+          : 0;
           const readRate = calculateReadRate(campaign.deliveredCount, campaign.readCount);
           
           return (

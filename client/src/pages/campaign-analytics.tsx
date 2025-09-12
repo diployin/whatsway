@@ -523,7 +523,7 @@ export default function CampaignAnalytics() {
                 <div>
                   <p className="text-sm text-gray-600">Messages Sent</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {sentCount.toLocaleString()}
+                    {(Number(deliveredCount)+ Number(failedCount)) > 0}
                   </p>
                 </div>
                 <div className="p-2 bg-green-50 rounded-lg">

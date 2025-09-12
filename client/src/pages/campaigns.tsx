@@ -63,7 +63,7 @@ export default function Campaigns() {
   });
 
   // Fetch contacts for contacts-based campaigns
-  const { data: contacts = [] } = useQuery({
+  const { data: contactsResponse } = useQuery({
     queryKey: ["/api/contacts"],
     enabled: createDialogOpen && !!selectedChannel,
     queryFn: async () => {
@@ -77,6 +77,8 @@ export default function Campaigns() {
       return res.json();
     },
   });
+
+  const contacts = contactsResponse?.data || [];
 
   // Create campaign mutation
   const createCampaignMutation = useMutation({
