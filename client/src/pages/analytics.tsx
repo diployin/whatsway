@@ -483,7 +483,7 @@ export default function Analytics() {
                       <Send className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">{campaignMetrics.totalSent || 0}</div>
+                      <div className="text-2xl font-bold">{(Number(campaignMetrics.totalDelivered) - Number(campaignMetrics.totalFailed)) || 0}</div>
                     </CardContent>
                   </Card>
 
@@ -573,7 +573,7 @@ export default function Analytics() {
                                 {campaign.recipientCount || 0}
                               </td>
                               <td className="px-6 py-4 text-sm text-gray-900">
-                                {campaign.sentCount || 0}
+                                {(Number(campaign.deliveredCount) + Number(campaign.failedCount)) || 0}
                               </td>
                               <td className="px-6 py-4 text-sm text-gray-900">
                                 {campaign.deliveredCount || 0}
@@ -582,7 +582,7 @@ export default function Analytics() {
                                 {campaign.readCount || 0}
                               </td>
                               <td className="px-6 py-4 text-sm text-gray-900">
-                                {campaign.deliveryRate?.toFixed(1) || 0}%
+                                {(((Number(campaign.deliveredCount) - Number(campaign.failedCount)) / Number(campaign.deliveredCount)) * 100) || 0}%
                               </td>
                               <td className="px-6 py-4">
                                 <Link href={`/analytics/campaign/${campaign.id}`}>
