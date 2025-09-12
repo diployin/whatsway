@@ -170,12 +170,12 @@ function ProtectedRoutes() {
           <Route path="/analytics">
             <PermissionRoute component={Analytics} />
           </Route>
-          <Route path="/analytics/campaign/:campaignId">
+          {/* <Route path="/analytics/campaign/:campaignId">
             <PermissionRoute
               component={CampaignAnalytics}
               requiredPermission="analytics:view"
             />
-          </Route>
+          </Route> */}
           <Route path="/logs">
             <PermissionRoute component={Logs} requiredPermission="logs:view" />
           </Route>
@@ -245,7 +245,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/login" component={LoginPage} />
-      {/* <Route path="/analytics/campaign/:campaignId" component={CampaignAnalytics}/> */}
+      <Route path="/analytics/campaign/:campaignId" component={CampaignAnalytics}/>
       <Route component={ProtectedRoutes} />
     </Switch>
   );
