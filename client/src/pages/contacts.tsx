@@ -204,6 +204,7 @@ export default function Contacts() {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showMessageDialog, setShowMessageDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showGroupDialog, setShowGroupDialog] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
@@ -467,6 +468,36 @@ export default function Contacts() {
     },
   });
 
+  const deleteBulkContactsMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const response = await fetch(`/api/contacts-bulk`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids }),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to delete contacts");
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
+      toast({
+        title: "Contacts deleted",
+        description: "The selected contacts have been successfully deleted.",
+      });
+      setSelectedContactIds([]); // Clear selection
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete contacts. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+  
+
   const sendMessageMutation = useMutation({
     mutationFn: async (data: any) => {
       const {
@@ -726,7 +757,7 @@ export default function Contacts() {
   // };
 
   const handleExportSelectedContacts = () => {
-    const selectedContacts = filteredContacts.filter((contact) =>
+    const selectedContacts = contacts.filter((contact) =>
       selectedContactIds.includes(contact.id)
     );
 
@@ -753,6 +784,47 @@ export default function Contacts() {
 
     XLSX.writeFile(workbook, "selected_contacts.xlsx");
   };
+
+  const handleExportAllContacts = async () => {
+    try {
+      // Fetch all contacts from the server
+      const response = await fetch("/api/contacts-all");
+      if (!response.ok) {
+        throw new Error("Failed to fetch contacts");
+      }
+  
+      const allContacts: Contact[] = await response.json();
+  
+      if (!allContacts || allContacts.length === 0) {
+        alert("No contacts available.");
+        return;
+      }
+  
+      // Format data for Excel
+      const data = allContacts.map((contact) => ({
+        Name: contact.name,
+        Email: contact.email || "",
+        Phone: contact.phone || "",
+        Groups: contact.groups?.join(", ") || "",
+        Status: contact.status,
+        LastContact: contact.lastContact
+          ? new Date(contact.lastContact).toLocaleDateString()
+          : "Never",
+      }));
+  
+      // Create Excel sheet
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Contacts");
+  
+      // Trigger file download
+      XLSX.writeFile(workbook, "all_contacts.xlsx");
+    } catch (error) {
+      console.error("Error exporting contacts:", error);
+      alert("Failed to export contacts. Please try again.");
+    }
+  };
+  
 
   const handleExcelDownload = () => {
     // Sample data structure (same format as your upload expects)
@@ -891,8 +963,7 @@ export default function Contacts() {
               </DropdownMenu>
               <Button
                 variant="outline"
-                onClick={handleExportSelectedContacts}
-                disabled={selectedContactIds.length === 0}
+                onClick={handleExportAllContacts}
               >
                 <Upload className="w-4 h-4 mr-2" />
                 Export Excel
@@ -940,10 +1011,6 @@ export default function Contacts() {
                   {selectedContactIds.length > 1 ? "s" : ""} selected
                 </span>
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
-                    <MessageSquare className="w-4 h-4 mr-2" />
-                    Send Bulk Message
-                  </Button>
                   <Button
                     variant="outline"
                     size="sm"
@@ -952,7 +1019,7 @@ export default function Contacts() {
                     <Download className="w-4 h-4 mr-2" />
                     Export Selected
                   </Button>
-                  <Button variant="outline" size="sm" className="text-red-600">
+                  <Button variant="outline" size="sm" className="text-red-600" onClick={() => setShowBulkDeleteDialog(true)}>
                     <Trash2 className="w-4 h-4 mr-2" />
                     Delete Selected
                   </Button>
@@ -1579,6 +1646,40 @@ export default function Contacts() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <Dialog open={showBulkDeleteDialog} onOpenChange={setShowBulkDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Contacts</DialogTitle>
+            <DialogDescription>
+              You are about to delete <strong>{selectedContactIds.length}</strong>{" "}
+              contact{selectedContactIds.length > 1 ? "s" : ""}. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end space-x-2 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowBulkDeleteDialog(false);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                deleteBulkContactsMutation.mutate(selectedContactIds);
+                setShowBulkDeleteDialog(false);
+              }}
+              disabled={deleteBulkContactsMutation.isPending}
+            >
+              {deleteBulkContactsMutation.isPending ? "Deleting..." : "Delete"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
 
       {/* Edit Contact Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>

@@ -2,9 +2,8 @@ import type { Request, Response } from "express";
 import { storage } from "../storage";
 import { contacts, insertContactSchema } from "@shared/schema";
 import { AppError, asyncHandler } from "../middlewares/error.middleware";
-import type { RequestWithChannel } from "../middlewares/channel.middleware";
 import { db } from "server/db";
-import { and, eq, ilike, or, sql } from "drizzle-orm";
+import { and, eq, ilike, inArray, or, sql } from "drizzle-orm";
 
 
 interface RequestWithChannel extends Request {
@@ -13,6 +12,8 @@ interface RequestWithChannel extends Request {
     channelId?: string;
     page?: string;
     limit?: string;
+    group?: string;
+    status?: string;
   };
 }
 
@@ -22,7 +23,7 @@ export const getContacts = asyncHandler(
 
     let contacts;
     if (channelId && typeof channelId === "string") {
-      contacts = await storage.getContactsByChannel({channelId});
+      contacts = await storage.getContactsByChannel(channelId);;
     } else {
       contacts = await storage.getContacts();
     }
@@ -184,6 +185,28 @@ export const deleteContact = asyncHandler(
     if (!success) {
       throw new AppError(404, "Contact not found");
     }
+    res.status(204).send();
+  }
+);
+
+
+export const deleteBulkContacts = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { ids } = req.body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new AppError(400, "No contact IDs provided");
+    }
+
+    const result = await db
+      .delete(contacts)
+      .where(inArray(contacts.id, ids));
+
+    // Optionally check how many rows were affected
+    if (result.rowCount === 0) {
+      throw new AppError(404, "No contacts found to delete");
+    }
+
     res.status(204).send();
   }
 );

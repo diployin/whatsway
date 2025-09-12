@@ -49,6 +49,14 @@ export function registerContactRoutes(app: Express) {
     contactsController.deleteContact
   );
 
+  // Delete Bulk contact
+  app.delete(
+    "/api/contacts-bulk",
+    requireAuth,
+    requirePermission(PERMISSIONS.CONTACTS_DELETE),
+    contactsController.deleteBulkContacts
+  );
+
   // Import contacts
   app.post(
     "/api/contacts/import",
