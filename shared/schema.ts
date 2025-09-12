@@ -282,6 +282,10 @@ export const messages = pgTable(
     content: text("content").notNull(),
     type: text("type").default("text"), // text, image, document, template
     messageType: varchar("message_type"), // For WhatsApp message types
+    mediaId: varchar("media_id"), // WhatsApp media ID
+    mediaUrl: text("media_url"), // Download URL (fetched from Graph API)
+    mediaMimeType: varchar("media_mime_type", { length: 100 }),
+    mediaSha256: varchar("media_sha256", { length: 128 }),
     status: text("status").default("sent"), // sent, delivered, read, failed, received
     timestamp: timestamp("timestamp"), // WhatsApp timestamp
     metadata: jsonb("metadata").default({}), // Store additional WhatsApp data

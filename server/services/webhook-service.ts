@@ -186,6 +186,7 @@ export class WebhookService {
       await storage.createMessage({
         conversationId: conversation.id,
         whatsappMessageId: message.id,
+        fromUser: false,
         direction: "inbound",
         status: "received",
         content: message.text?.body || "",
