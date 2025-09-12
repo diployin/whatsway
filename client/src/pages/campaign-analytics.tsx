@@ -169,17 +169,24 @@ export default function CampaignAnalytics() {
     return isNaN(num) || num < 0 ? 0 : num;
   };
 
-  const sentCount = safeNumber(campaign.sentCount);
+  // const sentCount = safeNumber(campaign.sentCount);
   const deliveredCount = safeNumber(campaign.deliveredCount);
   const recipientCount = safeNumber(campaign.recipientCount);
   const readCount = safeNumber(campaign.readCount);
   const repliedCount = safeNumber(campaign.repliedCount);
   const failedCount = safeNumber(campaign.failedCount);
+  const sentCount = (Number(deliveredCount)+ Number(failedCount)) ?? 0;
 
-  const deliveryRate = recipientCount > 0 ? (deliveredCount / recipientCount) * 100 : 0;
+  // const deliveryRate = recipientCount > 0 ? (deliveredCount / recipientCount) * 100 : 0;
+  const deliveryRate = Math.round(((Number(deliveredCount) - Number(failedCount)) / Number(deliveredCount)) * 100) ?? 0;
+ 
   const readRate = deliveredCount > 0 ? (readCount / deliveredCount) * 100 : 0;
   const replyRate = readCount > 0 ? (repliedCount / readCount) * 100 : 0;
-  const failureRate = recipientCount > 0 ? (failedCount / recipientCount) * 100 : 0;
+  // const failureRate = recipientCount > 0 ? (failedCount / recipientCount) * 100 : 0;
+  const failureRate = Math.round(
+    (Number(failedCount) / (Number(deliveredCount) + Number(failedCount))) * 100
+  ) || 0;
+  
 
   // Process chart data with robust error handling
   const chartData = dailyStats.map((stat: any, index: number) => {
@@ -394,7 +401,7 @@ export default function CampaignAnalytics() {
                   Back to Analytics
                 </Button>
               </Link>
-              <div className="flex space-x-2">
+              {/* <div className="flex space-x-2">
                 <Button
                   variant="outline"
                   size="sm"
@@ -413,7 +420,7 @@ export default function CampaignAnalytics() {
                   <Download className="w-4 h-4 mr-2" />
                   {exportLoading ? "Exporting..." : "Export Excel"}
                 </Button>
-              </div>
+              </div> */}
             </div>
           </CardContent>
         </Card>
@@ -523,7 +530,7 @@ export default function CampaignAnalytics() {
                 <div>
                   <p className="text-sm text-gray-600">Messages Sent</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {(Number(deliveredCount)+ Number(failedCount)) > 0}
+                    {sentCount.toLocaleString()}
                   </p>
                 </div>
                 <div className="p-2 bg-green-50 rounded-lg">
