@@ -995,6 +995,16 @@ private async saveMediaMessage(
       return;
     }
 
+    console.log('Saving media message ',metadata,metadata.mediaPath , nodeData.documentFile.path,this.getPublicMediaUrl(metadata.mediaPath || ''), {
+      conversationId: conversation.id,
+      content: messageContent,
+      status: "sent",
+      whatsappMessageId: whatsappResult.messages?.[0]?.id,
+      messageType,
+      metadata: JSON.stringify(metadata),
+      mediaUrl: await this.getPublicMediaUrl(metadata.mediaPath || ''),
+    } );
+
     // Create message record
     const createdMessage = await storage.createMessage({
       conversationId: conversation.id,
