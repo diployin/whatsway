@@ -383,6 +383,61 @@ export const getMediaUrl = asyncHandler(async (req: Request, res: Response) => {
 });
 
 
+export const getMediaProxy = asyncHandler(async (req: Request, res: Response) => {
+  try {
+    const { messageId } = req.query;
+    const { download } = req.query;
+
+    console.log("Media proxy hit for messageId:", messageId, "download:", download);
+    
+    // Get message from database
+    const message = await storage.getMessage(messageId);
+    if (!message || !message.mediaId) {
+      return res.status(404).json({ error: 'Media not found' });
+    }
+
+    const conversation = await storage.getConversation(message.conversationId);
+    const channel = await storage.getChannel(conversation!.channelId!);
+    const whatsappApi = new WhatsAppApiService(channel!);
+
+    console.log("Streaming media for mediaId:", message.mediaId);
+    
+    // Set appropriate headers before streaming
+    const contentType = message.mediaMimeType || 'application/octet-stream';
+    
+    res.set({
+      'Content-Type': contentType,
+      'Cache-Control': 'public, max-age=300',
+    });
+    
+    // If download is requested, set download header
+    if (download === 'true') {
+      const filename = message.metadata?.originalName || `media_${messageId}`;
+      res.set('Content-Disposition', `attachment; filename="${filename}"`);
+    }
+
+    // Stream media directly using WhatsApp service
+    const success = await whatsappApi.streamMedia(message.mediaId, res);
+    
+    if (!success) {
+      // If streaming failed, try buffer approach
+      const mediaBuffer = await whatsappApi.getMedia(message.mediaId);
+      
+      if (!mediaBuffer) {
+        return res.status(404).json({ error: 'Media not accessible' });
+      }
+      
+      res.set('Content-Length', mediaBuffer.length.toString());
+      res.send(mediaBuffer);
+    }
+    
+  } catch (error) {
+    console.error('Media proxy error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
 export const sendMessage = asyncHandler(async (req: RequestWithChannel, res: Response) => {
   const { to, message, templateName, parameters, channelId: bodyChannelId, caption, type } = req.body;
   const file = (req as any).file; // multer adds this

@@ -220,9 +220,9 @@ const MessageItem = ({
       return <p className="text-sm whitespace-pre-wrap">{message.content || ""}</p>;
     }
 
-    const mediaUrl = message.mediaUrl; 
-
-    console.log("Media URL:", mediaUrl);
+    // Use your backend proxy endpoint instead of direct WhatsApp URL
+    const mediaUrl = `/api/messages/media-proxy?messageId=${message.id}`;
+    const downloadUrl = `/api/messages/media-proxy?messageId=${message.id}&download=true`;
 
     switch (message.messageType) {
       case 'image':
@@ -234,7 +234,7 @@ const MessageItem = ({
                 alt="Image message"
                 className="max-w-[250px] max-h-[300px] rounded-lg object-cover cursor-pointer transition-opacity group-hover:opacity-90"
                 onError={(e) => {
-                  console.error('Failed to load image');
+                  console.error('Failed to load image:', mediaUrl);
                   e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+PC9zdmc+';
                 }}
                 onClick={() => window.open(mediaUrl, '_blank')}
@@ -260,7 +260,7 @@ const MessageItem = ({
                 className="max-w-[250px] max-h-[300px] rounded-lg"
                 preload="metadata"
                 onError={(e) => {
-                  console.error('Failed to load video');
+                  console.error('Failed to load video:', mediaUrl);
                 }}
               >
                 <source src={`${mediaUrl}#t=0.1`} type={message.mediaMimeType} />
@@ -300,7 +300,7 @@ const MessageItem = ({
                     filter: isOutbound ? 'invert(1)' : 'none'
                   }}
                   onError={(e) => {
-                    console.error('Failed to load audio');
+                    console.error('Failed to load audio:', mediaUrl);
                   }}
                 >
                   <source src={mediaUrl} type={message.mediaMimeType} />
@@ -363,14 +363,15 @@ const MessageItem = ({
                   )}
                 </div>
               </div>
-              <a 
-                href={mediaUrl}
+              <a
+                href={downloadUrl}
                 download={fileName}
                 className={cn(
                   "p-1 rounded-full hover:bg-opacity-80 transition-colors",
                   isOutbound ? "hover:bg-green-800" : "hover:bg-gray-100"
                 )}
                 onClick={(e) => e.stopPropagation()}
+                title="Download file"
               >
                 <Download className={cn(
                   "w-4 h-4",

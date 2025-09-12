@@ -62,9 +62,10 @@ export class DatabaseStorage implements IStorage {
     return this.userRepo.getById(id);
   }
 
-  async getPermissions(id: string): Promise<User | undefined> {
-    return this.userRepo.getByPermissions(id);
+  async getPermissions(id: string): Promise<string[] | undefined> {
+    return this.userRepo.getByPermissions(id); // this now makes sense
   }
+  
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     return this.userRepo.getByUsername(username);
@@ -86,6 +87,10 @@ export class DatabaseStorage implements IStorage {
   async getContactsByChannel(channelId: string): Promise<Contact[]> {
     return this.contactRepo.getByChannel(channelId);
   }
+  async searchContactsByChannel(channelId: string): Promise<Contact[]> {
+    return this.contactRepo.getByChannel(channelId);
+  }
+
 
   async getContact(id: string): Promise<Contact | undefined> {
     return this.contactRepo.getById(id);
@@ -199,8 +204,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTemplatesByName(name: string): Promise<Template[]> {
-    return this.templateRepo.getByName(name);
+    const templates = await this.templateRepo.getByName(name);
+  
+    // if undefined, default to empty array
+    return templates ? (Array.isArray(templates) ? templates : [templates]) : [];
   }
+  
 
   async getTemplate(id: string): Promise<Template | undefined> {
     return this.templateRepo.getById(id);
@@ -242,6 +251,9 @@ export class DatabaseStorage implements IStorage {
 
   async getConversation(id: string): Promise<Conversation | undefined> {
     return this.conversationRepo.getById(id);
+  }
+  async getMessage(id: string): Promise<Conversation | undefined> {
+    return this.messageRepo.getById(id);
   }
 
   async getConversationByPhone(
@@ -396,9 +408,9 @@ export class DatabaseStorage implements IStorage {
     return this.messageQueueRepo.getPending();
   }
 
-  async getMessagesToCheck(): Promise<MessageQueue[]> {
-    return this.messageQueueRepo.getMessagesToCheck();
-  }
+  // async getMessagesToCheck(): Promise<MessageQueue[]> {
+  //   return this.messageQueueRepo.getMessagesToCheck();
+  // }
 
   async createMessageQueueItem(
     insertMessage: InsertMessageQueue
@@ -430,13 +442,16 @@ export class DatabaseStorage implements IStorage {
     return this.messageQueueRepo.getByCampaign(campaignId);
   }
 
-  async getMessagesForRetry(limit: number = 100): Promise<MessageQueue[]> {
-    return this.messageQueueRepo.getForRetry(limit);
-  }
+  // async getMessagesForRetry(limit: number = 100): Promise<MessageQueue[]> {
+  //   return this.messageQueueRepo.getForRetry(limit);
+  // }
 
   // API Logs
   async createApiLog(insertLog: InsertApiLog): Promise<ApiLog> {
     return this.apiLogRepo.create(insertLog);
+  }
+  async getApiLogs(channelId: string, limit: number): Promise<ApiLog[]> {
+    return this.apiLogRepo.getByChannel(channelId, limit);
   }
 
   // Analytics

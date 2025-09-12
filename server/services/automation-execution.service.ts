@@ -65,25 +65,32 @@ export class AutomationExecutionService {
       // Update execution count
       await db.update(automations)
         .set({ 
-          executionCount: automation.executionCount + 1,
+          executionCount: automation.executionCount !== null ? automation.executionCount + 1 : null,
           lastExecutedAt: new Date()
         })
         .where(eq(automations.id, execution.automationId));
 
       // Create execution context
+      const triggerData = execution.triggerData ?? {};
+
       const context: ExecutionContext = {
         executionId: execution.id,
         automationId: execution.automationId,
-        contactId: execution.contactId,
-        conversationId: execution.conversationId,
+        contactId: execution.contactId ?? undefined,
+        conversationId: execution.conversationId ?? undefined,
         variables: {
-          contactId: execution.contactId,
-          conversationId: execution.conversationId,
-          ...execution.triggerData
+          contactId: execution.contactId ?? undefined,
+          conversationId: execution.conversationId ?? undefined,
+          ...triggerData
         },
-        triggerData: execution.triggerData,
-        lastUserMessage: execution.triggerData?.message?.content || execution.triggerData?.message?.text || ''
-      };
+        triggerData,
+        lastUserMessage:
+          (execution.triggerData as { message?: { content?: string; text?: string } }).message
+            ?.content ||
+          (execution.triggerData as { message?: { content?: string; text?: string } }).message
+            ?.text ||
+          "",
+    };
 
       // Get first node = no incoming edges
       const firstNode = automation.nodes.find(
@@ -98,7 +105,7 @@ export class AutomationExecutionService {
 
     } catch (error) {
       console.error(`Error executing automation ${executionId}:`, error);
-      await this.completeExecution(executionId, 'failed', error.message);
+      await this.completeExecution(executionId, 'failed',  (error as Error).message);
       throw error;
     }
   }
@@ -179,11 +186,11 @@ export class AutomationExecutionService {
         'failed',
         node.data,
         null,
-        error.message
+        (error as Error).message
       );
 
       // Fail the entire execution
-      await this.completeExecution(context.executionId, 'failed', `Node ${node.nodeId} failed: ${error.message}`);
+      await this.completeExecution(context.executionId, 'failed', `Node ${node.nodeId} failed: ${ (error as Error).message}`);
       throw error;
     }
   }
@@ -205,7 +212,7 @@ export class AutomationExecutionService {
 
     // Convert to lowercase for case-insensitive matching
     const lowerInput = userInput.toLowerCase().trim();
-    const lowerKeywords = keywords.map(k => k.toLowerCase().trim());
+    const lowerKeywords = keywords.map((k: string) => k.toLowerCase().trim());
 
     switch (conditionType) {
       case 'keyword':
@@ -220,7 +227,7 @@ export class AutomationExecutionService {
           }
         } else if (matchType === 'all') {
           // Check if all keywords match
-          conditionMet = lowerKeywords.every(keyword => lowerInput.includes(keyword));
+          conditionMet = lowerKeywords.every((keyword: string) => lowerInput.includes(keyword));
           matchedKeyword = conditionMet ? lowerKeywords.join(', ') : null;
         } else if (matchType === 'exact') {
           // Check for exact match
@@ -531,7 +538,7 @@ export class AutomationExecutionService {
       await this.completeExecution(
         pendingExecution.executionId, 
         'failed', 
-        `Failed to resume after user response: ${error.message}`
+        `Failed to resume after user response: ${ (error as Error).message}`
       );
       
       throw error;
@@ -637,7 +644,7 @@ private async executeCustomReply(node: any, context: ExecutionContext) {
   console.log(`Sending message to conversation ${context.conversationId}: "${message}"`);
 
   const getContact = await db.query.contacts.findFirst({
-    where: eq(contacts?.id, context.contactId),
+    where: eq(contacts?.id!, context.contactId!),
   });
 
   if (!getContact?.phone) {
@@ -651,6 +658,14 @@ private async executeCustomReply(node: any, context: ExecutionContext) {
     await this.sendMediaMessage(getContact, nodeData, message, context);
   } else {
     // Regular text message
+    if (!getContact?.phone) {
+      throw new Error('Contact phone number not found');
+    }
+
+    if (!getContact?.channelId) {
+      throw new Error('channelId not found');
+    }
+    
     await sendBusinessMessage({
       to: getContact.phone,
       message,
@@ -776,7 +791,7 @@ private async executeUserReply(node: any, context: ExecutionContext) {
   
   // Get contact information
   const getContact = await db.query.contacts.findFirst({
-    where: eq(contacts?.id, context.contactId),
+    where: eq(contacts?.id!, context.contactId!),
   });
 
   if (!getContact?.phone) {
@@ -789,6 +804,10 @@ private async executeUserReply(node: any, context: ExecutionContext) {
   if (hasMedia) {
     // Send media with question first
     await this.sendMediaMessage(getContact, nodeData, question, context);
+  }
+
+  if (!getContact?.channelId) {
+    throw new Error('channelId not found');
   }
 
   // Send the question with buttons (if any)
@@ -814,6 +833,9 @@ private async executeUserReply(node: any, context: ExecutionContext) {
   // Create a unique pending execution ID
   const pendingId = `${context.executionId}_${node.nodeId}_${Date.now()}`;
   
+  if (!context.conversationId) {
+    throw new Error('conversationId is required to wait for user response');
+  }
   // Store the execution state for resumption
   const pendingExecution: PendingExecution = {
     executionId: context.executionId,
@@ -963,6 +985,10 @@ private async saveMediaMessage(
     }
 
     // Find conversation
+    if (!context.conversationId) {
+      console.warn('No conversationId in context, cannot save media message');
+      return;
+    }
     const conversation = await storage.getConversation(context.conversationId);
     if (!conversation) {
       console.warn('Conversation not found for media message');
@@ -973,11 +999,11 @@ private async saveMediaMessage(
     const createdMessage = await storage.createMessage({
       conversationId: conversation.id,
       content: messageContent,
-      sender: "business",
       status: "sent",
       whatsappMessageId: whatsappResult.messages?.[0]?.id,
       messageType,
-      metadata: JSON.stringify(metadata)
+      metadata: JSON.stringify(metadata),
+      mediaUrl: await this.getPublicMediaUrl(metadata.mediaPath || ''),
     });
 
     // Update conversation
@@ -1066,7 +1092,6 @@ private async sendInteractiveMessage(
       const createdMessage = await storage.createMessage({
         conversationId: conversation.id,
         content: messageContent,
-        sender: "business",
         status: "sent",
         whatsappMessageId: result.messages?.[0]?.id,
         messageType: "interactive",
@@ -1300,7 +1325,7 @@ private async sendInteractiveMessage(
         await this.continueToNextNode(node, freshAutomation, context);
       } catch (error) {
         console.error('Error continuing after delay:', error);
-        await this.completeExecution(context.executionId, 'failed', `Delay continuation failed: ${error.message}`);
+        await this.completeExecution(context.executionId, 'failed', `Delay continuation failed: ${ (error as Error).message}`);
       }
     }, delay * 1000);
 
@@ -1319,6 +1344,13 @@ private async sendInteractiveMessage(
       throw new Error('No template ID provided');
     }
 
+    if (!context.contactId) {
+      throw new Error('No contact ID in context');
+    }
+    if (!context.conversationId) {
+      throw new Error('No conversation ID in context');
+    }
+
     const getContact = await db.query.contacts.findFirst({
       where: eq(contacts?.id, context.contactId),
     });
@@ -1328,6 +1360,10 @@ private async sendInteractiveMessage(
     }
     
     console.log(`📄 Sending template ${templateId} to conversation ${context.conversationId}`);
+
+    if (!getContact?.channelId) {
+      throw new Error('channelId not found');
+    } 
     if (getContact?.phone) {
       await sendBusinessMessage({
         to: getContact?.phone,
@@ -1649,7 +1685,7 @@ export class AutomationTriggerService {
         
       } catch (error) {
         console.error(`❌ Failed to execute automation ${automation.id}:`, error);
-        console.error(`Stack trace:`, error.stack);
+        console.error(`Stack trace:`,  (error as Error).stack);
       }
     }
   }

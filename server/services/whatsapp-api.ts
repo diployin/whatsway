@@ -402,29 +402,132 @@ export class WhatsAppApiService {
   }
 
 
-  async getMediaUrl(mediaId: string): Promise<string> {
-    console.log("Fetching media URL for ID:", mediaId);
+  // async getMediaUrl(mediaId: string): Promise<string> {
+  //   console.log("Fetching media URL for ID:", mediaId);
   
-    const response = await fetch(
-      `${this.baseUrl}/${mediaId}`,
-      {
-        method: "GET",
+  //   const response = await fetch(
+  //     `${this.baseUrl}/${mediaId}`,
+  //     {
+  //       method: "GET",
+  //       headers: {
+  //         Authorization: `Bearer ${this.channel.accessToken}`,
+  //       },
+  //     }
+  //   );
+  
+  //   const data = await response.json();
+  
+  //   if (!response.ok) {
+  //     console.error("WhatsApp get media URL error:", data);
+  //     throw new Error(data.error?.message || "Failed to get media URL");
+  //   }
+  
+  //   // WhatsApp returns the media URL that can be used to download the file
+  //   return data.url;
+  // }
+
+  async getMediaUrl(mediaId: string): Promise<string | null> {
+    try {
+      const response = await fetch(`https://graph.facebook.com/v17.0/${mediaId}`, {
         headers: {
-          Authorization: `Bearer ${this.channel.accessToken}`,
-        },
+          'Authorization': `Bearer ${this.channel.accessToken}`
+        }
+      });
+
+      if (!response.ok) {
+        console.error('Failed to get media URL:', response.status, response.statusText);
+        return null;
       }
-    );
-  
-    const data = await response.json();
-  
-    if (!response.ok) {
-      console.error("WhatsApp get media URL error:", data);
-      throw new Error(data.error?.message || "Failed to get media URL");
+
+      const data = await response.json();
+      return data.url;
+    } catch (error) {
+      console.error('Error getting media URL:', error);
+      return null;
     }
-  
-    // WhatsApp returns the media URL that can be used to download the file
-    return data.url;
   }
+
+  /**
+   * Download media content as buffer
+   */
+  async getMedia(mediaId: string): Promise<Buffer | null> {
+    try {
+      // First, get the fresh media URL
+      const mediaUrl = await this.getMediaUrl(mediaId);
+      if (!mediaUrl) {
+        return null;
+      }
+
+      // Then, download the media content
+      const response = await fetch(mediaUrl, {
+        headers: {
+          'Authorization': `Bearer ${this.channel.accessToken}`,
+          'User-Agent': 'WhatsAppBusinessAPI/1.0'
+        }
+      });
+
+      if (!response.ok) {
+        console.error('Failed to download media:', response.status, response.statusText);
+        return null;
+      }
+
+      const arrayBuffer = await response.arrayBuffer();
+      return Buffer.from(arrayBuffer);
+    } catch (error) {
+      console.error('Error downloading media:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Stream media content directly
+   */
+  async streamMedia(mediaId: string, res: Response): Promise<boolean> {
+    try {
+      // First, get the fresh media URL
+      const mediaUrl = await this.getMediaUrl(mediaId);
+      if (!mediaUrl) {
+        return false;
+      }
+
+      // Stream using axios
+      const response = await axios({
+        method: 'get',
+        url: mediaUrl,
+        responseType: 'stream',
+        headers: {
+          'Authorization': `Bearer ${this.channel.accessToken}`,
+          'User-Agent': 'WhatsAppBusinessAPI/1.0'
+        }
+      });
+
+      if (response.status !== 200) {
+        console.error('Failed to stream media:', response.status, response.statusText);
+        return false;
+      }
+
+      // Set content length if available
+      if (response.headers['content-length']) {
+        res.set('Content-Length', response.headers['content-length']);
+      }
+
+      // Pipe the stream
+      response.data.pipe(res);
+      
+      return new Promise((resolve, reject) => {
+        response.data.on('end', () => resolve(true));
+        response.data.on('error', (error: any) => {
+          console.error('Stream error:', error);
+          reject(false);
+        });
+      });
+
+    } catch (error) {
+      console.error('Error streaming media with axios:', error);
+      return false;
+    }
+  }
+
   
   // Optional: Method to download and save media locally
   async downloadAndSaveMedia(mediaUrl: string, fileName: string): Promise<string> {
