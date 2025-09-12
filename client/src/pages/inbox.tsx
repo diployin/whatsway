@@ -66,7 +66,9 @@ import {
   Calendar,
   Tag,
   Forward,
-  Reply
+  Reply,
+  Download,
+  Volume2
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { apiRequest } from "@/lib/queryClient";
@@ -129,7 +131,7 @@ const ConversationListItem = ({
     : "";
 
 
-    function getMessagePreview(message) {
+    function getMessagePreview(message: string | null | undefined): string {
       if (!message) {
         return ''; // or return 'No message' if you want a placeholder
       }
@@ -182,7 +184,28 @@ const ConversationListItem = ({
   );
 };
 
-// Message Component
+interface Message {
+  id: string;
+  conversationId: string;
+  whatsappMessageId?: string;
+  fromUser: boolean;
+  direction: string;
+  content: string;
+  type: string;
+  messageType: string;
+  mediaId?: string;
+  mediaUrl?: string;
+  mediaMimeType?: string;
+  status?: string;
+  metadata?: {
+    filePath?: string;
+    fileSize?: number;
+    mimeType?: string;
+    originalName?: string;
+  };
+  createdAt: string;
+}
+
 const MessageItem = ({ 
   message, 
   showDate 
@@ -192,12 +215,226 @@ const MessageItem = ({
 }) => {
   const isOutbound = message.direction === "outbound";
   
+  const renderMediaContent = () => {
+    if (!message.mediaId || !message.mediaUrl) {
+      return <p className="text-sm whitespace-pre-wrap">{message.content || ""}</p>;
+    }
+
+    const mediaUrl = message.mediaUrl; 
+
+    console.log("Media URL:", mediaUrl);
+
+    switch (message.messageType) {
+      case 'image':
+        return (
+          <div className="space-y-2">
+            <div className="relative group">
+              <img 
+                src={mediaUrl}
+                alt="Image message"
+                className="max-w-[250px] max-h-[300px] rounded-lg object-cover cursor-pointer transition-opacity group-hover:opacity-90"
+                onError={(e) => {
+                  console.error('Failed to load image');
+                  e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+PC9zdmc+';
+                }}
+                onClick={() => window.open(mediaUrl, '_blank')}
+              />
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="bg-black bg-opacity-50 rounded-full p-2">
+                  <Image className="w-6 h-6 text-white" />
+                </div>
+              </div>
+            </div>
+            {message.content && message.content !== '[image]' && (
+              <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+            )}
+          </div>
+        );
+
+      case 'video':
+        return (
+          <div className="space-y-2">
+            <div className="relative">
+              <video 
+                controls 
+                className="max-w-[250px] max-h-[300px] rounded-lg"
+                preload="metadata"
+                onError={(e) => {
+                  console.error('Failed to load video');
+                }}
+              >
+                <source src={`${mediaUrl}#t=0.1`} type={message.mediaMimeType} />
+                Your browser does not support the video tag.
+              </video>
+              <div className="absolute top-2 right-2 bg-black bg-opacity-50 rounded-full p-1">
+                <Video className="w-4 h-4 text-white" />
+              </div>
+            </div>
+            {message.content && message.content !== '[video]' && (
+              <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+            )}
+          </div>
+        );
+
+      case 'audio':
+        return (
+          <div className="space-y-2">
+            <div className={cn(
+              "flex items-center space-x-3 p-3 rounded-lg min-w-[200px]",
+              isOutbound ? "bg-green-700" : "bg-gray-200"
+            )}>
+              <div className={cn(
+                "p-2 rounded-full",
+                isOutbound ? "bg-green-800" : "bg-gray-300"
+              )}>
+                <Volume2 className={cn(
+                  "w-4 h-4",
+                  isOutbound ? "text-white" : "text-gray-600"
+                )} />
+              </div>
+              <div className="flex-1">
+                <audio 
+                  controls 
+                  className="w-full h-8"
+                  style={{ 
+                    filter: isOutbound ? 'invert(1)' : 'none'
+                  }}
+                  onError={(e) => {
+                    console.error('Failed to load audio');
+                  }}
+                >
+                  <source src={mediaUrl} type={message.mediaMimeType} />
+                  Your browser does not support the audio tag.
+                </audio>
+              </div>
+            </div>
+            {message.content && message.content !== '[audio]' && (
+              <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+            )}
+          </div>
+        );
+
+      case 'document':
+        const fileName = message.metadata?.originalName || 'Document';
+        const fileSize = message.metadata?.fileSize 
+          ? `${Math.round(message.metadata.fileSize / 1024)} KB`
+          : '';
+        
+        return (
+          <div className="space-y-2">
+            <div className={cn(
+              "flex items-center space-x-3 p-3 rounded-lg border",
+              isOutbound 
+                ? "bg-green-700 border-green-600" 
+                : "bg-white border-gray-200"
+            )}>
+              <div className={cn(
+                "p-2 rounded-full",
+                isOutbound ? "bg-green-800" : "bg-blue-100"
+              )}>
+                <FileText className={cn(
+                  "w-5 h-5",
+                  isOutbound ? "text-white" : "text-blue-600"
+                )} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={cn(
+                  "text-sm font-medium truncate",
+                  isOutbound ? "text-white" : "text-gray-900"
+                )}>
+                  {fileName}
+                </p>
+                <div className="flex items-center space-x-2">
+                  {fileSize && (
+                    <p className={cn(
+                      "text-xs",
+                      isOutbound ? "text-green-100" : "text-gray-500"
+                    )}>
+                      {fileSize}
+                    </p>
+                  )}
+                  {message.mediaMimeType && (
+                    <p className={cn(
+                      "text-xs",
+                      isOutbound ? "text-green-100" : "text-gray-500"
+                    )}>
+                      {message.mediaMimeType.split('/')[1]?.toUpperCase() || 'FILE'}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <a 
+                href={mediaUrl}
+                download={fileName}
+                className={cn(
+                  "p-1 rounded-full hover:bg-opacity-80 transition-colors",
+                  isOutbound ? "hover:bg-green-800" : "hover:bg-gray-100"
+                )}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Download className={cn(
+                  "w-4 h-4",
+                  isOutbound ? "text-white" : "text-gray-600"
+                )} />
+              </a>
+            </div>
+            {message.content && message.content !== '[document]' && (
+              <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+            )}
+          </div>
+        );
+
+      case 'template':
+        return (
+          <div className={cn(
+            "flex items-center space-x-2 p-2 rounded border-l-4",
+            isOutbound 
+              ? "border-green-300 bg-green-700" 
+              : "border-blue-400 bg-blue-50"
+          )}>
+            <div className="text-lg">📧</div>
+            <div>
+              <p className={cn(
+                "text-xs font-medium",
+                isOutbound ? "text-green-100" : "text-blue-700"
+              )}>
+                Template Message
+              </p>
+              <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+            </div>
+          </div>
+        );
+
+      default:
+        return <p className="text-sm whitespace-pre-wrap">{message.content || ""}</p>;
+    }
+  };
+
+  const formatMessageDate = (date: string | Date) => {
+    return format(new Date(date), "MMMM d, yyyy");
+  };
+
+  const getMessageStatusIcon = (status: string) => {
+    switch (status) {
+      case 'sent':
+        return <span className="text-xs">✓</span>;
+      case 'delivered':
+        return <span className="text-xs">✓✓</span>;
+      case 'read':
+        return <span className="text-xs text-blue-300">✓✓</span>;
+      case 'failed':
+        return <span className="text-xs text-red-300">✗</span>;
+      default:
+        return <span className="text-xs">○</span>;
+    }
+  };
+  
   return (
     <>
       {showDate && (
         <div className="flex items-center justify-center my-4">
           <div className="bg-gray-100 px-3 py-1 rounded-full text-xs text-gray-600">
-            {formatMessageDate(message.createdAt || new Date())}
+            {formatMessageDate(message.createdAt)}
           </div>
         </div>
       )}
@@ -218,17 +455,17 @@ const MessageItem = ({
             ? "bg-green-600 text-white rounded-br-sm" 
             : "bg-gray-100 text-gray-900 rounded-bl-sm"
         )}>
-          <p className="text-sm whitespace-pre-wrap">{message.content || ""}</p>
+          {renderMediaContent()}
           
           <div className={cn(
-            "flex items-center gap-1 mt-1",
+            "flex items-center gap-1 mt-2",
             isOutbound ? "justify-end" : "justify-start"
           )}>
             <span className={cn(
               "text-xs",
               isOutbound ? "text-green-100" : "text-gray-500"
             )}>
-              {format(new Date(message.createdAt || new Date()), "h:mm a")}
+              {format(new Date(message.createdAt), "h:mm a")}
             </span>
             {isOutbound && getMessageStatusIcon(message.status || "pending")}
           </div>
@@ -237,6 +474,7 @@ const MessageItem = ({
     </>
   );
 };
+
 
 // Template Dialog Component
 const TemplateDialog = ({ 
@@ -610,17 +848,44 @@ export default function Inbox() {
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
-
-    // For now, show a message that attachments are coming soon
-    toast({
-      title: "Coming Soon",
-      description: "File attachments will be available in the next update",
-    });
-    
-    // Reset the input
-    event.target.value = '';
+    if (!file || !selectedConversation) return;
+  
+    const formData = new FormData();
+    formData.append("media", file);
+    formData.append("fromUser", "true");
+    formData.append("conversationId", selectedConversation.id);
+    formData.append("caption", messageText || ""); // optional text/caption
+  
+    try {
+      const response = await fetch(`/api/conversations/${selectedConversation.id}/messages`, {
+        method: "POST",
+        body: formData, // no headers! browser sets them
+      });
+  
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to send media");
+      }
+  
+      const result = await response.json();
+      toast({
+        title: "Success",
+        description: "Media sent successfully",
+      });
+  
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations", selectedConversation.id, "messages"] });
+      setMessageText("");
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  
+    event.target.value = "";
   };
+  
 
   const updateConversationStatus = (status: string) => {
     if (!selectedConversation) return;
@@ -894,7 +1159,7 @@ export default function Inbox() {
               <TeamAssignDropdown
                       conversationId={selectedConversation.id}
                       currentAssignee={selectedConversation.assignedTo || undefined}
-                      currentAssigneeName={selectedConversation.assignedToName || undefined}
+                      currentAssigneeName={selectedConversation.contactName || undefined}
                       onAssign={handleAssignConversation}
                     />
                 <DropdownMenu>
