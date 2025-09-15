@@ -1660,7 +1660,6 @@ export class AutomationTriggerService {
       .from(automations)
       .where(and(
         eq(automations.channelId, channelId),
-        eq(automations.trigger, 'message_received'),
         eq(automations.status, 'active')
       ));
   
