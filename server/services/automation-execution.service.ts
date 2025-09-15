@@ -8,6 +8,7 @@ import {
   automationExecutionLogs,
   automationEdges,
   contacts,
+  templates,
 } from "@shared/schema";
 import { eq, and } from "drizzle-orm";
 import { sendBusinessMessage } from "../services/messageService";
@@ -1371,13 +1372,20 @@ private async sendInteractiveMessage(
     
     console.log(`📄 Sending template ${templateId} to conversation ${context.conversationId}`);
 
+    const getTemplate = await db.query.templates.findFirst({
+      where: and(
+        eq(templates.id, templateId),
+        eq(templates.channelId, getContact?.channelId)
+      )
+    });
+
     if (!getContact?.channelId) {
       throw new Error('channelId not found');
     } 
     if (getContact?.phone) {
       await sendBusinessMessage({
         to: getContact?.phone,
-        templateName: templateId,
+        templateName: getTemplate?.name || '',
         parameters: node.data?.parameters || [],
         channelId: getContact?.channelId,
       });
@@ -1400,7 +1408,12 @@ private async sendInteractiveMessage(
     }
     
     console.log(`👤 Assigning conversation ${context.conversationId} to user ${assigneeId}`);
+
+    const conversation = await storage.updateConversation(context.conversationId, {assignedTo: assigneeId, status:"assigned"});
     
+    if (!conversation) {
+      throw new Error('Conversation not found for assignment');
+    }
     console.log(`✅ Conversation assigned to: ${assigneeId}`);
     
     return {

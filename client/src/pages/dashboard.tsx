@@ -171,6 +171,12 @@ export default function Dashboard() {
     };
   };
 
+  type ActivityLog = {
+    action: string;
+    createdAt: string; // or Date
+    [key: string]: any; // other optional fields
+  };
+
   const getMonthlyGrowth = (stats: DashboardStarApiDataType) => {
     const thisMonth = stats?.thisMonthMessages || 0;
     const lastMonth = stats?.lastMonthMessages || 0;
@@ -245,6 +251,9 @@ export default function Dashboard() {
                   </p>
                   <div className="flex items-center mt-2">
                     {(() => {
+                      if (!stats) {
+                        return; // or handle default case
+                      }
                       const monthlyGrowth = getMonthlyGrowth(stats);
 
                       return (
@@ -344,6 +353,9 @@ export default function Dashboard() {
                   {/* Yahan simple comparison */}
                   <div className="flex items-center mt-2">
                     {(() => {
+                      if (!stats) {
+                        return; // or handle default case
+                      }
                       const comparison = getWeekComparison(stats);
                       return (
                         <>
@@ -466,13 +478,11 @@ export default function Dashboard() {
                     {t("dashboard.noRecentActivities")}
                   </p>
                 ) : (
-                  activityLogs
-                    .sort(
-                      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-                    )
-                    .slice(0, 5)
-                    .map((log) => {
-                      const meta = getActivityMeta(log.action);
+                  (activityLogs as ActivityLog[])
+                  .sort((a: ActivityLog, b: ActivityLog) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                  .slice(0, 5)
+                  .map((log: ActivityLog) => {
+                    const meta = getActivityMeta(log.action);
                       return (
                         <div
                           key={log.id}
@@ -710,7 +720,7 @@ export default function Dashboard() {
                       {t("dashboard.dailyMessageLimit")}
                     </span>
                     <span className="text-sm text-gray-600">
-                      {stats?.totalMessages || 0} /{" "}
+                      {stats?.todayMessages || 0} /{" "}
                       {activeChannel?.healthDetails.messaging_limit ===
                       "TIER_1K"
                         ? "1,000"
@@ -731,7 +741,7 @@ export default function Dashboard() {
                       className="bg-yellow-500 h-2 rounded-full"
                       style={{
                         width: `${Math.min(
-                          ((messageAnalytics?.overall?.totalMessages || 0) /
+                          ((stats?.todayMessages || 0) /
                             (activeChannel?.healthDetails.messaging_limit ===
                             "TIER_1K"
                               ? 1000
