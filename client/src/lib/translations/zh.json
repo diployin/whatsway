@@ -86,11 +86,13 @@
     "recentActivity": "近期活动",
     "totalMessagesSent": "总发送消息数",
     "vsLastMonth": "与上月相比",
+    "vsLastWeek": "与上周相比",
     "runningNow": "正在运行",
     "deliveryRate": "送达率",
     "newLeads": "新潜在客户",
     "thisWeek": "本周",
     "messageAnalytics": "消息分析",
+    "today": "今天",
     "7Days": "7天",
     "30Days": "30天",
     "3Months": "3个月",
@@ -130,6 +132,7 @@
      "textLead": "新线索",
       "apiStatusText": "已批准",
        "apiStatusUpTime": "API 正常运行时间",
+       "healthDetails": "健康详情",
     "apiStatus": "状态"
   },
   "contacts": {

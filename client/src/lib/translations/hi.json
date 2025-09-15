@@ -88,11 +88,13 @@
     "recentActivity": "हाल की गतिविधि",
     "totalMessagesSent": "कुल भेजे गए संदेश",
     "vsLastMonth": "बनाम पिछले महीने",
+    "vsLastWeek": "बनाम पिछले सप्ताह",
     "runningNow": "अभी चल रहा है",
     "deliveryRate": "डिलीवरी दर",
     "newLeads": "नए लीड",
     "thisWeek": "इस सप्ताह",
     "messageAnalytics": "संदेश एनालिटिक्स",
+    "today": "आज",
     "7Days": "7 दिन",
     "30Days": "30 दिन",
     "3Months": "3 महीने",
@@ -132,7 +134,8 @@
      "textLead": "नए लीड्स",
      "apiStatusText": "स्वीकृत",
      "apiStatusUpTime": "API अपटाइम",
-    "apiStatus": "स्थिति"
+    "apiStatus": "स्थिति",
+    "healthDetails": "स्वास्थ्य विवरण"
   },
   "contacts": {
     "title": "संपर्क",

@@ -85,11 +85,13 @@
     "recentActivity": "Atividade Recente",
     "totalMessagesSent": "Total de Mensagens Enviadas",
     "vsLastMonth": "vs. mês passado",
+    "vsLastWeek": "vs. semana passada",
     "runningNow": "em execução agora",
     "deliveryRate": "Taxa de Entrega",
     "newLeads": "Novos Leads",
     "thisWeek": "esta semana",
     "messageAnalytics": "Análise de Mensagens",
+    "today": "Hoje",
     "7Days": "7 Dias",
     "30Days": "30 Dias",
     "3Months": "3 Meses",
@@ -128,6 +130,7 @@
     "totalCampaigns": "Campanhas Totais",
     "apiStatusText": "Aprovado",
     "apiStatusUpTime": "Tempo de atividade da API",
+    "healthDetails": "Detalhes de Saúde",
     "apiStatus": "Status"
   },
   "contacts": {

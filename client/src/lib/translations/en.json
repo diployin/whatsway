@@ -89,11 +89,13 @@
     "recentActivity": "Recent Activity",
     "totalMessagesSent": "Total Messages Sent",
     "vsLastMonth": "vs last month",
+    "vsLastWeek": "vs last week",
     "runningNow": "running now",
     "deliveryRate": "Delivery Rate",
     "newLeads": "New Leads",
     "thisWeek": "this week",
     "messageAnalytics": "Message Analytics",
+    "today": "Today",
     "7Days": "7 Days",
     "30Days": "30 Days",
     "3Months": "3 Months",
@@ -133,6 +135,7 @@
      "textLead":"New Leads",
     "apiStatusText": "Approved",
      "apiStatusUpTime": "API Uptime",
+     "healthDetails": "Health Details",
     "apiStatus": "Status"
   },
   "contacts": {

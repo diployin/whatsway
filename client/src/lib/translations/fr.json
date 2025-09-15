@@ -86,11 +86,13 @@
     "recentActivity": "Activité récente",
     "totalMessagesSent": "Total des messages envoyés",
     "vsLastMonth": "par rapport au mois dernier",
+    "vsLastWeek": "par rapport à la semaine dernière",
     "runningNow": "en cours d'exécution",
     "deliveryRate": "Taux de livraison",
     "newLeads": "Nouveaux prospects",
     "thisWeek": "cette semaine",
     "messageAnalytics": "Analytique des messages",
+    "today": "Aujourd'hui",
     "7Days": "7 jours",
     "30Days": "30 jours",
     "3Months": "3 mois",
@@ -130,6 +132,7 @@
       "textLead": "Nouveaux Prospects",
       "apiStatusText": "Approuvé",
       "apiStatusUpTime": "Disponibilité de l'API",
+      "healthDetails": "Détails de la santé",
     "apiStatus": "Statut"
   },
   "contacts": {

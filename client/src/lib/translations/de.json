@@ -86,11 +86,13 @@
     "recentActivity": "Letzte Aktivität",
     "totalMessagesSent": "Gesamtzahl der gesendeten Nachrichten",
     "vsLastMonth": "im Vergleich zum letzten Monat",
+    "vsLastWeek": "im Vergleich zur letzten Woche",
     "runningNow": "läuft jetzt",
     "deliveryRate": "Zustellrate",
     "newLeads": "Neue Leads",
     "thisWeek": "diese Woche",
     "messageAnalytics": "Nachrichtenanalyse",
+    "today": "Heute",
     "7Days": "7 Tage",
     "30Days": "30 Tage",
     "3Months": "3 Monate",
@@ -130,6 +132,7 @@
      "textLead": "Neue Leads",
       "apiStatusText": "Genehmigt",
        "apiStatusUpTime": "API-Betriebszeit",
+       "healthDetails": "Gesundheitsdetails",
     "apiStatus": "Status"
   },
   "contacts": {

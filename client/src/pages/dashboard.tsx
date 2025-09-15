@@ -350,7 +350,7 @@ export default function Dashboard() {
                     {stats?.todayContacts || "0"}
                   </p>
 
-                  {/* Yahan simple comparison */}
+                  
                   <div className="flex items-center mt-2">
                     {(() => {
                       if (!stats) {
@@ -374,7 +374,7 @@ export default function Dashboard() {
                             {comparison.percentage}%
                           </span>
                           <span className="text-sm text-gray-500 ml-1">
-                            vs last week
+                          {t("dashboard.vsLastWeek")}
                           </span>
                         </>
                       );
@@ -399,9 +399,9 @@ export default function Dashboard() {
                 <CardTitle>{t("dashboard.messageAnalytics")}</CardTitle>
                 <div className="flex space-x-2">
                   {[
-                    { value: 1, label: "Today's" },
-                    { value: 7, label: "7 Days" },
-                    { value: 30, label: "30 Days" },
+                    { value: 1, label: t("dashboard.today") },
+                    { value: 7, label: t("dashboard.7Days") },
+                    { value: 30, label: t("dashboard.30Days") },
                     // { value: 90, label: "3 Months" },
                   ].map((range) => (
                     <Button
@@ -676,7 +676,7 @@ export default function Dashboard() {
                       </div>
                       <div>
                         <h4 className="font-medium text-gray-900">
-                          Health Details
+                          {t("dashboard.healthDetails")}
                         </h4>
                         <p className="text-sm text-gray-600">
                           {t("dashboard.rating")}:{" "}
