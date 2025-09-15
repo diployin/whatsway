@@ -1,3 +1,4 @@
+import { useTranslation } from "@/lib/i18n";
 import {
   LineChart,
   Line,
@@ -20,6 +21,7 @@ interface MessageChartProps {
 }
 
 export function MessageChart({ data }: MessageChartProps) {
+  const { t } = useTranslation();
   return (
     <ResponsiveContainer width="100%" height={300}>
       <LineChart data={data}>
@@ -33,28 +35,28 @@ export function MessageChart({ data }: MessageChartProps) {
           dataKey="sent"
           stroke="#3b82f6"
           strokeWidth={2}
-          name="Sent"
+          name={`${t("dashboard.sent")}`}
         />
         <Line
           type="monotone"
           dataKey="delivered"
           stroke="#10b981"
           strokeWidth={2}
-          name="Delivered"
+          name={`${t("dashboard.delivered")}`}
         />
         <Line
           type="monotone"
           dataKey="read"
           stroke="#f59e0b"
           strokeWidth={2}
-          name="Read"
+          name={`${t("dashboard.read")}`}
         />
         <Line
           type="monotone"
           dataKey="failed"
           stroke="#ef4444"
           strokeWidth={2}
-          name="Failed"
+          name={`${t("dashboard.failed")}`}
         />
       </LineChart>
     </ResponsiveContainer>

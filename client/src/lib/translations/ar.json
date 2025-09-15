@@ -86,11 +86,13 @@
     "recentActivity": "النشاط الأخير",
     "totalMessagesSent": "إجمالي الرسائل المرسلة",
     "vsLastMonth": "مقارنة بالشهر الماضي",
+    "vsLastWeek": "مقارنة بالأسبوع الماضي",
     "runningNow": "يعمل الآن",
     "deliveryRate": "معدل التسليم",
     "newLeads": "عملاء محتملون جدد",
     "thisWeek": "هذا الأسبوع",
     "messageAnalytics": "تحليلات الرسائل",
+    "today": "اليوم",
     "7Days": "7 أيام",
     "30Days": "30 يومًا",
     "3Months": "3 أشهر",
@@ -130,6 +132,7 @@
      "textLead": "عملاء جدد",
      "apiStatusText": "موافَق عليه",
      "apiStatusUpTime": "وقت تشغيل API",
+     "healthDetails": "تفاصيل الصحة",
     "apiStatus": "الحالة"
   },
   "contacts": {

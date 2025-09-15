@@ -518,6 +518,8 @@ whatsway/
 │       ├── index.css           # Global styles
 │       └── main.tsx            # Application entry point
 │
+├── prisma/                     # for open prisma studio
+|   ├── schema.prisma
 ├── server/                     # Backend Node.js application
 │   ├── controllers/            # Request handlers
 │   │   ├── analytics.controller.ts
