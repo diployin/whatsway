@@ -33,9 +33,9 @@ console.log('Sending message via channel:', channelId, 'to:', to);
     result = await whatsappApi.sendMessage(to, templateName, parameters || []);
   } else {
     // console.log('Sending text message:', message);
-    result = await whatsappApi.sendTextMessage(to, message);
+    result = await whatsappApi.sendTextMessage(to, message|| "Test message");
   }
-// console.log('WhatsApp API result:', result);
+console.log('WhatsApp API result:', result);
   // Find or create conversation
   let conversation = conversationId
     ? await storage.getConversation(conversationId)
@@ -60,22 +60,24 @@ console.log('Sending message via channel:', channelId, 'to:', to);
     });
   }
 
-  let newMsg = templateName ? await storage.getTemplatesByName(templateName) : null;
-// console.log('Using template for message body:',{
-//     conversationId: conversation.id,
-//     content: message || newMsg?.body,
-//     sender: "business",
-//     status: "sent",
-//     whatsappMessageId: result.messages?.[0]?.id,
-//   });
-  // Save message
-  const createdMessage = await storage.createMessage({
+  let newMsg = templateName ? (await storage.getTemplatesByName(templateName))[0] : null;
+
+console.log('Using template for message body:',{
     conversationId: conversation.id,
     content: message || newMsg?.body,
     sender: "business",
     status: "sent",
     whatsappMessageId: result.messages?.[0]?.id,
   });
+  // Save message
+  const createdMessage = await storage.createMessage({
+    conversationId: conversation.id,
+    content: message ?? newMsg?.body ?? "",
+    status: "sent",
+    whatsappMessageId: result.messages?.[0]?.id,
+  });
+
+  
 // console.log('Created message:', createdMessage);
   // Update conversation last message
   await storage.updateConversation(conversation.id, {
