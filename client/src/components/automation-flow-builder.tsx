@@ -169,7 +169,7 @@ const defaultsByKind: Record<NodeKind, Partial<BuilderNodeData>> = {
 // Transform automation data to ReactFlow format
 // -----------------------
 function transformAutomationToFlow(automation: any): { nodes: Node<BuilderNodeData>[]; edges: Edge[] } {
-  if (!automation || !automation.automation_nodes) {
+ if (!automation || !automation.automation_nodes) {
     return {
       nodes: [
         {
@@ -207,9 +207,9 @@ function transformAutomationToFlow(automation: any): { nodes: Node<BuilderNodeDa
     const reactFlowNode: Node<BuilderNodeData> = {
       id: autoNode.nodeId,
       type: autoNode.type,
-      // Use saved position if available, otherwise use calculated position
-      position: autoNode.position_x && autoNode.position_y 
-        ? { x: autoNode.position_x, y: autoNode.position_y }
+      // FIX: Use the correct property names from your API data
+      position: autoNode.position && autoNode.position.x !== undefined && autoNode.position.y !== undefined 
+        ? { x: autoNode.position.x, y: autoNode.position.y }
         : { x: 200, y: 140 + (index * 140) },
       data: nodeData,
     };
@@ -1110,6 +1110,9 @@ export default function AutomationFlowBuilderXYFlow({
   // Initialize directly without useMemo or normalizeEdges function
   const [nodes, setNodes, onNodesChange] = useNodesState<BuilderNodeData>(initialFlowRef.current.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialFlowRef.current.edges);
+  useEffect(() => {
+   console.log(nodes)
+  }, [nodes])
   
   // Selection
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -1260,6 +1263,8 @@ export default function AutomationFlowBuilderXYFlow({
       });
       return;
     }
+
+    console.log("nodes before saving:", nodes);
   
     const backendNodes = nodes
       .filter(n => n.id !== 'start')
@@ -1270,6 +1275,8 @@ export default function AutomationFlowBuilderXYFlow({
           y: node.position.y
         },
       }));
+
+      console.log("backendNodes after filtering start node:", backendNodes);
     
     // Normalize edges for backend storage
     const normalizedEdges = edges.map(edge => ({
