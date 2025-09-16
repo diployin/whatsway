@@ -118,9 +118,11 @@ export default function Analytics() {
   const deliveryRate = messageMetrics.totalMessages > 0 
     ? ((messageMetrics.totalDelivered || 0) / messageMetrics.totalMessages) * 100 
     : 0;
-  const readRate = messageMetrics.totalDelivered > 0 
-    ? ((messageMetrics.totalRead || 0) / messageMetrics.totalDelivered) * 100 
-    : 0;
+
+    const readRate = messageMetrics.totalDelivered > 0 
+    ? Math.min(((messageMetrics.totalRead || 0) / messageMetrics.totalDelivered) * 100, 100)
+    : 0;  
+    
   const replyRate = messageMetrics.totalMessages > 0 
     ? ((messageMetrics.totalReplied || 0) / messageMetrics.totalMessages) * 100 
     : 0;
