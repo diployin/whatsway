@@ -70,7 +70,7 @@ export class AnalyticsRepository {
       id: `analytics-${row.date.toISOString()}`,
       channelId: null,      // must be string | null
       date: row.date,
-      messagesTotal: (Number(row.sent) + Number(row.delivered) + Number(row.read) + Number(row.replied) + Number(row.failed)) ?? null, 
+      messagesTotal: Number(row.sent) + Number(row.delivered) + Number(row.read) + Number(row.replied) + Number(row.failed),
       messagesSent: Number(row.sent) ?? null,
       messagesDelivered: Number(row.delivered) ?? null,
       messagesRead: Number(row.read) ?? null,

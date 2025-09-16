@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "@/lib/i18n";
 import { Textarea } from "@/components/ui/textarea";
 import {
   DropdownMenu,
@@ -89,6 +90,7 @@ function EditContactForm({
   onSuccess: () => void;
   onCancel: () => void;
 }) {
+  const { t } = useTranslation();
   const form = useForm<InsertContact>({
     resolver: zodResolver(insertContactSchema),
     defaultValues: {
@@ -132,7 +134,7 @@ function EditContactForm({
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel>{t('contacts.addContact.name')}</FormLabel>
               <FormControl>
                 <Input {...field} />
               </FormControl>
@@ -146,7 +148,7 @@ function EditContactForm({
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>{t('contacts.addContact.email')}</FormLabel>
               <FormControl>
                 <Input {...field} type="email" value={field.value || ""} />
               </FormControl>
@@ -160,7 +162,7 @@ function EditContactForm({
           name="phone"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Phone</FormLabel>
+              <FormLabel>{t('contacts.addContact.phone')}</FormLabel>
               <FormControl>
                 <Input {...field} />
               </FormControl>
@@ -174,11 +176,11 @@ function EditContactForm({
           name="groups"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Groups</FormLabel>
+              <FormLabel>{t('contacts.groups')}</FormLabel>
               <FormControl>
                 <Input
                   {...field}
-                  placeholder="Enter groups separated by commas"
+                  placeholder={`${t('contacts.editContact.groupsPlaceholder')}`}
                   value={
                     Array.isArray(field.value) ? field.value.join(", ") : ""
                   }
@@ -198,14 +200,14 @@ function EditContactForm({
 
         <div className="flex justify-end space-x-2">
           <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button
             type="submit"
             disabled={updateContactMutation.isPending}
             className="bg-green-600 hover:bg-green-700 text-white"
           >
-            {updateContactMutation.isPending ? "Updating..." : "Update Contact"}
+            {updateContactMutation.isPending ? `${t('contacts.editContact.updating')}` : t('contacts.editContact.successTitle')}
           </Button>
         </div>
       </form>
@@ -214,6 +216,7 @@ function EditContactForm({
 }
 const ITEMS_PER_PAGE = 10;
 export default function Contacts() {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showMessageDialog, setShowMessageDialog] = useState(false);
@@ -881,10 +884,10 @@ export default function Contacts() {
   return (
     <div className="flex-1 dots-bg min-h-screen">
       <Header
-        title="Contacts Management"
-        subtitle="Manage your WhatsApp contacts and groups"
+        title={t('contacts.title')}
+        subtitle={t('contacts.subtitle')}
         action={{
-          label: "Add Contact",
+          label: `${t('contacts.addContact.title')}`,
           onClick: () => setShowAddDialog(true),
         }}
       />
@@ -897,7 +900,7 @@ export default function Contacts() {
               <div className="flex-1 min-w-64 relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input
-                  placeholder="Search contacts..."
+                  placeholder={`${t('contacts.searchContacts')}`}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
@@ -907,7 +910,7 @@ export default function Contacts() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline">
                     <Filter className="w-4 h-4 mr-2" />
-                    {selectedGroup || "All Groups"}
+                    {selectedGroup || `${t('contacts.allGroups')}`}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -915,20 +918,20 @@ export default function Contacts() {
                     onClick={() => setSelectedGroup(null)}
                     className={!selectedGroup ? "bg-gray-100" : ""}
                   >
-                    All Groups
+                    {t('contacts.allGroups')}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => setShowGroupDialog(true)}
                     className="text-green-600"
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    Create New Group
+                    {t('contacts.createNewGroup')}
                   </DropdownMenuItem>
                   {uniqueGroups.length > 0 && (
                     <>
                       <DropdownMenuItem disabled className="py-1">
                         <span className="text-xs text-gray-500 uppercase">
-                          Available Groups
+                          {t('contacts.availableGroups')}
                         </span>
                       </DropdownMenuItem>
                       {uniqueGroups.map((group) => (
@@ -950,7 +953,7 @@ export default function Contacts() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline">
                     <Filter className="w-4 h-4 mr-2" />
-                    {selectedStatus || "All Status"}
+                    {selectedStatus || `${t('contacts.allStatuses')}`}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -958,13 +961,13 @@ export default function Contacts() {
                     onClick={() => setSelectedStatus(null)}
                     className={!selectedStatus ? "bg-gray-100" : ""}
                   >
-                    All Status
+                    {t('contacts.allStatuses')}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => setSelectedStatus("active")}
                     className={selectedStatus === "active" ? "bg-gray-100" : ""}
                   >
-                    Active
+                    {t('contacts.active')}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => setSelectedStatus("blocked")}
@@ -972,7 +975,7 @@ export default function Contacts() {
                       selectedStatus === "blocked" ? "bg-gray-100" : ""
                     }
                   >
-                    Blocked
+                    {t('contacts.blocked')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -981,7 +984,7 @@ export default function Contacts() {
                 onClick={handleExportAllContacts}
               >
                 <Upload className="w-4 h-4 mr-2" />
-                Export Excel
+               {t('contacts.exportAllContacts')}
               </Button>
 
               <label className="cursor-pointer">
@@ -1000,7 +1003,7 @@ export default function Contacts() {
                 <Button variant="outline" className="" asChild>
                   <span>
                     <Upload className="w-4 h-4 mr-2" />
-                    Import CSV
+                    {t('contacts.importContacts')}
                   </span>
                 </Button>
               </label>
@@ -1010,7 +1013,7 @@ export default function Contacts() {
                 onClick={handleExcelDownload}
               >
                 <Download className="w-4 h-4 mr-2" />
-                Sample Excel
+                {t('contacts.downloadSampleExcel')}
               </Button>
             </div>
           </CardContent>
@@ -1022,8 +1025,8 @@ export default function Contacts() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">
-                  {selectedContactIds.length} contact
-                  {selectedContactIds.length > 1 ? "s" : ""} selected
+                  {selectedContactIds.length} {t('contacts.contact')}
+                  {selectedContactIds.length > 1 ? "s" : ""} {t('contacts.selected')}
                 </span>
                 <div className="flex gap-2">
                   <Button
@@ -1032,11 +1035,11 @@ export default function Contacts() {
                     onClick={handleExportSelectedContacts}
                   >
                     <Download className="w-4 h-4 mr-2" />
-                    Export Selected
+                    {t('contacts.exportSelected')}
                   </Button>
                   <Button variant="outline" size="sm" className="text-red-600" onClick={() => setShowBulkDeleteDialog(true)}>
                     <Trash2 className="w-4 h-4 mr-2" />
-                    Delete Selected
+                   {t('contacts.deleteSelected')}
                   </Button>
                 </div>
               </div>
@@ -1050,20 +1053,20 @@ export default function Contacts() {
             {!contacts.length ? (
               <EmptyState
                 icon={Users}
-                title="No contacts found"
+                title={`${t('contacts.noContactsFound')}`}
                 description={
                   searchQuery || selectedGroup || selectedStatus
-                    ? "No contacts match your current filters. Try adjusting your search criteria."
-                    : "You haven't added any contacts yet. Import contacts or add them manually to get started."
+                    ? `${t('contacts.noFilters')}`
+                    : `${t('contacts.noContactsYet')}`
                 }
                 action={
                   !(searchQuery || selectedGroup || selectedStatus)
                     ? {
-                        label: "Add First Contact",
+                        label: `${t('contacts.addYourFirstContact')}`,
                         onClick: () => setShowAddDialog(true),
                       }
                     : {
-                        label: "Clear Filters",
+                        label:` ${t('contacts.clearFilters')}`,
                         onClick: clearAllFilters,
                       }
                 }
@@ -1083,22 +1086,22 @@ export default function Contacts() {
                         />
                       </th>
                       <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Contact
+                       {t('contacts.contact')}
                       </th>
                       <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Phone
+                        {t('contacts.phone')}
                       </th>
                       <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Groups
+                        {t('contacts.groups')}
                       </th>
                       <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
+                        {t('contacts.status')}
                       </th>
                       <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Last Contact
+                        {t('contacts.lastContact')}
                       </th>
                       <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
+                        {t('contacts.actions')}
                       </th>
                     </tr>
                   </thead>
@@ -1151,7 +1154,7 @@ export default function Contacts() {
                               )
                             ) : (
                               <span className="text-sm text-gray-400">
-                                No groups
+                                {t('contacts.noGroups')}
                               </span>
                             )}
                           </div>
@@ -1189,8 +1192,8 @@ export default function Contacts() {
                               disabled={!channels || channels.length === 0}
                               title={
                                 !channels || channels.length === 0
-                                  ? "No WhatsApp channels configured"
-                                  : "Send message"
+                                  ?  `${t('contacts.noChannels')}`
+                                  : `${t('contacts.sendMessage.title')}`
                               }
                             >
                               <MessageSquare className="w-4 h-4 text-blue-600" />
@@ -1227,7 +1230,7 @@ export default function Contacts() {
                                   }}
                                 >
                                   <Edit className="h-4 w-4 mr-2" />
-                                  Edit Contact
+                                  {t('contacts.editContact.title')}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() => {
@@ -1237,7 +1240,7 @@ export default function Contacts() {
                                   disabled={!channels || channels.length === 0}
                                 >
                                   <MessageSquare className="h-4 w-4 mr-2" />
-                                  Send Message
+                                  {t('contacts.sendMessage.title')}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() =>
@@ -1255,12 +1258,12 @@ export default function Contacts() {
                                   {contact.status === "active" ? (
                                     <>
                                       <Shield className="h-4 w-4 mr-2" />
-                                      Block Contact
+                                     {t('contacts.blockContact')}
                                     </>
                                   ) : (
                                     <>
                                       <CheckCircle className="h-4 w-4 mr-2" />
-                                      Unblock Contact
+                                      {t('contacts.unblockContact')}
                                     </>
                                   )}
                                 </DropdownMenuItem>
@@ -1271,7 +1274,7 @@ export default function Contacts() {
                                   className="text-red-600"
                                 >
                                   <Trash2 className="h-4 w-4 mr-2" />
-                                  Delete Contact
+                                {t('contacts.deleteContact.title')}
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -1327,7 +1330,7 @@ export default function Contacts() {
                     onClick={goToPreviousPage}
                     disabled={page === 1}
                   >
-                    Previous
+                    {t('contacts.previous')}
                   </Button>
 
                   {getPageNumbers().map((pageNum) => (
@@ -1352,7 +1355,7 @@ export default function Contacts() {
                     onClick={goToNextPage}
                     disabled={page === totalPages}
                   >
-                    Next
+                    {t('contacts.next')}
                   </Button>
                 </div>
               </div>
@@ -1365,9 +1368,9 @@ export default function Contacts() {
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add New Contact</DialogTitle>
+            <DialogTitle>{t('contacts.addContact.title')}</DialogTitle>
             <DialogDescription>
-              Add a new WhatsApp contact to your contact list.
+              {t('contacts.addContact.description')}
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
@@ -1382,11 +1385,11 @@ export default function Contacts() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>{t('contacts.addContact.name')}</FormLabel>
                     <FormControl>
                       <Input placeholder="John Doe" {...field} />
                     </FormControl>
-                    <FormDescription>Contact's full name</FormDescription>
+                    <FormDescription>{t('addContact.description.namedesc')} </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -1396,12 +1399,12 @@ export default function Contacts() {
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
+                    <FormLabel>{t('addContact.description.phone')}</FormLabel>
                     <FormControl>
                       <Input placeholder="+1234567890" {...field} />
                     </FormControl>
                     <FormDescription>
-                      WhatsApp phone number with country code
+                      {t('addContact.description.phonedesc')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -1412,7 +1415,7 @@ export default function Contacts() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email (Optional)</FormLabel>
+                    <FormLabel>{t('addContact.description.email')}</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="john@example.com"
@@ -1430,15 +1433,15 @@ export default function Contacts() {
                   variant="outline"
                   onClick={() => setShowAddDialog(false)}
                 >
-                  Cancel
+                  {t('addContact.description.cancel')}
                 </Button>
                 <Button
                   type="submit"
                   disabled={createContactMutation.isPending}
                 >
                   {createContactMutation.isPending
-                    ? "Adding..."
-                    : "Add Contact"}
+                    ? `${t('addContact.description.submitting')}`
+                    : `${t('addContact.description.submit')}`}
                 </Button>
               </div>
             </form>
@@ -1450,9 +1453,9 @@ export default function Contacts() {
       <Dialog open={showMessageDialog} onOpenChange={setShowMessageDialog}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Send WhatsApp Message</DialogTitle>
+            <DialogTitle>{t('contacts.sendMessage.title')}</DialogTitle>
             <DialogDescription>
-              Send a message to {selectedContact?.name} (
+              {t('contacts.sendMessage.description')} {selectedContact?.name} (
               {selectedContact?.phone})
             </DialogDescription>
           </DialogHeader>
@@ -1462,7 +1465,7 @@ export default function Contacts() {
                 <div className="flex items-center gap-2">
                   <Phone className="w-4 h-4 text-gray-600" />
                   <div className="text-sm">
-                    <span className="font-medium">Active Channel:</span>{" "}
+                    <span className="font-medium">{t('contacts.sendMessage.activeChannel')}</span>{" "}
                     <span className="text-gray-700">{activeChannel.name}</span>
                   </div>
                 </div>
@@ -1472,14 +1475,13 @@ export default function Contacts() {
             {!activeChannel && (
               <div className="p-3 bg-yellow-50 rounded-md border border-yellow-200">
                 <p className="text-sm text-yellow-800">
-                  No active channel selected. Please select a channel from the
-                  header to send messages.
+                  {t('contacts.sendMessage.noChannel')}
                 </p>
               </div>
             )}
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Message Type</label>
+              <label className="text-sm font-medium">{t('contacts.sendMessage.messageType')}</label>
               <select
                 className="w-full p-2 border rounded-md"
                 value={messageType}
@@ -1489,15 +1491,15 @@ export default function Contacts() {
                   setTemplateVariables({});
                 }}
               >
-                <option value="text">Regular Text Message</option>
-                <option value="template">WhatsApp Template</option>
+                <option value="text">{t('contacts.sendMessage.textMessage')}</option>
+                <option value="template">{t('contacts.sendMessage.templateMessage')}</option>
               </select>
             </div>
 
             {messageType === "template" ? (
               <>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Select Template</label>
+                  <label className="text-sm font-medium">{t('contacts.sendMessage.textMessage')}</label>
                   <select
                     className="w-full p-2 border rounded-md"
                     value={selectedTemplateId}
@@ -1515,7 +1517,7 @@ export default function Contacts() {
                       }
                     }}
                   >
-                    <option value="">Select a template</option>
+                    <option value="">{t('contacts.sendMessage.selectTemplate')}</option>
                     {availableTemplates
                       ?.filter(
                         (t: any) => t.status?.toLowerCase() === "approved"
@@ -1531,7 +1533,7 @@ export default function Contacts() {
                 {selectedTemplateId && (
                   <div className="space-y-2">
                     <label className="text-sm font-medium">
-                      Template Variables
+                    {t('contacts.sendMessage.templateVariables')}
                     </label>
                     {Object.keys(templateVariables).map((key) => {
                       const template = availableTemplates?.find(
@@ -1561,11 +1563,11 @@ export default function Contacts() {
               </>
             ) : (
               <div className="space-y-2">
-                <label className="text-sm font-medium">Message</label>
+                <label className="text-sm font-medium">{t('contacts.sendMessage.message')}</label>
                 <textarea
                   className="w-full p-3 border rounded-md resize-none"
                   rows={4}
-                  placeholder="Type your message here..."
+                  placeholder={`${t('contacts.sendMessage.messagePlaceholder')}`}
                   value={messageText}
                   onChange={(e) => setMessageText(e.target.value)}
                 />
@@ -1584,7 +1586,7 @@ export default function Contacts() {
                   setTemplateVariables({});
                 }}
               >
-                Cancel
+                {t('contacts.addContact.cancel')}
               </Button>
               <Button
                 disabled={
@@ -1620,7 +1622,7 @@ export default function Contacts() {
                   }
                 }}
               >
-                {sendMessageMutation.isPending ? "Sending..." : "Send Message"}
+                {sendMessageMutation.isPending ? `${t('contacts.sendMessage.sending')}` : `${t('contacts.sendMessage.send')}`}
               </Button>
             </div>
           </div>
@@ -1631,10 +1633,9 @@ export default function Contacts() {
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Contact</DialogTitle>
+            <DialogTitle>{t('contacts.deleteContact.title')}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this contact? This action cannot
-              be undone.
+            {t('contacts.deleteContact.title')}
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end space-x-2 mt-4">
@@ -1645,7 +1646,7 @@ export default function Contacts() {
                 setContactToDelete(null);
               }}
             >
-              Cancel
+              {t('contacts.addContact.cancel')}
             </Button>
             <Button
               variant="destructive"
@@ -1666,10 +1667,10 @@ export default function Contacts() {
       <Dialog open={showBulkDeleteDialog} onOpenChange={setShowBulkDeleteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Contacts</DialogTitle>
+            <DialogTitle>{t('contacts.deleteContacts.title')}</DialogTitle>
             <DialogDescription>
-              You are about to delete <strong>{selectedContactIds.length}</strong>{" "}
-              contact{selectedContactIds.length > 1 ? "s" : ""}. This action cannot be undone.
+            {t('contacts.deleteContacts.description')} <strong>{selectedContactIds.length}</strong>{" "}
+              {selectedContactIds.length > 1 ? `${t('contacts.contacts')}` : `${t('contacts.contact')}`}. {t('contacts.deleteContacts.confirmation')}
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end space-x-2 mt-4">
@@ -1679,7 +1680,7 @@ export default function Contacts() {
                 setShowBulkDeleteDialog(false);
               }}
             >
-              Cancel
+              {t('contacts.addContact.cancel')}
             </Button>
             <Button
               variant="destructive"
@@ -1689,7 +1690,7 @@ export default function Contacts() {
               }}
               disabled={deleteBulkContactsMutation.isPending}
             >
-              {deleteBulkContactsMutation.isPending ? "Deleting..." : "Delete"}
+              {deleteBulkContactsMutation.isPending ? `${t('contacts.deleteContacts.deleting')}` : `${t('contacts.deleteContacts.title')}`}
             </Button>
           </div>
         </DialogContent>
@@ -1700,8 +1701,8 @@ export default function Contacts() {
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Contact</DialogTitle>
-            <DialogDescription>Update contact information</DialogDescription>
+            <DialogTitle>{t('contacts.editContact.title')}</DialogTitle>
+            <DialogDescription>{t('contacts.editContact.description')}</DialogDescription>
           </DialogHeader>
           {selectedContact && (
             <EditContactForm
@@ -1711,8 +1712,8 @@ export default function Contacts() {
                 setShowEditDialog(false);
                 setSelectedContact(null);
                 toast({
-                  title: "Contact updated",
-                  description: "The contact has been successfully updated.",
+                  title: `${t('contacts.editContact.successTitle')}`,
+                  description:  `${t('contacts.editContact.successDesc')}`,
                 });
               }}
               onCancel={() => {
@@ -1728,16 +1729,16 @@ export default function Contacts() {
       <Dialog open={showGroupDialog} onOpenChange={setShowGroupDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create Contact Group</DialogTitle>
+            <DialogTitle>{t('contacts.createGroup.title')}</DialogTitle>
             <DialogDescription>
-              Create a new group to organize your contacts
+              {t('contacts.createGroup.description')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 mt-4">
             <div>
-              <label className="text-sm font-medium">Group Name</label>
+              <label className="text-sm font-medium">{t('contacts.createGroup.name')}</label>
               <Input
-                placeholder="e.g., VIP Customers, Marketing List"
+                placeholder= {`${t('contacts.createGroup.groupNamePlaceholder')}`}
                 className="mt-1"
                 value={groupName}
                 onChange={(e) => setGroupName(e.target.value)}
@@ -1745,10 +1746,10 @@ export default function Contacts() {
             </div>
             <div>
               <label className="text-sm font-medium">
-                Description (Optional)
+              {t('contacts.createGroup.groupDescription')}
               </label>
               <Textarea
-                placeholder="Describe the purpose of this group..."
+                placeholder={ `${t('contacts.createGroup.groupDescriptionPlaceholder')}`}
                 className="mt-1"
                 rows={3}
                 value={groupDescription}
@@ -1764,15 +1765,15 @@ export default function Contacts() {
                   setGroupDescription("");
                 }}
               >
-                Cancel
+                {t('contacts.addContact.cancel')}
               </Button>
               <Button
                 className="bg-green-600 hover:bg-green-700 text-white"
                 onClick={() => {
                   if (groupName.trim()) {
                     toast({
-                      title: "Group created",
-                      description: `Group "${groupName}" has been created. You can now add contacts to this group.`,
+                      title:  `${t('contacts.createGroup.successTitle')}`,
+                      description: `${t('contacts.createGroup.successDesc')} ${groupName}`,
                     });
                     setShowGroupDialog(false);
                     setGroupName("");
@@ -1786,7 +1787,7 @@ export default function Contacts() {
                   }
                 }}
               >
-                Create Group
+              {t('contacts.createGroup.create')}
               </Button>
             </div>
           </div>
