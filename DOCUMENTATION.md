@@ -80,44 +80,86 @@ whatsway/
 
 ## 🚀 Quick Installation
 
-### Prerequisites
-- Node.js 18+
-- PostgreSQL 14+
+### System Requirements
+- **OS**: Ubuntu 20.04+ / Windows Server 2019+ / macOS 10.15+
+- **Node.js**: Version 18+
+- **PostgreSQL**: Version 14+
+- **RAM**: 2GB minimum (4GB recommended)
+- **Storage**: 10GB minimum
+- **CPU**: 2 cores minimum
+- **SSL Certificate**: Required for webhooks
+
+### Required Accounts
 - WhatsApp Business Account
-- SSL Certificate (for webhooks)
+- Meta Business Account  
+- Facebook Developer Account
+- Domain with SSL certificate
 
 ### Installation Steps
 ```bash
-# 1. Install dependencies
+# 1. Install Node.js (Ubuntu/Debian)
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt install -y nodejs
+
+# Install PostgreSQL
+sudo apt install -y postgresql postgresql-contrib
+
+# Install PM2 (Process Manager)
+sudo npm install -g pm2
+
+# 2. Clone/Extract WhatsWay
+cd /path/to/your/directory
+# Extract your WhatsWay package here
+
+# 3. Install dependencies
 npm install
 
-# 2. Setup database
+# 4. Setup database
 sudo -u postgres psql
 CREATE DATABASE whatsway;
 CREATE USER whatsway_user WITH PASSWORD 'your_password';
 GRANT ALL PRIVILEGES ON DATABASE whatsway TO whatsway_user;
+\q
 
-# 3. Configure environment
+# 5. Configure environment
 cp .env.example .env
 # Edit .env with your details
 
-# 4. Setup database
+# 6. Setup database
 npm run db:push
 
-# 5. Start application
+# 7. Build application
+npm run build
+
+# 8. Start application
 npm run dev    # Development
-npm run build && npm start    # Production
+npm start      # Production
 ```
 
 ### Environment Configuration (.env)
 ```env
+# Database Configuration
 DATABASE_URL=postgresql://whatsway_user:password@localhost:5432/whatsway
+
+# Session Configuration
 SESSION_SECRET=your_32_character_secret_key
+
+# WhatsApp Configuration
+WHATSAPP_API_VERSION=v23.0
 WHATSAPP_ACCESS_TOKEN=your_whatsapp_token
 WHATSAPP_BUSINESS_ACCOUNT_ID=your_business_id
 WHATSAPP_WEBHOOK_VERIFY_TOKEN=your_webhook_token
+
+# MM Lite Configuration (Auto-enabled for marketing campaigns)
+# Uses same WhatsApp Cloud API with /marketing_messages endpoint
+
+# Application Configuration
 APP_URL=https://your-domain.com
 PORT=5000
+
+# Debug Configuration (optional)
+DEBUG=false
+LOG_LEVEL=info
 ```
 
 ## 🔧 WhatsApp Setup
@@ -190,44 +232,87 @@ View real-time statistics, campaign performance, and system health.
 
 ## 📊 How to Use
 
+### Initial Setup Process
+1. **First Login & Security**
+   - Login with default credentials
+   - **Immediately change password**
+   - Review user settings
+
+2. **System Configuration**
+   - Configure webhook endpoints
+   - Test database connection
+   - Verify all services running
+
 ### Setup Your First Channel
 1. Go to **Settings → Channels**
 2. Click **Add Channel**
-3. Enter WhatsApp details
+3. Enter WhatsApp details:
+   - Phone number
+   - Access token
+   - Business account ID
 4. Test connection
+5. Configure webhook URL
 
 ### Import Contacts
 1. Go to **Contacts**
 2. Click **Import**
-3. Upload CSV file (Name, Phone columns required)
-4. Map fields and import
+3. Download CSV template (if needed)
+4. Upload CSV file (Name, Phone columns required)
+5. Map fields and validate
+6. Complete import and review
 
 ### Create Template
 1. Go to **Templates**
 2. Click **Create Template**
-3. Choose type (Text/Media/Interactive)
-4. Design message
-5. Submit for approval
+3. Choose category and type:
+   - **Text**: Simple text messages
+   - **Media**: Images, videos, documents
+   - **Interactive**: Buttons, lists, flows
+4. Design message with variables
+5. Submit for WhatsApp approval
+6. Monitor approval status
 
 ### Send Campaign
 1. Go to **Campaigns**
 2. Click **Create Campaign**
-3. Select template
-4. Choose recipients
-5. Schedule or send immediately
+3. Choose campaign type:
+   - **Contact-based**: Select from contacts
+   - **CSV-based**: Upload recipient list
+   - **API**: Programmatic integration
+4. Select approved template
+5. Choose recipients/upload CSV
+6. Configure delivery:
+   - Send immediately
+   - Schedule for later
+   - Set time zones
+7. Review and launch
 
 ### Manage Inbox
 1. Go to **Inbox**
-2. Select conversation
-3. Reply within 24-hour window
-4. Use quick replies for efficiency
+2. View real-time conversations
+3. Select conversation to reply
+4. Important: Reply within 24-hour window
+5. Use features:
+   - Quick replies
+   - File attachments
+   - Message assignment
+   - Conversation notes
 
 ### Build Automation
 1. Go to **Automations**
 2. Click **Create New**
-3. Add trigger (keyword, webhook, etc.)
-4. Design flow with actions
+3. Configure trigger:
+   - Keywords
+   - Webhooks
+   - Time-based
+   - Contact actions
+4. Design workflow:
+   - Add conditions
+   - Set time delays
+   - Configure actions
+   - Test logic flow
 5. Activate automation
+6. Monitor performance
 
 ## 🔧 Advanced Configuration
 
@@ -321,19 +406,31 @@ Include:
 
 ## 🔄 Updates
 
-1. Backup your database
-2. Stop application
-3. Update code
-4. Run migrations
-5. Restart application
+### Update Process
+1. **Backup First**: Always backup database before updating
+2. **Stop Application**: Safely stop the running instance
+3. **Update Code**: Pull/download latest version
+4. **Install Dependencies**: Run npm install for new packages
+5. **Database Migration**: Apply any schema changes
+6. **Restart Application**: Start with new version
 
 ```bash
-# Update process
-git pull origin main
+# Standard update process
+pm2 stop whatsway
+git pull origin main    # or extract new package
 npm install
-npm run db:push
-pm2 restart whatsway
+npm run db:push        # Apply database changes
+pm2 start whatsway
+
+# Verify update
+pm2 logs whatsway      # Check for errors
 ```
+
+### Database Management
+- **Export Database**: Use provided export tools
+- **Import Database**: Follow import instructions
+- **Default Admin**: Username: `whatsway`, Password: `Admin@123`
+- **Database Tables**: 14 core tables including users, contacts, campaigns, messages
 
 ---
 
@@ -367,4 +464,4 @@ pm2 restart whatsway
 
 ---
 
-*© 2025 WhatsWay. Need help? Contact support@whatsway.com*
+*© 2025 WhatsWay. Need help? Contact nb@diploy.in*
