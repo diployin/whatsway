@@ -30,6 +30,20 @@ export const brandSettingsSchema = z.object({
   favicon: z.string().optional(),
 });
 
+
+interface ParsedPanelConfig extends Partial<{
+    name: string;
+    description: string;
+    tagline: string;
+    defaultLanguage: string;
+    supportedLanguages: string[];
+    companyName: string;
+    companyWebsite: string;
+    supportEmail: string;
+    logo: string;
+    favicon: string;
+  }> {}
+
 // Helper function to process base64 images
 const processBase64Image = async (base64Data: string, type: 'logo' | 'favicon'): Promise<string | null> => {
   if (!base64Data || !base64Data.includes('base64,')) {
@@ -112,14 +126,17 @@ export const getOne = async (req: Request, res: Response) => {
 };
 
 export const update = async (req: Request, res: Response) => {
-  try {
-    const parsed = panelConfigSchema.partial().parse(req.body);
-
-    const data = {
-      ...parsed,
-      logo: (req.files as any)?.logo?.[0]?.filename || parsed.logo,
-      favicon: (req.files as any)?.favicon?.[0]?.filename || parsed.favicon,
-    };
+    try {
+      // Parse and type as ParsedPanelConfig
+      const parsed: ParsedPanelConfig = panelConfigSchema.partial().parse(req.body);
+  
+      const files = req.files as Record<string, Express.Multer.File[]> | undefined;
+  
+      const data: ParsedPanelConfig = {
+        ...parsed,
+        logo: files?.logo?.[0]?.filename || parsed.logo,
+        favicon: files?.favicon?.[0]?.filename || parsed.favicon,
+      };
 
     const config = await updatePanelConfig(req.params.id, data);
     if (!config) return res.status(404).json({ message: "Not found" });
@@ -185,14 +202,14 @@ export const updateBrandSettings = async (req: Request, res: Response) => {
         logoPath = logoFile.path;
       } else if (parsed.logo && parsed.logo.includes("base64,")) {
         // Case 2: base64 fallback
-        logoPath = await processBase64Image(parsed.logo, "logo");
+        logoPath = (await processBase64Image(parsed.logo, 'logo')) ?? undefined;
       }
   
       if (req.files && (req.files as any).favicon) {
         const faviconFile = (req.files as any).favicon[0];
         faviconPath = faviconFile.path;
       } else if (parsed.favicon && parsed.favicon.includes("base64,")) {
-        faviconPath = await processBase64Image(parsed.favicon, "favicon");
+        faviconPath =  (await processBase64Image(parsed.favicon, "favicon")) ?? undefined;
       }
   
       const panelData = {
@@ -230,12 +247,12 @@ export const createBrandSettings = async (req: Request, res: Response) => {
     let faviconPath = parsed.favicon;
 
     if (parsed.logo && parsed.logo.includes('base64,')) {
-      logoPath = await processBase64Image(parsed.logo, 'logo');
-    }
-
-    if (parsed.favicon && parsed.favicon.includes('base64,')) {
-      faviconPath = await processBase64Image(parsed.favicon, 'favicon');
-    }
+        logoPath = (await processBase64Image(parsed.logo, 'logo')) ?? undefined;
+      }
+      
+      if (parsed.favicon && parsed.favicon.includes('base64,')) {
+        faviconPath = (await processBase64Image(parsed.favicon, 'favicon')) ?? undefined;
+      }
 
     // Transform brand settings to panel config format
     const panelData = {

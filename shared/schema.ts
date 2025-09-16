@@ -84,7 +84,7 @@ export const contacts = pgTable(
     name: text("name").notNull(),
     phone: text("phone").notNull(),
     email: text("email"),
-    groups: jsonb("groups").default([]),
+    groups: jsonb("groups").$type<string[]>().default([]),
     tags: jsonb("tags").default([]),
     status: text("status").default("active"), // active, blocked, unsubscribed
     lastContact: timestamp("last_contact"),
@@ -119,8 +119,8 @@ export const campaigns = pgTable(
     templateId: varchar("template_id").references(() => templates.id),
     templateName: text("template_name"),
     templateLanguage: text("template_language"),
-    variableMapping: jsonb("variable_mapping").default({}), // Maps template variables to contact/csv fields
-    contactGroups: jsonb("contact_groups").default([]), // For contacts campaign
+    variableMapping: jsonb("variable_mapping").$type<Record<string, string>>().default({}), // Maps template variables to contact/csv fields
+    contactGroups: jsonb("contact_groups").$type<string[]>().default([]), // For contacts campaign
     csvData: jsonb("csv_data").default([]), // For CSV campaign
     apiKey: varchar("api_key"), // For API campaign
     apiEndpoint: text("api_endpoint"), // For API campaign

@@ -36,12 +36,14 @@ interface BrandSettings {
   updatedAt?: string;
 }
 
-interface FormData {
+// This is only for React state
+interface BrandFormValues {
   title: string;
   tagline: string;
-  logo?: File | null;
-  favicon?: File | null;
+  logo: File | null;
+  favicon: File | null;
 }
+
 
 interface ValidationErrors {
   title?: string;
@@ -63,11 +65,11 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
   brandSettings,
   onSuccess,
 }) => {
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<BrandFormValues>({
     title: "",
     tagline: "",
-    logo: "",
-    favicon: "",
+    logo: null,
+    favicon: null,
   });
   const [logoPreview, setLogoPreview] = useState<string>("");
   const [faviconPreview, setFaviconPreview] = useState<string>("");
@@ -84,8 +86,8 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
       setFormData({
         title: brandSettings.title || "",
         tagline: brandSettings.tagline || "",
-        logo: brandSettings.logo || "",
-        favicon: brandSettings.favicon || "",
+        logo: null,    // no File yet
+        favicon: null, // no File yet
       });
       setLogoPreview(brandSettings.logo || "");
       setFaviconPreview(brandSettings.favicon || "");
@@ -125,7 +127,7 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
   });
   
 
-  const handleInputChange = (field: keyof FormData, value: string): void => {
+  const handleInputChange = (field: keyof BrandFormValues, value: string): void => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -195,8 +197,6 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
   
     updateBrandMutation.mutate(formDataToSend);
   };
-  
-  
 
   const handleClose = (): void => {
     onOpenChange(false);
@@ -204,8 +204,8 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
     setFormData({
       title: "",
       tagline: "",
-      logo: "",
-      favicon: "",
+      logo: null,
+      favicon: null,
     });
     setLogoPreview("");
     setFaviconPreview("");

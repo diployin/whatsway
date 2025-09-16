@@ -3,6 +3,8 @@ import * as fs from "fs";
 import path from "path";
 import axios from 'axios';
 import FormData from "form-data";
+import type { Response } from "express";
+
 interface WhatsAppTemplate {
   id: string;
   status: string;
@@ -482,7 +484,7 @@ export class WhatsAppApiService {
   /**
    * Stream media content directly
    */
-  async streamMedia(mediaId: string, res: Response): Promise<boolean> {
+  async streamMedia(mediaId: string, res: Response<any>): Promise<boolean> {
     try {
       // First, get the fresh media URL
       const mediaUrl = await this.getMediaUrl(mediaId);

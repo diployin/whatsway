@@ -68,15 +68,23 @@ interface TeamMemberFormData {
   username: string;
   password?: string;
   role: "admin" | "manager" | "agent";
-  permissions: {
-    canManageContacts?: boolean;
-    canManageCampaigns?: boolean;
-    canManageTemplates?: boolean;
-    canViewAnalytics?: boolean;
-    canManageTeam?: boolean;
-    canExportData?: boolean;
-  };
+  permissions: string[];
 }
+
+
+// For form state (checkbox booleans)
+type TeamMemberFormState = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  username: string;
+  password?: string;
+  role: "admin" | "manager" | "agent";
+  permissions: Record<string, boolean>; // ✅ form uses boolean map
+};
+
+
+
 
 export default function TeamPage() {
   const { toast } = useToast();
@@ -185,7 +193,7 @@ export default function TeamPage() {
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case "active":
-        return "success";
+        return "default";  
       case "inactive":
         return "secondary";
       case "suspended":
@@ -302,9 +310,7 @@ export default function TeamPage() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={getStatusBadgeVariant(member.status) || "default"}>
-                            {member.status}
-                          </Badge>
+                        <Badge variant={getStatusBadgeVariant(member.status) || "default"}> {member.status} </Badge>       
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
@@ -392,14 +398,14 @@ export default function TeamPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {activityLogs?.length === 0 ? (
+                  {(activityLogs as any[])?.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={4} className="text-center py-8">
                         No activity logs found.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    activityLogs.map((log: any) => (
+                    (activityLogs as any[]).map((log) => (
                       <TableRow key={log.id}>
                         <TableCell>{log.userName}</TableCell>
                         <TableCell>
@@ -433,7 +439,7 @@ export default function TeamPage() {
 }
 
 
-function DetailsView({ details }) {
+function DetailsView({ details }: { details?: any }) {
   if (!details) return "-";
 
   if (details.updates) {
@@ -641,15 +647,18 @@ function TeamMemberDialog({
   member: User | null;
   onSave: (data: TeamMemberFormData) => void;
 }) {
-  const [formData, setFormData] = useState<TeamMemberFormData>({
+  const [formData, setFormData] = useState<TeamMemberFormState>({
     firstName: member?.firstName || "",
     lastName: member?.lastName || "",
     email: member?.email || "",
     username: member?.username || "",
     password: "",
     role: (member?.role as "admin" | "manager" | "agent") || "agent",
-    permissions: (member?.permissions as any) || {},
+    permissions: member?.permissions
+      ? mapApiPermissionsToForm(member.permissions as string[]) // ✅ convert API → form
+      : {},
   });
+  
 
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(
     PERMISSION_GROUPS.reduce((acc, group) => {
@@ -667,10 +676,11 @@ function TeamMemberDialog({
       password: "",
       role: (member?.role as "admin" | "manager" | "agent") || "agent",
       permissions: member?.permissions
-      ? mapApiPermissionsToForm(member.permissions as any)
-      : {},
+        ? mapApiPermissionsToForm(member.permissions as string[]) // ✅ safe conversion
+        : {},
     });
   }, [member]);
+  
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -694,7 +704,7 @@ function TeamMemberDialog({
   };
 
   const updateGroupPermission = (group: PermissionGroup, checked: boolean) => {
-    const updates = {};
+    const updates: Record<string, boolean> = {};
     
     // Update the main group permission
     const mainKey = getMainPermissionKey(group.title);
@@ -785,9 +795,14 @@ function TeamMemberDialog({
                   <Checkbox
                     id={perm.key}
                     checked={formData.permissions[perm.key] || false}
-                    onCheckedChange={(checked) => updateGranularPermission(perm.key, checked)}
+                    onCheckedChange={(checked) => 
+                      updateGranularPermission(perm.key, checked === true) // ✅ force boolean
+                    }
                   />
-                  <Label htmlFor={perm.key} className="text-xs text-gray-600 cursor-pointer">
+                  <Label
+                    htmlFor={perm.key}
+                    className="text-xs text-gray-600 cursor-pointer"
+                  >
                     {perm.label}
                   </Label>
                 </div>

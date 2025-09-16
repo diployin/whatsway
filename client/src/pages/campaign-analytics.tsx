@@ -175,10 +175,10 @@ export default function CampaignAnalytics() {
   const readCount = safeNumber(campaign.readCount);
   const repliedCount = safeNumber(campaign.repliedCount);
   const failedCount = safeNumber(campaign.failedCount);
-  const sentCount = (Number(deliveredCount)+ Number(failedCount)) ?? 0;
+  const sentCount = (Number(deliveredCount)+ Number(failedCount)) || 0;
 
   // const deliveryRate = recipientCount > 0 ? (deliveredCount / recipientCount) * 100 : 0;
-  const deliveryRate = Math.round(((Number(deliveredCount) - Number(failedCount)) / Number(deliveredCount)) * 100) ?? 0;
+  const deliveryRate = (Math.round(((Number(deliveredCount) - Number(failedCount)) / Number(deliveredCount)) * 100)) || 0;
  
   const readRate = deliveredCount > 0 ? (readCount / deliveredCount) * 100 : 0;
   const replyRate = readCount > 0 ? (repliedCount / readCount) * 100 : 0;
@@ -546,7 +546,7 @@ export default function CampaignAnalytics() {
                 <div>
                   <p className="text-sm text-gray-600">Delivery Rate</p>
                   <p className="text-2xl font-bold text-green-600">
-                    {deliveryRate.toFixed(1)}%
+                    {deliveryRate}%
                   </p>
                   <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
                     <div

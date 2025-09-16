@@ -122,7 +122,7 @@ export interface IStorage {
   getWhatsappChannel(id: string): Promise<WhatsappChannel | undefined>;
   createWhatsappChannel(channel: InsertWhatsappChannel): Promise<WhatsappChannel>;
   updateWhatsappChannel(id: string, channel: Partial<WhatsappChannel>): Promise<WhatsappChannel | undefined>;
-  deleteWhatsappChannel(id: string): Promise<boolean>;
+  // deleteWhatsappChannel(id: string): Promise<boolean>;
 
   // Webhook Configs
   getWebhookConfigs(): Promise<WebhookConfig[]>;
@@ -145,6 +145,18 @@ export interface IStorage {
   // API Logs
   getApiLogs(channelId?: string, limit?: number): Promise<ApiLog[]>;
   logApiRequest(log: InsertApiLog): Promise<ApiLog | null>;
+
+  getWhatsappChannels(): Promise<WhatsappChannel[]>;
+  deleteWhatsappChannel(id: string): Promise<void>;
+  getMessageQueue(): Promise<MessageQueue>;
+  // getQueuedMessages(): Promise<Message[]>;
+
+  getCampaignsByChannel(channelId: string): Promise<Campaign[]>;
+getTemplatesByChannel(channelId: string): Promise<Template[]>;
+getConversationsByChannel(channelId: string): Promise<Conversation[]>;
+deleteConversation(id: string): Promise<boolean>;
+getAutomationByChannel(channelId: string): Promise<Automation[]>;
+getAnalyticsByChannel(channelId: string, days?: number): Promise<Analytics[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -171,6 +183,7 @@ export class MemStorage implements IStorage {
     const today = new Date();
     const analyticsEntry: Analytics = {
       id: randomUUID(),
+      channelId: "default-channel",
       date: today,
       messagesSent: 0,
       messagesDelivered: 0,
@@ -183,19 +196,117 @@ export class MemStorage implements IStorage {
     this.analytics.set(analyticsEntry.id, analyticsEntry);
 
     // Initialize a default channel for the user to work with
-    const defaultChannel: Channel = {
-      id: randomUUID(),
-      name: "Main WhatsApp Channel",
-      phoneNumberId: "153851404474202", // User's provided phone number ID
-      accessToken: "Bearer EAAxxxxxxx", // User needs to update this with their actual token
-      whatsappBusinessAccountId: "123456789012345", // User needs to update this with actual WABA ID
-      phoneNumber: "+1234567890", // User needs to update with actual phone number
-      isActive: true,
-      createdAt: today,
-      updatedAt: today,
-    };
-    this.channels.set(defaultChannel.id, defaultChannel);
+      const defaultChannel: Channel = {
+        id: randomUUID(),
+        name: "Main WhatsApp Channel",
+        phoneNumberId: "153851404474202", // User's provided phone number ID
+        accessToken: "Bearer EAAxxxxxxx", // User needs to update this with their actual token
+        whatsappBusinessAccountId: "123456789012345", // User needs to update this with actual WABA ID
+        phoneNumber: "+1234567890", // User needs to update with actual phone number
+        isActive: true,
+        healthStatus: "unknown",     // ✅ added
+        lastHealthCheck: null,       // ✅ added
+        healthDetails: null,         // ✅ added
+        createdAt: today,
+        updatedAt: today,
+      };
+      this.channels.set(defaultChannel.id, defaultChannel);
+
   }
+
+  // Dashboard stats by channel
+async getDashboardStatsByChannel(channelId: string) {
+  const campaigns = Array.from(this.campaigns.values()).filter(c => c.channelId === channelId);
+  const contacts = Array.from(this.contacts.values()).filter(c => c.channelId === channelId);
+  const conversations = Array.from(this.conversations.values()).filter(c => c.channelId === channelId);
+
+  const activeCampaigns = campaigns.filter(c => c.status === 'active').length;
+  const totalSent = campaigns.reduce((sum, c) => sum + (c.sentCount || 0), 0);
+  const totalDelivered = campaigns.reduce((sum, c) => sum + (c.deliveredCount || 0), 0);
+  const deliveryRate = totalSent > 0 ? (totalDelivered / totalSent) * 100 : 0;
+
+  const weekAgo = new Date();
+  weekAgo.setDate(weekAgo.getDate() - 7);
+  const newLeads = contacts.filter(c => c.createdAt && c.createdAt >= weekAgo).length;
+
+  const unreadChats = conversations.filter(c => c.status === 'open').length;
+
+  return {
+    totalMessages: totalSent,
+    activeCampaigns,
+    deliveryRate: Math.round(deliveryRate * 10) / 10,
+    newLeads,
+    messagesGrowth: 12.5,
+    campaignsRunning: activeCampaigns,
+    unreadChats,
+  };
+}
+
+// Find channel by phoneNumberId
+async getChannelByPhoneNumberId(phoneNumberId: string): Promise<Channel | undefined> {
+  return Array.from(this.channels.values()).find(c => c.phoneNumberId === phoneNumberId);
+}
+
+// Return message queue (stub)
+async getMessageQueue(): Promise<MessageQueue> {
+  return {} as MessageQueue;
+}
+
+ async getAutomationByChannel(channelId: string): Promise<{ id: string; name: string; createdAt: Date | null; updatedAt: Date | null; channelId: string | null; description: string | null; trigger: string; triggerConfig: unknown; status: string | null; executionCount: number | null; lastExecutedAt: Date | null; createdBy: string | null; }[]> {
+    return Array.from(this.automations.values()).filter(a => a.channelId === channelId);
+}
+
+
+
+  async getCampaignsByChannel(channelId: string): Promise<Campaign[]> {
+    return Array.from(this.campaigns.values()).filter(c => c.channelId === channelId);
+  }
+  
+  async getTemplatesByChannel(channelId: string): Promise<Template[]> {
+    return Array.from(this.templates.values()).filter(t => t.channelId === channelId);
+  }
+  
+  async getConversationsByChannel(channelId: string): Promise<Conversation[]> {
+    return Array.from(this.conversations.values()).filter(c => c.channelId === channelId);
+  }
+  
+  async deleteConversation(id: string): Promise<boolean> {
+    return this.conversations.delete(id);
+  }
+  
+  async getAutomationsByChannel(channelId: string): Promise<Automation[]> {
+    return Array.from(this.automations.values()).filter(a => a.channelId === channelId);
+  }
+  
+  async getAnalyticsByChannel(channelId: string, days: number = 30): Promise<Analytics[]> {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - days);
+    return Array.from(this.analytics.values())
+      .filter(a => a.channelId === channelId && a.date >= cutoff);
+  }
+  
+
+  // Users
+async getAllUsers(): Promise<User[]> {
+  return Array.from(this.users.values());
+}
+
+// Contacts
+async getContactsByChannel(channelId: string): Promise<Contact[]> {
+  return Array.from(this.contacts.values()).filter(c => c.channelId === channelId);
+}
+
+async getContactByPhone(phone: string): Promise<Contact | undefined> {
+  return Array.from(this.contacts.values()).find(c => c.phone === phone);
+}
+
+async searchContactsByChannel(channelId: string, query: string): Promise<Contact[]> {
+  const lowerQuery = query.toLowerCase();
+  return Array.from(this.contacts.values())
+    .filter(c => c.channelId === channelId)
+    .filter(c => c.name.toLowerCase().includes(lowerQuery) || c.phone.includes(query));
+}
+
 
   // Users
   async getUser(id: string): Promise<User | undefined> {
@@ -211,6 +322,13 @@ export class MemStorage implements IStorage {
     const user: User = {
       ...insertUser,
       id,
+      firstName: insertUser.firstName || null,
+      lastName: insertUser.lastName || null,
+      avatar: insertUser.avatar || null,
+      role: insertUser.role || "agent",
+      status: insertUser.status || "active",
+      lastLogin: null,
+      updatedAt: new Date(),
       createdAt: new Date(),
     };
     this.users.set(id, user);
@@ -233,6 +351,13 @@ export class MemStorage implements IStorage {
     const contact: Contact = {
       ...insertContact,
       id,
+      channelId: insertContact.channelId || null,
+      email: insertContact.email || null,
+      groups: Array.isArray(insertContact.groups)? (insertContact.groups as string[]): [],
+      tags: insertContact.tags || [],
+      status: insertContact.status || "active",
+      lastContact: null,
+      updatedAt: new Date(),
       createdAt: new Date(),
     };
     this.contacts.set(id, contact);
@@ -277,6 +402,26 @@ export class MemStorage implements IStorage {
     const campaign: Campaign = {
       ...insertCampaign,
       id,
+      channelId: insertCampaign.channelId || null,
+      status: insertCampaign.status || "draft",
+      templateId: insertCampaign.templateId || null,
+      templateLanguage: insertCampaign.templateLanguage || "en_US",
+      templateName: insertCampaign.templateName || null,
+      description: insertCampaign.description || null,
+      apiKey: insertCampaign.apiKey || null,
+      apiEndpoint: insertCampaign.apiEndpoint || null,
+      variableMapping: insertCampaign.variableMapping || {},
+      contactGroups: Array.isArray(insertCampaign.contactGroups)? (insertCampaign.contactGroups as string[]): [],
+      csvData: insertCampaign.csvData || [],
+      scheduledAt: insertCampaign.scheduledAt || null,
+      recipientCount: insertCampaign.recipientCount || 0,
+      sentCount: insertCampaign.sentCount || 0,
+      readCount: insertCampaign.readCount || 0,
+      repliedCount: insertCampaign.repliedCount || 0,
+      failedCount: insertCampaign.failedCount || 0,
+      deliveredCount: insertCampaign.deliveredCount || 0,
+      completedAt: insertCampaign.completedAt || null,
+      updatedAt: new Date(),
       createdAt: new Date(),
     };
     this.campaigns.set(id, campaign);
@@ -317,6 +462,9 @@ export class MemStorage implements IStorage {
       whatsappBusinessAccountId: insertChannel.whatsappBusinessAccountId || null,
       phoneNumber: insertChannel.phoneNumber || null,
       isActive: insertChannel.isActive ?? false,
+      healthStatus: insertChannel.healthStatus || "unknown",
+      lastHealthCheck: null,
+      healthDetails: null,
     };
     this.channels.set(id, channel);
     return channel;
@@ -365,10 +513,8 @@ export class MemStorage implements IStorage {
       footer: insertTemplate.footer || null,
       buttons: insertTemplate.buttons || [],
       variables: insertTemplate.variables || [],
-      tags: insertTemplate.tags || [],
-      priority: insertTemplate.priority || null,
+      rejectionReason: insertTemplate.rejectionReason || null,
       whatsappTemplateId: insertTemplate.whatsappTemplateId || null,
-      whatsappTemplateName: insertTemplate.whatsappTemplateName || null,
       mediaType: insertTemplate.mediaType || "text",
       mediaUrl: insertTemplate.mediaUrl || null,
       mediaHandle: insertTemplate.mediaHandle || null,
@@ -413,6 +559,18 @@ export class MemStorage implements IStorage {
     const conversation: Conversation = {
       ...insertConversation,
       id,
+      channelId: insertConversation.channelId || null,
+      contactId: insertConversation.contactId || null,
+      contactPhone: insertConversation.contactPhone || null,
+      contactName: insertConversation.contactName || null,
+      assignedTo: insertConversation.assignedTo || null,
+      tags: insertConversation.tags || [],
+      unreadCount: 0,
+      priority: insertConversation.priority || "normal",
+      status: insertConversation.status || "open",
+      lastMessageAt: insertConversation.lastMessageAt || null,
+      lastMessageText: insertConversation.lastMessageText || null,
+      updatedAt: new Date(),
       createdAt: new Date(),
     };
     this.conversations.set(id, conversation);
@@ -440,18 +598,40 @@ export class MemStorage implements IStorage {
     const message: Message = {
       ...insertMessage,
       id,
+      conversationId: insertMessage.conversationId || null,
+      fromUser: insertMessage.fromUser || false,
+      direction: insertMessage.direction || "inbound",
+      messageType: insertMessage.messageType || "text",
+      whatsappMessageId: insertMessage.whatsappMessageId || null,
+      mediaUrl: insertMessage.mediaUrl || null,
+      mediaId: insertMessage.mediaId || null,
+      mediaMimeType: insertMessage.mediaMimeType || null,
+      mediaSha256: insertMessage.mediaSha256 || null,
+      metadata: insertMessage.metadata || {},
+      type: insertMessage.type || "text",
+      status: insertMessage.status || "sent",
+      deliveredAt: insertMessage.deliveredAt || null,
+      readAt: insertMessage.readAt || null,
+      errorCode: insertMessage.errorCode || null,
+      errorMessage: insertMessage.errorMessage || null,
+      errorDetails: insertMessage.errorDetails || null,
+      campaignId: insertMessage.campaignId || null,
+      timestamp: insertMessage.timestamp || new Date(),
+      updatedAt: new Date(),
       createdAt: new Date(),
     };
     this.messages.set(id, message);
 
     // Update conversation last message time
-    const conversation = this.conversations.get(insertMessage.conversationId);
-    if (conversation) {
-      this.conversations.set(conversation.id, {
-        ...conversation,
-        lastMessageAt: new Date(),
-      });
-    }
+    if (insertMessage.conversationId) {
+      const conversation = this.conversations.get(insertMessage.conversationId);
+      if (conversation) {
+        this.conversations.set(conversation.id, {
+          ...conversation,
+          lastMessageAt: new Date(),
+        });
+      }
+    }    
 
     return message;
   }
@@ -485,6 +665,14 @@ export class MemStorage implements IStorage {
     const automation: Automation = {
       ...insertAutomation,
       id,
+      channelId: insertAutomation.channelId || null,
+      description: insertAutomation.description || null,
+      triggerConfig: insertAutomation.triggerConfig || {},
+      executionCount: 0,
+      lastExecutedAt: null,
+      status: insertAutomation.status || "inactive",
+      createdBy: insertAutomation.createdBy || null,
+      updatedAt: new Date(),
       createdAt: new Date(),
     };
     this.automations.set(id, automation);
@@ -519,6 +707,13 @@ export class MemStorage implements IStorage {
     const analytics: Analytics = {
       ...insertAnalytics,
       id,
+      channelId: insertAnalytics.channelId || null,
+      activeCampaigns: insertAnalytics.activeCampaigns || 0,
+      newContacts: insertAnalytics.newContacts || 0,
+      messagesDelivered: insertAnalytics.messagesDelivered || 0,
+      messagesRead: insertAnalytics.messagesRead || 0,
+      messagesSent: insertAnalytics.messagesSent || 0,
+      messagesReplied: insertAnalytics.messagesReplied || 0,
       createdAt: new Date(),
     };
     this.analytics.set(id, analytics);
@@ -575,6 +770,14 @@ export class MemStorage implements IStorage {
     const channel: WhatsappChannel = {
       ...insertChannel,
       id,
+      qualityRating: insertChannel.qualityRating || "green",
+      businessAccountId: insertChannel.businessAccountId || null,
+      rateLimitTier: insertChannel.rateLimitTier || "standard",
+      lastHealthCheck: null,
+      messageLimit: insertChannel.messageLimit || 0,
+      messagesUsed: 0,
+      errorMessage: null,
+      status: insertChannel.status || "inactive",
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -592,9 +795,11 @@ export class MemStorage implements IStorage {
     return undefined;
   }
 
-  async deleteWhatsappChannel(id: string): Promise<boolean> {
-    return this.whatsappChannels.delete(id);
+  async deleteWhatsappChannel(id: string): Promise<void> {
+    this.whatsappChannels.delete(id);
+    return;
   }
+  
 
   // Webhook Configs
   async getWebhookConfigs(): Promise<WebhookConfig[]> {
@@ -610,6 +815,11 @@ export class MemStorage implements IStorage {
     const config: WebhookConfig = {
       ...insertConfig,
       id,
+      events: insertConfig.events || [],
+      lastPingAt: null,
+      appSecret: insertConfig.appSecret || null,
+      channelId: insertConfig.channelId || null,
+      isActive: insertConfig.isActive ?? true,
       createdAt: new Date(),
     };
     this.webhookConfigs.set(id, config);
@@ -671,6 +881,11 @@ export class MemStorage implements IStorage {
       const apiLog: ApiLog = {
         ...log,
         id: Date.now().toString(),
+        channelId: log.channelId || null,
+        responseStatus: log.responseStatus || 0,
+        requestBody: log.requestBody || null,
+        responseBody: log.responseBody || null,
+        duration: log.duration || 0,
         createdAt: new Date(),
       };
       // Check if channel exists before logging

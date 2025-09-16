@@ -13,4 +13,5 @@ export interface DashboardStarApiDataType {
   todayMessages: number;
   thisMonthMessages: number;
   lastMonthMessages: number;
+  deliveryRate: number;
 }

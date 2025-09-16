@@ -57,6 +57,43 @@ export class DatabaseStorage implements IStorage {
   private apiLogRepo = new ApiLogRepository();
   private whatsappChannelRepo = new WhatsappChannelRepository();
 
+
+  // Returns statistics of message queue
+async getMessageQueueStats(): Promise<Record<string, number>> {
+  return { queued: 0, processing: 0, sent: 0, delivered: 0, failed: 0 };
+}
+
+// Returns queued messages
+async getQueuedMessages(limit: number = 10): Promise<MessageQueue[]> {
+  return [];
+}
+
+// Returns message queue object (stub)
+async getMessageQueue(): Promise<MessageQueue> {
+  return {} as MessageQueue;
+}
+
+// Logs API request
+async logApiRequest(log: InsertApiLog): Promise<ApiLog | null> {
+  return null;
+}
+
+ async getAutomationByChannel(channelId: string): Promise<{ id: string; name: string; createdAt: Date | null; updatedAt: Date | null; channelId: string | null; description: string | null; trigger: string; triggerConfig: unknown; status: string | null; executionCount: number | null; lastExecutedAt: Date | null; createdBy: string | null; }[]> {
+    // implement your logic
+    return [];
+}
+
+
+  async getWhatsappChannels(): Promise<WhatsappChannel[]> {
+    // implement your logic
+    return [];
+  }
+
+  async deleteWhatsappChannel(id: string): Promise<void> {
+    await this.whatsappChannelRepo.delete(id);
+  }
+  
+
   // Users
   async getUser(id: string): Promise<User | undefined> {
     return this.userRepo.getById(id);
@@ -252,9 +289,7 @@ export class DatabaseStorage implements IStorage {
   async getConversation(id: string): Promise<Conversation | undefined> {
     return this.conversationRepo.getById(id);
   }
-  async getMessage(id: string): Promise<Conversation | undefined> {
-    return this.messageRepo.getById(id);
-  }
+
 
   async getConversationByPhone(
     phone: string
@@ -303,6 +338,10 @@ export class DatabaseStorage implements IStorage {
     whatsappMessageId: string
   ): Promise<Message | undefined> {
     return this.messageRepo.getByWhatsAppId(whatsappMessageId);
+  }
+
+  async getMessage(id: string): Promise<Message | undefined> {
+    return this.messageRepo.getById(id);
   }
 
   // Automations

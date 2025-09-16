@@ -31,4 +31,9 @@ export class WhatsappChannelRepository {
       .returning();
     return updated || undefined;
   }
+
+  async delete(id: string): Promise<boolean> {
+    const result = await db.delete(whatsappChannels).where(eq(whatsappChannels.id, id)).returning();
+    return result.length > 0;
+  }
 }

@@ -77,7 +77,7 @@ export const createTemplate = asyncHandler(async (req: RequestWithChannel, res: 
 
 export const updateTemplate = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const validatedData = templateRequestSchema.parse(req.body);
+  const validatedData = insertTemplateSchema.parse(req.body);
   
   // Get existing template
   const existingTemplate = await storage.getTemplate(id);
@@ -92,7 +92,7 @@ export const updateTemplate = asyncHandler(async (req: Request, res: Response) =
   }
   
   // Get channel for WhatsApp API
-  const channel = await storage.getChannel(template.channelId);
+  const channel = await storage.getChannel(template.channelId!);
   if (!channel) {
     throw new AppError(400, 'Channel not found');
   }

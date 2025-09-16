@@ -297,6 +297,10 @@ export const getMediaById = asyncHandler(async (req: Request, res: Response) => 
     throw new AppError(404, "No media found for this message");
   }
 
+  if (!message.conversationId) {
+    throw new AppError(400, "Message missing conversationId");
+  }
+
   // Get conversation to access channel info
   const conversation = await storage.getConversation(message.conversationId);
   if (!conversation || !conversation.channelId) {
@@ -318,6 +322,10 @@ export const getMediaById = asyncHandler(async (req: Request, res: Response) => 
       
       // Update message with the URL for future use
       await storage.updateMessage(messageId, { mediaUrl });
+    }
+
+    if (!mediaUrl) {
+      throw new AppError(500, "Failed to get media URL from WhatsApp");
     }
 
     // Fetch the actual media content
@@ -362,6 +370,9 @@ export const getMediaUrl = asyncHandler(async (req: Request, res: Response) => {
   }
 
   // Get fresh URL from WhatsApp
+  if (!message.conversationId) {
+    throw new AppError(400, "Message missing conversationId");
+  }
   const conversation = await storage.getConversation(message.conversationId);
   const channel = await storage.getChannel(conversation!.channelId!);
   const whatsappApi = new WhatsAppApiService(channel!);
@@ -391,9 +402,16 @@ export const getMediaProxy = asyncHandler(async (req: Request, res: Response) =>
     console.log("Media proxy hit for messageId:", messageId, "download:", download);
     
     // Get message from database
+    if (typeof messageId !== 'string') {
+      return res.status(400).json({ error: 'Invalid messageId' });
+    }
     const message = await storage.getMessage(messageId);
     if (!message || !message.mediaId) {
       return res.status(404).json({ error: 'Media not found' });
+    }
+
+    if (!message.conversationId) {
+      return res.status(400).json({ error: 'Message missing conversationId' });
     }
 
     const conversation = await storage.getConversation(message.conversationId);
@@ -412,7 +430,7 @@ export const getMediaProxy = asyncHandler(async (req: Request, res: Response) =>
     
     // If download is requested, set download header
     if (download === 'true') {
-      const filename = message.metadata?.originalName || `media_${messageId}`;
+      const filename = message.metadata || `media_${messageId}`;
       res.set('Content-Disposition', `attachment; filename="${filename}"`);
     }
 

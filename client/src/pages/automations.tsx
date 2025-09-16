@@ -14,7 +14,6 @@ import {
   LucideTestTube,
 } from "lucide-react";
 import { format } from "date-fns";
-import AutomationFlowBuilder from "@/components/automation-flow-builder-new";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -25,6 +24,18 @@ import {
 } from "@/components/ui/dialog";
 import AutomationFlowBuilderXYFlow from "@/components/automation-flow-builder";
 import { TestAutomationModal } from "@/components/TestAutomationModal";
+
+
+type Automation = {
+  id: string;
+  name: string;
+  description?: string;
+  status: "active" | "inactive" | "paused";
+  trigger: string;
+  executionCount: number | null;
+  lastExecutedAt?: string | null;
+};
+
 
 export default function Automations() {
   const [showFlowBuilder, setShowFlowBuilder] = useState(false);
@@ -38,9 +49,15 @@ export default function Automations() {
     setIsModalOpen(true);
   };
 
-  const { data: automations = [], isLoading } = useQuery({
+  const { data: automations = [], isLoading } = useQuery<Automation[]>({
     queryKey: ["/api/automations"],
+    queryFn: async () => {
+      const res = await fetch("/api/automations");
+      if (!res.ok) throw new Error("Failed to fetch automations");
+      return res.json() as Promise<Automation[]>;
+    },
   });
+  
 
   const { data: activeChannel } = useQuery({
     queryKey: ["/api/channels/active"],

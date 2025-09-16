@@ -42,6 +42,14 @@ interface NavItem {
   alwaysVisible?: boolean;
   requiredPrefix?: string;
 }
+// Types
+interface BrandSettings {
+  title?: string;
+  tagline?: string;
+  logo?: string;
+  favicon?: string;
+  updatedAt?: string;
+}
 
 const navItems: NavItem[] = [
   {
@@ -134,11 +142,14 @@ export default function Sidebar() {
       ? user.permissions
       : Object.keys(user.permissions);
 
-    const normalize = (str: string) => str.replace(".", ":");
 
+    if (!item.requiredPrefix) return true;
+
+    const normalize = (str: string) => str.replace(".", ":");
+    
     return perms.some(
       (perm) =>
-        perm.startsWith(normalize(item.requiredPrefix)) &&
+        perm.startsWith(normalize(item.requiredPrefix!)) && // safe because of guard
         (Array.isArray(user.permissions) ? true : user.permissions[perm])
     );
   }
