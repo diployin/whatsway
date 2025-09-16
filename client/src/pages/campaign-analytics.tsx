@@ -178,7 +178,14 @@ export default function CampaignAnalytics() {
   const sentCount = (Number(deliveredCount)+ Number(failedCount)) || 0;
 
   // const deliveryRate = recipientCount > 0 ? (deliveredCount / recipientCount) * 100 : 0;
-  const deliveryRate = (Math.round(((Number(deliveredCount) - Number(failedCount)) / Number(deliveredCount)) * 100)) || 0;
+
+  const delivered = Number(campaign.deliveredCount);
+  const failed = Number(campaign.failedCount);
+
+  // const deliveryRate = delivered > 0
+  //   ? Math.round(((delivered - failed) / delivered) * 100)
+  //   : 0;
+  const deliveryRate = delivered > 0 ? (Math.round(((Number(deliveredCount) - Number(failedCount)) / Number(deliveredCount)) * 100)) : 0;
  
   const readRate = deliveredCount > 0 ? (readCount / deliveredCount) * 100 : 0;
   const replyRate = readCount > 0 ? (repliedCount / readCount) * 100 : 0;
