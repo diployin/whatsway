@@ -584,8 +584,19 @@ export default function Analytics() {
                                 {campaign.readCount || 0}
                               </td>
                               <td className="px-6 py-4 text-sm text-gray-900">
-                                {(((Number(campaign.deliveredCount) - Number(campaign.failedCount)) / Number(campaign.deliveredCount)) * 100) || 0}%
+                                {(() => {
+                                  const delivered = Number(campaign.deliveredCount) || 0;
+                                  const failed = Number(campaign.failedCount) || 0;
+
+                                  if (delivered === 0) return "0%";
+
+                                  const rate = ((delivered - failed) / delivered) * 100;
+                                  const clampedRate = Math.max(0, Math.min(rate, 100));
+
+                                  return `${Math.round(clampedRate)}%`;
+                                })()}
                               </td>
+
                               <td className="px-6 py-4">
                                 <Link href={`/analytics/campaign/${campaign.id}`}>
                                   <Button variant="ghost" size="sm">
