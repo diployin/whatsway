@@ -206,7 +206,7 @@ function hasRoutePermission(permission: string, user: any) {
   const normalize = (str: string) => str.replace(".", ":");
 
   return perms.some(
-    (perm) =>
+    (perm: string) =>
       perm.startsWith(normalize(permission)) &&
       (Array.isArray(user.permissions) ? true : user.permissions[perm])
   );

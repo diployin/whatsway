@@ -96,6 +96,7 @@ export interface BuilderNodeData {
     action: 'next' | 'custom';
     value?: string;
   }>;
+    [key: string]: unknown;
 }
 
 interface AutomationFlowBuilderProps {
@@ -1108,7 +1109,7 @@ export default function AutomationFlowBuilderXYFlow({
   }
 
   // Initialize directly without useMemo or normalizeEdges function
-  const [nodes, setNodes, onNodesChange] = useNodesState<BuilderNodeData>(initialFlowRef.current.nodes);
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialFlowRef.current?.nodes || []);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialFlowRef.current.edges);
   useEffect(() => {
    console.log(nodes)
@@ -1132,10 +1133,19 @@ export default function AutomationFlowBuilderXYFlow({
     [setEdges]
   );
 
+  // const onNodeClick: NodeMouseHandler = useCallback(
+  //   (_, node: Node<BuilderNodeData>) => setSelectedId(node.id),
+  //   []
+  // );
+
   const onNodeClick: NodeMouseHandler = useCallback(
-    (_, node: Node<BuilderNodeData>) => setSelectedId(node.id),
+    (_, node) => {
+      const builderNode = node as Node<BuilderNodeData>; // type assertion
+      setSelectedId(builderNode.id);
+    },
     []
   );
+  
 
   // Data sources
   const { data: templateData } = useQuery({ 
@@ -1151,15 +1161,30 @@ export default function AutomationFlowBuilderXYFlow({
   });
 
   // Add node actions
+  // const addNode = (kind: NodeKind) => {
+  //   const id = uid();
+  //   const base = defaultsByKind[kind];
+  //   const newNode: Node<BuilderNodeData> = {
+  //     id,
+  //     type: kind,
+  //     position: { x: 200, y: (nodes.length + 1) * 140 },
+  //     data: { ...(base as BuilderNodeData) },
+  //   };
+  //   setNodes((nds) => [...nds, newNode]);
+  //   setSelectedId(id);
+  // };
+
   const addNode = (kind: NodeKind) => {
     const id = uid();
     const base = defaultsByKind[kind];
+  
     const newNode: Node<BuilderNodeData> = {
       id,
       type: kind,
       position: { x: 200, y: (nodes.length + 1) * 140 },
       data: { ...(base as BuilderNodeData) },
     };
+  
     setNodes((nds) => [...nds, newNode]);
     setSelectedId(id);
   };
@@ -1315,9 +1340,9 @@ export default function AutomationFlowBuilderXYFlow({
     };
     
     console.log("Saving automation with payload:", payload);
-    console.log("Files to upload:", backendNodes.filter(node => 
-      node.data.imageFile || node.data.videoFile || node.data.audioFile || node.data.documentFile
-    ));
+    // console.log("Files to upload:", backendNodes.filter(node => 
+    //   node.data.imageFile || node.data.videoFile || node.data.audioFile || node.data.documentFile
+    // ));
     
     saveMutation.mutate(payload);
   };
@@ -1347,9 +1372,15 @@ export default function AutomationFlowBuilderXYFlow({
     }
   }, [edges.length, nodes.length, cleanupEdges]);
 
-  const onInit = useCallback((reactFlowInstance: ReactFlowInstance) => {
-    reactFlowInstance.setViewport({ x: 0, y: 0, zoom: 1 });
+  // const onInit = useCallback((reactFlowInstance: ReactFlowInstance) => {
+  //   reactFlowInstance.setViewport({ x: 0, y: 0, zoom: 1 });
+  // }, []);
+  
+  const onInit = useCallback((reactFlowInstance: any) => {
+    // ReactFlowInstance typing conflict workaround
+    (reactFlowInstance as ReactFlowInstance<Node<BuilderNodeData>, Edge>).setViewport({ x: 0, y: 0, zoom: 1 });
   }, []);
+  
 
   const edgeTypes = {
     custom: (props: any) => <CustomEdge {...props} setEdges={setEdges} />,

@@ -50,6 +50,13 @@
       "when": 1757489966163,
       "tag": "0006_furry_rattler",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1757660289516,
+      "tag": "0007_lethal_randall_flagg",
+      "breakpoints": true
     }
   ]
 }

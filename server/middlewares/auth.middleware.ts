@@ -88,10 +88,14 @@ export const requirePermission = (...permissions: string[]) => {
 
       // console.log(`User permissions from storage: ${JSON.stringify(getUserPermissions)}`);
 
-      const userPermissions = (getUserPermissions ?? []).reduce((acc, perm) => {
-        acc[perm] = true;
-        return acc;
-      }, {} as Record<string, boolean>);
+      const userPermissions = (getUserPermissions ?? []).reduce(
+        (acc, perm) => {
+          acc[perm] = true;
+          return acc;
+        },
+        {} as Record<string, boolean>
+      );      
+      
       
       const hasPermission = permissions.some(
         (perm) => userPermissions[perm]

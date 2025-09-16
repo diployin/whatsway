@@ -76,12 +76,11 @@ export const getMessageLogs = asyncHandler(async (req: Request, res: Response) =
     .from(messages)
     .innerJoin(conversations, eq(messages.conversationId, conversations.id))
     .leftJoin(whatsappChannels, eq(conversations.channelId, whatsappChannels.id));
-
-  // Apply conditions only if we have any
+  
   if (conditions.length > 0) {
-    baseQuery = baseQuery.where(and(...conditions));
+    baseQuery = baseQuery.where(and(...conditions)) as typeof baseQuery;
   }
-
+  
   const messageLogs = await baseQuery
     .orderBy(desc(messages.createdAt))
     .limit(100); // Limit to last 100 messages

@@ -65,6 +65,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+
+
+interface ContactsResponse {
+  data: Contact[];
+  pagination: {
+    page: number;
+    limit: number;
+    count: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+
 // Edit Contact Form Component
 function EditContactForm({
   contact,
@@ -266,7 +280,7 @@ export default function Contacts() {
   });
 
   // Updated query to fetch contacts with proper server-side filtering
-  const { data: contactsResponse, isLoading } = useQuery({
+  const { data: contactsResponse, isLoading } = useQuery<ContactsResponse>({
     queryKey: [
       "/api/contacts",
       activeChannel?.id,
@@ -285,11 +299,12 @@ export default function Contacts() {
         selectedGroup !== "all" && selectedGroup ? selectedGroup : undefined,
         selectedStatus !== "all" && selectedStatus ? selectedStatus : undefined
       );
-      return await response.json();
+      return (await response.json()) as ContactsResponse;
     },
-    keepPreviousData: true,
+    placeholderData: (prev) => prev, 
     enabled: !!activeChannel,
   });
+  
 
   const contacts = contactsResponse?.data || [];
   const pagination = contactsResponse?.pagination || {

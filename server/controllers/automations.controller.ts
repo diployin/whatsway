@@ -69,7 +69,7 @@ export const toggleAutomation = asyncHandler(async (req: Request, res: Response)
   }
   
   const updated = await storage.updateAutomation(id, {
-    isActive: !automation.isActive
+    status: !automation.status ? 'active' : 'inactive'
   });
   
   res.json(updated);

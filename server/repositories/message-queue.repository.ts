@@ -27,20 +27,20 @@ export class MessageQueueRepository {
       .orderBy(messageQueue.createdAt);
   }
 
-  async getMessagesToCheck(): Promise<MessageQueue[]> {
-    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
-    return await db
-      .select()
-      .from(messageQueue)
-      .where(
-        and(
-          eq(messageQueue.type, 'outgoing'),
-          eq(messageQueue.status, 'sent'),
-          lt(messageQueue.createdAt, tenMinutesAgo)
-        )
-      )
-      .orderBy(messageQueue.createdAt);
-  }
+  // async getMessagesToCheck(): Promise<MessageQueue[]> {
+  //   const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+  //   return await db
+  //     .select()
+  //     .from(messages)
+  //     .where(
+  //       and(
+  //         eq(messages.type, 'outgoing'),
+  //         eq(messages.status, 'sent'),
+  //         lt(messages.createdAt, tenMinutesAgo)
+  //       )
+  //     )
+  //     .orderBy(messages.createdAt);
+  // }
 
   async create(insertMessage: InsertMessageQueue): Promise<MessageQueue> {
     const [message] = await db
@@ -84,20 +84,20 @@ export class MessageQueueRepository {
       .orderBy(desc(messageQueue.createdAt));
   }
 
-  async getForRetry(limit: number = 100): Promise<MessageQueue[]> {
-    return await db
-      .select()
-      .from(messageQueue)
-      .where(
-        and(
-          eq(messageQueue.status, 'failed'),
-          lt(messageQueue.retryCount, 3),
-          isNull(messageQueue.errorDetails)
-        )
-      )
-      .limit(limit)
-      .orderBy(messageQueue.createdAt);
-  }
+  // async getForRetry(limit: number = 100): Promise<MessageQueue[]> {
+  //   return await db
+  //     .select()
+  //     .from(messages)
+  //     .where(
+  //       and(
+  //         eq(messages.status, 'failed'),
+  //         lt(messages.retryCount, 3),
+  //         isNull(messages.errorDetails)
+  //       )
+  //     )
+  //     .limit(limit)
+  //     .orderBy(messageQueue.createdAt);
+  // }
 
   async getMessageStats(): Promise<any> {
     const now = new Date();

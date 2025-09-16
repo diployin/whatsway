@@ -28,7 +28,8 @@ export const upload = multer({
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error(`Unsupported file type: ${file.mimetype}`), false);
+      cb(null, false); // Changed to match the expected type
+      (req as any).fileFilterError = `Unsupported file type: ${file.mimetype}`;
     }
   },
 });

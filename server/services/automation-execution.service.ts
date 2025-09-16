@@ -1314,11 +1314,12 @@ private async sendInteractiveMessage(
   }
 
   private findPendingExecutionByConversation(conversationId: string) {
-    for (const [pendingId, execution] of this.pendingExecutions) {
+    for (const [pendingId, execution] of this.pendingExecutions.entries()) {
       if (execution.conversationId === conversationId) {
         return { pendingId, ...execution };
       }
     }
+    
     return null;
   }
 
@@ -1372,10 +1373,14 @@ private async sendInteractiveMessage(
     
     console.log(`📄 Sending template ${templateId} to conversation ${context.conversationId}`);
 
+    if (!getContact?.channelId) {
+      throw new Error("Contact has no channelId");
+    }
+
     const getTemplate = await db.query.templates.findFirst({
       where: and(
         eq(templates.id, templateId),
-        eq(templates.channelId, getContact?.channelId)
+        eq(templates.channelId, getContact.channelId)
       )
     });
 
@@ -1408,6 +1413,10 @@ private async sendInteractiveMessage(
     }
     
     console.log(`👤 Assigning conversation ${context.conversationId} to user ${assigneeId}`);
+
+    if (!context.conversationId) {
+  throw new Error("No conversationId provided in context");
+}
 
     const conversation = await storage.updateConversation(context.conversationId, {assignedTo: assigneeId, status:"assigned"});
     
@@ -1442,9 +1451,9 @@ private async sendInteractiveMessage(
 
   async cleanupExpiredExecutions(timeoutMs: number = 30 * 60 * 1000) { // 30 minutes default
     const now = Date.now();
-    const expired = [];
-    
-    for (const [pendingId, execution] of this.pendingExecutions) {
+    const expired: { pendingId: string; execution: PendingExecution }[] = [];
+
+    for (const [pendingId, execution] of this.pendingExecutions.entries()) {
       if (now - execution.timestamp.getTime() > timeoutMs) {
         expired.push({ pendingId, execution });
       }

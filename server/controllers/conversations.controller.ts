@@ -16,8 +16,9 @@ import { triggerService } from "../services/automation-execution.service";
 //   res.json(conversations);
 // });
 
-export async function getConversations(req, res) {
+export async function getConversations(req: Request, res: Response) {
   try {
+    const channelId = String(req.query.channelId || "");
     // Step 1: Subquery to get latest message timestamp per conversation
     const latestMessages = db
       .select({
@@ -48,7 +49,7 @@ export async function getConversations(req, res) {
           eq(messages.createdAt, latestMessages.lastMessageAt)
         )
       )
-      .where(eq(conversations.channelId, req.query.channelId || ""))
+      .where(eq(conversations.channelId, channelId))
       .orderBy(desc(latestMessages.lastMessageAt));
 
     // Step 3: Format response
@@ -96,6 +97,12 @@ export const createConversation = asyncHandler(async (req: RequestWithChannel, r
   });
 
   try {
+    if (!validatedConversation.channelId) {
+      throw new Error("channelId is missing");
+    }
+    if (!validatedConversation.contactId) {
+      throw new Error("contactId is missing");
+    }
     await triggerService.handleNewConversation(
       conversation.id, 
       validatedConversation.channelId, 

@@ -25,8 +25,7 @@ export class WebhookConfigRepository {
       .from(webhookConfigs)
       .where(
         and(
-          eq(webhookConfigs.channelId, channelId),
-          eq(webhookConfigs.type, type)
+          eq(webhookConfigs.channelId, channelId)
         )
       );
     return config || undefined;

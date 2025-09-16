@@ -27,10 +27,14 @@ export class CampaignRepository {
   async create(insertCampaign: InsertCampaign): Promise<Campaign> {
     const [campaign] = await db
       .insert(campaigns)
-      .values(insertCampaign)
+      .values({
+        ...insertCampaign,
+        contactGroups: (insertCampaign.contactGroups || []) as string[],
+      })
       .returning();
     return campaign;
   }
+  
 
   async update(id: string, campaign: Partial<Campaign>): Promise<Campaign | undefined> {
     const [updated] = await db

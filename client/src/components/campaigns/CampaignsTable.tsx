@@ -31,10 +31,10 @@ interface CampaignsTableProps {
 
 export function CampaignsTable({ campaigns, onViewCampaign, onUpdateStatus, onDeleteCampaign }: CampaignsTableProps) {
   const getStatusBadge = (status: string) => {
-    const statusConfig: Record<string, { variant: "default" | "secondary" | "success" | "destructive" | "outline"; label: string }> = {
-      active: { variant: "success", label: "Active" },
+    const statusConfig: Record<string, { variant: "default" | "secondary" | "secondary" | "destructive" | "outline"; label: string }> = {
       completed: { variant: "default", label: "Completed" },
       scheduled: { variant: "secondary", label: "Scheduled" },
+      active: { variant: "secondary", label: "Active" },
       paused: { variant: "outline", label: "Paused" },
       failed: { variant: "destructive", label: "Failed" },
     };

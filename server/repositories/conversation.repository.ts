@@ -1,54 +1,53 @@
 import { db } from "../db";
-import { eq, desc, sql } from "drizzle-orm";
 import { 
   conversations, 
   contacts,messages,
   type Conversation, 
   type InsertConversation 
 } from "@shared/schema";
+import { sql, eq, desc } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 
 export class ConversationRepository {
 
-private buildConversationQuery(channelId?: string) {
-  // Create an alias for messages
-  const lm = alias(messages, "lm");
-
-  // Build subquery for latest message using window function
-  const latestMessages = db
-    .select({
-      conversationId: lm.conversationId,
-      createdAt: lm.createdAt,
-      content: lm.content,
-      rn: sql<number>`ROW_NUMBER() OVER (
-        PARTITION BY ${lm.conversationId}
-        ORDER BY ${lm.createdAt} DESC
-      )`.as("rn")
-    })
-    .from(lm)
-    .as("latest_messages"); // give it a name
-
-  let query = db
-    .select({
-      conversation: conversations,
-      contact: contacts,
-      lastMessageAt: latestMessages.createdAt,
-      lastMessageText: latestMessages.content
-    })
-    .from(conversations)
-    .leftJoin(contacts, eq(conversations.contactId, contacts.id))
-    .leftJoin(
-      latestMessages,
-      sql`${latestMessages.conversationId} = ${conversations.id} AND ${latestMessages.rn} = 1`
-    );
-
-  if (channelId) {
-    query = query.where(eq(conversations.channelId, channelId));
+  private buildConversationQuery(channelId?: string) {
+    const lm = alias(messages, "lm");
+  
+    const latestMessages = db
+      .select({
+        conversationId: lm.conversationId,
+        createdAt: lm.createdAt,
+        content: lm.content,
+        rn: sql<number>`ROW_NUMBER() OVER (
+          PARTITION BY ${lm.conversationId}
+          ORDER BY ${lm.createdAt} DESC
+        )`.as("rn"),
+      })
+      .from(lm)
+      .as("latest_messages");
+  
+    const baseQuery = db
+      .select({
+        conversation: conversations,
+        contact: contacts,
+        lastMessageAt: latestMessages.createdAt,
+        lastMessageText: latestMessages.content,
+      })
+      .from(conversations)
+      .leftJoin(contacts, eq(conversations.contactId, contacts.id))
+      .leftJoin(
+        latestMessages,
+        sql`${latestMessages.conversationId} = ${conversations.id} AND ${latestMessages.rn} = 1`
+      );
+  
+    const query = baseQuery
+      .where(channelId ? eq(conversations.channelId, channelId) : sql`true`)
+      .orderBy(
+        desc(sql`COALESCE(${latestMessages.createdAt}, ${conversations.createdAt})`)
+      );
+  
+    return query;
   }
-
-  return query.orderBy(
-    desc(sql`COALESCE(${latestMessages.createdAt}, ${conversations.createdAt})`)
-  );
-}
 
   async getAllNew(): Promise<Conversation[]> {
     const result = await this.buildConversationQuery();

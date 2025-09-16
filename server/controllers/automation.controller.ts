@@ -10,62 +10,103 @@ import {
 } from "@shared/schema";
 import { eq , and } from "drizzle-orm";
 import { AppError, asyncHandler } from "../middlewares/error.middleware";
-import { storage } from "server/storage";
-import { executionService } from "server/services/automation-execution.service";
+import { storage } from "../storage";
+import { executionService, triggerService } from "../services/automation-execution.service";
 import fs from "fs/promises";
 import path from "path";
 //
 // ─── AUTOMATIONS (flows) ───────────────────────────────────────────────
 //
 
+
+// ─── Node & Edge Types ─────────────────────────
+interface Node {
+  id: string;
+  automationId: string;
+  nodeId: string;
+  type: string;
+  subtype?: string | null;
+  position: Record<string, any>;
+  measured: Record<string, any>;
+  data: Record<string, any>;
+  connections: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface Edge {
+  id: string;
+  automationId: string;
+  sourceNodeId: string;
+  targetNodeId: string;
+  animated: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// ─── Automation Type ─────────────────────────
+interface Automation {
+  id: string;
+  channelId: string | null;
+  name: string;
+  description?: string | null;
+  trigger: string;
+  triggerConfig: any;
+  status: string;
+  executionCount: number;
+  lastExecutedAt?: Date | null;
+  createdBy?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  automation_nodes: Node[];
+  automation_edges: Edge[];
+}
+
 // GET all automations (optionally by channelId)
 export const getAutomations = asyncHandler(async (req: Request, res: Response) => {
   const channelId = req.query.channelId as string | undefined;
 
-  // Query with optional channelId filtering
+  // Fetch all rows with optional channelId filter
   const rows = channelId
     ? await db.select()
         .from(automations)
         .leftJoin(automationNodes, eq(automations.id, automationNodes.automationId))
         .leftJoin(automationEdges, eq(automations.id, automationEdges.automationId))
         .where(eq(automations.channelId, channelId))
-        : await db.select()
+    : await db.select()
         .from(automations)
         .leftJoin(automationNodes, eq(automations.id, automationNodes.automationId))
-        .leftJoin(automationEdges, eq(automations.id, automationEdges.automationId))
+        .leftJoin(automationEdges, eq(automations.id, automationEdges.automationId));
 
-  // Group by automation ID and collect nodes
-  const automationMap = new Map<string, any>();
+  const automationMap = new Map<string, Automation>();
 
   for (const row of rows) {
-    const automation = row.automations;
-    const node = row.automation_nodes;
-    const edge = row.automation_edges;
-  
-    if (!automationMap.has(automation.id)) {
-      automationMap.set(automation.id, {
-        ...automation,
+    const automationRow = row.automations as Omit<Automation, "automation_nodes" | "automation_edges">;
+    const node = row.automation_nodes as Node | null;
+    const edge = row.automation_edges as Edge | null;
+
+    if (!automationMap.has(automationRow.id)) {
+      automationMap.set(automationRow.id, {
+        ...automationRow,
         automation_nodes: [],
         automation_edges: [],
       });
     }
-  
-    const automationEntry = automationMap.get(automation.id);
-  
-    // Add node only if it's not already in the array
-    if (node && node.id && !automationEntry.automation_nodes.some(n => n.id === node.id)) {
+
+    const automationEntry = automationMap.get(automationRow.id)!;
+
+    // Add node if not already in the array
+    if (node && !automationEntry.automation_nodes.some((n: Node) => n.id === node.id)) {
       automationEntry.automation_nodes.push(node);
     }
-  
-    // Add edge only if it's not already in the array
-    if (edge && edge.id && !automationEntry.automation_edges.some(e => e.id === edge.id)) {
+
+    // Add edge if not already in the array
+    if (edge && !automationEntry.automation_edges.some((e: Edge) => e.id === edge.id)) {
       automationEntry.automation_edges.push(edge);
     }
-  }  
+  }
 
-  // Convert the Map to a plain array of objects
   const result = Array.from(automationMap.values());
-
   res.json(result);
 });
 
@@ -336,7 +377,6 @@ async function saveUploadedFile(file: Express.Multer.File, folder: string) {
 
 
 // UPDATE automation
-// UPDATE automation
 export const updateAutomation = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   const { name, description, trigger, triggerConfig, nodes, edges, ...rest } = req.body;
@@ -351,6 +391,7 @@ export const updateAutomation = asyncHandler(async (req: Request, res: Response)
   } catch {
     parsedNodes = [];
   }
+  console.log("Parsed nodes:", parsedNodes);
 
   try {
     parsedEdges = typeof edges === "string" ? JSON.parse(edges) : edges;
@@ -382,6 +423,12 @@ export const updateAutomation = asyncHandler(async (req: Request, res: Response)
       }
     });
   }
+
+  console.log("Updating automation with data:", {name,
+    description,
+    trigger,
+    triggerConfig: JSON.parse(triggerConfig || "{}"),
+    ...rest,}); // Debug log
 
   // ✅ Update automation main record
   const [automation] = await db
@@ -616,11 +663,11 @@ export const startAutomationExecution = asyncHandler(async (req: Request, res: R
       .set({ 
         status: 'failed', 
         completedAt: new Date(),
-        result: error.message 
+        result: (error as Error).message
       })
       .where(eq(automationExecutions.id, execution.id));
 
-    throw new AppError(500, `Failed to start automation execution: ${error.message}`);
+    throw new AppError(500, `Failed to start automation execution: ${(error as Error).message}`);
   }
 });
 
@@ -724,11 +771,11 @@ export const testAutomation = asyncHandler(async (req: Request, res: Response) =
       .set({ 
         status: 'failed', 
         completedAt: new Date(),
-        result: error.message 
+        result: (error as Error).message
       })
       .where(eq(automationExecutions.id, execution.id));
 
-    throw new AppError(500, `Test execution failed: ${error.message}`);
+    throw new AppError(500, `Test execution failed: ${(error as Error).message}`);
   }
 });
 
@@ -749,7 +796,7 @@ export const getExecutionStatus = asyncHandler(async (req: Request, res: Respons
   const logs = await db.select()
     .from(automationExecutionLogs)
     .where(eq(automationExecutionLogs.executionId, executionId))
-    .orderBy(automationExecutionLogs.createdAt);
+    .orderBy(automationExecutionLogs.executedAt);
 
   res.json({
     execution,
@@ -768,7 +815,7 @@ export const getAutomationExecutions = asyncHandler(async (req: Request, res: Re
     .where(eq(automationExecutions.automationId, id))
     .limit(parseInt(limit as string))
     .offset(parseInt(offset as string))
-    .orderBy(automationExecutions.createdAt);
+    .orderBy(automationExecutions.startedAt);
 
   res.json(executions);
 });
@@ -792,7 +839,7 @@ export const triggerNewConversation = asyncHandler(async (req: Request, res: Res
     });
   } catch (error) {
     console.error("Error processing new conversation triggers:", error);
-    throw new AppError(500, `Failed to process triggers: ${error.message}`);
+    throw new AppError(500, `Failed to process triggers: ${(error as Error).message}`);
   }
 });
 
@@ -815,6 +862,6 @@ export const triggerMessageReceived = asyncHandler(async (req: Request, res: Res
     });
   } catch (error) {
     console.error("Error processing message triggers:", error);
-    throw new AppError(500, `Failed to process triggers: ${error.message}`);
+    throw new AppError(500, `Failed to process triggers: ${(error as Error).message}`);
   }
 });

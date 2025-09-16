@@ -160,7 +160,7 @@ export class AutomationRepository {
       await db
         .update(automations)
         .set({
-          executionCount: automation.executionCount + 1,
+          executionCount: automation.executionCount !== null ? automation.executionCount + 1 : null,
           lastExecutedAt: new Date()
         })
         .where(eq(automations.id, id));

@@ -62,7 +62,7 @@ export function CampaignDetailsDialog({ campaign, onClose }: CampaignDetailsDial
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <span>{campaign.name}</span>
-            <Badge variant={campaign.status === 'active' ? 'success' : 'default'}>
+            <Badge variant={campaign.status === 'active' ? 'destructive' : 'default'}>
               {campaign.status}
             </Badge>
           </DialogTitle>

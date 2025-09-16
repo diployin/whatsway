@@ -56,6 +56,11 @@ export default function Settings() {
             </TabsTrigger>
           </TabsList>
 
+          {/* General Setting Tab */}
+          <TabsContent value="general_setting">
+            <GeneralSettings />
+          </TabsContent>
+
           {/* WhatsApp Numbers Tab */}
           <TabsContent value="whatsapp">
             <ChannelSettings />
@@ -64,9 +69,6 @@ export default function Settings() {
           {/* Webhooks Tab */}
           <TabsContent value="webhooks">
             <WebhookSettings />
-          </TabsContent>
-          <TabsContent value="general_setting">
-            <GeneralSettings />
           </TabsContent>
 
           {/* API Keys Tab */}

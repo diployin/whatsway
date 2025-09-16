@@ -2,9 +2,10 @@ import { db } from "../db";
 import { gte, desc, sql } from "drizzle-orm";
 import { 
   analytics,
-  messageQueue,
+  messages,
   type Analytics, 
-  type InsertAnalytics 
+  type InsertAnalytics, 
+  conversations
 } from "@shared/schema";
 
 export class AnalyticsRepository {
@@ -13,36 +14,36 @@ export class AnalyticsRepository {
       ? new Date(Date.now() - days * 24 * 60 * 60 * 1000) 
       : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     
-    const result = await db
+      const result = await db
       .select({
-        date: sql<Date>`DATE(${messageQueue.createdAt})`,
-        sent: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'sent' THEN 1 END)`,
-        delivered: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'delivered' THEN 1 END)`,
-        read: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'read' THEN 1 END)`,
-        replied: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'replied' THEN 1 END)`,
-        failed: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'failed' THEN 1 END)`,
+        date: sql<Date>`DATE(${messages.createdAt})`,
+        sent: sql<number>`COUNT(CASE WHEN ${messages.status} = 'sent' THEN 1 END)`,
+        delivered: sql<number>`COUNT(CASE WHEN ${messages.status} = 'delivered' THEN 1 END)`,
+        read: sql<number>`COUNT(CASE WHEN ${messages.status} = 'read' THEN 1 END)`,
+        replied: sql<number>`COUNT(CASE WHEN ${messages.status} = 'replied' THEN 1 END)`,
+        failed: sql<number>`COUNT(CASE WHEN ${messages.status} = 'failed' THEN 1 END)`,
       })
-      .from(messageQueue)
+      .from(messages)
+      .leftJoin(conversations, sql`${messages.conversationId} = ${conversations.id}`)
       .where(
-        sql`${messageQueue.channelId} = ${channelId} AND ${messageQueue.createdAt} >= ${startDate}`
+        sql`${conversations.channelId} = ${channelId} AND ${messages.createdAt} >= ${startDate}`
       )
-      .groupBy(sql`DATE(${messageQueue.createdAt})`)
-      .orderBy(sql`DATE(${messageQueue.createdAt})`);
+      .groupBy(sql`DATE(${messages.createdAt})`)
+      .orderBy(sql`DATE(${messages.createdAt})`);    
 
     // Convert to Analytics format
     return result.map(row => ({
       id: `analytics-${channelId}-${row.date.toISOString()}`,
-      channelId: channelId,
+      channelId: channelId ?? null,
       date: row.date,
-      messagesTotal: Number(row.sent) + Number(row.delivered) + Number(row.read) + Number(row.replied) + Number(row.failed),
-      messagesSent: Number(row.sent),
-      messagesDelivered: Number(row.delivered),
-      messagesRead: Number(row.read),
-      messagesReplied: Number(row.replied),
-      messagesFailed: Number(row.failed),
+      messagesSent: row.sent ?? null,
+      messagesDelivered: row.delivered ?? null,
+      messagesRead: row.read ?? null,
+      messagesReplied: row.replied ?? null,
       createdAt: new Date(),
-      updatedAt: new Date(),
-    }));
+      newContacts: null,
+      activeCampaigns: null,
+    }));    
   }
 
   async getAnalytics(days?: number): Promise<Analytics[]> {
@@ -52,32 +53,35 @@ export class AnalyticsRepository {
     
     const result = await db
       .select({
-        date: sql<Date>`DATE(${messageQueue.createdAt})`,
-        sent: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'sent' THEN 1 END)`,
-        delivered: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'delivered' THEN 1 END)`,
-        read: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'read' THEN 1 END)`,
-        replied: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'replied' THEN 1 END)`,
-        failed: sql<number>`COUNT(CASE WHEN ${messageQueue.status} = 'failed' THEN 1 END)`,
+        date: sql<Date>`DATE(${messages.createdAt})`,
+        sent: sql<number>`COUNT(CASE WHEN ${messages.status} = 'sent' THEN 1 END)`,
+        delivered: sql<number>`COUNT(CASE WHEN ${messages.status} = 'delivered' THEN 1 END)`,
+        read: sql<number>`COUNT(CASE WHEN ${messages.status} = 'read' THEN 1 END)`,
+        replied: sql<number>`COUNT(CASE WHEN ${messages.status} = 'replied' THEN 1 END)`,
+        failed: sql<number>`COUNT(CASE WHEN ${messages.status} = 'failed' THEN 1 END)`,
       })
-      .from(messageQueue)
-      .where(gte(messageQueue.createdAt, startDate))
-      .groupBy(sql`DATE(${messageQueue.createdAt})`)
-      .orderBy(sql`DATE(${messageQueue.createdAt})`);
+      .from(messages)
+      .where(gte(messages.createdAt, startDate))
+      .groupBy(sql`DATE(${messages.createdAt})`)
+      .orderBy(sql`DATE(${messages.createdAt})`);
 
     // Convert to Analytics format
     return result.map(row => ({
       id: `analytics-${row.date.toISOString()}`,
-      channelId: '',
+      channelId: null,      // must be string | null
       date: row.date,
-      messagesTotal: Number(row.sent) + Number(row.delivered) + Number(row.read) + Number(row.replied) + Number(row.failed),
-      messagesSent: Number(row.sent),
-      messagesDelivered: Number(row.delivered),
-      messagesRead: Number(row.read),
-      messagesReplied: Number(row.replied),
-      messagesFailed: Number(row.failed),
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      messagesTotal: (Number(row.sent) + Number(row.delivered) + Number(row.read) + Number(row.replied) + Number(row.failed)) ?? null, 
+      messagesSent: Number(row.sent) ?? null,
+      messagesDelivered: Number(row.delivered) ?? null,
+      messagesRead: Number(row.read) ?? null,
+      messagesReplied: Number(row.replied) ?? null,
+      messagesFailed: Number(row.failed) ?? null,
+      createdAt: new Date() ?? null,
+      newContacts: null,
+      activeCampaigns: null,
+      // remove updatedAt since it's not in the type
     }));
+    
   }
 
   async createOrUpdate(insertAnalytics: InsertAnalytics): Promise<Analytics> {
@@ -87,13 +91,10 @@ export class AnalyticsRepository {
       .onConflictDoUpdate({
         target: [analytics.channelId, analytics.date],
         set: {
-          messagesTotal: insertAnalytics.messagesTotal,
           messagesSent: insertAnalytics.messagesSent,
           messagesDelivered: insertAnalytics.messagesDelivered,
           messagesRead: insertAnalytics.messagesRead,
           messagesReplied: insertAnalytics.messagesReplied,
-          messagesFailed: insertAnalytics.messagesFailed,
-          updatedAt: new Date(),
         },
       })
       .returning();
