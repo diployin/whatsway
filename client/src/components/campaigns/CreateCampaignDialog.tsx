@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/table";
 import { Users, FileSpreadsheet, Code } from "lucide-react";
 import { CreateCampaignForm } from "./CreateCampaignForm";
+import { useTranslation } from "@/lib/i18n";
 
 interface CreateCampaignDialogProps {
   open: boolean;
@@ -59,7 +60,7 @@ export function CreateCampaignDialog({
   const [csvData, setCsvData] = useState<any[]>([]);
   const [scheduledTime, setScheduledTime] = useState("");
   const [autoRetry, setAutoRetry] = useState(false);
-
+const { t } = useTranslation();
   const resetForm = () => {
     setSelectedTemplate(null);
     setVariableMapping({});
@@ -153,9 +154,9 @@ export function CreateCampaignDialog({
     >
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create New Campaign</DialogTitle>
+          <DialogTitle>{t('campaigns.dialogTitle')}</DialogTitle>
           <DialogDescription>
-            Choose your campaign type and configure the details
+          {t('campaigns.dialogDescription')}
           </DialogDescription>
         </DialogHeader>
 
@@ -166,11 +167,11 @@ export function CreateCampaignDialog({
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="contacts" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
-              Contacts
+              {t('campaigns.contactsImport')}
             </TabsTrigger>
             <TabsTrigger value="csv" className="flex items-center gap-2">
               <FileSpreadsheet className="h-4 w-4" />
-              CSV Import
+              {t('campaigns.csvImport')}
             </TabsTrigger>
             <TabsTrigger
               disabled={true}
@@ -178,7 +179,7 @@ export function CreateCampaignDialog({
               className="flex items-center gap-2"
             >
               <Code className="h-4 w-4" />
-              API Campaign (Coming soon)
+              {t('campaigns.apiCampaigns')} {t('campaigns.comingSoon')}
             </TabsTrigger>
           </TabsList>
 
@@ -200,7 +201,7 @@ export function CreateCampaignDialog({
             <TabsContent value="contacts" className="space-y-4">
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <Label>Select Contacts</Label>
+                  <Label>{t('campaigns.selectConatcts')}</Label>
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       checked={
@@ -216,7 +217,7 @@ export function CreateCampaignDialog({
                       }}
                     />
                     <Label className="font-normal text-sm">
-                      Select All ({contacts.length})
+                    {t('campaigns.selectAll')} ({contacts.length})
                     </Label>
                   </div>
                 </div>
@@ -252,7 +253,7 @@ export function CreateCampaignDialog({
 
             <TabsContent value="csv" className="space-y-4">
               <div>
-                <Label htmlFor="csvFile">Upload CSV File</Label>
+                <Label htmlFor="csvFile">{t('campaigns.uploadCSVFile')}</Label>
                 <Input
                   id="csvFile"
                   type="file"
@@ -268,14 +269,14 @@ export function CreateCampaignDialog({
                     }}
                     className="text-blue-500 hover:underline"
                   >
-                    Download sample CSV template
+                    {t('campaigns.downloadSampleCSV')}
                   </a>
                 </p>
               </div>
 
               {csvData.length > 0 && (
                 <div>
-                  <Label>CSV Preview ({csvData.length} rows)</Label>
+                  <Label>{t('campaigns.csvPreview')} ({csvData.length} {t('campaigns.rows')})</Label>
                   <ScrollArea className="h-64 border rounded-md">
                     <Table>
                       <TableHeader>
@@ -303,9 +304,7 @@ export function CreateCampaignDialog({
             <TabsContent value="api" className="space-y-4">
               <div className="bg-blue-50 p-4 rounded-md">
                 <p className="text-sm text-blue-800">
-                  API campaigns allow external applications to trigger messages
-                  using your templates. After creating the campaign, you'll
-                  receive an API endpoint and key.
+                {t('campaigns.tabContent')}
                 </p>
               </div>
             </TabsContent>
