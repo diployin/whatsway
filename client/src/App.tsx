@@ -23,6 +23,7 @@ import Sidebar from "@/components/layout/sidebar";
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
 import Account from "./pages/account";
+import { AppLayout } from "./components/layout/AppLayout";
 
 // Define route permissions mapping
 const ROUTE_PERMISSIONS: Record<string, string> = {
@@ -254,6 +255,7 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <AppLayout>
       <AuthProvider>
         <ChannelProvider>
           <TooltipProvider>
@@ -264,6 +266,7 @@ function App() {
           </TooltipProvider>
         </ChannelProvider>
       </AuthProvider>
+      </AppLayout>
     </QueryClientProvider>
   );
 }
