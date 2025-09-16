@@ -1,10 +1,5 @@
 # WhatsWay - Professional WhatsApp Business Platform
 
-## 🚀 Live Demo
-- URL: https://demo.whatsway.com
-- Username: demo
-- Password: Demo@123
-
 ## 📦 What's Included
 - Full source code (React + Node.js)
 - PostgreSQL database schema
