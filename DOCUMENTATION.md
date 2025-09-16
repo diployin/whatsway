@@ -395,7 +395,7 @@ pm2 logs whatsway
 ### Getting Help
 - **Documentation**: Check this guide
 - **Logs**: Review application logs
-- **Email**: support@whatsway.com
+- **Email**: nb@diploy.in
 
 ### Reporting Issues
 Include:
