@@ -16,8 +16,12 @@ import { CampaignStatistics } from "@/components/campaigns/CampaignStatistics";
 import { CampaignsTable } from "@/components/campaigns/CampaignsTable";
 import { CampaignDetailsDialog } from "@/components/campaigns/CampaignDetailsDialog";
 import { CreateCampaignDialog } from "@/components/campaigns/CreateCampaignDialog";
+import { useTranslation } from "@/lib/i18n"; 
+
+
 
 export default function Campaigns() {
+  const { t } = useTranslation();
   const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [campaignType, setCampaignType] = useState<string>("");
@@ -227,9 +231,9 @@ export default function Campaigns() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Campaigns</h1>
+          <h1 className="text-3xl font-bold">{t('campaigns.title')}</h1>
           <p className="text-muted-foreground">
-            Create and manage your WhatsApp marketing campaigns
+          {t('campaigns.subtitle')}
           </p>
         </div>
         <Button
@@ -237,7 +241,7 @@ export default function Campaigns() {
           onClick={() => setCreateDialogOpen(true)}
         >
           <Plus className="h-4 w-4" />
-          Create Campaign
+          {t('campaigns.createCampaign')}
         </Button>
       </div>
 
@@ -247,8 +251,8 @@ export default function Campaigns() {
       {/* Campaigns List */}
       <Card>
         <CardHeader>
-          <CardTitle>All Campaigns</CardTitle>
-          <CardDescription>Manage and monitor your campaigns</CardDescription>
+          <CardTitle>{t('campaigns.allCampaigns')}</CardTitle>
+          <CardDescription>{t('campaigns.listDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <CampaignsTable

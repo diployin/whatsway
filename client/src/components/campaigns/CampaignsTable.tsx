@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Eye, Play, Pause, Trash2, TrendingUp, TrendingDown } from "lucide-react";
 import { format } from "date-fns";
+import { useTranslation } from "@/lib/i18n";
 
 interface Campaign {
   id: string;
@@ -30,6 +31,7 @@ interface CampaignsTableProps {
 }
 
 export function CampaignsTable({ campaigns, onViewCampaign, onUpdateStatus, onDeleteCampaign }: CampaignsTableProps) {
+  const { t } = useTranslation();
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<string, { variant: "default" | "secondary" | "secondary" | "destructive" | "outline"; label: string }> = {
       completed: { variant: "default", label: "Completed" },
@@ -65,16 +67,16 @@ export function CampaignsTable({ campaigns, onViewCampaign, onUpdateStatus, onDe
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Campaign</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Template</TableHead>
-          <TableHead>Recipients</TableHead>
-          <TableHead>Sent</TableHead>
-          <TableHead>Delivered</TableHead>
-          <TableHead>Read</TableHead>
-          <TableHead>Delivery Rate</TableHead>
-          <TableHead>Created</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
+          <TableHead>{t('campaigns.title')}</TableHead>
+          <TableHead>{t('campaigns.status')}</TableHead>
+          <TableHead>{t('campaigns.template')}</TableHead>
+          <TableHead>{t('campaigns.recipients')}</TableHead>
+          <TableHead>{t('campaigns.sent')}</TableHead>
+          <TableHead>{t('campaigns.delivered')}</TableHead>
+          <TableHead>{t('campaigns.read')}</TableHead>
+          <TableHead>{t('campaigns.deliveryRate')}</TableHead>
+          <TableHead>{t('campaigns.created')}</TableHead>
+          <TableHead className="text-right">{t('campaigns.actions')}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -143,18 +145,18 @@ export function CampaignsTable({ campaigns, onViewCampaign, onUpdateStatus, onDe
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => onViewCampaign(campaign)}>
                       <Eye className="mr-2 h-4 w-4" />
-                      View Details
+                      {t('campaigns.viewDetails')}
                     </DropdownMenuItem>
                     {campaign.status === "active" && (
                       <DropdownMenuItem onClick={() => onUpdateStatus(campaign.id, "paused")}>
                         <Pause className="mr-2 h-4 w-4" />
-                        Pause
+                        {t('campaigns.pause')}
                       </DropdownMenuItem>
                     )}
                     {campaign.status === "paused" && (
                       <DropdownMenuItem onClick={() => onUpdateStatus(campaign.id, "active")}>
                         <Play className="mr-2 h-4 w-4" />
-                        Resume
+                        {t('campaigns.resume')}
                       </DropdownMenuItem>
                     )}
                     <DropdownMenuItem 
@@ -162,7 +164,7 @@ export function CampaignsTable({ campaigns, onViewCampaign, onUpdateStatus, onDe
                       className="text-destructive"
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
+                      {t('campaigns.delete')}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
