@@ -80,12 +80,17 @@ export function CampaignsTable({ campaigns, onViewCampaign, onUpdateStatus, onDe
       <TableBody>
         {campaigns.map((campaign) => {
           // const deliveryRate = calculateDeliveryRate(campaign.recipientCount, campaign.deliveredCount);
-          const delivered = Number(campaign.deliveredCount);
-          const failed = Number(campaign.failedCount);
-
-          const deliveryRate = delivered > 0
+          const delivered = Number(campaign.deliveredCount) || 0;
+          const failed = Number(campaign.failedCount) || 0;
+          
+          let deliveryRate = delivered > 0
             ? Math.round(((delivered - failed) / delivered) * 100)
             : 0;
+          
+          // Clamp between 0 and 100 to handle bad data
+          deliveryRate = Math.max(0, Math.min(deliveryRate, 100));
+
+            console.log("Delivered:", delivered, "Failed:", failed, "Delivery Rate:", deliveryRate);
           const readRate = calculateReadRate(campaign.deliveredCount, campaign.readCount);
           // console.log("Delivery Rate:", deliveryRate ,campaign.deliveredCount,campaign.failedCount ,((Number(campaign.deliveredCount) - Number(campaign.failedCount)) / Number(campaign.deliveredCount)) * 100)
 
