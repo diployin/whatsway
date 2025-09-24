@@ -57,7 +57,8 @@ import {
   type InsertContact,
 } from "@shared/schema";
 import Papa from "papaparse";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
+import { saveAs } from "file-saver";
 import {
   Select,
   SelectContent,
@@ -716,34 +717,93 @@ export default function Contacts() {
     event.target.value = "";
   };
 
-  const handleExcelUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+
+
+  type InsertContact = {
+    name: string;
+    phone: string;
+    email: string;
+    groups: string[];
+    tags: string[];
+  };
+  
+  const handleExcelUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ): Promise<void> => {
     const file = event.target.files?.[0];
     if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const data = new Uint8Array(e.target?.result as ArrayBuffer);
-      const workbook = XLSX.read(data, { type: "array" });
-      const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
-      const rows: any[] = XLSX.utils.sheet_to_json(sheet);
-
-      const parsedContacts: InsertContact[] = rows.map((row: any) => ({
-        name: row?.name?.toString().trim() || "",
-        phone: row?.phone ? String(row.phone).trim() : "",
-        email: row?.email?.toString().trim() || "",
-        groups: row?.groups
-          ? row.groups.split(",").map((g: string) => g.trim())
-          : [],
-        tags: row?.tags ? row.tags.split(",").map((t: string) => t.trim()) : [],
+  
+    try {
+      const workbook = new ExcelJS.Workbook();
+      const arrayBuffer = await file.arrayBuffer();
+      await workbook.xlsx.load(arrayBuffer);
+  
+      const worksheet = workbook.worksheets[0];
+      if (!worksheet) {
+        alert("No worksheet found in Excel file.");
+        return;
+      }
+  
+      const rows: Record<string, string>[] = [];
+  
+      // ✅ Get headers safely with null check
+      const headerRow = worksheet.getRow(1);
+      if (!headerRow || !headerRow.values) {
+        alert("No header row found in Excel file.");
+        return;
+      }
+      
+      const headerValues = Array.isArray(headerRow.values)
+      ? headerRow.values.slice(1).map((h: ExcelJS.CellValue | undefined) =>
+          typeof h === "string"
+            ? h.trim().toLowerCase()
+            : typeof h === "number"
+            ? String(h)
+            : ""
+        )
+      : [];
+    
+    
+  
+      // ✅ Extract data rows
+      worksheet.eachRow((row, rowNumber) => {
+        if (rowNumber === 1) return; // skip header
+      
+        const rowData: Record<string, string> = {};
+        if (row.values && Array.isArray(row.values)) {
+          row.values.slice(1).forEach((cell: ExcelJS.CellValue | undefined, idx: number) => {
+            const key = headerValues[idx];
+            if (key) {
+              if (typeof cell === "string") rowData[key] = cell.trim();
+              else if (typeof cell === "number") rowData[key] = String(cell);
+              else rowData[key] = "";
+            }
+          });
+        }
+      
+        rows.push(rowData); // <-- push outside the inner forEach but inside eachRow
+      });
+      
+  
+      // ✅ Map rows to InsertContact
+      const parsedContacts: InsertContact[] = rows.map((row) => ({
+        name: row["name"] || "",
+        phone: row["phone"] || "",
+        email: row["email"] || "",
+        groups: row["groups"] ? row["groups"].split(",").map((g) => g.trim()) : [],
+        tags: row["tags"] ? row["tags"].split(",").map((t) => t.trim()) : [],
       }));
-
+  
       importContactsMutation.mutate(parsedContacts);
-    };
-    reader.readAsArrayBuffer(file);
-
+    } catch (error) {
+      console.error("Error reading Excel file:", error);
+      alert("Failed to read Excel file. Please check the format.");
+    }
+  
     event.target.value = "";
   };
+  
+  
 
   if (isLoading) {
     return (
@@ -774,112 +834,100 @@ export default function Contacts() {
   //   );
   // };
 
-  const handleExportSelectedContacts = () => {
-    const selectedContacts = contacts.filter((contact) =>
-      selectedContactIds.includes(contact.id)
-    );
+// ✅ Export Selected Contacts
+const handleExportSelectedContacts = () => {
+  const selectedContacts = contacts.filter((contact) =>
+    selectedContactIds.includes(contact.id)
+  );
 
-    if (selectedContacts.length === 0) {
-      alert("No contacts selected.");
+  if (selectedContacts.length === 0) {
+    alert("No contacts selected.");
+    return;
+  }
+
+  exportToExcel(selectedContacts, "selected_contacts.xlsx");
+};
+
+// ✅ Export All Contacts
+const handleExportAllContacts = async () => {
+  try {
+    const response = await fetch("/api/contacts-all");
+    if (!response.ok) {
+      throw new Error("Failed to fetch contacts");
+    }
+
+    const allContacts: Contact[] = await response.json();
+
+    if (!allContacts || allContacts.length === 0) {
+      alert("No contacts available.");
       return;
     }
 
-    // Format data for Excel
-    const data = selectedContacts.map((contact) => ({
-      Name: contact.name,
-      Email: contact.email || "",
-      Phone: contact.phone || "",
-      Groups: contact.groups?.join(", ") || "",
-      Status: contact.status,
-      LastContact: contact.lastContact
-        ? new Date(contact.lastContact).toLocaleDateString()
-        : "Never",
-    }));
+    exportToExcel(allContacts, "all_contacts.xlsx");
+  } catch (error) {
+    console.error("Error exporting contacts:", error);
+    alert("Failed to export contacts. Please try again.");
+  }
+};
 
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Contacts");
+// ✅ Download Sample Template
+const handleExcelDownload = () => {
+  const sampleContacts = [
+    {
+      name: "Alice Smith",
+      phone: "1234567890",
+      email: "alice@example.com",
+      groups: "Friends, Work",
+      tags: "VIP, Newsletter",
+    },
+    {
+      name: "Bob Johnson",
+      phone: "9876543210",
+      email: "bob@example.com",
+      groups: "Family",
+      tags: "New",
+    },
+    {
+      name: "Charlie Brown",
+      phone: "5555555555",
+      email: "charlie@example.com",
+      groups: "Customers, Support",
+      tags: "Premium, Active",
+    },
+  ];
 
-    XLSX.writeFile(workbook, "selected_contacts.xlsx");
-  };
+  exportToExcel(sampleContacts, "sample_contacts.xlsx");
+};
 
-  const handleExportAllContacts = async () => {
-    try {
-      // Fetch all contacts from the server
-      const response = await fetch("/api/contacts-all");
-      if (!response.ok) {
-        throw new Error("Failed to fetch contacts");
-      }
-  
-      const allContacts: Contact[] = await response.json();
-  
-      if (!allContacts || allContacts.length === 0) {
-        alert("No contacts available.");
-        return;
-      }
-  
-      // Format data for Excel
-      const data = allContacts.map((contact) => ({
-        Name: contact.name,
-        Email: contact.email || "",
-        Phone: contact.phone || "",
-        Groups: contact.groups?.join(", ") || "",
-        Status: contact.status,
-        LastContact: contact.lastContact
-          ? new Date(contact.lastContact).toLocaleDateString()
-          : "Never",
-      }));
-  
-      // Create Excel sheet
-      const worksheet = XLSX.utils.json_to_sheet(data);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Contacts");
-  
-      // Trigger file download
-      XLSX.writeFile(workbook, "all_contacts.xlsx");
-    } catch (error) {
-      console.error("Error exporting contacts:", error);
-      alert("Failed to export contacts. Please try again.");
-    }
-  };
-  
+// ✅ Reusable Excel Export Function (using ExcelJS)
+const exportToExcel = async (data: any[], fileName: string) => {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("Contacts");
 
-  const handleExcelDownload = () => {
-    // Sample data structure (same format as your upload expects)
-    const sampleContacts = [
-      {
-        name: "Alice Smith",
-        phone: "1234567890",
-        email: "alice@example.com",
-        groups: "Friends, Work",
-        tags: "VIP, Newsletter",
-      },
-      {
-        name: "Bob Johnson",
-        phone: "9876543210",
-        email: "bob@example.com",
-        groups: "Family",
-        tags: "New",
-      },
-      {
-        name: "Charlie Brown",
-        phone: "5555555555",
-        email: "charlie@example.com",
-        groups: "Customers, Support",
-        tags: "Premium, Active",
-      },
-    ];
+  if (data.length === 0) {
+    alert("No data to export.");
+    return;
+  }
 
-    // Create worksheet from data
-    const worksheet = XLSX.utils.json_to_sheet(sampleContacts);
+  // Add header row based on keys of first object
+  worksheet.columns = Object.keys(data[0]).map((key) => ({
+    header: key.charAt(0).toUpperCase() + key.slice(1),
+    key,
+    width: 20,
+  }));
 
-    // Create workbook and add worksheet
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Contacts");
+  // Add all rows
+  data.forEach((item) => {
+    worksheet.addRow(item);
+  });
 
-    // Generate Excel file and download
-    XLSX.writeFile(workbook, "sample_contacts.xlsx");
-  };
+  // Style header row
+  worksheet.getRow(1).font = { bold: true };
+
+  // Generate file and download
+  const buffer = await workbook.xlsx.writeBuffer();
+  saveAs(new Blob([buffer]), fileName);
+};
 
   return (
     <div className="flex-1 dots-bg min-h-screen">

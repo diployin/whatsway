@@ -357,6 +357,7 @@
     "title": "Templates",
     "createTemplate": "Create Template",
     "templateName": "Template Name",
+    "apiCampaigns": "API Campaigns",
     "category": "Category",
     "language": "Language",
     "header": "Header",
