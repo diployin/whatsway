@@ -4,7 +4,7 @@ import { messages, campaigns, conversations, whatsappChannels } from '@shared/sc
 import { AppError, asyncHandler } from '../middlewares/error.middleware';
 import { eq, and, gte, lte, count, sql, desc } from 'drizzle-orm';
 import PDFDocument from 'pdfkit';
-import * as XLSX from 'xlsx';
+import ExcelJS from "exceljs";
 import { storage } from 'server/storage';
 
 // Get message analytics with real-time data
@@ -361,16 +361,18 @@ async function exportPDF(req: Request, res: Response) {
 }
 
 // Helper function to export Excel
-async function exportExcel(req: Request, res: Response) {
-  const { type, channelId, days = '30' } = req.query;
-  
-  const workbook = XLSX.utils.book_new();
-  
-  // Add message analytics sheet
-  if (type === 'messages' || type === 'all') {
-    const daysNum = parseInt(days as string);
+export async function exportExcel(req: Request, res: Response) {
+  const { type, channelId, days = "30" } = req.query;
+
+  const workbook = new ExcelJS.Workbook();
+
+  // ----------------------
+  // Message Analytics Sheet
+  // ----------------------
+  if (type === "messages" || type === "all") {
+    const daysNum = parseInt(days as string, 10);
     const start = new Date(Date.now() - daysNum * 24 * 60 * 60 * 1000);
-    
+
     const conditions = [];
     if (channelId) {
       conditions.push(eq(conversations.channelId, channelId as string));
@@ -391,12 +393,25 @@ async function exportExcel(req: Request, res: Response) {
       .groupBy(sql`DATE(${messages.createdAt})`)
       .orderBy(sql`DATE(${messages.createdAt})`);
 
-    const ws = XLSX.utils.json_to_sheet(messageData);
-    XLSX.utils.book_append_sheet(workbook, ws, 'Message Analytics');
+    const ws = workbook.addWorksheet("Message Analytics");
+
+    if (messageData.length > 0) {
+      // Add header row
+      ws.columns = Object.keys(messageData[0]).map((key) => ({
+        header: key.charAt(0).toUpperCase() + key.slice(1),
+        key,
+        width: 15,
+      }));
+
+      // Add data rows
+      messageData.forEach((row) => ws.addRow(row));
+    }
   }
 
-  // Add campaign analytics sheet
-  if (type === 'campaigns' || type === 'all') {
+  // ----------------------
+  // Campaign Analytics Sheet
+  // ----------------------
+  if (type === "campaigns" || type === "all") {
     const campaignData = await db
       .select({
         name: campaigns.name,
@@ -413,13 +428,33 @@ async function exportExcel(req: Request, res: Response) {
       .where(channelId ? eq(campaigns.channelId, channelId as string) : undefined)
       .orderBy(desc(campaigns.createdAt));
 
-    const ws = XLSX.utils.json_to_sheet(campaignData);
-    XLSX.utils.book_append_sheet(workbook, ws, 'Campaign Analytics');
+    const ws = workbook.addWorksheet("Campaign Analytics");
+
+    if (campaignData.length > 0) {
+      ws.columns = Object.keys(campaignData[0]).map((key) => ({
+        header: key.charAt(0).toUpperCase() + key.slice(1),
+        key,
+        width: 15,
+      }));
+
+      campaignData.forEach((row) => ws.addRow(row));
+    }
   }
 
-  const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
-  
-  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-  res.setHeader('Content-Disposition', `attachment; filename=analytics-report-${new Date().toISOString().split('T')[0]}.xlsx`);
+  // ----------------------
+  // Write Excel to buffer
+  // ----------------------
+  const buffer = await workbook.xlsx.writeBuffer();
+
+  res.setHeader(
+    "Content-Type",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  );
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename=analytics-report-${new Date()
+      .toISOString()
+      .split("T")[0]}.xlsx`
+  );
   res.send(buffer);
 }
