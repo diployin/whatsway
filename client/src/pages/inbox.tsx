@@ -75,7 +75,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { format, differenceInMinutes, differenceInHours, differenceInDays, isToday, isYesterday } from "date-fns";
 import { cn } from "@/lib/utils";
-import type { Conversation, Message, Contact, User } from "@shared/schema";
+import type { Conversation, Contact, User } from "@shared/schema";
 import { useAuth } from "@/contexts/auth-context";
 
 // Helper functions
@@ -252,16 +252,26 @@ const MessageItem = ({
           <div className="space-y-2">
             {hasMedia && (
               <div className="relative group">
-                <img 
-                  src={mediaUrl}
-                  alt="Image message"
-                  className="max-w-[250px] max-h-[300px] rounded-lg object-cover cursor-pointer transition-opacity group-hover:opacity-90"
-                  onError={(e) => {
-                    console.error('Failed to load image:', mediaUrl);
-                    e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+PC9zdmc+';
+                <button 
+                  onClick={() => mediaUrl && window.open(mediaUrl, '_blank')}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      mediaUrl && window.open(mediaUrl, '_blank');
+                    }
                   }}
-                  onClick={() => window.open(mediaUrl, '_blank')}
-                />
+                  className="max-w-[250px] max-h-[300px] rounded-lg object-cover cursor-pointer transition-opacity group-hover:opacity-90"
+                  style={{ background: 'none', border: 'none', padding: 0 }}
+                >
+                  <img 
+                    src={mediaUrl || ''}
+                    alt=""
+                    className="max-w-[250px] max-h-[300px] rounded-lg object-cover"
+                    onError={(e) => {
+                      console.error('Failed to load image:', mediaUrl);
+                      e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+PC9zdmc+';
+                    }}
+                  />
+                </button>
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                   <div className="bg-black bg-opacity-50 rounded-full p-2">
                     <Image className="w-6 h-6 text-white" />
@@ -326,7 +336,7 @@ const MessageItem = ({
                       console.error('Failed to load audio:', mediaUrl);
                     }}
                   >
-                    <source src={mediaUrl} type={message.mediaMimeType} />
+                    <source src={mediaUrl || ''} type={message.mediaMimeType} />
                     Your browser does not support the audio tag.
                   </audio>
                 </div>
@@ -338,8 +348,8 @@ const MessageItem = ({
 
       case 'document':
         const fileName = message.metadata?.originalName || 
-                        message.metadata?.fileName || 
-                        'Document';
+                  (message.metadata as { filePath?: string; fileSize?: number; mimeType?: string; originalName?: string; fileName?: string; }).fileName || 
+                  'Document';
         const fileSize = message.metadata?.fileSize 
           ? `${Math.round(message.metadata.fileSize / 1024)} KB`
           : '';
@@ -379,18 +389,25 @@ const MessageItem = ({
                       </p>
                     )}
                     {(message.mediaMimeType || message.metadata?.mimeType) && (
-                      <p className={cn(
+                      <p
+                      className={cn(
                         "text-xs",
                         isOutbound ? "text-green-100" : "text-gray-500"
-                      )}>
-                        {(message.mediaMimeType || message.metadata?.mimeType)
-                          .split('/')[1]?.toUpperCase() || 'FILE'}
-                      </p>
+                      )}
+                    >
+                      {(
+                        message.mediaMimeType ??
+                        message.metadata?.mimeType ??
+                        "FILE/UNKNOWN"
+                      )
+                        .split("/")[1]
+                        ?.toUpperCase() || "FILE"}
+                    </p>                    
                     )}
                   </div>
                 </div>
                 <a
-                  href={downloadUrl}
+                  href={downloadUrl || ''}
                   download={fileName}
                   className={cn(
                     "p-1 rounded-full hover:bg-opacity-80 transition-colors",
@@ -412,13 +429,21 @@ const MessageItem = ({
 
       case 'interactive':
         // Handle interactive messages (buttons/lists)
-        const buttons = message.metadata?.buttons;
+        interface MessageMetadata {
+          filePath?: string;
+          fileSize?: number;
+          mimeType?: string;
+          originalName?: string;
+          buttons?: { id?: string; text: string }[]; // Add buttons property
+        }
+
+        const buttons = (message.metadata as MessageMetadata)?.buttons;
         return (
           <div className="space-y-3">
             {renderTextContent()}
             {buttons && buttons.length > 0 && (
               <div className="space-y-2">
-                {buttons.map((button, index) => (
+                {buttons.map((button: { id?: string; text: string }, index: number) => (
                   <button
                     key={button.id || index}
                     className={cn(
@@ -478,16 +503,25 @@ const MessageItem = ({
             return (
               <div className="space-y-2">
                 <div className="relative group">
-                  <img 
-                    src={mediaUrl}
-                    alt="Image attachment"
+                  <button 
+                    onClick={() => mediaUrl && window.open(mediaUrl, '_blank')} // Ensure mediaUrl is a valid string
                     className="max-w-[250px] max-h-[300px] rounded-lg object-cover cursor-pointer transition-opacity group-hover:opacity-90"
                     onError={(e) => {
                       console.error('Failed to load image:', mediaUrl);
-                      e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+PC9zdmc+';
+                      // e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+PC9zdmc+';
                     }}
-                    onClick={() => window.open(mediaUrl, '_blank')}
-                  />
+                    onKeyDown={(e) => { // Add keyboard event listener for accessibility
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        mediaUrl && window.open(mediaUrl, '_blank'); // Ensure mediaUrl is a valid string
+                      }
+                    }}
+                    tabIndex={0} // Make the button focusable
+                  >
+                    <img 
+                      src={mediaUrl || ''} // Ensure src is a string
+                      alt="" // Remove redundant words from alt attribute
+                    />
+                  </button>
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <div className="bg-black bg-opacity-50 rounded-full p-2">
                       <Image className="w-6 h-6 text-white" />
@@ -546,7 +580,7 @@ const MessageItem = ({
                         console.error('Failed to load audio:', mediaUrl);
                       }}
                     >
-                      <source src={mediaUrl} type={mimeType} />
+                        <source src={mediaUrl || ''} type={mimeType || ''} />
                       Your browser does not support the audio tag.
                     </audio>
                   </div>
@@ -557,7 +591,7 @@ const MessageItem = ({
           } else {
             // Generic file/document
             const fileName = message.metadata?.originalName || 
-                            message.metadata?.fileName || 
+                            message.metadata?.originalName || 
                             'Attachment';
             const fileSize = message.metadata?.fileSize 
               ? `${Math.round(message.metadata.fileSize / 1024)} KB`
@@ -607,7 +641,7 @@ const MessageItem = ({
                     </div>
                   </div>
                   <a
-                    href={downloadUrl}
+                    href={downloadUrl || undefined}
                     download={fileName}
                     className={cn(
                       "p-1 rounded-full hover:bg-opacity-80 transition-colors",
