@@ -109,11 +109,11 @@ app.use((req, res, next) => {
 
   const listenOptions: any = {
     port,
-    host: "127.0.0.1",
+    host: process.env.NODE_ENV === "production" ? "0.0.0.0" : "127.0.0.1",
   };
   
   // Only use reusePort if the platform supports it
-  if (process.platform !== "win32") {
+  if (process.platform !== "win32" && process.env.NODE_ENV !== "production") {
     listenOptions.reusePort = true;
   }
   
