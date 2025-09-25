@@ -90,20 +90,44 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || '5000', 10);
-  server.listen({
+  // server.listen({
+  //   port,
+  //   host: "127.0.0.1",
+  //   reusePort: true,
+  // }, async () => {
+  //   log(`serving on port ${port}`);
+    
+  //   // Start the message status updater cron job
+  //   const messageStatusUpdater = new MessageStatusUpdater();
+  //   messageStatusUpdater.startCronJob(60); // Run every 60 seconds instead of 10
+  //   log('Message status updater cron job started');
+    
+  //   // Start channel health monitor
+  //   const { channelHealthMonitor } = await import('./cron/channel-health-monitor');
+  //   channelHealthMonitor.start();
+  // });
+
+  const listenOptions: any = {
     port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, async () => {
+    host: "127.0.0.1",
+  };
+  
+  // Only use reusePort if the platform supports it
+  if (process.platform !== "win32") {
+    listenOptions.reusePort = true;
+  }
+  
+  server.listen(listenOptions, async () => {
     log(`serving on port ${port}`);
     
     // Start the message status updater cron job
     const messageStatusUpdater = new MessageStatusUpdater();
-    messageStatusUpdater.startCronJob(60); // Run every 60 seconds instead of 10
-    log('Message status updater cron job started');
-    
-    // Start channel health monitor
-    const { channelHealthMonitor } = await import('./cron/channel-health-monitor');
+    messageStatusUpdater.startCronJob(60);
+  
+    const { channelHealthMonitor } = await import("./cron/channel-health-monitor");
     channelHealthMonitor.start();
   });
+  
+
+
 })();
