@@ -28,6 +28,7 @@ import type { WebhookConfig } from "@shared/schema";
 import { Loading } from "@/components/ui/loading";
 import { WebhookDialog } from "./WebhookDialog";
 import { WebhookFlowDiagram } from "@/components/webhook-flow-diagram";
+import { useAuth } from "@/contexts/auth-context";
 
 export function WebhookSettings() {
   const [showWebhookDialog, setShowWebhookDialog] = useState(false);
@@ -35,7 +36,7 @@ export function WebhookSettings() {
     null
   );
   const { toast } = useToast();
-
+  const { user } = useAuth();
   // Fetch webhook configs
   const {
     data: webhookConfigs = [],
@@ -147,6 +148,7 @@ export function WebhookSettings() {
                   variant="outline"
                   size="sm"
                   onClick={() => refetchWebhookConfigs()}
+                  disabled={user?.username === "demouser"}
                 >
                   <RefreshCw className="w-4 h-4 mr-1" />
                   Refresh
@@ -156,6 +158,7 @@ export function WebhookSettings() {
                     setEditingWebhook(null);
                     setShowWebhookDialog(true);
                   }}
+                  disabled={user?.username === "demouser"}
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Configure Webhook
@@ -204,11 +207,12 @@ export function WebhookSettings() {
                             <div className="flex items-center space-x-2">
                               <Label className="text-sm">Webhook URL:</Label>
                               <code className="text-xs bg-gray-100 px-2 py-1 rounded">
-                                {webhook.webhookUrl}
+                                {user?.username === "demouser" ? "https://your-domain.com/webhook/xxxx-xxxx-xxxx" : webhook.webhookUrl}
                               </code>
                               <Button
                                 variant="ghost"
                                 size="sm"
+                                disabled={user?.username === "demouser"}
                                 onClick={() =>
                                   copyToClipboard(webhook.webhookUrl)
                                 }
@@ -245,7 +249,7 @@ export function WebhookSettings() {
                             onClick={() =>
                               testWebhookMutation.mutate(webhook.id)
                             }
-                            disabled={testWebhookMutation.isPending}
+                            disabled={user?.username === "demouser" ? true : testWebhookMutation.isPending}
                           >
                             Test
                           </Button>
@@ -253,6 +257,7 @@ export function WebhookSettings() {
                             variant="outline"
                             size="sm"
                             onClick={() => handleEditWebhook(webhook)}
+                            disabled={user?.username === "demouser"}
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
@@ -260,7 +265,8 @@ export function WebhookSettings() {
                             variant="outline"
                             size="sm"
                             onClick={() => handleDeleteWebhook(webhook.id)}
-                            disabled={deleteWebhookMutation.isPending}
+                            disabled={user?.username === "demouser" ? true : deleteWebhookMutation.isPending}
+
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>

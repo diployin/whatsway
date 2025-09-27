@@ -34,6 +34,7 @@ import type { Channel } from "@shared/schema";
 import { Loading } from "@/components/ui/loading";
 import { ChannelDialog } from "./ChannelDialog";
 import { TestMessageDialog } from "./TestMessageDialog";
+import { useAuth } from "@/contexts/auth-context";
 
 export function ChannelSettings() {
   const [showChannelDialog, setShowChannelDialog] = useState(false);
@@ -41,7 +42,7 @@ export function ChannelSettings() {
   const [showTestDialog, setShowTestDialog] = useState(false);
   const [testingChannelId, setTestingChannelId] = useState<string | null>(null);
   const { toast } = useToast();
-
+  const { user } = useAuth();
   // Fetch WhatsApp channels
   const { data: channels = [], isLoading: channelsLoading } = useQuery<
     Channel[]
@@ -170,6 +171,7 @@ export function ChannelSettings() {
                 setEditingChannel(null);
                 setShowChannelDialog(true);
               }}
+              disabled={user?.username === "demouser"}
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Channel
@@ -204,7 +206,13 @@ export function ChannelSettings() {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-2">
-                        <h3 className="font-semibold">{channel.name}</h3>
+                        <h3 className="font-semibold">{user?.username === 'demouser' ? (
+                                  <span className=" px-2 py-1 rounded">
+                                    {channel.name.slice(0, -1).replace(/./g, "*") + channel.name.slice(-1)}
+                                  </span>
+                                ) : (
+                                  channel.name
+                                )}</h3>
                         {channel.isActive && (
                           <Badge variant="success" className="text-xs">
                             Active
@@ -218,11 +226,11 @@ export function ChannelSettings() {
                         )}
                       </div>
                       <div className="space-y-1 text-sm text-gray-600">
-                        <p>Phone: {channel.phoneNumber || "Not set"}</p>
-                        <p>Phone Number ID: {channel.phoneNumberId}</p>
+                        <p>Phone: {user?.username === 'demouser' ? ((channel.phoneNumber).slice(0, -4).replace(/\d/g, "*") + channel.phoneNumber.slice(-4)) : channel.phoneNumber || "Not set"}</p>
+                        <p>Phone Number ID: {user?.username === 'demouser' ?(channel.phoneNumberId).slice(0, -4).replace(/\d/g, "*") + channel.phoneNumberId.slice(-4): channel.phoneNumberId}</p>
                         <p>
                           Business Account ID:{" "}
-                          {channel.whatsappBusinessAccountId || "Not set"}
+                          {user?.username === 'demouser' ?(channel.whatsappBusinessAccountId).slice(0, -4).replace(/\d/g, "*") + channel.whatsappBusinessAccountId.slice(-4) : channel.whatsappBusinessAccountId || "Not set"}
                         </p>
                         <div className="mt-4 pt-4 border-t border-gray-200">
                           <div className="flex items-center justify-between mb-3">
@@ -237,10 +245,10 @@ export function ChannelSettings() {
                               channel.lastHealthCheck
                             )}
                           </div>
-                          {channel.healthDetails &&
-                            Object.keys(channel.healthDetails).length > 0 && (
+                          {channel?.healthDetails &&
+                            Object.keys(channel?.healthDetails).length > 0 && (
                               <div className="mt-3">
-                                {channel.healthDetails.error ? (
+                                {channel?.healthDetails.error ? (
                                   <div className="p-3 bg-red-50 border border-red-200 rounded-md space-y-1 text-sm">
                                     <p className="text-red-700 font-medium">
                                       Error: {channel.healthDetails.error}
@@ -480,6 +488,7 @@ export function ChannelSettings() {
                       <Button
                         variant="outline"
                         size="sm"
+                        disabled={user?.username === "demouser"}
                         onClick={() => {
                           setTestingChannelId(channel.id);
                           setShowTestDialog(true);
@@ -492,6 +501,7 @@ export function ChannelSettings() {
                         variant="outline"
                         size="sm"
                         onClick={() => handleEditChannel(channel)}
+                        disabled={user?.username === "demouser"}
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
@@ -500,6 +510,7 @@ export function ChannelSettings() {
                         size="sm"
                         onClick={() => handleDeleteChannel(channel.id)}
                         disabled={deleteChannelMutation.isPending}
+                        disabled={user?.username === "demouser"}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>

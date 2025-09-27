@@ -84,7 +84,7 @@ export default function Dashboard() {
     enabled: !!activeChannel,
   });
 
-  console.log("this is stats ", stats);
+  // console.log("this is stats ", stats);
 
   if (statsLoading) {
     return (

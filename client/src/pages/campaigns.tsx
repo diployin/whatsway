@@ -17,6 +17,7 @@ import { CampaignsTable } from "@/components/campaigns/CampaignsTable";
 import { CampaignDetailsDialog } from "@/components/campaigns/CampaignDetailsDialog";
 import { CreateCampaignDialog } from "@/components/campaigns/CreateCampaignDialog";
 import { useTranslation } from "@/lib/i18n"; 
+import { useAuth } from "@/contexts/auth-context";
 
 
 
@@ -28,6 +29,8 @@ export default function Campaigns() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { selectedChannel } = useChannelContext();
+  const { user } = useAuth();
+
 
   // Log selected channel for debugging
   useEffect(() => {
@@ -239,6 +242,7 @@ export default function Campaigns() {
         <Button
           className="flex items-center gap-2"
           onClick={() => setCreateDialogOpen(true)}
+          disabled={user?.username === 'demouser'}
         >
           <Plus className="h-4 w-4" />
           {t('campaigns.createCampaign')}

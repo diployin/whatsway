@@ -11,12 +11,14 @@ import type { Template } from "@shared/schema";
 import { TemplatesTable } from "@/components/templates/TemplatesTable";
 import { TemplatePreview } from "@/components/templates/TemplatePreview";
 import { TemplateDialog } from "@/components/templates/TemplateDialog";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function Templates() {
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const [showDialog, setShowDialog] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   // Fetch active channel
   const { data: activeChannel } = useQuery({
@@ -233,7 +235,7 @@ export default function Templates() {
                   <RefreshCw className={`w-4 h-4 mr-2 ${syncTemplatesMutation.isPending ? 'animate-spin' : ''}`} />
                   Sync from WhatsApp
                 </Button>
-                <Button onClick={handleCreateTemplate}>
+                <Button onClick={handleCreateTemplate}  disabled={user?.username === 'demouser'}>
                   <Plus className="w-4 h-4 mr-2" />
                   Create Template
                 </Button>

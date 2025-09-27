@@ -60,6 +60,7 @@ import {
 } from "lucide-react";
 import type { User } from "@shared/schema";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useAuth } from "@/contexts/auth-context";
 
 interface TeamMemberFormData {
   firstName: string;
@@ -91,7 +92,7 @@ export default function TeamPage() {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingMember, setEditingMember] = useState<User | null>(null);
   const [activeTab, setActiveTab] = useState("members");
-
+  const { user } = useAuth();
   // Fetch team members
   const { data: teamMembers = [], isLoading } = useQuery<User[]>({
     queryKey: ["/api/team/members"],
@@ -223,7 +224,7 @@ export default function TeamPage() {
             Manage your team members, roles, and permissions
           </p>
         </div>
-        <Button onClick={() => handleOpenDialog()}>
+        <Button onClick={() => handleOpenDialog()}  disabled={user?.username === "demouser"}>
           <UserPlus className="mr-2 h-4 w-4" />
           Add Team Member
         </Button>
@@ -299,7 +300,14 @@ export default function TeamPage() {
                             <div>
                               <div className="font-medium">{`${member.firstName || ""} ${member.lastName || ""}`.trim() || member.username}</div>
                               <div className="text-sm text-muted-foreground">
-                                {member.email}
+                                
+                                {user?.username === 'demouser' ? (
+                                    <span className=" px-2 py-1 rounded">
+                                      {(member.email).split("@")[0].slice(0, -2).replace(/./g, "*") + member.email.slice(member.email.indexOf("@") -2)}
+                                    </span>
+                                  ) : (
+                                    member.email
+                                  )}
                               </div>
                             </div>
                           </div>
@@ -332,11 +340,13 @@ export default function TeamPage() {
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem
                                 onClick={() => handleOpenDialog(member)}
+                                disabled={user?.username === "demouser"}
                               >
                                 <Edit className="mr-2 h-4 w-4" />
                                 Edit
                               </DropdownMenuItem>
                               <DropdownMenuItem
+                               disabled={user?.username === "demouser"}
                                 onClick={() =>
                                   updateStatusMutation.mutate({
                                     memberId: member.id,
@@ -353,6 +363,7 @@ export default function TeamPage() {
                                   : "Activate"}
                               </DropdownMenuItem>
                               <DropdownMenuItem
+                               disabled={user?.username === "demouser"}
                                 className="text-destructive"
                                 onClick={() => {
                                   if (
@@ -412,7 +423,18 @@ export default function TeamPage() {
                           <Badge variant="outline">{log.action}</Badge>
                         </TableCell>
                         <TableCell>
-                          <DetailsView details={log.details} />
+                          {user?.username === "demouser" ? (
+                            <span className=" px-2 py-1 rounded">
+                              {"Details hidden for demo user"}
+                            </span>
+                          ) : (
+                            <span>
+                              <DetailsView details={log.details} />
+
+                            </span>
+                          )
+
+                          }
                         </TableCell>
                         <TableCell>
                           {new Date(log.createdAt).toLocaleString()}

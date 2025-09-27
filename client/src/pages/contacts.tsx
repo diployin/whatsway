@@ -66,6 +66,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAuth } from "@/contexts/auth-context";
 
 
 
@@ -242,6 +243,7 @@ export default function Contacts() {
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null); // Add status filter
   const [currentPage, setCurrentPage] = useState(1);
   const [limit, setLimit] = useState(10);
+  const { user } = useAuth();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -936,7 +938,7 @@ const exportToExcel = async (data: any[], fileName: string) => {
         subtitle={t('contacts.subtitle')}
         action={{
           label: `${t('contacts.addContact.title')}`,
-          onClick: () => setShowAddDialog(true),
+          onClick: () =>{user?.username === 'demouser'?setShowAddDialog(false) : setShowAddDialog(true)},
         }}
       />
 
@@ -1030,12 +1032,22 @@ const exportToExcel = async (data: any[], fileName: string) => {
               <Button
                 variant="outline"
                 onClick={handleExportAllContacts}
+                disabled={user?.username === 'demouser'}
               >
                 <Upload className="w-4 h-4 mr-2" />
                {t('contacts.exportAllContacts')}
               </Button>
 
-              <label className="cursor-pointer">
+              {user?.username === 'demouser' ? 
+              <Button disabled={user?.username === 'demouser'} variant="outline" className="" asChild>
+              <span>
+                <Upload className="w-4 h-4 mr-2" />
+                {t('contacts.importContacts')}
+              </span>
+            </Button>
+            :
+
+              <label className="cursor-pointer" >
                 <input
                   type="file"
                   accept=".csv,.xlsx"
@@ -1047,14 +1059,17 @@ const exportToExcel = async (data: any[], fileName: string) => {
                       handleExcelUpload(e);
                     }
                   }}
+                  readOnly={user?.username === 'demouser'}
                 />
-                <Button variant="outline" className="" asChild>
+                <Button disabled={user?.username === 'demouser'} variant="outline" className="" asChild>
                   <span>
                     <Upload className="w-4 h-4 mr-2" />
                     {t('contacts.importContacts')}
                   </span>
                 </Button>
               </label>
+              }
+
               <Button
                 variant="outline"
                 className="cursor-pointer"
@@ -1081,11 +1096,12 @@ const exportToExcel = async (data: any[], fileName: string) => {
                     variant="outline"
                     size="sm"
                     onClick={handleExportSelectedContacts}
+                    disabled={user?.username === 'demouser'}
                   >
                     <Download className="w-4 h-4 mr-2" />
                     {t('contacts.exportSelected')}
                   </Button>
-                  <Button variant="outline" size="sm" className="text-red-600" onClick={() => setShowBulkDeleteDialog(true)}>
+                  <Button  disabled={user?.username === 'demouser'} variant="outline" size="sm" className="text-red-600" onClick={() => setShowBulkDeleteDialog(true)}>
                     <Trash2 className="w-4 h-4 mr-2" />
                    {t('contacts.deleteSelected')}
                   </Button>
@@ -1176,18 +1192,37 @@ const exportToExcel = async (data: any[], fileName: string) => {
                             </div>
                             <div className="ml-4">
                               <div className="text-sm font-medium text-gray-900">
-                                {contact.name}
+                                {user?.username === 'demouser' ? (
+                                  <span className=" px-2 py-1 rounded">
+                                    {contact.name.slice(0, -1).replace(/./g, "*") + contact.name.slice(-1)}
+                                  </span>
+                                ) : (
+                                  contact.name
+                                )}
                               </div>
                               {contact.email && (
                                 <div className="text-sm text-gray-500">
-                                  {contact.email}
+                                  {user?.username === 'demouser' ? (
+                                    <span className=" px-2 py-1 rounded">
+                                      {(contact.email).split("@")[0].slice(0, -2).replace(/./g, "*") + contact.email.slice(contact.email.indexOf("@") -2)}
+                                    </span>
+                                  ) : (
+                                  contact.email
+                                  )}
+
                                 </div>
                               )}
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
-                          {contact.phone}
+                          {user?.username === 'demouser' ? (
+                            <span className=" px-2 py-1 rounded">
+                              {(contact.phone).slice(0, -4).replace(/\d/g, "*") + contact.phone.slice(-4)}
+                            </span>
+                          ) : (
+                            contact.phone
+                          )}
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex space-x-1">
@@ -1237,7 +1272,7 @@ const exportToExcel = async (data: any[], fileName: string) => {
                                 setSelectedContact(contact);
                                 setShowMessageDialog(true);
                               }}
-                              disabled={!channels || channels.length === 0}
+                              disabled={user?.username === 'demouser'? true : !channels || channels.length === 0}
                               title={
                                 !channels || channels.length === 0
                                   ?  `${t('contacts.noChannels')}`
@@ -1253,6 +1288,7 @@ const exportToExcel = async (data: any[], fileName: string) => {
                                 setSelectedContact(contact);
                                 setShowEditDialog(true);
                               }}
+                              disabled={user?.username === 'demouser'}
                             >
                               <Edit className="w-4 h-4" />
                             </Button>
@@ -1260,7 +1296,7 @@ const exportToExcel = async (data: any[], fileName: string) => {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDeleteContact(contact.id)}
-                              disabled={deleteContactMutation.isPending}
+                              disabled={user?.username === 'demouser'? true : deleteContactMutation.isPending}
                             >
                               <Trash2 className="w-4 h-4 text-red-600" />
                             </Button>
@@ -1276,6 +1312,7 @@ const exportToExcel = async (data: any[], fileName: string) => {
                                     setSelectedContact(contact);
                                     setShowEditDialog(true);
                                   }}
+                                  disabled={user?.username === 'demouser'}
                                 >
                                   <Edit className="h-4 w-4 mr-2" />
                                   {t('contacts.editContact.title')}
@@ -1285,7 +1322,7 @@ const exportToExcel = async (data: any[], fileName: string) => {
                                     setSelectedContact(contact);
                                     setShowMessageDialog(true);
                                   }}
-                                  disabled={!channels || channels.length === 0}
+                                  disabled={user?.username === 'demouser'? true : !channels || channels.length === 0}
                                 >
                                   <MessageSquare className="h-4 w-4 mr-2" />
                                   {t('contacts.sendMessage.title')}
@@ -1302,6 +1339,7 @@ const exportToExcel = async (data: any[], fileName: string) => {
                                       ? "text-red-600 focus:text-red-600"
                                       : "text-green-600 focus:text-green-600"
                                   }
+                                  disabled={user?.username === 'demouser'}
                                 >
                                   {contact.status === "active" ? (
                                     <>
@@ -1320,6 +1358,7 @@ const exportToExcel = async (data: any[], fileName: string) => {
                                     handleDeleteContact(contact.id)
                                   }
                                   className="text-red-600"
+                                  disabled={user?.username === 'demouser'}
                                 >
                                   <Trash2 className="h-4 w-4 mr-2" />
                                 {t('contacts.deleteContact.title')}
@@ -1437,7 +1476,7 @@ const exportToExcel = async (data: any[], fileName: string) => {
                     <FormControl>
                       <Input placeholder="John Doe" {...field} />
                     </FormControl>
-                    <FormDescription>{t('addContact.description.namedesc')} </FormDescription>
+                    <FormDescription>{t('contacts.addContact.description')} </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -1447,12 +1486,12 @@ const exportToExcel = async (data: any[], fileName: string) => {
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('addContact.description.phone')}</FormLabel>
+                    <FormLabel>{t('contacts.addContact.phone')}</FormLabel>
                     <FormControl>
                       <Input placeholder="+1234567890" {...field} />
                     </FormControl>
                     <FormDescription>
-                      {t('addContact.description.phonedesc')}
+                      {t('contacts.addContact.phoneDesc')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -1463,7 +1502,7 @@ const exportToExcel = async (data: any[], fileName: string) => {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('addContact.description.email')}</FormLabel>
+                    <FormLabel>{t('contacts.addContact.email')}</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="john@example.com"
@@ -1481,15 +1520,15 @@ const exportToExcel = async (data: any[], fileName: string) => {
                   variant="outline"
                   onClick={() => setShowAddDialog(false)}
                 >
-                  {t('addContact.description.cancel')}
+                  {t('contacts.addContact.cancel')}
                 </Button>
                 <Button
                   type="submit"
                   disabled={createContactMutation.isPending}
                 >
                   {createContactMutation.isPending
-                    ? `${t('addContact.description.submitting')}`
-                    : `${t('addContact.description.submit')}`}
+                    ? `${t('contacts.addContact.submitting')}`
+                    : `${t('contacts.addContact.submit')}`}
                 </Button>
               </div>
             </form>

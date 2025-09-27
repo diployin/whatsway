@@ -336,7 +336,8 @@ export default function Sidebar() {
                     }`}
                   ></div>
                   <span className="text-xs text-gray-600">
-                    {isAIActive ? t("common.active") : t("Inactive")}
+                    {/* {isAIActive ? t("common.active") : t("Inactive")} */}
+                    {t('campaigns.comingSoon')}
                   </span>
                 </div>
               </div>

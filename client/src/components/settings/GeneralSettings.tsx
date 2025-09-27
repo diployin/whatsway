@@ -29,6 +29,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Loading } from "@/components/ui/loading";
 import GeneralSettingsModal from "../modals/GeneralSettingsModal";
 import { setMeta } from "@/hooks/setMeta";
+import { useAuth } from "@/contexts/auth-context";
 
 // Types
 interface BrandSettings {
@@ -42,7 +43,7 @@ interface BrandSettings {
 export function GeneralSettings(): JSX.Element {
   const [showEditDialog, setShowEditDialog] = useState<boolean>(false);
   const { toast } = useToast();
-
+  const { user } = useAuth();
   // Fetch brand settings
   const {
     data: brandSettings,
@@ -189,7 +190,7 @@ export function GeneralSettings(): JSX.Element {
               </Button>
               <Button 
                 onClick={handleEditClick}
-                disabled={isUsingStaticData}
+                disabled={user?.username === 'demouser'? true : isUsingStaticData}
                 size="sm"
               >
                 <Edit className="w-4 h-4 mr-2" />

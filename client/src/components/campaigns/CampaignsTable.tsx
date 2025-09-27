@@ -6,6 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { MoreHorizontal, Eye, Play, Pause, Trash2, TrendingUp, TrendingDown } from "lucide-react";
 import { format } from "date-fns";
 import { useTranslation } from "@/lib/i18n";
+import { useAuth } from "@/contexts/auth-context";
 
 interface Campaign {
   id: string;
@@ -32,6 +33,8 @@ interface CampaignsTableProps {
 
 export function CampaignsTable({ campaigns, onViewCampaign, onUpdateStatus, onDeleteCampaign }: CampaignsTableProps) {
   const { t } = useTranslation();
+  const { user } = useAuth();
+
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<string, { variant: "default" | "secondary" | "secondary" | "destructive" | "outline"; label: string }> = {
       completed: { variant: "default", label: "Completed" },
@@ -138,7 +141,7 @@ export function CampaignsTable({ campaigns, onViewCampaign, onUpdateStatus, onDe
               <TableCell className="text-right">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm"  disabled={user?.username === 'demouser'}>
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
