@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import AutomationFlowBuilderXYFlow from "@/components/automation-flow-builder";
 import { TestAutomationModal } from "@/components/TestAutomationModal";
+import { useAuth } from "@/contexts/auth-context";
 
 
 type Automation = {
@@ -43,7 +44,7 @@ export default function Automations() {
   const { toast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAutomationId, setSelectedAutomationId] = useState<string | null>(null);
-
+  const {user} = useAuth();
   const openModal = (id: string) => {
     setSelectedAutomationId(id);
     setIsModalOpen(true);
@@ -177,6 +178,7 @@ export default function Automations() {
         <Button
           onClick={handleCreateNew}
           data-testid="button-create-automation"
+          // disabled={user?.username === 'demouser'}
         >
           <Plus className="h-4 w-4 mr-2" />
           Create Automation
@@ -259,6 +261,7 @@ export default function Automations() {
                     onClick={() => openModal(automation.id)}
                     data-testid={`button-test-${automation.id}`}
                     aria-label="Test automation"
+                    disabled={user?.username === 'demouser'}
                   >
                     <LucideTestTube className="h-4 w-4" />
                   </Button>
@@ -268,6 +271,7 @@ export default function Automations() {
                     size="sm"
                     onClick={() => handleEdit(automation)}
                     data-testid={`button-edit-${automation.id}`}
+                    disabled={user?.username === 'demouser'}
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
@@ -275,8 +279,8 @@ export default function Automations() {
                     variant="outline"
                     size="sm"
                     onClick={() => toggleMutation.mutate(automation.id)}
-                    disabled={toggleMutation.isPending}
                     data-testid={`button-toggle-${automation.id}`}
+                    disabled={user?.username === 'demouser' ? true : toggleMutation.isPending}
                   >
                     {automation.status === "active" ? (
                       <Pause className="h-4 w-4" />
@@ -296,7 +300,7 @@ export default function Automations() {
                         deleteMutation.mutate(automation.id);
                       }
                     }}
-                    disabled={deleteMutation.isPending}
+                    disabled={user?.username === 'demouser' ? true : deleteMutation.isPending}
                     data-testid={`button-delete-${automation.id}`}
                   >
                     <Trash2 className="h-4 w-4" />

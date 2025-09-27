@@ -120,7 +120,8 @@ const getMessageStatusIcon = (status: string) => {
 const ConversationListItem = ({ 
   conversation, 
   isSelected, 
-  onClick 
+  onClick ,
+  user
 }: { 
   conversation: Conversation & { contact?: Contact };
   isSelected: boolean;
@@ -162,7 +163,21 @@ const ConversationListItem = ({
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-1">
           <h4 className="font-medium text-gray-900 truncate">
-            {conversation.contactName || conversation.contactPhone}
+            {user?.username === 'demouser'
+              ? (
+                  (conversation.contactName
+                    ? conversation.contactName.slice(0, -1).replace(/./g, "*") +
+                    conversation.contactName.slice(-1)
+                    : conversation.contactPhone
+                    ? conversation.contactPhone.slice(0, -4).replace(/\d/g, "*") +
+                    conversation.contactPhone.slice(-4)
+                    : "Unknown")
+                )
+              : (
+                conversation.contactName ||
+                conversation.contactPhone ||
+                  "Unknown"
+                )}
           </h4>
           <span className="text-xs text-gray-500 whitespace-nowrap ml-2">
             {lastMessageTime}
@@ -1366,6 +1381,7 @@ export default function Inbox() {
                 conversation={conversation}
                 isSelected={selectedConversation?.id === conversation.id}
                 onClick={() => setSelectedConversation(conversation)}
+                user={user}
               />
             ))
           )}
@@ -1396,9 +1412,25 @@ export default function Inbox() {
                 
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-gray-900">
-                      {(selectedConversation as any).contactName || selectedConversation.contactPhone || "Unknown"}
-                    </h3>
+                  <h3 className="font-semibold text-gray-900">
+                    {user?.username === 'demouser'
+                      ? (
+                          (selectedConversation?.contactName
+                            ? selectedConversation.contactName.slice(0, -1).replace(/./g, "*") +
+                              selectedConversation.contactName.slice(-1)
+                            : selectedConversation?.contactPhone
+                            ? selectedConversation.contactPhone.slice(0, -4).replace(/\d/g, "*") +
+                              selectedConversation.contactPhone.slice(-4)
+                            : "Unknown")
+                        )
+                      : (
+                          (selectedConversation as any)?.contactName ||
+                          selectedConversation?.contactPhone ||
+                          "Unknown"
+                        )}
+                  </h3>
+
+
                     <Badge 
                       variant={selectedConversation.status === 'resolved' ? 'secondary' : 'default'}
                       className="text-xs"
@@ -1407,18 +1439,45 @@ export default function Inbox() {
                     </Badge>
                   </div>
                   <p className="text-sm text-gray-500">
-                    {(selectedConversation as any).contact?.phone || selectedConversation.contactPhone || ""}
+                    {user?.username === 'demouser'
+                      ? (
+                          selectedConversation?.contact?.phone
+                            ? selectedConversation.contact.phone.slice(0, -4).replace(/\d/g, "*") +
+                              selectedConversation.contact.phone.slice(-4)
+                            : selectedConversation?.contactPhone
+                            ? selectedConversation.contactPhone.slice(0, -4).replace(/\d/g, "*") +
+                              selectedConversation.contactPhone.slice(-4)
+                            : ""
+                        )
+                      : (
+                          selectedConversation?.contact?.phone ||
+                          selectedConversation?.contactPhone ||
+                          ""
+                        )}
                   </p>
+
                 </div>
               </div>
 
               <div className="flex items-center gap-2">
-              <TeamAssignDropdown
-                      conversationId={selectedConversation.id}
-                      currentAssignee={selectedConversation.assignedTo || undefined}
-                      currentAssigneeName={selectedConversation.contactName || undefined}
-                      onAssign={handleAssignConversation}
-                    />
+              {user?.username !== 'demouser' && selectedConversation.assignedTo !== user?.id ? (
+                <TeamAssignDropdown
+                  conversationId={selectedConversation.id}
+                  currentAssignee={selectedConversation.assignedTo || undefined}
+                  currentAssigneeName={selectedConversation?.assignedToName || undefined}
+                  onAssign={handleAssignConversation}
+                />
+              ) : (
+                <button
+                  type="button"
+                  className="text-sm text-gray-700 px-4 py-2 w-full text-left hover:bg-gray-100"
+                  disabled
+                >
+                  Assign to team member
+                </button>
+              )}
+
+              
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-9 w-9">
@@ -1427,29 +1486,29 @@ export default function Inbox() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Status</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={() => updateConversationStatus('open')}>
+                    <DropdownMenuItem  disabled={user?.username === 'demouser'} onClick={() => updateConversationStatus('open')}>
                       <MessageCircle className="mr-2 h-4 w-4" />
                       Mark as Open
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => updateConversationStatus('resolved')}>
+                    <DropdownMenuItem  disabled={user?.username === 'demouser'} onClick={() => updateConversationStatus('resolved')}>
                       <Check className="mr-2 h-4 w-4" />
                       Mark as Resolved
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => handleViewContact()}>
+                    <DropdownMenuItem  disabled={user?.username === 'demouser'} onClick={() => handleViewContact()}>
                       <UserIcon className="mr-2 h-4 w-4" />
                       View Contact
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleArchiveChat()}>
+                    <DropdownMenuItem   disabled={user?.username === 'demouser'} onClick={() => handleArchiveChat()}>
                       <Archive className="mr-2 h-4 w-4" />
                       Archive Chat
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleBlockContact()}>
+                    <DropdownMenuItem  disabled={user?.username === 'demouser'} onClick={() => handleBlockContact()}>
                       <Ban className="mr-2 h-4 w-4" />
                       Block Contact
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-red-600" onClick={() => handleDeleteChat()}>
+                    <DropdownMenuItem  disabled={user?.username === 'demouser'} className="text-red-600" onClick={() => handleDeleteChat()}>
                       <Trash2 className="mr-2 h-4 w-4" />
                       Delete Chat
                     </DropdownMenuItem>
@@ -1511,7 +1570,7 @@ export default function Inbox() {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 md:h-9 md:w-9" onClick={handleFileAttachment}>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 md:h-9 md:w-9" onClick={handleFileAttachment} disabled={user?.username === 'demouser'}>
                         <Paperclip className="h-4 w-4" />
                       </Button>
                     </TooltipTrigger>
@@ -1526,11 +1585,23 @@ export default function Inbox() {
                   onChange={handleFileChange}
                   accept="image/*,video/*,audio/*,.pdf,.doc,.docx"
                 />
+{user?.username === 'demouser' ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 md:h-9 md:w-9" disabled>
+                        <FileText className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Templates disabled for demo user</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
 
                 <TemplateDialog
                   channelId={activeChannel?.id}
                   onSelectTemplate={handleSelectTemplate}
-                />
+                />)}
               </div>
 
               <Input
@@ -1543,13 +1614,13 @@ export default function Inbox() {
                     handleSendMessage();
                   }
                 }}
-                disabled={is24HourWindowExpired}
+                disabled={user?.username === 'demouser'? true : is24HourWindowExpired}
                 className="flex-1"
               />
 
               <Button
                 onClick={handleSendMessage}
-                disabled={!messageText.trim() || is24HourWindowExpired || sendMessageMutation.isPending}
+                disabled={user?.username === 'demouser'? true : (!messageText.trim() || is24HourWindowExpired || sendMessageMutation.isPending)}
                 size="icon"
                 className="h-8 w-8 md:h-9 md:w-9 bg-green-600 hover:bg-green-700"
                 data-testid="button-send-message"

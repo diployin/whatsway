@@ -24,6 +24,7 @@ import {
 import { CheckCircle, XCircle, Clock, MessageSquare, RefreshCw, AlertCircle, Search } from "lucide-react";
 import { format } from "date-fns";
 import { Loading } from "@/components/ui/loading";
+import { useAuth } from "@/contexts/auth-context";
 
 interface MessageLog {
   id: string;
@@ -53,6 +54,7 @@ export default function Logs() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("7d");
+  const { user } = useAuth();
 
   // Get active channel
   const { data: activeChannel } = useQuery({
@@ -241,10 +243,22 @@ export default function Logs() {
                           </div>
                         </TableCell>
                         <TableCell className="font-mono text-sm">
-                          {log.phoneNumber}
+                          {user?.username === 'demouser' ? (
+                            <span className=" px-2 py-1 rounded">
+                              {(log.phoneNumber).slice(0, -4).replace(/\d/g, "*") + log.phoneNumber.slice(-4)}
+                            </span>
+                          ) : (
+                            log.phoneNumber
+                          )}
                         </TableCell>
                         <TableCell>
-                          {log.contactName || "-"}
+                          {user?.username === 'demouser' ? (
+                                  <span className=" px-2 py-1 rounded">
+                                    {log.contactName.slice(0, -1).replace(/./g, "*") + log.contactName.slice(-1)}
+                                  </span>
+                                ) : (
+                                  log.contactName
+                                )}
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline">

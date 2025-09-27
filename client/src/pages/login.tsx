@@ -145,10 +145,10 @@ export default function LoginPage() {
                 <strong>Default Admin Credentials:</strong>
               </p>
               <p className="text-sm text-gray-600 text-center mt-1">
-                Username: <code className="bg-gray-200 px-1 rounded">whatsway</code>
+                Username: <code className="bg-gray-200 px-1 rounded">demouser</code>
               </p>
               <p className="text-sm text-gray-600 text-center">
-                Password: <code className="bg-gray-200 px-1 rounded">Admin@123</code>
+                Password: <code className="bg-gray-200 px-1 rounded">Demo@12345</code>
               </p>
             </div>
           </CardContent>

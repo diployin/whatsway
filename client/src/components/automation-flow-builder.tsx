@@ -55,6 +55,7 @@ import {
   GitBranch,
 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/auth-context";
 
 // -----------------------
 // Types
@@ -1095,7 +1096,7 @@ export default function AutomationFlowBuilderXYFlow({
 }: AutomationFlowBuilderProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+  const { user } = useAuth();
   // Initialize with automation data or defaults
   const [name, setName] = useState<string>(automation?.name || "Send a message");
   const [description, setDescription] = useState<string>(automation?.description || "");
@@ -1517,7 +1518,7 @@ export default function AutomationFlowBuilderXYFlow({
               size="sm" 
               variant="outline" 
               onClick={handleSave}
-              disabled={saveMutation.isPending}
+              disabled={user?.username === 'demouser' ? true : saveMutation.isPending}
             >
               <Save className="w-4 h-4 mr-1" /> 
               {saveMutation.isPending ? "Saving..." : "Save"}
