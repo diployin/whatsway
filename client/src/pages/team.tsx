@@ -418,7 +418,13 @@ export default function TeamPage() {
                   ) : (
                     (activityLogs as any[]).map((log) => (
                       <TableRow key={log.id}>
-                        <TableCell>{log.userName}</TableCell>
+                        <TableCell> {user?.username === 'demouser' ? (
+                                  <span className=" px-2 py-1 rounded">
+                                    {log.userName.slice(0, -1).replace(/./g, "*") + log.userName.slice(-1)}
+                                  </span>
+                                ) : (
+                                  log.userName
+                                )}</TableCell>
                         <TableCell>
                           <Badge variant="outline">{log.action}</Badge>
                         </TableCell>

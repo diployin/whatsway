@@ -26,9 +26,11 @@ import { User, LogOut, LogIn, Edit, PlusCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useLocation } from "wouter";
 import { DashboardStarApiDataType } from "./types/type";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function Dashboard() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [, setLocation] = useLocation();
   const { data: activeChannel } = useQuery({
     queryKey: ["/api/channels/active"],
@@ -635,9 +637,21 @@ export default function Dashboard() {
                         {t("dashboard.whatsAppCloudAPI")}
                       </h4>
                       <p className="text-sm text-gray-600">
-                        {activeChannel
-                          ? `${activeChannel.name} (${activeChannel.phoneNumber})`
-                          : t("dashboard.noChannelSelected")}
+                        {user?.username ? (
+                          activeChannel ? (
+                            `${activeChannel.name
+                              .slice(0, -1)
+                              .replace(/./g, "*") + activeChannel.name.slice(-1)} (${activeChannel.phoneNumber
+                              .slice(0, -4)
+                              .replace(/\d/g, "*") + activeChannel.phoneNumber.slice(-4)})`
+                          ) : (
+                            t("dashboard.noChannelSelected")
+                          )
+                        ) : activeChannel ? (
+                          `${activeChannel.name} (${activeChannel.phoneNumber})`
+                        ) : (
+                          t("dashboard.noChannelSelected")
+                        )}
                       </p>
                     </div>
                   </div>
