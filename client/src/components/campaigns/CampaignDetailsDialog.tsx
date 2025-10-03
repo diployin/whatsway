@@ -4,13 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, 
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend 
-} from "recharts";
+import {  PieChart, Pie, Cell, Tooltip, ResponsiveContainer} from "recharts";
 import { format } from "date-fns";
 import { Link } from "wouter";
-import { MessageSquare, Users, CheckCircle, AlertCircle, Eye, TrendingUp, Clock, BarChart3 } from "lucide-react";
+import { MessageSquare, Users, CheckCircle, AlertCircle,  BarChart3 } from "lucide-react";
 
 interface Campaign {
   id: string;

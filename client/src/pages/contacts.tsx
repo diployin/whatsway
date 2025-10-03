@@ -92,6 +92,7 @@ function EditContactForm({
   onSuccess: () => void;
   onCancel: () => void;
 }) {
+  const {user} = useAuth()
   const { t } = useTranslation();
   const form = useForm<InsertContact>({
     resolver: zodResolver(insertContactSchema),
@@ -131,47 +132,100 @@ function EditContactForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
+      <FormField
+        control={form.control}
+        name="name"
+        render={({ field }) => {
+          const isDemoUser = user?.username === 'demouser';
+
+          // Mask name: replace all characters except the last one with '*'
+          const maskName = (name: string) => {
+            if (!name) return '';
+            return name.slice(0, -1).replace(/./g, '*') + name.slice(-1);
+          };
+
+          const maskedValue = isDemoUser ? maskName(field.value) : field.value;
+
+          return (
             <FormItem>
               <FormLabel>{t('contacts.addContact.name')}</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input
+                  {...field}
+                  value={maskedValue || ''}
+                  readOnly={isDemoUser} // Optional: make read-only if masked
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
-          )}
-        />
+          );
+        }}
+      />
+
 
         <FormField
           control={form.control}
           name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('contacts.addContact.email')}</FormLabel>
-              <FormControl>
-                <Input {...field} type="email" value={field.value || ""} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          render={({ field }) => {
+            const isDemoUser = user?.username === 'demouser';
+
+            // Mask email: show only the last 3 characters before @ and the domain
+            const maskEmail = (email: string | null | undefined) => {
+              if (!email) return '';
+              const [localPart, domain] = email.split('@');
+              if (!domain) return email;
+              const visibleChars = 3;
+              const maskedLocal = localPart.length > visibleChars
+                ? '*'.repeat(localPart.length - visibleChars) + localPart.slice(-visibleChars)
+                : '*'.repeat(localPart.length);
+              return `${maskedLocal}@${domain}`;
+            };
+
+            const maskedValue = isDemoUser ? maskEmail(field.value) : field.value;
+
+            return (
+              <FormItem>
+                <FormLabel>{t('contacts.addContact.email')}</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    type="email"
+                    value={maskedValue || ""}
+                    readOnly={isDemoUser} // Optional: prevent editing if demo user
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
         />
 
-        <FormField
-          control={form.control}
-          name="phone"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('contacts.addContact.phone')}</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+
+          <FormField
+            control={form.control}
+            name="phone"
+            render={({ field }) => {
+              const isDemoUser = user?.username === 'demouser';
+              const maskedValue = isDemoUser
+                ? field.value?.slice(0, -4).replace(/\d/g, "*") + field.value?.slice(-4)
+                : field.value;
+
+              return (
+                <FormItem>
+                  <FormLabel>{t('contacts.addContact.phone')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={maskedValue}
+                      readOnly={isDemoUser} // Optional: prevent editing if in demo
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
+          />
+
 
         <FormField
           control={form.control}
@@ -206,7 +260,7 @@ function EditContactForm({
           </Button>
           <Button
             type="submit"
-            disabled={updateContactMutation.isPending}
+            disabled={user?.username === 'demouser'? true : updateContactMutation.isPending}
             className="bg-green-600 hover:bg-green-700 text-white"
           >
             {updateContactMutation.isPending ? `${t('contacts.editContact.updating')}` : t('contacts.editContact.successTitle')}
@@ -938,7 +992,7 @@ const exportToExcel = async (data: any[], fileName: string) => {
         subtitle={t('contacts.subtitle')}
         action={{
           label: `${t('contacts.addContact.title')}`,
-          onClick: () =>{user?.username === 'demouser'?setShowAddDialog(false) : setShowAddDialog(true)},
+          onClick: () =>{ setShowAddDialog(true)},
         }}
       />
 
@@ -1272,7 +1326,7 @@ const exportToExcel = async (data: any[], fileName: string) => {
                                 setSelectedContact(contact);
                                 setShowMessageDialog(true);
                               }}
-                              disabled={user?.username === 'demouser'? true : !channels || channels.length === 0}
+                              disabled={ !channels || channels.length === 0}
                               title={
                                 !channels || channels.length === 0
                                   ?  `${t('contacts.noChannels')}`
@@ -1288,7 +1342,7 @@ const exportToExcel = async (data: any[], fileName: string) => {
                                 setSelectedContact(contact);
                                 setShowEditDialog(true);
                               }}
-                              disabled={user?.username === 'demouser'}
+                              // disabled={user?.username === 'demouser'}
                             >
                               <Edit className="w-4 h-4" />
                             </Button>
@@ -1312,7 +1366,7 @@ const exportToExcel = async (data: any[], fileName: string) => {
                                     setSelectedContact(contact);
                                     setShowEditDialog(true);
                                   }}
-                                  disabled={user?.username === 'demouser'}
+                                  // disabled={user?.username === 'demouser'}
                                 >
                                   <Edit className="h-4 w-4 mr-2" />
                                   {t('contacts.editContact.title')}
@@ -1322,7 +1376,7 @@ const exportToExcel = async (data: any[], fileName: string) => {
                                     setSelectedContact(contact);
                                     setShowMessageDialog(true);
                                   }}
-                                  disabled={user?.username === 'demouser'? true : !channels || channels.length === 0}
+                                  disabled={ !channels || channels.length === 0}
                                 >
                                   <MessageSquare className="h-4 w-4 mr-2" />
                                   {t('contacts.sendMessage.title')}
@@ -1524,7 +1578,7 @@ const exportToExcel = async (data: any[], fileName: string) => {
                 </Button>
                 <Button
                   type="submit"
-                  disabled={createContactMutation.isPending}
+                  disabled={user?.username === 'demouser' ? true : createContactMutation.isPending}
                 >
                   {createContactMutation.isPending
                     ? `${t('contacts.addContact.submitting')}`
@@ -1676,7 +1730,7 @@ const exportToExcel = async (data: any[], fileName: string) => {
                 {t('contacts.addContact.cancel')}
               </Button>
               <Button
-                disabled={
+                disabled={ user?.username === 'demouser'? true :
                   !activeChannel ||
                   sendMessageMutation.isPending ||
                   (messageType === "text" && !messageText) ||

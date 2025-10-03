@@ -171,7 +171,7 @@ export function ChannelSettings() {
                 setEditingChannel(null);
                 setShowChannelDialog(true);
               }}
-              disabled={user?.username === "demouser"}
+              // disabled={user?.username === "demouser"}
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Channel

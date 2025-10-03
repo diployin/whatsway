@@ -235,7 +235,7 @@ export default function Templates() {
                   <RefreshCw className={`w-4 h-4 mr-2 ${syncTemplatesMutation.isPending ? 'animate-spin' : ''}`} />
                   Sync from WhatsApp
                 </Button>
-                <Button onClick={handleCreateTemplate}  disabled={user?.username === 'demouser'}>
+                <Button onClick={handleCreateTemplate} >
                   <Plus className="w-4 h-4 mr-2" />
                   Create Template
                 </Button>

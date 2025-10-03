@@ -28,6 +28,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { WebhookConfig } from "@shared/schema";
 import { Info } from "lucide-react";
+import { useAuth } from "@/contexts/auth-context";
 
 const webhookFormSchema = z.object({
   verifyToken: z.string().min(10, "Verify token must be at least 10 characters"),
@@ -43,7 +44,7 @@ interface WebhookDialogProps {
 
 export function WebhookDialog({ open, onOpenChange, editingWebhook, onSuccess }: WebhookDialogProps) {
   const { toast } = useToast();
-
+const {user} = useAuth()
   const webhookForm = useForm<z.infer<typeof webhookFormSchema>>({
     resolver: zodResolver(webhookFormSchema),
     defaultValues: {
@@ -214,7 +215,7 @@ export function WebhookDialog({ open, onOpenChange, editingWebhook, onSuccess }:
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={createWebhookMutation.isPending}>
+              <Button type="submit" disabled={user?.username === 'demouser'? true :createWebhookMutation.isPending}>
                 {createWebhookMutation.isPending ? "Saving..." : editingWebhook ? "Update" : "Configure"} Webhook
               </Button>
             </DialogFooter>

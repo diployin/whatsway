@@ -158,7 +158,7 @@ export function WebhookSettings() {
                     setEditingWebhook(null);
                     setShowWebhookDialog(true);
                   }}
-                  disabled={user?.username === "demouser"}
+                  // disabled={user?.username === "demouser"}
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Configure Webhook

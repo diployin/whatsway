@@ -1495,7 +1495,7 @@ export default function Inbox() {
                       Mark as Resolved
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem  disabled={user?.username === 'demouser'} onClick={() => handleViewContact()}>
+                    <DropdownMenuItem  onClick={() => handleViewContact()}>
                       <UserIcon className="mr-2 h-4 w-4" />
                       View Contact
                     </DropdownMenuItem>

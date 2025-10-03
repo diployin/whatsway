@@ -95,7 +95,7 @@ export function CampaignsTable({ campaigns, onViewCampaign, onUpdateStatus, onDe
           // Clamp between 0 and 100 to handle bad data
           deliveryRate = Math.max(0, Math.min(deliveryRate, 100));
 
-            console.log("Delivered:", delivered, "Failed:", failed, "Delivery Rate:", deliveryRate);
+            // console.log("Delivered:", delivered, "Failed:", failed, "Delivery Rate:", deliveryRate);
           const readRate = calculateReadRate(campaign.deliveredCount, campaign.readCount);
           // console.log("Delivery Rate:", deliveryRate ,campaign.deliveredCount,campaign.failedCount ,((Number(campaign.deliveredCount) - Number(campaign.failedCount)) / Number(campaign.deliveredCount)) * 100)
 
@@ -141,7 +141,7 @@ export function CampaignsTable({ campaigns, onViewCampaign, onUpdateStatus, onDe
               <TableCell className="text-right">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm"  disabled={user?.username === 'demouser'}>
+                    <Button variant="ghost" size="sm" >
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>

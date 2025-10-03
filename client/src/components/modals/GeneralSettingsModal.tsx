@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useAuth } from "@/contexts/auth-context";
 
 // Types
 interface BrandSettings {
@@ -65,6 +66,7 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
   brandSettings,
   onSuccess,
 }) => {
+  const {user} = useAuth()
   const [formData, setFormData] = useState<BrandFormValues>({
     title: "",
     tagline: "",
@@ -440,7 +442,7 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={updateBrandMutation.isPending || uploadStatus.logo === 'uploading' || uploadStatus.favicon === 'uploading'}
+            disabled={user?.username === 'demouser'? true : updateBrandMutation.isPending || uploadStatus.logo === 'uploading' || uploadStatus.favicon === 'uploading'}
             type="button"
           >
             {updateBrandMutation.isPending ? "Saving..." : "Save Changes"}
