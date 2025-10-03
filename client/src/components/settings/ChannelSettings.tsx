@@ -509,8 +509,8 @@ export function ChannelSettings() {
                         variant="outline"
                         size="sm"
                         onClick={() => handleDeleteChannel(channel.id)}
-                        disabled={deleteChannelMutation.isPending}
-                        disabled={user?.username === "demouser"}
+                        disabled={user?.username === 'demouser'? true :deleteChannelMutation.isPending}
+                        // disabled={user?.username === "demouser"}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
