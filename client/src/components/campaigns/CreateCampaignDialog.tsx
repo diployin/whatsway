@@ -31,6 +31,7 @@ import {
 import { Users, FileSpreadsheet, Code } from "lucide-react";
 import { CreateCampaignForm } from "./CreateCampaignForm";
 import { useTranslation } from "@/lib/i18n";
+import { useAuth } from "@/contexts/auth-context";
 
 interface CreateCampaignDialogProps {
   open: boolean;
@@ -52,6 +53,7 @@ export function CreateCampaignDialog({
   const [campaignType, setCampaignType] = useState<"contacts" | "csv" | "api">(
     "contacts"
   );
+  const {user} = useAuth()
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
   const [variableMapping, setVariableMapping] = useState<
     Record<string, string>
@@ -179,7 +181,7 @@ const { t } = useTranslation();
               className="flex items-center gap-2"
             >
               <Code className="h-4 w-4" />
-              {t('campaigns.apiCampaigns')} {t('campaigns.comingSoon')}
+              {t('campaigns.apiCampaign')} ({t('campaigns.comingSoon')})
             </TabsTrigger>
           </TabsList>
 
@@ -243,7 +245,16 @@ const { t } = useTranslation();
                         }}
                       />
                       <Label className="font-normal">
-                        {contact.name} ({contact.phone})
+                        {user?.username === 'demouser' ? (
+                          <>
+                            {contact.name.slice(0, -1).replace(/./g, "*") + contact.name.slice(-1)} (
+                            {contact.phone.slice(0, -4).replace(/\d/g, "*") + contact.phone.slice(-4)})
+                          </>
+                        ) : (
+                          <>
+                            {contact.name} ({contact.phone})
+                          </>
+                        )}
                       </Label>
                     </div>
                   ))}

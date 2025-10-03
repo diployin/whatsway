@@ -224,7 +224,7 @@ export default function TeamPage() {
             Manage your team members, roles, and permissions
           </p>
         </div>
-        <Button onClick={() => handleOpenDialog()}  disabled={user?.username === "demouser"}>
+        <Button onClick={() => handleOpenDialog()} >
           <UserPlus className="mr-2 h-4 w-4" />
           Add Team Member
         </Button>
@@ -340,7 +340,7 @@ export default function TeamPage() {
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem
                                 onClick={() => handleOpenDialog(member)}
-                                disabled={user?.username === "demouser"}
+                                // disabled={user?.username === "demouser"}
                               >
                                 <Edit className="mr-2 h-4 w-4" />
                                 Edit
@@ -675,6 +675,7 @@ function TeamMemberDialog({
   member: User | null;
   onSave: (data: TeamMemberFormData) => void;
 }) {
+  const {user} = useAuth()
   const [formData, setFormData] = useState<TeamMemberFormState>({
     firstName: member?.firstName || "",
     lastName: member?.lastName || "",
@@ -842,6 +843,19 @@ function TeamMemberDialog({
     );
   };
 
+  const maskEmail = (email) => {
+    if (!email) return '';
+    const [localPart, domain] = email.split('@');
+    if (!domain) return email;
+    const visibleChars = 3;
+    const maskedLocal =
+      localPart.length > visibleChars
+        ? '*'.repeat(localPart.length - visibleChars) + localPart.slice(-visibleChars)
+        : '*'.repeat(localPart.length);
+    return `${maskedLocal}@${domain}`;
+  };
+  
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -895,18 +909,23 @@ function TeamMemberDialog({
             </div>
 
             <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                  required
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={
+                  user?.username === 'demouser'
+                    ? maskEmail(formData.email)
+                    : formData.email
+                }
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
+                readOnly={user?.username === 'demouser'} // Optional
+                required
+              />
+            </div>
               {!member && (
                 <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>
@@ -966,7 +985,7 @@ function TeamMemberDialog({
             </div>
           </div>
           <DialogFooter className="mt-6">
-            <Button type="submit">
+            <Button type="submit" disabled={user?.username === "demouser"}>
               {member ? "Update" : "Add"} Team Member
             </Button>
           </DialogFooter>

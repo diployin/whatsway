@@ -190,7 +190,7 @@ export function GeneralSettings(): JSX.Element {
               </Button>
               <Button 
                 onClick={handleEditClick}
-                disabled={user?.username === 'demouser'? true : isUsingStaticData}
+                disabled={ isUsingStaticData}
                 size="sm"
               >
                 <Edit className="w-4 h-4 mr-2" />

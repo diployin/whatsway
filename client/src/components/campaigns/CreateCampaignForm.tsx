@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useAuth } from "@/contexts/auth-context";
 
 interface CreateCampaignFormProps {
   onSubmit: (formData: any) => void;
@@ -51,6 +52,7 @@ export function CreateCampaignForm({
   };
 
   const activeTemplates = templates.filter((t: any) => t.status === "APPROVED");
+  const {user} = useAuth()
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 mt-4">
@@ -148,7 +150,7 @@ export function CreateCampaignForm({
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit" disabled={isCreating}>
+        <Button type="submit" disabled={user?.username === 'demouser' ? true : isCreating}>
           {scheduledTime ? "Schedule Campaign" : "Start Campaign"}
         </Button>
       </div>

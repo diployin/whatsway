@@ -298,7 +298,7 @@ export function AccountSettings() {
             </Button>
             <Button
               onClick={() => handlePasswordUpdate.mutate()}
-              disabled={handlePasswordUpdate.isPending}
+              disabled={user?.username === 'demouser'? true : handlePasswordUpdate.isPending}
             >
               {handlePasswordUpdate.isPending ? "Updating..." : "Update Password"}
             </Button>
@@ -339,7 +339,7 @@ export function AccountSettings() {
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={() => deleteAccount.mutate()}
-                  disabled={deleteAccount.isPending}
+                  disabled={user?.username === 'demouser'? true :deleteAccount.isPending}
                 >
                   {deleteAccount.isPending ? "Deleting..." : "Yes, delete my account"}
                 </AlertDialogAction>

@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import type { Template } from "@shared/schema";
+import { useAuth } from "@/contexts/auth-context";
 
 interface TemplatesTableProps {
   templates: Template[];
@@ -37,6 +38,8 @@ export function TemplatesTable({
   onDeleteTemplate,
 }: TemplatesTableProps) {
   const [searchQuery, setSearchQuery] = useState("");
+
+  const {user} = useAuth()
 
   const filteredTemplates = templates.filter((template) => {
     const query = searchQuery.toLowerCase();
@@ -143,11 +146,11 @@ export function TemplatesTable({
                         <Edit className="mr-2 h-4 w-4" />
                         Edit
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onDuplicateTemplate(template)}>
+                      <DropdownMenuItem onClick={() => onDuplicateTemplate(template)} disabled={user?.username === 'demouser'} >
                         <Copy className="mr-2 h-4 w-4" />
                         Duplicate
                       </DropdownMenuItem>
-                      <DropdownMenuItem 
+                      <DropdownMenuItem disabled={user?.username === 'demouser'}
                         onClick={() => onDeleteTemplate(template)}
                         className="text-red-600"
                       >

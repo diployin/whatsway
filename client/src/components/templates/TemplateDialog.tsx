@@ -45,6 +45,7 @@ import {
   Smartphone
 } from "lucide-react";
 import type { Template } from "@shared/schema";
+import { useAuth } from "@/contexts/auth-context";
 
 // Template form schema
 const templateFormSchema = z.object({
@@ -87,6 +88,7 @@ export function TemplateDialog({
   onSubmit,
   isSubmitting = false,
 }: TemplateDialogProps) {
+  const {user} = useAuth()
   const form = useForm<TemplateFormData>({
     resolver: zodResolver(templateFormSchema),
     defaultValues: {
@@ -645,7 +647,7 @@ export function TemplateDialog({
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="submit" disabled={user?.username === 'demouser'? true : isSubmitting}>
                 {isSubmitting ? "Submitting..." : template ? "Update Template" : "Create Template"}
               </Button>
             </DialogFooter>

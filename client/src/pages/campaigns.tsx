@@ -242,7 +242,7 @@ export default function Campaigns() {
         <Button
           className="flex items-center gap-2"
           onClick={() => setCreateDialogOpen(true)}
-          disabled={user?.username === 'demouser'}
+          // disabled={user?.username === 'demouser'}
         >
           <Plus className="h-4 w-4" />
           {t('campaigns.createCampaign')}

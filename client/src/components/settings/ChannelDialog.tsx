@@ -27,6 +27,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Channel } from "@shared/schema";
 import { MessageSquare } from "lucide-react";
+import { useAuth } from "@/contexts/auth-context";
 
 const channelFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -49,7 +50,7 @@ interface ChannelDialogProps {
 
 export function ChannelDialog({ open, onOpenChange, editingChannel, onSuccess }: ChannelDialogProps) {
   const { toast } = useToast();
-
+const {user} = useAuth()
   const channelForm = useForm<z.infer<typeof channelFormSchema>>({
     resolver: zodResolver(channelFormSchema),
     defaultValues: {
@@ -264,7 +265,7 @@ export function ChannelDialog({ open, onOpenChange, editingChannel, onSuccess }:
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={createChannelMutation.isPending}>
+              <Button type="submit" disabled={user?.username === 'demouser'? true :createChannelMutation.isPending}>
                 {createChannelMutation.isPending ? "Saving..." : editingChannel ? "Update" : "Create"} Channel
               </Button>
             </DialogFooter>
