@@ -56,6 +56,7 @@ import {
 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/auth-context";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
 // -----------------------
 // Types
@@ -88,16 +89,16 @@ export interface BuilderNodeData {
   templateId?: string;
   assigneeId?: string; // user id
   // Condition specific fields
-  conditionType?: 'keyword' | 'contains' | 'equals' | 'starts_with';
+  conditionType?: "keyword" | "contains" | "equals" | "starts_with";
   keywords?: string[];
-  matchType?: 'any' | 'all';
+  matchType?: "any" | "all";
   buttons?: Array<{
     id: string;
     text: string;
-    action: 'next' | 'custom';
+    action: "next" | "custom";
     value?: string;
   }>;
-    [key: string]: unknown;
+  [key: string]: unknown;
 }
 
 interface AutomationFlowBuilderProps {
@@ -158,8 +159,8 @@ const defaultsByKind: Record<NodeKind, Partial<BuilderNodeData>> = {
     question: "",
     saveAs: "",
     buttons: [
-      { id: "answer1", text: "Answer 1", action: 'next' },
-      { id: "default", text: "Default", action: 'next' }
+      { id: "answer1", text: "Answer 1", action: "next" },
+      { id: "default", text: "Default", action: "next" },
     ],
   },
   time_gap: { kind: "time_gap", label: "Delay", delay: 60 },
@@ -170,8 +171,11 @@ const defaultsByKind: Record<NodeKind, Partial<BuilderNodeData>> = {
 // -----------------------
 // Transform automation data to ReactFlow format
 // -----------------------
-function transformAutomationToFlow(automation: any): { nodes: Node<BuilderNodeData>[]; edges: Edge[] } {
- if (!automation || !automation.automation_nodes) {
+function transformAutomationToFlow(automation: any): {
+  nodes: Node<BuilderNodeData>[];
+  edges: Edge[];
+} {
+  if (!automation || !automation.automation_nodes) {
     return {
       nodes: [
         {
@@ -188,16 +192,18 @@ function transformAutomationToFlow(automation: any): { nodes: Node<BuilderNodeDa
   const nodes: Node<BuilderNodeData>[] = [
     {
       id: "start",
-      type: "start", 
+      type: "start",
       position: { x: 200, y: 40 },
       data: { ...(defaultsByKind.start as BuilderNodeData) },
     },
   ];
 
   // Sort nodes by position
-  const sortedNodes = [...automation.automation_nodes].sort((a: any, b: any) => a.position - b.position);
+  const sortedNodes = [...automation.automation_nodes].sort(
+    (a: any, b: any) => a.position - b.position
+  );
   console.log("sortedNodes", sortedNodes);
-  
+
   // Transform each automation node
   sortedNodes.forEach((autoNode: any, index: number) => {
     const nodeData: BuilderNodeData = {
@@ -210,9 +216,12 @@ function transformAutomationToFlow(automation: any): { nodes: Node<BuilderNodeDa
       id: autoNode.nodeId,
       type: autoNode.type,
       // FIX: Use the correct property names from your API data
-      position: autoNode.position && autoNode.position.x !== undefined && autoNode.position.y !== undefined 
-        ? { x: autoNode.position.x, y: autoNode.position.y }
-        : { x: 200, y: 140 + (index * 140) },
+      position:
+        autoNode.position &&
+        autoNode.position.x !== undefined &&
+        autoNode.position.y !== undefined
+          ? { x: autoNode.position.x, y: autoNode.position.y }
+          : { x: 200, y: 140 + index * 140 },
       data: nodeData,
     };
 
@@ -228,7 +237,7 @@ function transformAutomationToFlow(automation: any): { nodes: Node<BuilderNodeDa
       // Normalize edge format - handle both database and ReactFlow formats
       const source = edge.source || edge.sourceNodeId;
       const target = edge.target || edge.targetNodeId;
-      
+
       if (!source || !target) {
         console.warn("Invalid edge data:", edge);
         return;
@@ -236,10 +245,10 @@ function transformAutomationToFlow(automation: any): { nodes: Node<BuilderNodeDa
 
       // Create unique key for deduplication
       const edgeKey = `${source}-${target}`;
-      
+
       if (!edgeSet.has(edgeKey)) {
         edgeSet.add(edgeKey);
-        
+
         edges.push({
           id: edge.id || `edge-${source}-${target}`,
           source: source,
@@ -306,10 +315,12 @@ function ConditionsNode({ data }: { data: BuilderNodeData }) {
         <GitBranch className="w-4 h-4" /> Conditions
       </div>
       <div className="text-white/90 text-sm mt-1">
-        {data.conditionType === 'keyword' && data.keywords && data.keywords.length > 0 ? (
+        {data.conditionType === "keyword" &&
+        data.keywords &&
+        data.keywords.length > 0 ? (
           <div>
-            Keywords: {data.keywords.slice(0, 3).join(', ')}
-            {data.keywords.length > 3 && '...'}
+            Keywords: {data.keywords.slice(0, 3).join(", ")}
+            {data.keywords.length > 3 && "..."}
           </div>
         ) : (
           <div>No conditions set</div>
@@ -334,10 +345,12 @@ function CustomReplyNode({ data }: { data: BuilderNodeData }) {
       </div>
       {data.message && (
         <div className="text-white/90 text-sm mt-1 whitespace-pre-wrap">
-          {data.message.length > 50 ? `${data.message.slice(0, 50)}...` : data.message}
+          {data.message.length > 50
+            ? `${data.message.slice(0, 50)}...`
+            : data.message}
         </div>
       )}
-      
+
       {/* Media previews */}
       {data.imagePreview && (
         <div className="mt-2 rounded-lg overflow-hidden bg-white/10">
@@ -366,21 +379,26 @@ function CustomReplyNode({ data }: { data: BuilderNodeData }) {
           Document attached
         </div>
       )}
-      
+
       {/* Buttons preview */}
       {data.buttons && data.buttons.length > 0 && (
         <div className="mt-2 space-y-1">
           {data.buttons.slice(0, 2).map((button) => (
-            <div key={button.id} className="bg-white/20 text-xs px-2 py-1 rounded">
+            <div
+              key={button.id}
+              className="bg-white/20 text-xs px-2 py-1 rounded"
+            >
               {button.text}
             </div>
           ))}
           {data.buttons.length > 2 && (
-            <div className="text-xs text-white/70">+{data.buttons.length - 2} more</div>
+            <div className="text-xs text-white/70">
+              +{data.buttons.length - 2} more
+            </div>
           )}
         </div>
       )}
-      
+
       <Handle type="target" position={Position.Top} />
       <Handle type="source" position={Position.Bottom} />
     </Shell>
@@ -395,10 +413,12 @@ function UserReplyNode({ data }: { data: BuilderNodeData }) {
       </div>
       {data.question && (
         <div className="text-white/90 text-sm mt-1 whitespace-pre-wrap">
-          {data.question.length > 50 ? `${data.question.slice(0, 50)}...` : data.question}
+          {data.question.length > 50
+            ? `${data.question.slice(0, 50)}...`
+            : data.question}
         </div>
       )}
-      
+
       {/* Media previews */}
       {data.imagePreview && (
         <div className="mt-2 rounded-lg overflow-hidden bg-white/10">
@@ -409,25 +429,28 @@ function UserReplyNode({ data }: { data: BuilderNodeData }) {
           />
         </div>
       )}
-      
+
       {data.saveAs && (
         <div className="text-[11px] mt-2 bg-white/15 rounded px-2 py-1 inline-block">
           save as: <span className="font-mono">{data.saveAs}</span>
         </div>
       )}
-      
+
       {/* Answer buttons preview */}
       {data.buttons && data.buttons.length > 0 && (
         <div className="mt-2 space-y-1">
           {data.buttons.slice(0, 2).map((button) => (
-            <div key={button.id} className="bg-green-500 text-xs px-2 py-1 rounded flex items-center gap-1">
+            <div
+              key={button.id}
+              className="bg-green-500 text-xs px-2 py-1 rounded flex items-center gap-1"
+            >
               <div className="w-1 h-1 bg-white rounded-full" />
               {button.text}
             </div>
           ))}
         </div>
       )}
-      
+
       <Handle type="target" position={Position.Top} />
       <Handle type="source" position={Position.Bottom} />
     </Shell>
@@ -490,14 +513,14 @@ const nodeTypes = {
 };
 
 // File upload helper
-function FileUploadButton({ 
-  accept, 
-  onUpload, 
-  children, 
-  className = "" 
-}: { 
-  accept: string; 
-  onUpload: (file: File) => void; 
+function FileUploadButton({
+  accept,
+  onUpload,
+  children,
+  className = "",
+}: {
+  accept: string;
+  onUpload: (file: File) => void;
   children: React.ReactNode;
   className?: string;
 }) {
@@ -514,7 +537,7 @@ function FileUploadButton({
     }
     // Reset input
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
@@ -565,15 +588,16 @@ function ConfigPanel({
   const d = selected.data;
 
   // File upload handlers
-  const handleFileUpload = (type: 'image' | 'video' | 'audio' | 'document') => (file: File) => {
-    const previewUrl = URL.createObjectURL(file);
-    onChange({
-      [`${type}File`]: file,
-      [`${type}Preview`]: previewUrl,
-    } as any);
-  };
+  const handleFileUpload =
+    (type: "image" | "video" | "audio" | "document") => (file: File) => {
+      const previewUrl = URL.createObjectURL(file);
+      onChange({
+        [`${type}File`]: file,
+        [`${type}Preview`]: previewUrl,
+      } as any);
+    };
 
-  const removeFile = (type: 'image' | 'video' | 'audio' | 'document') => () => {
+  const removeFile = (type: "image" | "video" | "audio" | "document") => () => {
     onChange({
       [`${type}File`]: null,
       [`${type}Preview`]: null,
@@ -584,17 +608,20 @@ function ConfigPanel({
   const addButton = () => {
     const newButton = {
       id: uid(),
-      text: 'New Button',
-      action: 'next' as const,
+      text: "New Button",
+      action: "next" as const,
     };
     onChange({
       buttons: [...(d.buttons || []), newButton],
     });
   };
 
-  const updateButton = (buttonId: string, updates: Partial<NonNullable<typeof d.buttons>[0]>) => {
+  const updateButton = (
+    buttonId: string,
+    updates: Partial<NonNullable<typeof d.buttons>[0]>
+  ) => {
     onChange({
-      buttons: (d.buttons || []).map(btn => 
+      buttons: (d.buttons || []).map((btn) =>
         btn.id === buttonId ? { ...btn, ...updates } : btn
       ),
     });
@@ -602,7 +629,7 @@ function ConfigPanel({
 
   const removeButton = (buttonId: string) => {
     onChange({
-      buttons: (d.buttons || []).filter(btn => btn.id !== buttonId),
+      buttons: (d.buttons || []).filter((btn) => btn.id !== buttonId),
     });
   };
 
@@ -610,7 +637,7 @@ function ConfigPanel({
   const addKeyword = () => {
     const keywords = d.keywords || [];
     onChange({
-      keywords: [...keywords, ''],
+      keywords: [...keywords, ""],
     });
   };
 
@@ -658,7 +685,9 @@ function ConfigPanel({
                 <select
                   className="w-full border rounded-md h-9 px-2"
                   value={d.conditionType || "keyword"}
-                  onChange={(e) => onChange({ conditionType: e.target.value as any })}
+                  onChange={(e) =>
+                    onChange({ conditionType: e.target.value as any })
+                  }
                 >
                   <option value="keyword">Contains Keywords</option>
                   <option value="equals">Equals</option>
@@ -672,7 +701,9 @@ function ConfigPanel({
                 <select
                   className="w-full border rounded-md h-9 px-2"
                   value={d.matchType || "any"}
-                  onChange={(e) => onChange({ matchType: e.target.value as any })}
+                  onChange={(e) =>
+                    onChange({ matchType: e.target.value as any })
+                  }
                 >
                   <option value="any">Match Any</option>
                   <option value="all">Match All</option>
@@ -687,7 +718,7 @@ function ConfigPanel({
                     Add Keyword
                   </Button>
                 </div>
-                
+
                 {(d.keywords || []).map((keyword, index) => (
                   <div key={index} className="flex items-center gap-2">
                     <Input
@@ -706,7 +737,7 @@ function ConfigPanel({
                     </Button>
                   </div>
                 ))}
-                
+
                 {(!d.keywords || d.keywords.length === 0) && (
                   <div className="text-sm text-gray-500 italic">
                     No keywords added yet. Click "Add Keyword" to start.
@@ -727,7 +758,11 @@ function ConfigPanel({
                   placeholder="Hi {{name}},&#10;&#10;Welcome to Product Academy, please share the following information before we proceed."
                 />
                 <div className="mt-2">
-                  <Button size="sm" variant="outline" className="bg-green-500 text-white border-green-500 hover:bg-green-600">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="bg-green-500 text-white border-green-500 hover:bg-green-600"
+                  >
                     Variables
                   </Button>
                 </div>
@@ -739,7 +774,7 @@ function ConfigPanel({
                 <div className="grid grid-cols-2 gap-2">
                   <FileUploadButton
                     accept="image/*"
-                    onUpload={handleFileUpload('image')}
+                    onUpload={handleFileUpload("image")}
                     className="text-green-600 border-green-200 hover:bg-green-50"
                   >
                     <ImageIcon className="w-4 h-4" />
@@ -747,7 +782,7 @@ function ConfigPanel({
                   </FileUploadButton>
                   <FileUploadButton
                     accept="video/*"
-                    onUpload={handleFileUpload('video')}
+                    onUpload={handleFileUpload("video")}
                     className="text-green-600 border-green-200 hover:bg-green-50"
                   >
                     <Video className="w-4 h-4" />
@@ -755,7 +790,7 @@ function ConfigPanel({
                   </FileUploadButton>
                   <FileUploadButton
                     accept="audio/*"
-                    onUpload={handleFileUpload('audio')}
+                    onUpload={handleFileUpload("audio")}
                     className="text-green-600 border-green-200 hover:bg-green-50"
                   >
                     <FileAudio className="w-4 h-4" />
@@ -763,7 +798,7 @@ function ConfigPanel({
                   </FileUploadButton>
                   <FileUploadButton
                     accept=".pdf,.doc,.docx,.txt"
-                    onUpload={handleFileUpload('document')}
+                    onUpload={handleFileUpload("document")}
                     className="text-green-600 border-green-200 hover:bg-green-50"
                   >
                     <FileIcon className="w-4 h-4" />
@@ -774,22 +809,26 @@ function ConfigPanel({
                 {/* File Previews */}
                 {d.imagePreview && (
                   <div className="relative border rounded-lg p-2">
-                    <img src={d.imagePreview} alt="preview" className="w-full h-32 object-cover rounded" />
+                    <img
+                      src={d.imagePreview}
+                      alt="preview"
+                      className="w-full h-32 object-cover rounded"
+                    />
                     <button
-                      onClick={removeFile('image')}
+                      onClick={removeFile("image")}
                       className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
                     >
                       <X className="w-3 h-3" />
                     </button>
                   </div>
                 )}
-                
+
                 {d.videoPreview && (
                   <div className="relative border rounded-lg p-2 flex items-center gap-2">
                     <Video className="w-5 h-5 text-blue-500" />
                     <span className="text-sm">Video file attached</span>
                     <button
-                      onClick={removeFile('video')}
+                      onClick={removeFile("video")}
                       className="ml-auto bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
                     >
                       <X className="w-3 h-3" />
@@ -802,7 +841,7 @@ function ConfigPanel({
                     <FileAudio className="w-5 h-5 text-purple-500" />
                     <span className="text-sm">Audio file attached</span>
                     <button
-                      onClick={removeFile('audio')}
+                      onClick={removeFile("audio")}
                       className="ml-auto bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
                     >
                       <X className="w-3 h-3" />
@@ -815,7 +854,7 @@ function ConfigPanel({
                     <FileIcon className="w-5 h-5 text-gray-500" />
                     <span className="text-sm">Document attached</span>
                     <button
-                      onClick={removeFile('document')}
+                      onClick={removeFile("document")}
                       className="ml-auto bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
                     >
                       <X className="w-3 h-3" />
@@ -833,13 +872,18 @@ function ConfigPanel({
                     Add Button
                   </Button>
                 </div>
-                
+
                 {d.buttons?.map((button) => (
-                  <div key={button.id} className="border rounded-lg p-3 space-y-2">
+                  <div
+                    key={button.id}
+                    className="border rounded-lg p-3 space-y-2"
+                  >
                     <div className="flex items-center gap-2">
                       <Input
                         value={button.text}
-                        onChange={(e) => updateButton(button.id, { text: e.target.value })}
+                        onChange={(e) =>
+                          updateButton(button.id, { text: e.target.value })
+                        }
                         placeholder="Button text"
                         className="flex-1"
                       />
@@ -943,7 +987,7 @@ function ConfigPanel({
                 <div className="grid grid-cols-2 gap-2">
                   <FileUploadButton
                     accept="image/*"
-                    onUpload={handleFileUpload('image')}
+                    onUpload={handleFileUpload("image")}
                     className="text-green-600 border-green-200 hover:bg-green-50"
                   >
                     <ImageIcon className="w-4 h-4" />
@@ -951,7 +995,7 @@ function ConfigPanel({
                   </FileUploadButton>
                   <FileUploadButton
                     accept="video/*"
-                    onUpload={handleFileUpload('video')}
+                    onUpload={handleFileUpload("video")}
                     className="text-green-600 border-green-200 hover:bg-green-50"
                   >
                     <Video className="w-4 h-4" />
@@ -962,22 +1006,26 @@ function ConfigPanel({
                 {/* File Previews for Questions */}
                 {d.imagePreview && (
                   <div className="relative border rounded-lg p-2">
-                    <img src={d.imagePreview} alt="preview" className="w-full h-32 object-cover rounded" />
+                    <img
+                      src={d.imagePreview}
+                      alt="preview"
+                      className="w-full h-32 object-cover rounded"
+                    />
                     <button
-                      onClick={removeFile('image')}
+                      onClick={removeFile("image")}
                       className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
                     >
                       <X className="w-3 h-3" />
                     </button>
                   </div>
                 )}
-                
+
                 {d.videoPreview && (
                   <div className="relative border rounded-lg p-2 flex items-center gap-2">
                     <Video className="w-5 h-5 text-blue-500" />
                     <span className="text-sm">Video file attached</span>
                     <button
-                      onClick={removeFile('video')}
+                      onClick={removeFile("video")}
                       className="ml-auto bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
                     >
                       <X className="w-3 h-3" />
@@ -995,13 +1043,18 @@ function ConfigPanel({
                     Add Option
                   </Button>
                 </div>
-                
+
                 {d.buttons?.map((button) => (
-                  <div key={button.id} className="border rounded-lg p-3 space-y-2">
+                  <div
+                    key={button.id}
+                    className="border rounded-lg p-3 space-y-2"
+                  >
                     <div className="flex items-center gap-2">
                       <Input
                         value={button.text}
-                        onChange={(e) => updateButton(button.id, { text: e.target.value })}
+                        onChange={(e) =>
+                          updateButton(button.id, { text: e.target.value })
+                        }
                         placeholder="Answer option text"
                         className="flex-1"
                       />
@@ -1014,21 +1067,27 @@ function ConfigPanel({
                         <X className="w-4 h-4" />
                       </Button>
                     </div>
-                    
+
                     <div className="flex items-center gap-2 text-xs">
                       <select
-                        value={button.action || 'next'}
-                        onChange={(e) => updateButton(button.id, { action: e.target.value as 'next' | 'custom' })}
+                        value={button.action || "next"}
+                        onChange={(e) =>
+                          updateButton(button.id, {
+                            action: e.target.value as "next" | "custom",
+                          })
+                        }
                         className="border rounded px-2 py-1 text-xs"
                       >
                         <option value="next">Continue to next step</option>
                         <option value="custom">Custom action</option>
                       </select>
-                      
-                      {button.action === 'custom' && (
+
+                      {button.action === "custom" && (
                         <Input
                           value={button.value || ""}
-                          onChange={(e) => updateButton(button.id, { value: e.target.value })}
+                          onChange={(e) =>
+                            updateButton(button.id, { value: e.target.value })
+                          }
                           placeholder="Custom value"
                           className="flex-1 text-xs h-7"
                         />
@@ -1036,13 +1095,19 @@ function ConfigPanel({
                     </div>
                   </div>
                 ))}
-                
+
                 {(!d.buttons || d.buttons.length === 0) && (
                   <div className="text-sm text-gray-500 italic border rounded-lg p-4 text-center">
-                    No answer options added. Users will be able to type free text responses.
+                    No answer options added. Users will be able to type free
+                    text responses.
                     <br />
                     <br />
-                    <Button size="sm" variant="outline" onClick={addButton} className="mt-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={addButton}
+                      className="mt-2"
+                    >
                       <Plus className="w-3 h-3 mr-1" />
                       Add First Option
                     </Button>
@@ -1056,13 +1121,15 @@ function ConfigPanel({
                   <Label className="text-xs text-gray-500">PREVIEW</Label>
                   <div className="bg-gray-50 rounded-lg p-3 mt-2">
                     {d.question && (
-                      <div className="font-medium text-sm mb-3">{d.question}</div>
+                      <div className="font-medium text-sm mb-3">
+                        {d.question}
+                      </div>
                     )}
                     {d.buttons && d.buttons.length > 0 && (
                       <div className="space-y-1">
                         {d.buttons.map((button) => (
-                          <div 
-                            key={button.id} 
+                          <div
+                            key={button.id}
                             className="bg-blue-500 text-white text-xs px-3 py-1 rounded-full inline-block mr-2"
                           >
                             {button.text}
@@ -1098,24 +1165,37 @@ export default function AutomationFlowBuilderXYFlow({
   const queryClient = useQueryClient();
   const { user } = useAuth();
   // Initialize with automation data or defaults
-  const [name, setName] = useState<string>(automation?.name || "Send a message");
-  const [description, setDescription] = useState<string>(automation?.description || "");
-  const [trigger, setTrigger] = useState<string>(automation?.trigger || "new_conversation");
+  const [name, setName] = useState<string>(
+    automation?.name || "Send a message"
+  );
+  const [description, setDescription] = useState<string>(
+    automation?.description || ""
+  );
+  const [trigger, setTrigger] = useState<string>(
+    automation?.trigger || "new_conversation"
+  );
 
   // Transform automation data once and store in ref to prevent re-computation
-  const initialFlowRef = useRef<{ nodes: Node<BuilderNodeData>[]; edges: Edge[] } | null>(null);
-  
+  const initialFlowRef = useRef<{
+    nodes: Node<BuilderNodeData>[];
+    edges: Edge[];
+  } | null>(null);
+
   if (!initialFlowRef.current) {
     initialFlowRef.current = transformAutomationToFlow(automation);
   }
 
   // Initialize directly without useMemo or normalizeEdges function
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialFlowRef.current?.nodes || []);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialFlowRef.current.edges);
+  const [nodes, setNodes, onNodesChange] = useNodesState(
+    initialFlowRef.current?.nodes || []
+  );
+  const [edges, setEdges, onEdgesChange] = useEdgesState(
+    initialFlowRef.current.edges
+  );
   useEffect(() => {
-   console.log(nodes)
-  }, [nodes])
-  
+    console.log(nodes);
+  }, [nodes]);
+
   // Selection
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selectedNode = useMemo(
@@ -1126,10 +1206,7 @@ export default function AutomationFlowBuilderXYFlow({
   const onConnect: OnConnect = useCallback(
     (params: Edge | Connection) =>
       setEdges((eds) =>
-        addEdge(
-          { ...params, animated: true, type: "custom" },
-          eds
-        )
+        addEdge({ ...params, animated: true, type: "custom" }, eds)
       ),
     [setEdges]
   );
@@ -1139,26 +1216,25 @@ export default function AutomationFlowBuilderXYFlow({
   //   []
   // );
 
-  const onNodeClick: NodeMouseHandler = useCallback(
-    (_, node) => {
-      const builderNode = node as Node<BuilderNodeData>; // type assertion
-      setSelectedId(builderNode.id);
-    },
-    []
-  );
-  
+  const onNodeClick: NodeMouseHandler = useCallback((_, node) => {
+    const builderNode = node as Node<BuilderNodeData>; // type assertion
+    setSelectedId(builderNode.id);
+  }, []);
 
   // Data sources
-  const { data: templateData } = useQuery({ 
+  const { data: templateData } = useQuery({
     queryKey: ["/api/templates"],
-    queryFn: () => apiRequest("GET", "/api/templates").then(res => res.json())
+    queryFn: () =>
+      apiRequest("GET", "/api/templates").then((res) => res.json()),
   });
 
-  const templates = templateData?.filter((t: Template) => t.status === 'APPROVED') || [];
-  
-  const { data: members = [] } = useQuery({ 
+  const templates =
+    templateData?.filter((t: Template) => t.status === "APPROVED") || [];
+
+  const { data: members = [] } = useQuery({
     queryKey: ["/api/team/members"],
-    queryFn: () => apiRequest("GET", "/api/team/members").then(res => res.json())
+    queryFn: () =>
+      apiRequest("GET", "/api/team/members").then((res) => res.json()),
   });
 
   // Add node actions
@@ -1178,14 +1254,14 @@ export default function AutomationFlowBuilderXYFlow({
   const addNode = (kind: NodeKind) => {
     const id = uid();
     const base = defaultsByKind[kind];
-  
+
     const newNode: Node<BuilderNodeData> = {
       id,
       type: kind,
       position: { x: 200, y: (nodes.length + 1) * 140 },
       data: { ...(base as BuilderNodeData) },
     };
-  
+
     setNodes((nds) => [...nds, newNode]);
     setSelectedId(id);
   };
@@ -1193,9 +1269,11 @@ export default function AutomationFlowBuilderXYFlow({
   // Delete node
   const deleteNode = () => {
     if (!selectedId || selectedId === "start") return;
-    
+
     setNodes((nds) => nds.filter((n) => n.id !== selectedId));
-    setEdges((eds) => eds.filter((e) => e.source !== selectedId && e.target !== selectedId));
+    setEdges((eds) =>
+      eds.filter((e) => e.source !== selectedId && e.target !== selectedId)
+    );
     setSelectedId(null);
   };
 
@@ -1213,51 +1291,63 @@ export default function AutomationFlowBuilderXYFlow({
   const saveMutation = useMutation({
     mutationFn: async (payload: any) => {
       const formData = new FormData();
-      formData.append('name', payload.name);
-      formData.append('description', payload.description);
-      formData.append('trigger', payload.trigger);
-      formData.append('triggerConfig', JSON.stringify(payload.triggerConfig));
-      formData.append('nodes', JSON.stringify(payload.nodes));
-      formData.append('edges', JSON.stringify(payload.edges));
-  
+      formData.append("name", payload.name);
+      formData.append("description", payload.description);
+      formData.append("trigger", payload.trigger);
+      formData.append("triggerConfig", JSON.stringify(payload.triggerConfig));
+      formData.append("nodes", JSON.stringify(payload.nodes));
+      formData.append("edges", JSON.stringify(payload.edges));
+
       // Add files with proper field names and validation
       payload.nodes.forEach((node: any) => {
         if (node.data.imageFile && node.data.imageFile instanceof File) {
-          console.log(`Adding imageFile for node ${node.id}:`, node.data.imageFile.name);
+          console.log(
+            `Adding imageFile for node ${node.id}:`,
+            node.data.imageFile.name
+          );
           formData.append(`${node.id}_imageFile`, node.data.imageFile);
         }
-        
+
         if (node.data.videoFile && node.data.videoFile instanceof File) {
-          console.log(`Adding videoFile for node ${node.id}:`, node.data.videoFile.name);
+          console.log(
+            `Adding videoFile for node ${node.id}:`,
+            node.data.videoFile.name
+          );
           formData.append(`${node.id}_videoFile`, node.data.videoFile);
         }
         if (node.data.audioFile && node.data.audioFile instanceof File) {
-          console.log(`Adding audioFile for node ${node.id}:`, node.data.audioFile.name);
+          console.log(
+            `Adding audioFile for node ${node.id}:`,
+            node.data.audioFile.name
+          );
           formData.append(`${node.id}_audioFile`, node.data.audioFile);
         }
         if (node.data.documentFile && node.data.documentFile instanceof File) {
-          console.log(`Adding documentFile for node ${node.id}:`, node.data.documentFile.name);
+          console.log(
+            `Adding documentFile for node ${node.id}:`,
+            node.data.documentFile.name
+          );
           formData.append(`${node.id}_documentFile`, node.data.documentFile);
         }
       });
-  
+
       // Debug FormData contents
-      console.log('FormData entries:');
+      console.log("FormData entries:");
       for (let pair of formData.entries()) {
         console.log(pair[0], pair[1]);
       }
-  
+
       if (payload.automationId) {
         // Update existing automation
         return await fetch(`/api/automations/${payload.automationId}`, {
           method: "PUT",
-          body: formData
+          body: formData,
         });
       } else {
         // Create new automation
         return await fetch("/api/automations", {
           method: "POST",
-          body: formData
+          body: formData,
         });
       }
     },
@@ -1270,15 +1360,15 @@ export default function AutomationFlowBuilderXYFlow({
       onClose();
     },
     onError: (error: any) => {
-      console.error('Save mutation error:', error);
-      toast({ 
-        title: "Failed to save automation", 
+      console.error("Save mutation error:", error);
+      toast({
+        title: "Failed to save automation",
         description: error?.message || "An error occurred while saving.",
-        variant: "destructive" 
+        variant: "destructive",
       });
     },
   });
-  
+
   // Fixed handleSave function
   const handleSave = () => {
     if (!name.trim()) {
@@ -1291,33 +1381,33 @@ export default function AutomationFlowBuilderXYFlow({
     }
 
     console.log("nodes before saving:", nodes);
-  
+
     const backendNodes = nodes
-      .filter(n => n.id !== 'start')
+      .filter((n) => n.id !== "start")
       .map((node, index) => ({
         ...node,
         position: {
           x: node.position.x,
-          y: node.position.y
+          y: node.position.y,
         },
       }));
 
-      console.log("backendNodes after filtering start node:", backendNodes);
-    
+    console.log("backendNodes after filtering start node:", backendNodes);
+
     // Normalize edges for backend storage
-    const normalizedEdges = edges.map(edge => ({
+    const normalizedEdges = edges.map((edge) => ({
       id: edge.id,
       source: edge.source,
       target: edge.target,
       type: edge.type || "custom",
       animated: edge.animated || true,
     }));
-  
+
     // Remove duplicate edges
     const uniqueEdges: typeof normalizedEdges = [];
     const seenConnections = new Set<string>();
-    
-    normalizedEdges.forEach(edge => {
+
+    normalizedEdges.forEach((edge) => {
       const connectionKey = `${edge.source}-${edge.target}`;
       if (!seenConnections.has(connectionKey)) {
         seenConnections.add(connectionKey);
@@ -1326,8 +1416,8 @@ export default function AutomationFlowBuilderXYFlow({
     });
     console.log("DEBUG uniqueEdges:", uniqueEdges);
 
-    const mainEdges = uniqueEdges.filter(e => e.source !== 'start');
-    
+    const mainEdges = uniqueEdges.filter((e) => e.source !== "start");
+
     console.log("Filtered mainEdges:", mainEdges);
 
     const payload = {
@@ -1339,36 +1429,37 @@ export default function AutomationFlowBuilderXYFlow({
       edges: mainEdges,
       automationId: automation?.id || null,
     };
-    
+
     console.log("Saving automation with payload:", payload);
-    // console.log("Files to upload:", backendNodes.filter(node => 
+    // console.log("Files to upload:", backendNodes.filter(node =>
     //   node.data.imageFile || node.data.videoFile || node.data.audioFile || node.data.documentFile
     // ));
-    
+
     saveMutation.mutate(payload);
   };
 
   // Additional helper function to clean up edge data periodically
   const cleanupEdges = useCallback(() => {
-    setEdges(currentEdges => {
+    setEdges((currentEdges) => {
       const cleaned: Edge[] = [];
       const seen = new Set<string>();
-      
-      currentEdges.forEach(edge => {
+
+      currentEdges.forEach((edge) => {
         const key = `${edge.source}-${edge.target}`;
         if (!seen.has(key)) {
           seen.add(key);
           cleaned.push(edge);
         }
       });
-      
+
       return cleaned;
     });
   }, [setEdges]);
 
   // Call cleanup when component mounts or edges change significantly
   useEffect(() => {
-    if (edges.length > nodes.length * 2) { // If too many edges, cleanup
+    if (edges.length > nodes.length * 2) {
+      // If too many edges, cleanup
       cleanupEdges();
     }
   }, [edges.length, nodes.length, cleanupEdges]);
@@ -1376,12 +1467,13 @@ export default function AutomationFlowBuilderXYFlow({
   // const onInit = useCallback((reactFlowInstance: ReactFlowInstance) => {
   //   reactFlowInstance.setViewport({ x: 0, y: 0, zoom: 1 });
   // }, []);
-  
+
   const onInit = useCallback((reactFlowInstance: any) => {
     // ReactFlowInstance typing conflict workaround
-    (reactFlowInstance as ReactFlowInstance<Node<BuilderNodeData>, Edge>).setViewport({ x: 0, y: 0, zoom: 1 });
+    (
+      reactFlowInstance as ReactFlowInstance<Node<BuilderNodeData>, Edge>
+    ).setViewport({ x: 0, y: 0, zoom: 1 });
   }, []);
-  
 
   const edgeTypes = {
     custom: (props: any) => <CustomEdge {...props} setEdges={setEdges} />,
@@ -1405,11 +1497,12 @@ export default function AutomationFlowBuilderXYFlow({
                   onClick={() => addNode("conditions")}
                   className="w-full text-left text-sm px-3 py-2 hover:bg-purple-50 rounded flex items-center gap-2"
                 >
-                  <div className="w-2 h-2 bg-purple-500 rounded-full" /> Conditions
+                  <div className="w-2 h-2 bg-purple-500 rounded-full" />{" "}
+                  Conditions
                 </button>
               </div>
             </div>
-            
+
             <div>
               <div className="text-[11px] uppercase text-gray-500 px-2 mb-1 flex items-center gap-2">
                 <MessageCircle className="w-3 h-3" /> Send a message
@@ -1470,67 +1563,75 @@ export default function AutomationFlowBuilderXYFlow({
       {/* Center Canvas */}
       <div className="col-span-8 flex flex-col">
         {/* Header */}
-        <div className="bg-white border-b px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={onClose}
-              className="text-gray-600 hover:text-gray-900"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <div className="flex flex-col gap-1">
-              <Input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Automation name"
-                className="h-8 w-72"
-              />
-              <Input
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Description (optional)"
-                className="h-6 w-72 text-xs"
-              />
-            </div>
-            <Badge variant="outline" className="text-xs">
-              {automation?.id ? "Edit" : "New"} Automation
-            </Badge>
-            <Badge className="bg-green-500 text-white text-xs">
-              {trigger === "new_conversation" ? "New Chat" : trigger}
-            </Badge>
-            <div>
-              <Label className="flex items-center gap-2">
-                <UserPlus className="w-4 h-4" /> Trigger Channel
-              </Label>
-              <select
-                className="w-full border rounded-md h-9 px-2"
-                value={trigger}
-                onChange={(e) => setTrigger(e.target.value)}
-              >
-                <option value="">Select trigger</option>
-                <option value="new_conversation">New conversation</option>
-                <option value="message_received">Message received</option>
-              </select>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button 
-              size="sm" 
-              variant="outline" 
-              onClick={handleSave}
-              disabled={user?.username === 'demouser' ? true : saveMutation.isPending}
-            >
-              <Save className="w-4 h-4 mr-1" /> 
-              {saveMutation.isPending ? "Saving..." : "Save"}
-            </Button>
-            <Button size="sm" variant="ghost">
-              <Share2 className="w-4 h-4" />
-            </Button>
-            <Button size="sm" variant="ghost">
-              <Maximize2 className="w-4 h-4" />
-            </Button>
-          </div>
+        <div className="bg-white border-b px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {/* Left Section */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full sm:w-auto">
+        {/* Back Button */}
+        <button
+          onClick={onClose}
+          className="text-gray-600 hover:text-gray-900 self-start sm:self-center"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+
+        {/* Name + Description */}
+        <div className="flex flex-col gap-2 w-full sm:w-72">
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Automation name"
+            className="h-9 text-sm placeholder-slate-500"
+          />
+          <Input
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Description (optional)"
+            className="h-8 text-xs placeholder-gray-400"
+          />
         </div>
+
+        {/* Badges */}
+        <div className="flex flex-col flex-wrap items-center gap-3">
+          <Badge variant="outline" className="text-xs">
+            {automation?.id ? "Edit" : "New"} Automation
+          </Badge>
+          <Badge className="bg-green-500 text-white text-xs capitalize">
+            {trigger === "new_conversation" ? "New Chat" : trigger || "No Trigger"}
+          </Badge>
+        </div>
+
+        {/* Trigger Selector */}
+        <div className="flex flex-col gap-2 min-w-[180px] px-4">
+          <Label className="flex items-center gap-2 text-xs font-medium text-gray-700">
+            <UserPlus className="w-4 h-4" />
+            Trigger Channel
+          </Label>
+          <Select value={trigger} onValueChange={setTrigger}>
+            <SelectTrigger className="h-9 text-sm">
+              <SelectValue placeholder="Select trigger" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="new_conversation">New conversation</SelectItem>
+              <SelectItem value="message_received">Message received</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Right Section (Save Button) */}
+      <div className="flex items-center justify-end">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={handleSave}
+          disabled={user?.username === "demouser" ? true : saveMutation.isPending}
+          className="min-w-[100px]"
+        >
+          <Save className="w-4 h-4 mr-1" />
+          {saveMutation.isPending ? "Saving..." : "Save"}
+        </Button>
+      </div>
+    </div>
 
         <div className="flex-1">
           <ReactFlow
@@ -1613,7 +1714,16 @@ export default function AutomationFlowBuilderXYFlow({
   );
 }
 
-function CustomEdge({ id, sourceX, sourceY, targetX, targetY, style, markerEnd, setEdges }: CustomEdgeProps) {
+function CustomEdge({
+  id,
+  sourceX,
+  sourceY,
+  targetX,
+  targetY,
+  style,
+  markerEnd,
+  setEdges,
+}: CustomEdgeProps) {
   // get edge path + center position
   const [edgePath, labelX, labelY] = getStraightPath({
     sourceX,
@@ -1642,7 +1752,7 @@ function CustomEdge({ id, sourceX, sourceY, targetX, targetY, style, markerEnd, 
           }}
           onClick={handleDelete}
         >
-          <Trash2 color="red" size={14}/>
+          <Trash2 color="red" size={14} />
         </div>
       </EdgeLabelRenderer>
     </>

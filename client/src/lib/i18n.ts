@@ -461,14 +461,14 @@ import hiTranslations from './translations/hi.json';
 import zhTranslations from './translations/zh.json';
 
 const translations: Record<Language, Translations> = {
-  en: enTranslations as Translations,
-  es: esTranslations as Translations,
-  fr: frTranslations as Translations, // fallback to English
-  de: deTranslations as Translations, // fallback to English
-  pt: ptTranslations as Translations, // fallback to English
-  ar: arTranslations as Translations, // fallback to English
-  hi: hiTranslations as Translations, // fallback to English
-  zh: zhTranslations as Translations, // fallback to English
+  en: enTranslations as unknown as Translations,
+  es: esTranslations as unknown as Translations,
+  fr: frTranslations as unknown as Translations,
+  de: deTranslations as unknown as Translations,
+  pt: ptTranslations as unknown as Translations,
+  ar: arTranslations as unknown as Translations,
+  hi: hiTranslations as unknown as Translations,
+  zh: zhTranslations as unknown as Translations,
 };
 
 // i18n store
