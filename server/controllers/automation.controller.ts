@@ -243,8 +243,8 @@ export const getAutomation = asyncHandler(async (req: Request, res: Response) =>
 // });
 
 export const createAutomation = asyncHandler(async (req: Request, res: Response) => {
-  console.log("Raw body from form-data:", req.body);
-  console.log("Uploaded files:", req.files);
+  // console.log("Raw body from form-data:", req.body);
+  // console.log("Uploaded files:", req.files);
 
   try {
     const { name, description, trigger, triggerConfig, nodes, edges } = req.body;
@@ -302,10 +302,10 @@ export const createAutomation = asyncHandler(async (req: Request, res: Response)
         }
       });
     }
-console.log(    {  name,
-  description,
-  trigger,
-  triggerConfig: JSON.parse(triggerConfig || "{}"),})
+// console.log(    {  name,
+//   description,
+//   trigger,
+//   triggerConfig: JSON.parse(triggerConfig || "{}"),})
     // ✅ Save automation
     const [automation] = await db.insert(automations).values({
       name,
@@ -316,9 +316,9 @@ console.log(    {  name,
     }).returning();
 
 
-    console.log("Created automation:", automation);
-    console.log("Parsed nodes:", parsedNodes);
-    console.log("Parsed edges:", parsedEdges);
+    // console.log("Created automation:", automation);
+    // console.log("Parsed nodes:", parsedNodes);
+    // console.log("Parsed edges:", parsedEdges);
     // ✅ Save nodes
     for (const node of parsedNodes) {
       await db.insert(automationNodes).values({
@@ -424,11 +424,11 @@ export const updateAutomation = asyncHandler(async (req: Request, res: Response)
     });
   }
 
-  console.log("Updating automation with data:", {name,
-    description,
-    trigger,
-    triggerConfig: JSON.parse(triggerConfig || "{}"),
-    ...rest,}); // Debug log
+  // console.log("Updating automation with data:", {name,
+  //   description,
+  //   trigger,
+  //   triggerConfig: JSON.parse(triggerConfig || "{}"),
+  //   ...rest,}); 
 
   // ✅ Update automation main record
   const [automation] = await db

@@ -100,7 +100,7 @@ const {user} = useAuth()
       };
       
       if (editingChannel) {
-        return await apiRequest("PATCH", `/api/channels/${editingChannel.id}`, payload);
+        return await apiRequest("PUT", `/api/channels/${editingChannel.id}`, payload);
       } else {
         return await apiRequest("POST", "/api/channels", payload);
       }
