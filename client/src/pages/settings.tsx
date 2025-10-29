@@ -1,12 +1,14 @@
 import { useState } from "react";
 import Header from "@/components/layout/header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Smartphone, Webhook, Key, User, SettingsIcon } from "lucide-react";
+import { Smartphone, Webhook, Key, User, SettingsIcon, Database, BotIcon } from "lucide-react";
 import { ChannelSettings } from "@/components/settings/ChannelSettings";
 import { WebhookSettings } from "@/components/settings/WebhookSettings";
 // import { AccountSettings } from "@/components/settings/AccountSettings";
 import { ApiKeySettings } from "@/components/settings/ApiKeySettings";
 import { GeneralSettings } from "@/components/settings/GeneralSettings";
+import StorageSettings from "@/components/settings/StorageSettings";
+import AISettings from "@/components/settings/AISettings";
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState("general_setting");
@@ -24,13 +26,27 @@ export default function Settings() {
           onValueChange={setActiveTab}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger
               value="general_setting"
               className="flex items-center space-x-2"
             >
               <SettingsIcon className="w-4 h-4" />
               <span>General Setting</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="storage_setting"
+              className="flex items-center space-x-2"
+            >
+              <Database className="w-4 h-4" />
+              <span>Storage Setting</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="ai_setting"
+              className="flex items-center space-x-2"
+            >
+              <BotIcon className="w-4 h-4" />
+              <span>AI Settings</span>
             </TabsTrigger>
             <TabsTrigger
               value="whatsapp"
@@ -59,6 +75,14 @@ export default function Settings() {
           {/* General Setting Tab */}
           <TabsContent value="general_setting">
             <GeneralSettings />
+          </TabsContent>
+
+          <TabsContent value="storage_setting">
+            <StorageSettings />
+          </TabsContent>
+
+          <TabsContent value="ai_setting">
+            <AISettings />
           </TabsContent>
 
           {/* WhatsApp Numbers Tab */}

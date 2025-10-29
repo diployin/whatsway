@@ -1,194 +1,228 @@
-import type { Request, Response } from 'express';
-import { storage } from '../storage';
-import { insertMessageSchema } from '@shared/schema';
-import { AppError, asyncHandler } from '../middlewares/error.middleware';
-import crypto from 'crypto';
-import { startAutomationExecutionFunction } from './automation.controller';
-import { triggerService } from 'server/services/automation-execution.service';
-import { WhatsAppApiService } from 'server/services/whatsapp-api';
+import type { Request, Response } from "express";
+import { storage } from "../storage";
+import { insertMessageSchema } from "@shared/schema";
+import { AppError, asyncHandler } from "../middlewares/error.middleware";
+import crypto from "crypto";
+import { startAutomationExecutionFunction } from "./automation.controller";
+import { triggerService } from "server/services/automation-execution.service";
+import { WhatsAppApiService } from "server/services/whatsapp-api";
 
-export const getWebhookConfigs = asyncHandler(async (req: Request, res: Response) => {
-  const configs = await storage.getWebhookConfigs();
-  res.json(configs);
-});
-
-export const getGlobalWebhookUrl = asyncHandler(async (req: Request, res: Response) => {
-  const protocol = req.protocol;
-  const host = req.get('host');
-  const webhookUrl = `${protocol}://${host}/webhook/d420e261-9c12-4cee-9d65-253cda8ab4bc`;
-  res.json({ webhookUrl });
-});
-
-export const createWebhookConfig = asyncHandler(async (req: Request, res: Response) => {
-  const { verifyToken, appSecret, events } = req.body;
-  
-  if (!verifyToken) {
-    throw new AppError(400, 'Verify token is required');
+export const getWebhookConfigs = asyncHandler(
+  async (req: Request, res: Response) => {
+    const configs = await storage.getWebhookConfigs();
+    res.json(configs);
   }
-  
-  const protocol = req.protocol;
-  const host = req.get('host');
-  const webhookUrl = `${protocol}://${host}/webhook/d420e261-9c12-4cee-9d65-253cda8ab4bc`;
-  
-  const config = await storage.createWebhookConfig({
-    webhookUrl,
-    verifyToken,
-    appSecret: appSecret || '',
-    events: events || ['messages', 'message_status', 'message_template_status_update'],
-    isActive: true,
-    channelId: null // Global webhook
-  });
-  
-  res.json(config);
-});
+);
 
-export const updateWebhookConfig = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const updates = req.body;
-  
-  const config = await storage.updateWebhookConfig(id, updates);
-  if (!config) {
-    throw new AppError(404, 'Webhook config not found');
+export const getGlobalWebhookUrl = asyncHandler(
+  async (req: Request, res: Response) => {
+    const protocol = req.protocol;
+    const host = req.get("host");
+    const webhookUrl = `${protocol}://${host}/webhook/d420e261-9c12-4cee-9d65-253cda8ab4bc`;
+    res.json({ webhookUrl });
   }
-  
-  res.json(config);
-});
+);
 
-export const deleteWebhookConfig = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params;
-  
-  const deleted = await storage.deleteWebhookConfig(id);
-  if (!deleted) {
-    throw new AppError(404, 'Webhook config not found');
+export const createWebhookConfig = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { verifyToken, appSecret, events } = req.body;
+
+    if (!verifyToken) {
+      throw new AppError(400, "Verify token is required");
+    }
+
+    const protocol = req.protocol;
+    const host = req.get("host");
+    const webhookUrl = `${protocol}://${host}/webhook/d420e261-9c12-4cee-9d65-253cda8ab4bc`;
+
+    const config = await storage.createWebhookConfig({
+      webhookUrl,
+      verifyToken,
+      appSecret: appSecret || "",
+      events: events || [
+        "messages",
+        "message_status",
+        "message_template_status_update",
+      ],
+      isActive: true,
+      channelId: null, // Global webhook
+    });
+
+    res.json(config);
   }
-  
-  res.json({ success: true, message: 'Webhook config deleted' });
-});
+);
+
+export const updateWebhookConfig = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const updates = req.body;
+
+    const config = await storage.updateWebhookConfig(id, updates);
+    if (!config) {
+      throw new AppError(404, "Webhook config not found");
+    }
+
+    res.json(config);
+  }
+);
+
+export const deleteWebhookConfig = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const deleted = await storage.deleteWebhookConfig(id);
+    if (!deleted) {
+      throw new AppError(404, "Webhook config not found");
+    }
+
+    res.json({ success: true, message: "Webhook config deleted" });
+  }
+);
 
 export const testWebhook = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   // console.log("Testing webhook for config ID:", id);
   const config = await storage.getWebhookConfig(id);
   if (!config) {
-    throw new AppError(404, 'Webhook config not found');
+    throw new AppError(404, "Webhook config not found");
   }
   // console.log("Webhook config:", config);
   // Send a test webhook event
   const testPayload = {
-    entry: [{
-      id: "test-entry",
-      changes: [{
-        value: {
-          messaging_product: "whatsapp",
-          metadata: {
-            display_phone_number: "15550555555",
-            phone_number_id: "test-phone-id"
+    entry: [
+      {
+        id: "test-entry",
+        changes: [
+          {
+            value: {
+              messaging_product: "whatsapp",
+              metadata: {
+                display_phone_number: "15550555555",
+                phone_number_id: "test-phone-id",
+              },
+              test: true,
+            },
+            field: "messages",
           },
-          test: true
-        },
-        field: "messages"
-      }]
-    }]
+        ],
+      },
+    ],
   };
   // console.log("Sending test webhook to:", config.webhookUrl , testPayload);
   try {
     const response = await fetch(config.webhookUrl, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(testPayload)
+      body: JSON.stringify(testPayload),
     });
-    
+
     // console.log('Test :::==========>' , response);
     if (!response.ok) {
-      throw new AppError(500, `Test webhook failed with status ${response.status}`);
+      throw new AppError(
+        500,
+        `Test webhook failed with status ${response.status}`
+      );
     }
-    res.json({ success: true, message: 'Test webhook sent successfully' });
+    res.json({ success: true, message: "Test webhook sent successfully" });
   } catch (error) {
-    throw new AppError(500, `Failed to send test webhook: ${(error as Error).message}`);
+    throw new AppError(
+      500,
+      `Failed to send test webhook: ${(error as Error).message}`
+    );
   }
 });
 
-export const handleWebhook = asyncHandler(async (req: Request, res: Response) => {
-  const { 'hub.mode': mode, 'hub.challenge': challenge, 'hub.verify_token': verifyToken } = req.query;
-  
-  // Handle webhook verification
-  if (mode && challenge) {
-    // Get webhook config from database to check verify token
-    const configs = await storage.getWebhookConfigs();
-    const activeConfig = configs.find(c => c.isActive);
-    
-    if (mode === 'subscribe' && activeConfig && verifyToken === activeConfig.verifyToken) {
-      console.log('Webhook verified');
-      // Update last ping timestamp
-      await storage.updateWebhookConfig(activeConfig.id, {
-        lastPingAt: new Date()
-      });
-      return res.send(challenge);
+export const handleWebhook = asyncHandler(
+  async (req: Request, res: Response) => {
+    const {
+      "hub.mode": mode,
+      "hub.challenge": challenge,
+      "hub.verify_token": verifyToken,
+    } = req.query;
+
+    // Handle webhook verification
+    if (mode && challenge) {
+      // Get webhook config from database to check verify token
+      const configs = await storage.getWebhookConfigs();
+      const activeConfig = configs.find((c) => c.isActive);
+
+      if (
+        mode === "subscribe" &&
+        activeConfig &&
+        verifyToken === activeConfig.verifyToken
+      ) {
+        console.log("Webhook verified");
+        // Update last ping timestamp
+        await storage.updateWebhookConfig(activeConfig.id, {
+          lastPingAt: new Date(),
+        });
+        return res.send(challenge);
+      }
+      throw new AppError(403, "Verification failed");
     }
-    throw new AppError(403, 'Verification failed');
-  }
-  
-  // Handle webhook events
-  const body = req.body;
-  console.log('Webhook received:', JSON.stringify(body, null, 2));
-  
-  // Update last ping timestamp for webhook events
-  const configs = await storage.getWebhookConfigs();
-  const activeConfig = configs.find(c => c.isActive);
-  if (activeConfig) {
-    await storage.updateWebhookConfig(activeConfig.id, {
-      lastPingAt: new Date()
-    });
-  }
-  
-  if (body.entry) {
-    for (const entry of body.entry) {
-      const changes = entry.changes || [];
-      
-      for (const change of changes) {
-        if (change.field === 'messages') {
-          await handleMessageChange(change.value);
-        } else if (change.field === 'message_template_status_update') {
-          await handleTemplateStatusUpdate(change.value);
+
+    // Handle webhook events
+    const body = req.body;
+    console.log("Webhook received:", JSON.stringify(body, null, 2));
+
+    // Update last ping timestamp for webhook events
+    const configs = await storage.getWebhookConfigs();
+    const activeConfig = configs.find((c) => c.isActive);
+    if (activeConfig) {
+      await storage.updateWebhookConfig(activeConfig.id, {
+        lastPingAt: new Date(),
+      });
+    }
+
+    if (body.entry) {
+      for (const entry of body.entry) {
+        const changes = entry.changes || [];
+
+        for (const change of changes) {
+          if (change.field === "messages") {
+            await handleMessageChange(change.value);
+          } else if (change.field === "message_template_status_update") {
+            await handleTemplateStatusUpdate(change.value);
+          }
         }
       }
     }
+
+    res.sendStatus(200);
   }
-  
-  res.sendStatus(200);
-});
+);
 
 // async function handleMessageChange(value: any) {
 //   const { messages, contacts, metadata, statuses } = value;
-  
+
 //   // Handle message status updates (sent, delivered, read, failed)
 //   if (statuses && statuses.length > 0) {
 //     await handleMessageStatuses(statuses, metadata);
 //     return;
 //   }
-  
+
 //   if (!messages || messages.length === 0) {
 //     return;
 //   }
-  
+
 //   // Find channel by phone number ID
 //   const phoneNumberId = metadata?.phone_number_id;
 //   if (!phoneNumberId) {
 //     console.error('No phone_number_id in webhook');
 //     return;
 //   }
-  
+
 //   const channel = await storage.getChannelByPhoneNumberId(phoneNumberId);
 //   if (!channel) {
 //     console.error(`No channel found for phone_number_id: ${phoneNumberId}`);
 //     return;
 //   }
-  
+
 //   for (const message of messages) {
 //     const { from, id: whatsappMessageId, text, type, timestamp } = message;
-    
+
 //     // Find or create conversation
 //     let conversation = await storage.getConversationByPhone(from);
 //     if (!conversation) {
@@ -202,7 +236,7 @@ export const handleWebhook = asyncHandler(async (req: Request, res: Response) =>
 //           channelId: channel.id
 //         });
 //       }
-      
+
 //       conversation = await storage.createConversation({
 //         contactId: contact.id,
 //         contactPhone: from,
@@ -215,13 +249,11 @@ export const handleWebhook = asyncHandler(async (req: Request, res: Response) =>
 //     // const result = await startAutomationExecutionFunction(contact?.id, conversation?.id,{ from, whatsappMessageId, text, type, timestamp });
 //     // console.log(result);
 
-
 //     // In your webhook handler
 //     await triggerService.handleNewConversation(conversation?.id, contact?.channelId, contact?.id,);
 
 //     } else {
 //       // Increment unread count
-
 
 //       await storage.updateConversation(conversation.id, {
 //         unreadCount: (conversation.unreadCount || 0) + 1,
@@ -229,7 +261,7 @@ export const handleWebhook = asyncHandler(async (req: Request, res: Response) =>
 //         lastMessageText:text?.body || `[${type} message]`,
 //       });
 //     }
-    
+
 //     console.log("Webhook Message ::>>" , text , text?.body)
 
 //     // Create message
@@ -243,9 +275,6 @@ export const handleWebhook = asyncHandler(async (req: Request, res: Response) =>
 //       timestamp: new Date(parseInt(timestamp, 10) * 1000)
 //     });
 
-
-
-    
 //     // Broadcast new message via WebSocket
 //     if ((global as any).broadcastToConversation) {
 //       (global as any).broadcastToConversation(conversation.id, {
@@ -258,42 +287,42 @@ export const handleWebhook = asyncHandler(async (req: Request, res: Response) =>
 
 // async function handleMessageChange(value: any) {
 //   const { messages, contacts, metadata, statuses } = value;
-  
+
 //   // Handle message status updates (sent, delivered, read, failed)
 //   if (statuses && statuses.length > 0) {
 //     await handleMessageStatuses(statuses, metadata);
 //     return;
 //   }
-  
+
 //   if (!messages || messages.length === 0) {
 //     return;
 //   }
-  
+
 //   // Find channel by phone number ID
 //   const phoneNumberId = metadata?.phone_number_id;
 //   if (!phoneNumberId) {
 //     console.error('No phone_number_id in webhook');
 //     return;
 //   }
-  
+
 //   const channel = await storage.getChannelByPhoneNumberId(phoneNumberId);
 //   if (!channel) {
 //     console.error(`No channel found for phone_number_id: ${phoneNumberId}`);
 //     return;
 //   }
-  
+
 //   for (const message of messages) {
 //     const { from, id: whatsappMessageId, text, type, timestamp } = message;
-    
+
 //     // Find or create conversation
 //     let conversation = await storage.getConversationByPhone(from);
 //     let contact = await storage.getContactByPhone(from);
 //     let isNewConversation = false;
-    
+
 //     if (!conversation) {
 //       // This is a new conversation
 //       isNewConversation = true;
-      
+
 //       // Find or create contact first
 //       if (!contact) {
 //         const contactName = contacts?.find((c: any) => c.wa_id === from)?.profile?.name || from;
@@ -303,7 +332,7 @@ export const handleWebhook = asyncHandler(async (req: Request, res: Response) =>
 //           channelId: channel.id
 //         });
 //       }
-      
+
 //       conversation = await storage.createConversation({
 //         contactId: contact.id,
 //         contactPhone: from,
@@ -319,7 +348,7 @@ export const handleWebhook = asyncHandler(async (req: Request, res: Response) =>
 //         lastMessageText: text?.body || `[${type} message]`,
 //       });
 //     }
-    
+
 //     console.log("Webhook Message ::>>", text, text?.body);
 
 //     // Create message record
@@ -342,27 +371,27 @@ export const handleWebhook = asyncHandler(async (req: Request, res: Response) =>
 //     }
 
 //     // ============== AUTOMATION HANDLING ==============
-    
+
 //     try {
 //       if (isNewConversation) {
 //         // Handle new conversation automation triggers
 //         console.log(`🎯 Triggering new conversation automation for: ${conversation.id}`);
 //         await triggerService.handleNewConversation(
-//           conversation.id, 
-//           channel.id, 
+//           conversation.id,
+//           channel.id,
 //           contact.id
 //         );
 //       } else {
 //         // Handle message received triggers (including user responses)
 //         console.log(`💬 Triggering message received automation for: ${conversation.id}`);
-        
+
 //         // The triggerService.handleMessageReceived method will:
 //         // 1. Check if there's a pending execution waiting for user response
 //         // 2. If yes, process as user response and resume execution
 //         // 3. If no, trigger normal message-based automations
-        
+
 //         await triggerService.handleMessageReceived(
-//           conversation.id, 
+//           conversation.id,
 //           {
 //             content: text?.body || `[${type} message]`,
 //             text: text?.body,
@@ -370,23 +399,22 @@ export const handleWebhook = asyncHandler(async (req: Request, res: Response) =>
 //             from: from,
 //             whatsappMessageId: whatsappMessageId,
 //             timestamp: timestamp
-//           }, 
-//           channel.id, 
+//           },
+//           channel.id,
 //           contact.id
 //         );
 //       }
 //     } catch (automationError) {
 //       // Log automation errors but don't fail the webhook
 //       console.error(`❌ Automation error for conversation ${conversation.id}:`, automationError);
-      
+
 //       // Optionally notify monitoring/alerting systems
 //       // await notifyAutomationError(conversation.id, automationError);
 //     }
 //   }
 // }
 
-
-// Enhanced webhook handler with better automation integration
+// Enhanced webhook handler with AI auto-reply on trigger words
 async function handleMessageChange(value: any) {
   const { messages, contacts, metadata, statuses } = value;
 
@@ -417,7 +445,14 @@ async function handleMessageChange(value: any) {
   const waApi = new WhatsAppApiService(channel);
 
   for (const message of messages) {
-    const { from, id: whatsappMessageId, text, type, timestamp, interactive } = message;
+    const {
+      from,
+      id: whatsappMessageId,
+      text,
+      type,
+      timestamp,
+      interactive,
+    } = message;
 
     // Extract message content and interactive data
     let messageContent = "";
@@ -545,22 +580,41 @@ async function handleMessageChange(value: any) {
       });
     }
 
-    // --- Automation handling (unchanged) ---
+    // --- AI AUTO-REPLY CHECK (NEW) ---
     try {
-      const hasPendingExecution =
-        triggerService.getExecutionService().hasPendingExecution(conversation.id);
+      const shouldSendAiReply = await checkAndSendAiReply(
+        messageContent,
+        conversation,
+        contact,
+        waApi
+      );
+
+      if (shouldSendAiReply) {
+        console.log(
+          `✅ AI auto-reply sent for conversation ${conversation.id}`
+        );
+        // Continue to prevent automation triggers when AI handles it
+        continue;
+      }
+    } catch (aiError) {
+      console.error(`❌ AI auto-reply error:`, aiError);
+      // Continue with normal flow if AI fails
+    }
+
+    // --- Automation handling ---
+    try {
+      const hasPendingExecution = triggerService
+        .getExecutionService()
+        .hasPendingExecution(conversation.id);
 
       if (hasPendingExecution) {
         console.log(
           `Processing as user response to pending automation execution`
         );
 
-        const result =
-          await triggerService.getExecutionService().handleUserResponse(
-            conversation.id,
-            messageContent,
-            interactiveData
-          );
+        const result = await triggerService
+          .getExecutionService()
+          .handleUserResponse(conversation.id, messageContent, interactiveData);
 
         if (result && result.success) {
           console.log(
@@ -648,11 +702,271 @@ async function handleMessageChange(value: any) {
   }
 }
 
+// --- AI AUTO-REPLY HELPER FUNCTION (NEW) ---
+async function checkAndSendAiReply(
+  messageContent: string,
+  conversation: any,
+  contact: any,
+  whatsappApi: any
+): Promise<boolean> {
+  // Get active AI settings
+  const aiSettings = await storage.getActiveAiSettings();
+
+  if (!aiSettings || !aiSettings.isActive) {
+    return false;
+  }
+
+  // Check if message contains any trigger words
+  const triggerWords = aiSettings.words || [];
+  if (triggerWords.length === 0) {
+    return false;
+  }
+
+  const messageLower = messageContent.toLowerCase().trim();
+  const hasMatch = triggerWords.some((word) => {
+    const wordLower = word.toLowerCase().trim();
+    // Match whole word or phrase
+    return messageLower.includes(wordLower);
+  });
+
+  if (!hasMatch) {
+    return false;
+  }
+
+  console.log(`🤖 Trigger word matched for message: "${messageContent}"`);
+
+  // Get conversation history for context
+  const conversationHistory = await storage.getMessagesByConversationId(
+    conversation.id,
+    20 // Last 20 messages for context
+  );
+
+  // Generate AI response
+  const aiResponse = await generateAiResponse(
+    messageContent,
+    conversationHistory,
+    contact,
+    aiSettings
+  );
+
+  if (!aiResponse) {
+    console.error("❌ Failed to generate AI response");
+    return false;
+  }
+
+  // Send AI reply via WhatsApp
+  try {
+    const result = await whatsappApi.sendTextMessage(
+      conversation.contactPhone,
+      aiResponse
+    );
+
+    // Save AI response as outbound message
+    const aiMessage = await storage.createMessage({
+      conversationId: conversation.id,
+      content: aiResponse,
+      fromUser: true,
+      direction: "outbound",
+      status: "sent",
+      whatsappMessageId: result.messages?.[0]?.id || null,
+      messageType: "text",
+      metadata: JSON.stringify({ aiGenerated: true, trigger: messageContent }),
+      timestamp: new Date(),
+    });
+
+    // Update conversation
+    await storage.updateConversation(conversation.id, {
+      lastMessageAt: new Date(),
+      lastMessageText: aiResponse,
+    });
+
+    // Broadcast AI message via WebSocket
+    if ((global as any).broadcastToConversation) {
+      (global as any).broadcastToConversation(conversation.id, {
+        type: "new-message",
+        message: aiMessage,
+      });
+
+      (global as any).broadcastToConversation(conversation.id, {
+        type: "ai-reply-sent",
+        data: {
+          messageId: aiMessage.id,
+          trigger: messageContent,
+          response: aiResponse,
+        },
+      });
+    }
+
+    return true;
+  } catch (error) {
+    console.error("❌ Failed to send AI reply:", error);
+    throw error;
+  }
+}
+
+// --- AI RESPONSE GENERATION (NEW) ---
+async function generateAiResponse(
+  userMessage: string,
+  conversationHistory: any[],
+  contact: any,
+  aiSettings: any
+): Promise<string | null> {
+  try {
+    const { provider, apiKey, model, endpoint, temperature, maxTokens } =
+      aiSettings;
+
+    // Build conversation context
+    const messages = [
+      {
+        role: "system",
+        content: `You are a helpful WhatsApp assistant. Respond naturally and helpfully to customer messages. Keep responses concise and friendly. Customer name: ${
+          contact?.name || "Customer"
+        }`,
+      },
+    ];
+
+    // Add conversation history (last 10 messages for context)
+    conversationHistory
+      .slice(-10)
+      .reverse()
+      .forEach((msg) => {
+        messages.push({
+          role: msg.fromUser ? "assistant" : "user",
+          content: msg.content,
+        });
+      });
+
+    // Add current user message
+    messages.push({
+      role: "user",
+      content: userMessage,
+    });
+
+    // Call AI API based on provider
+    let aiResponse: string | null = null;
+
+    if (provider === "openai") {
+      aiResponse = await callOpenAI(
+        messages,
+        apiKey,
+        model,
+        endpoint || "https://api.openai.com/v1",
+        parseFloat(temperature || "0.7"),
+        parseInt(maxTokens || "2048", 10)
+      );
+    } else if (provider === "anthropic") {
+      aiResponse = await callAnthropic(
+        messages,
+        apiKey,
+        model,
+        endpoint || "https://api.anthropic.com/v1",
+        parseFloat(temperature || "0.7"),
+        parseInt(maxTokens || "2048", 10)
+      );
+    } else {
+      console.error(`Unsupported AI provider: ${provider}`);
+      return null;
+    }
+
+    return aiResponse;
+  } catch (error) {
+    console.error("❌ Error generating AI response:", error);
+    return null;
+  }
+}
+
+// --- OpenAI API Call ---
+async function callOpenAI(
+  messages: any[],
+  apiKey: string,
+  model: string,
+  endpoint: string,
+  temperature: number,
+  maxTokens: number
+): Promise<string | null> {
+  try {
+    const response = await fetch(`${endpoint}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model,
+        messages,
+        temperature,
+        max_tokens: maxTokens,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      console.error("OpenAI API error:", error);
+      return null;
+    }
+
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content || null;
+  } catch (error) {
+    console.error("OpenAI API call failed:", error);
+    return null;
+  }
+}
+
+// --- Anthropic API Call ---
+async function callAnthropic(
+  messages: any[],
+  apiKey: string,
+  model: string,
+  endpoint: string,
+  temperature: number,
+  maxTokens: number
+): Promise<string | null> {
+  try {
+    // Extract system message and convert format
+    const systemMessage =
+      messages.find((m) => m.role === "system")?.content || "";
+    const conversationMessages = messages
+      .filter((m) => m.role !== "system")
+      .map((m) => ({
+        role: m.role === "assistant" ? "assistant" : "user",
+        content: m.content,
+      }));
+
+    const response = await fetch(`${endpoint}/messages`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model,
+        messages: conversationMessages,
+        system: systemMessage,
+        temperature,
+        max_tokens: maxTokens,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      console.error("Anthropic API error:", error);
+      return null;
+    }
+
+    const data = await response.json();
+    return data.content?.[0]?.text || null;
+  } catch (error) {
+    console.error("Anthropic API call failed:", error);
+    return null;
+  }
+}
 
 async function handleMessageStatuses(statuses: any[], metadata: any) {
   const phoneNumberId = metadata?.phone_number_id;
   if (!phoneNumberId) {
-    console.error('No phone_number_id in webhook status update');
+    console.error("No phone_number_id in webhook status update");
     return;
   }
 
@@ -663,10 +977,19 @@ async function handleMessageStatuses(statuses: any[], metadata: any) {
   }
 
   for (const statusUpdate of statuses) {
-    const { id: whatsappMessageId, status, timestamp, errors, recipient_id } = statusUpdate;
-    
-    console.log(`📊 Message status update: ${whatsappMessageId} - ${status}`, errors ? `Errors: ${errors.length}` : '');
-    
+    const {
+      id: whatsappMessageId,
+      status,
+      timestamp,
+      errors,
+      recipient_id,
+    } = statusUpdate;
+
+    console.log(
+      `📊 Message status update: ${whatsappMessageId} - ${status}`,
+      errors ? `Errors: ${errors.length}` : ""
+    );
+
     // Find the message by WhatsApp ID
     const message = await storage.getMessageByWhatsAppId(whatsappMessageId);
     if (!message) {
@@ -675,17 +998,17 @@ async function handleMessageStatuses(statuses: any[], metadata: any) {
     }
 
     // Map WhatsApp status to our status
-    let messageStatus: 'sent' | 'delivered' | 'read' | 'failed' = 'sent';
+    let messageStatus: "sent" | "delivered" | "read" | "failed" = "sent";
     let errorDetails = null;
-    
-    if (status === 'sent') {
-      messageStatus = 'sent';
-    } else if (status === 'delivered') {
-      messageStatus = 'delivered';
-    } else if (status === 'read') {
-      messageStatus = 'read';
-    } else if (status === 'failed' && errors && errors.length > 0) {
-      messageStatus = 'failed';
+
+    if (status === "sent") {
+      messageStatus = "sent";
+    } else if (status === "delivered") {
+      messageStatus = "delivered";
+    } else if (status === "read") {
+      messageStatus = "read";
+    } else if (status === "failed" && errors && errors.length > 0) {
+      messageStatus = "failed";
       // Capture the error details
       const error = errors[0];
       errorDetails = {
@@ -694,9 +1017,9 @@ async function handleMessageStatuses(statuses: any[], metadata: any) {
         message: error.message || error.details,
         errorData: error.error_data,
         recipientId: recipient_id,
-        timestamp: timestamp
+        timestamp: timestamp,
       };
-      
+
       console.error(`❌ Message failed with error:`, errorDetails);
     }
 
@@ -704,22 +1027,28 @@ async function handleMessageStatuses(statuses: any[], metadata: any) {
     const updatedMessage = await storage.updateMessage(message.id, {
       status: messageStatus,
       errorDetails: errorDetails ? JSON.stringify(errorDetails) : null,
-      deliveredAt: messageStatus === 'delivered' ? new Date(parseInt(timestamp, 10) * 1000) : message.deliveredAt,
-      readAt: messageStatus === 'read' ? new Date(parseInt(timestamp, 10) * 1000) : message.readAt,
-      updatedAt: new Date()
+      deliveredAt:
+        messageStatus === "delivered"
+          ? new Date(parseInt(timestamp, 10) * 1000)
+          : message.deliveredAt,
+      readAt:
+        messageStatus === "read"
+          ? new Date(parseInt(timestamp, 10) * 1000)
+          : message.readAt,
+      updatedAt: new Date(),
     });
 
     // Broadcast status update
     if ((global as any).broadcastToConversation && message.conversationId) {
       (global as any).broadcastToConversation(message.conversationId, {
-        type: 'message-status-update',
+        type: "message-status-update",
         data: {
           messageId: message.id,
           whatsappMessageId,
           status: messageStatus,
           errorDetails,
-          timestamp: new Date(parseInt(timestamp, 10) * 1000)
-        }
+          timestamp: new Date(parseInt(timestamp, 10) * 1000),
+        },
       });
     }
 
@@ -728,19 +1057,19 @@ async function handleMessageStatuses(statuses: any[], metadata: any) {
       const campaign = await storage.getCampaign(message.campaignId);
       if (campaign) {
         const updates: any = {};
-        
-        if (messageStatus === 'delivered' && message.status !== 'delivered') {
+
+        if (messageStatus === "delivered" && message.status !== "delivered") {
           updates.deliveredCount = (campaign.deliveredCount || 0) + 1;
-        } else if (messageStatus === 'read' && message.status !== 'read') {
+        } else if (messageStatus === "read" && message.status !== "read") {
           updates.readCount = (campaign.readCount || 0) + 1;
-        } else if (messageStatus === 'failed' && message.status !== 'failed') {
+        } else if (messageStatus === "failed" && message.status !== "failed") {
           updates.failedCount = (campaign.failedCount || 0) + 1;
           // Only decrease sent count if message was previously marked as sent
-          if (message.status === 'sent') {
+          if (message.status === "sent") {
             updates.sentCount = Math.max(0, (campaign.sentCount || 0) - 1);
           }
         }
-        
+
         if (Object.keys(updates).length > 0) {
           await storage.updateCampaign(campaign.id, updates);
         }
@@ -751,34 +1080,43 @@ async function handleMessageStatuses(statuses: any[], metadata: any) {
 
 async function handleTemplateStatusUpdate(value: any) {
   const { message_template_id, message_template_name, event, reason } = value;
-  
-  console.log(`Template status update: ${message_template_name} - ${event}${reason ? ` - Reason: ${reason}` : ''}`);
-  
+
+  console.log(
+    `Template status update: ${message_template_name} - ${event}${
+      reason ? ` - Reason: ${reason}` : ""
+    }`
+  );
+
   if (message_template_id && event) {
     // Map WhatsApp status to our status
-    let status = 'pending';
-    if (event === 'APPROVED') {
-      status = 'approved';
-    } else if (event === 'REJECTED') {
-      status = 'rejected';
+    let status = "pending";
+    if (event === "APPROVED") {
+      status = "approved";
+    } else if (event === "REJECTED") {
+      status = "rejected";
     }
-    
+
     // Update template status in database
     const templates = await storage.getTemplates();
-    const template = templates.find(t => t.whatsappTemplateId === message_template_id);
-    
+    const template = templates.find(
+      (t) => t.whatsappTemplateId === message_template_id
+    );
+
     if (template) {
       const updateData: any = { status };
       // If rejected, save the rejection reason
-      if (event === 'REJECTED' && reason) {
+      if (event === "REJECTED" && reason) {
         updateData.rejectionReason = reason;
       }
       await storage.updateTemplate(template.id, updateData);
-      console.log(`Updated template ${template.name} status to ${status}${reason ? ` with reason: ${reason}` : ''}`);
+      console.log(
+        `Updated template ${template.name} status to ${status}${
+          reason ? ` with reason: ${reason}` : ""
+        }`
+      );
     }
   }
 }
-
 
 // ============== ADDITIONAL HELPER FUNCTIONS ==============
 
@@ -786,70 +1124,80 @@ async function handleTemplateStatusUpdate(value: any) {
  * Get automation execution status for a conversation
  * Useful for debugging and monitoring
  */
-export const getConversationAutomationStatus = asyncHandler(async (req: Request, res: Response) => {
-  const { conversationId } = req.params;
-  
-  const executionService = triggerService.getExecutionService();
-  const hasPending = executionService.hasPendingExecution(conversationId);
-  const pendingExecutions = executionService.getPendingExecutions().filter(
-    pe => pe.conversationId === conversationId
-  );
-  
-  res.json({
-    conversationId,
-    hasPendingExecution: hasPending,
-    pendingExecutions,
-    totalPendingCount: pendingExecutions.length
-  });
-});
+export const getConversationAutomationStatus = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { conversationId } = req.params;
+
+    const executionService = triggerService.getExecutionService();
+    const hasPending = executionService.hasPendingExecution(conversationId);
+    const pendingExecutions = executionService
+      .getPendingExecutions()
+      .filter((pe) => pe.conversationId === conversationId);
+
+    res.json({
+      conversationId,
+      hasPendingExecution: hasPending,
+      pendingExecutions,
+      totalPendingCount: pendingExecutions.length,
+    });
+  }
+);
 
 /**
  * Cancel automation execution for a conversation
  * Useful for manual intervention
  */
-export const cancelConversationAutomation = asyncHandler(async (req: Request, res: Response) => {
-  const { conversationId } = req.params;
-  
-  const executionService = triggerService.getExecutionService();
-  const cancelled = await executionService.cancelExecution(conversationId);
-  
-  res.json({
-    success: cancelled,
-    conversationId,
-    message: cancelled 
-      ? 'Automation execution cancelled successfully'
-      : 'No pending execution found for this conversation'
-  });
-});
+export const cancelConversationAutomation = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { conversationId } = req.params;
+
+    const executionService = triggerService.getExecutionService();
+    const cancelled = await executionService.cancelExecution(conversationId);
+
+    res.json({
+      success: cancelled,
+      conversationId,
+      message: cancelled
+        ? "Automation execution cancelled successfully"
+        : "No pending execution found for this conversation",
+    });
+  }
+);
 
 /**
  * Get all pending executions across all conversations
  * Useful for monitoring dashboard
  */
-export const getAllPendingExecutions = asyncHandler(async (req: Request, res: Response) => {
-  const executionService = triggerService.getExecutionService();
-  const pendingExecutions = executionService.getPendingExecutions();
-  
-  res.json({
-    totalCount: pendingExecutions.length,
-    executions: pendingExecutions
-  });
-});
+export const getAllPendingExecutions = asyncHandler(
+  async (req: Request, res: Response) => {
+    const executionService = triggerService.getExecutionService();
+    const pendingExecutions = executionService.getPendingExecutions();
+
+    res.json({
+      totalCount: pendingExecutions.length,
+      executions: pendingExecutions,
+    });
+  }
+);
 
 /**
  * Cleanup expired executions manually
  * Can be called via API or scheduled job
  */
-export const cleanupExpiredExecutions = asyncHandler(async (req: Request, res: Response) => {
-  const { timeoutMinutes = 30 } = req.query;
-  const timeoutMs = parseInt(timeoutMinutes as string) * 60 * 1000;
-  
-  const executionService = triggerService.getExecutionService();
-  const cleanedCount = await executionService.cleanupExpiredExecutions(timeoutMs);
-  
-  res.json({
-    success: true,
-    cleanedCount,
-    message: `Cleaned up ${cleanedCount} expired executions`
-  });
-});
+export const cleanupExpiredExecutions = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { timeoutMinutes = 30 } = req.query;
+    const timeoutMs = parseInt(timeoutMinutes as string) * 60 * 1000;
+
+    const executionService = triggerService.getExecutionService();
+    const cleanedCount = await executionService.cleanupExpiredExecutions(
+      timeoutMs
+    );
+
+    res.json({
+      success: true,
+      cleanedCount,
+      message: `Cleaned up ${cleanedCount} expired executions`,
+    });
+  }
+);
