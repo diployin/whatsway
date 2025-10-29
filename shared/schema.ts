@@ -592,6 +592,25 @@ export const storageSettings = pgTable("storage_settings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+
+export const aiSettings = pgTable("ai_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+
+  provider: text("provider").notNull().default("openai"),
+  apiKey: text("api_key").notNull(),
+  model: text("model").notNull().default("gpt-4o-mini"),
+  endpoint: text("endpoint").default("https://api.openai.com/v1"),
+  temperature: text("temperature").default("0.7"), // string for consistency
+  maxTokens: text("max_tokens").default("2048"),
+  isActive: boolean("is_active").default(false),
+
+  // NEW COLUMN
+  words: text("words").array().default(sql`ARRAY[]::text[]`), // trigger words or phrases
+
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Permissions type definition
 export const PERMISSIONS = {
   // Dashboard permissions

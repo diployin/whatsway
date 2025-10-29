@@ -1,0 +1,1 @@
+ALTER TABLE "ai_settings" ADD COLUMN "words" text[] DEFAULT ARRAY[]::text[];

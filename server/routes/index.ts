@@ -24,6 +24,7 @@ import authRoutes from "./auth.routes";
 import { errorHandler } from "../middlewares/error.middleware";
 import { registerPanelConfigRoutes } from "./panel.config.routes";
 import { registerStorageSettingsRoutes } from "./storage.settings.route";
+import { registerAISettingsRoutes } from "./ai.settings.routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes (no authentication required)
@@ -31,6 +32,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register all route modules
   registerStorageSettingsRoutes(app);
+  registerAISettingsRoutes(app);
   registerChannelRoutes(app);
   registerDashboardRoutes(app);
   registerAnalyticsRoutes(app); // Legacy - kept for compatibility

@@ -215,7 +215,7 @@ export default function StorageSettings(): JSX.Element {
               <div className="flex items-center space-x-3">
                 <h3 className="font-semibold text-lg">Storage Details</h3>
                 <Badge
-                  variant={displayData.isActive ? "success" : "secondary"}
+                   variant={displayData.isActive ? "outline" : "secondary"}
                   className={`text-xs ${
                     displayData.isActive ? "text-green-600" : "text-gray-500"
                   }`}
