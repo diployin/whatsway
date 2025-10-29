@@ -25,6 +25,7 @@ import {
 import AutomationFlowBuilderXYFlow from "@/components/automation-flow-builder";
 import { TestAutomationModal } from "@/components/TestAutomationModal";
 import { useAuth } from "@/contexts/auth-context";
+import  AutomationFlowBuilder  from "@/components/automation-flow-builder/AutomationFlowBuilder";
 
 
 type Automation = {
@@ -324,7 +325,13 @@ export default function Automations() {
             automation={selectedAutomation}
             onClose={handleCloseFlowBuilder}
           /> */}
-          <AutomationFlowBuilderXYFlow
+          {/* <AutomationFlowBuilderXYFlow
+            automation={selectedAutomation}
+            channelId={activeChannel?.id}
+            onClose={handleCloseFlowBuilder}
+          /> */}
+
+          <AutomationFlowBuilder
             automation={selectedAutomation}
             channelId={activeChannel?.id}
             onClose={handleCloseFlowBuilder}

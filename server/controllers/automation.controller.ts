@@ -334,10 +334,14 @@ export const createAutomation = asyncHandler(async (req: Request, res: Response)
     // ✅ Save edges
     for (const edge of parsedEdges) {
       await db.insert(automationEdges).values({
+        id: edge.id,
         automationId: automation.id,
-        ...edge,
+        sourceNodeId: edge.source,
+        targetNodeId: edge.target,
+        animated: !!edge.animated,
       });
     }
+    
 
     res.json({
       success: true,
