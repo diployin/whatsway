@@ -578,6 +578,20 @@ export const panelConfig = pgTable("panel_config", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+
+export const storageSettings = pgTable("storage_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  provider: text("provider").default("digitalocean"), // can extend later
+  spaceName: text("space_name").notNull(),
+  endpoint: text("endpoint").notNull(),
+  region: text("region").notNull(),
+  accessKey: text("access_key").notNull(),
+  secretKey: text("secret_key").notNull(),
+  isActive: boolean("is_active").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Permissions type definition
 export const PERMISSIONS = {
   // Dashboard permissions
