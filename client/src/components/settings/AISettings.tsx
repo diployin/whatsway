@@ -154,9 +154,9 @@ export default function AISettings(): JSX.Element {
                 <Label className="font-medium">Trigger Words</Label>
               </div>
               <div className="p-4 bg-gray-50 rounded-lg border">
-                {aiConfig.words && aiConfig.words.length > 0 ? (
+                {aiConfig?.words && aiConfig?.words.length > 0 ? (
                   <p className="text-sm text-gray-800">
-                    {aiConfig.words.join(", ")}
+                    {aiConfig?.words.join(", ")}
                   </p>
                 ) : (
                   <p className="text-gray-400 text-sm italic">

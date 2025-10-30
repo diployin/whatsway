@@ -93,18 +93,40 @@ export const create = async (req: Request, res: Response) => {
   try {
     const parsed = panelConfigSchema.parse(req.body);
 
+    const files = req.files as Record<string, (Express.Multer.File & { cloudUrl?: string })[]> | undefined;
+
+    // ✅ Resolve logo and favicon paths
+    const logoFile = files?.logo?.[0];
+    const faviconFile = files?.favicon?.[0];
+
+    const logoPath = logoFile
+      ? logoFile.cloudUrl || `/uploads/${path.basename(path.dirname(logoFile.path))}/${logoFile.filename}`
+      : undefined;
+
+    const faviconPath = faviconFile
+      ? faviconFile.cloudUrl || `/uploads/${path.basename(path.dirname(faviconFile.path))}/${faviconFile.filename}`
+      : undefined;
+
+    // ✅ Log the file type (Cloud / Local)
+    if (logoFile)
+      console.log(`🖼️ Logo: ${logoFile.cloudUrl ? "Cloud" : "Local"} → ${logoPath}`);
+    if (faviconFile)
+      console.log(`🌐 Favicon: ${faviconFile.cloudUrl ? "Cloud" : "Local"} → ${faviconPath}`);
+
     const data = {
       ...parsed,
-      logo: (req.files as any)?.logo?.[0]?.filename,
-      favicon: (req.files as any)?.favicon?.[0]?.filename,
+      logo: logoPath,
+      favicon: faviconPath,
     };
 
     const config = await createPanelConfig(data);
     res.status(201).json(config);
   } catch (err: any) {
+    console.error("❌ Create Panel Config Error:", err);
     res.status(400).json({ error: err.errors || err.message });
   }
 };
+
 
 export const getAll = async (_req: Request, res: Response) => {
   try {
@@ -126,25 +148,43 @@ export const getOne = async (req: Request, res: Response) => {
 };
 
 export const update = async (req: Request, res: Response) => {
-    try {
-      // Parse and type as ParsedPanelConfig
-      const parsed: ParsedPanelConfig = panelConfigSchema.partial().parse(req.body);
-  
-      const files = req.files as Record<string, Express.Multer.File[]> | undefined;
-  
-      const data: ParsedPanelConfig = {
-        ...parsed,
-        logo: files?.logo?.[0]?.filename || parsed.logo,
-        favicon: files?.favicon?.[0]?.filename || parsed.favicon,
-      };
+  try {
+    const parsed: ParsedPanelConfig = panelConfigSchema.partial().parse(req.body);
+    const files = req.files as Record<string, (Express.Multer.File & { cloudUrl?: string })[]> | undefined;
+
+    // ✅ Resolve logo and favicon paths
+    const logoFile = files?.logo?.[0];
+    const faviconFile = files?.favicon?.[0];
+
+    const logoPath = logoFile
+      ? logoFile.cloudUrl || `/uploads/${path.basename(path.dirname(logoFile.path))}/${logoFile.filename}`
+      : parsed.logo;
+
+    const faviconPath = faviconFile
+      ? faviconFile.cloudUrl || `/uploads/${path.basename(path.dirname(faviconFile.path))}/${faviconFile.filename}`
+      : parsed.favicon;
+
+    if (logoFile)
+      console.log(`🖼️ Updating logo: ${logoFile.cloudUrl ? "Cloud" : "Local"} → ${logoPath}`);
+    if (faviconFile)
+      console.log(`🌐 Updating favicon: ${faviconFile.cloudUrl ? "Cloud" : "Local"} → ${faviconPath}`);
+
+    const data: ParsedPanelConfig = {
+      ...parsed,
+      logo: logoPath,
+      favicon: faviconPath,
+    };
 
     const config = await updatePanelConfig(req.params.id, data);
     if (!config) return res.status(404).json({ message: "Not found" });
+
     res.json(config);
   } catch (err: any) {
+    console.error("❌ Update Panel Config Error:", err);
     res.status(400).json({ error: err.errors || err.message });
   }
 };
+
 
 export const remove = async (req: Request, res: Response) => {
   try {
@@ -175,8 +215,8 @@ export const getBrandSettings = async (_req: Request, res: Response) => {
     const brandSettings = {
       title: config.name || "Your App Name",
       tagline: config.tagline || "",
-      logo: config.logo ? `/uploads/${config.logo}` : "",
-      favicon: config.favicon ? `/uploads/${config.favicon}` : "",
+      logo: config.logo?.startsWith("https") ? config.logo : `/uploads/${config.logo}`,
+      favicon: config.favicon?.startsWith("https") ? config.favicon : `/uploads/${config.favicon}`,
       updatedAt: config.updatedAt?.toISOString() || new Date().toISOString(),
     };
 
@@ -186,75 +226,40 @@ export const getBrandSettings = async (_req: Request, res: Response) => {
   }
 };
 
-export const updateBrandSettings = async (req: Request, res: Response) => {
-    try {
-      console.log("Parsed Body:", req.body);
-      console.log("Parsed Files:", req.files);
-  
-      const parsed = brandSettingsSchema.parse(req.body);
-  
-      let logoPath: string | undefined;
-      let faviconPath: string | undefined;
-  
-      // Case 1: multer files (actual uploads)
-      if (req.files && (req.files as any).logo) {
-        const logoFile = (req.files as any).logo[0];
-        logoPath = logoFile.path;
-      } else if (parsed.logo && parsed.logo.includes("base64,")) {
-        // Case 2: base64 fallback
-        logoPath = (await processBase64Image(parsed.logo, 'logo')) ?? undefined;
-      }
-  
-      if (req.files && (req.files as any).favicon) {
-        const faviconFile = (req.files as any).favicon[0];
-        faviconPath = faviconFile.path;
-      } else if (parsed.favicon && parsed.favicon.includes("base64,")) {
-        faviconPath =  (await processBase64Image(parsed.favicon, "favicon")) ?? undefined;
-      }
-  
-      const panelData = {
-        name: parsed.title,
-        tagline: parsed.tagline || "",
-        logo: logoPath ? path.basename(logoPath) : undefined,
-        favicon: faviconPath ? path.basename(faviconPath) : undefined,
-      };
-  
-      const config = await updateFirstPanelConfig(panelData);
-  
-      const brandSettings = {
-        title: config.name || parsed.title,
-        tagline: config.tagline || "",
-        logo: config.logo ? `/uploads/${config.logo}` : "",
-        favicon: config.favicon ? `/uploads/${config.favicon}` : "",
-        updatedAt: config.updatedAt?.toISOString() || new Date().toISOString(),
-      };
-  
-      res.json(brandSettings);
-    } catch (err: any) {
-      res.status(400).json({ error: err.errors || err.message });
-    }
-  };
-  
-
 export const createBrandSettings = async (req: Request, res: Response) => {
   try {
-
     console.log("Creating Brand Settings with data:", req.body);
     const parsed = brandSettingsSchema.parse(req.body);
 
-    // Process base64 images if present
-    let logoPath = parsed.logo;
-    let faviconPath = parsed.favicon;
+    const files = req.files as Record<string, (Express.Multer.File & { cloudUrl?: string })[]> | undefined;
 
-    if (parsed.logo && parsed.logo.includes('base64,')) {
-        logoPath = (await processBase64Image(parsed.logo, 'logo')) ?? undefined;
-      }
-      
-      if (parsed.favicon && parsed.favicon.includes('base64,')) {
-        faviconPath = (await processBase64Image(parsed.favicon, 'favicon')) ?? undefined;
-      }
+    let logoPath: string | undefined;
+    let faviconPath: string | undefined;
 
-    // Transform brand settings to panel config format
+    // ✅ 1. Handle uploaded logo
+    if (files?.logo?.[0]) {
+      const logoFile = files.logo[0];
+      const isCloudFile = !!logoFile.cloudUrl;
+      logoPath = logoFile.cloudUrl || `/uploads/${path.basename(path.dirname(logoFile.path))}/${logoFile.filename}`;
+      console.log(`🖼️ Logo (${isCloudFile ? "Cloud" : "Local"}): ${logoPath}`);
+    } else if (parsed.logo && parsed.logo.includes("base64,")) {
+      // ✅ 2. Handle base64 fallback
+      logoPath = (await processBase64Image(parsed.logo, "logo")) ?? undefined;
+      console.log(`🖼️ Logo (Base64 processed): ${logoPath}`);
+    }
+
+    // ✅ 3. Handle uploaded favicon
+    if (files?.favicon?.[0]) {
+      const faviconFile = files.favicon[0];
+      const isCloudFile = !!faviconFile.cloudUrl;
+      faviconPath = faviconFile.cloudUrl || `/uploads/${path.basename(path.dirname(faviconFile.path))}/${faviconFile.filename}`;
+      console.log(`🌐 Favicon (${isCloudFile ? "Cloud" : "Local"}): ${faviconPath}`);
+    } else if (parsed.favicon && parsed.favicon.includes("base64,")) {
+      faviconPath = (await processBase64Image(parsed.favicon, "favicon")) ?? undefined;
+      console.log(`🌐 Favicon (Base64 processed): ${faviconPath}`);
+    }
+
+    // ✅ Transform brand settings to panel config format
     const panelData = {
       name: parsed.title,
       tagline: parsed.tagline || "",
@@ -264,23 +269,79 @@ export const createBrandSettings = async (req: Request, res: Response) => {
       supportEmail: "",
       defaultLanguage: "en",
       supportedLanguages: ["en"],
-      logo: logoPath ? path.basename(logoPath) : undefined,
-      favicon: faviconPath ? path.basename(faviconPath) : undefined,
+      logo: logoPath,
+      favicon: faviconPath,
     };
 
     const config = await createPanelConfig(panelData);
-    
-    // Return in brand settings format
+
+    // ✅ Response in brand settings format
     const brandSettings = {
       title: config.name || parsed.title,
       tagline: config.tagline || "",
-      logo: config.logo ? `/uploads/${config.logo}` : "",
-      favicon: config.favicon ? `/uploads/${config.favicon}` : "",
+      logo: config.logo || "",
+      favicon: config.favicon || "",
       updatedAt: config.updatedAt?.toISOString() || new Date().toISOString(),
     };
 
     res.status(201).json(brandSettings);
   } catch (err: any) {
+    console.error("❌ Create Brand Settings Error:", err);
+    res.status(400).json({ error: err.errors || err.message });
+  }
+};
+
+export const updateBrandSettings = async (req: Request, res: Response) => {
+  try {
+    console.log("Parsed Body:", req.body);
+    console.log("Parsed Files:", req.files);
+
+    const parsed = brandSettingsSchema.parse(req.body);
+    const files = req.files as Record<string, (Express.Multer.File & { cloudUrl?: string })[]> | undefined;
+
+    let logoPath: string | undefined;
+    let faviconPath: string | undefined;
+
+    // ✅ 1. Handle logo
+    if (files?.logo?.[0]) {
+      const logoFile = files.logo[0];
+      logoPath = logoFile.cloudUrl || `/uploads/${logoFile.filename}`;
+      console.log(`🖼️ Updated Logo: ${logoPath}`);
+    } else if (parsed.logo && parsed.logo.includes("base64,")) {
+      logoPath = await processBase64Image(parsed.logo, "logo");
+    }
+
+    // ✅ 2. Handle favicon
+    if (files?.favicon?.[0]) {
+      const faviconFile = files.favicon[0];
+      faviconPath = faviconFile.cloudUrl || `/uploads/${faviconFile.filename}`;
+      console.log(`🌐 Updated Favicon: ${faviconPath}`);
+    } else if (parsed.favicon && parsed.favicon.includes("base64,")) {
+      faviconPath = await processBase64Image(parsed.favicon, "favicon");
+    }
+
+    // ✅ 3. Don't strip cloud URLs anymore
+    const panelData = {
+      name: parsed.title,
+      tagline: parsed.tagline || "",
+      logo: logoPath,
+      favicon: faviconPath,
+    };
+
+    const config = await updateFirstPanelConfig(panelData);
+
+    // ✅ 4. Keep full URLs in response
+    const brandSettings = {
+      title: config.name || parsed.title,
+      tagline: config.tagline || "",
+      logo: config.logo?.startsWith("https") ? config.logo : `/uploads/${config.logo}`,
+      favicon: config.favicon?.startsWith("https") ? config.favicon : `/uploads/${config.favicon}`,
+      updatedAt: config.updatedAt?.toISOString() || new Date().toISOString(),
+    };
+
+    res.json(brandSettings);
+  } catch (err: any) {
+    console.error("❌ Update Brand Settings Error:", err);
     res.status(400).json({ error: err.errors || err.message });
   }
 };

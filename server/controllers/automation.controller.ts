@@ -243,24 +243,20 @@ export const getAutomation = asyncHandler(async (req: Request, res: Response) =>
 // });
 
 export const createAutomation = asyncHandler(async (req: Request, res: Response) => {
-  // console.log("Raw body from form-data:", req.body);
-  // console.log("Uploaded files:", req.files);
-
   try {
     const { name, description, trigger, triggerConfig, nodes, edges } = req.body;
-  const validatedAutomation = insertAutomationSchema.parse(req.body);
-  
-  // Get active channel if channelId not provided
-  let channelId = validatedAutomation.channelId;
-  if (!channelId) {
-    const activeChannel = await storage.getActiveChannel();
-    if (activeChannel) {
-      channelId = activeChannel.id;
+    const validatedAutomation = insertAutomationSchema.parse(req.body);
+
+    // Get active channel if not provided
+    let channelId = validatedAutomation.channelId;
+    if (!channelId) {
+      const activeChannel = await storage.getActiveChannel();
+      if (activeChannel) {
+        channelId = activeChannel.id;
+      }
     }
-  }
 
-
-    // ✅ Parse safely
+    // Parse nodes and edges safely
     let parsedNodes: any[] = [];
     let parsedEdges: any[] = [];
 
@@ -278,47 +274,50 @@ export const createAutomation = asyncHandler(async (req: Request, res: Response)
       parsedEdges = [];
     }
 
-    // ✅ Attach uploaded files to parsedNodes
+    // ✅ Attach uploaded files (supports both local + cloud uploads)
     if (req.files && Array.isArray(req.files)) {
-      const files = req.files as Express.Multer.File[];
+      const files = req.files as (Express.Multer.File & { cloudUrl?: string })[];
 
-      files.forEach((file) => {
-        // fieldname looks like: node_<nodeId>_<field>
+      for (const file of files) {
+        // Match fieldname format: node_<nodeId>_<field>
         const match = file.fieldname.match(/^node_(.+)_(.+)$/);
-        if (match) {
-          const nodeId = `node_${match[1]}`;
-          const field = match[2];
+        if (!match) continue;
 
-          const node = parsedNodes.find((n) => n.id === nodeId);
-          if (node && node.data) {
-            node.data[field] = {
-              filename: file.filename,
-              mimetype: file.mimetype,
-              size: file.size,
-              path: `/uploads/${file.filename}`,
-            };
-            node.data[`${field.replace("File", "Preview")}`] = `/uploads/${file.filename}`;
-          }
-        }
-      });
+        const nodeId = `node_${match[1]}`;
+        const field = match[2];
+        const node = parsedNodes.find((n) => n.id === nodeId);
+        if (!node || !node.data) continue;
+
+        // Check if file is uploaded to cloud or stored locally
+        const isCloudFile = !!file.cloudUrl;
+        const filePath = file.cloudUrl || `/uploads/${path.basename(path.dirname(file.path))}/${file.filename}`;
+
+        console.log(`📤 Processing media: ${isCloudFile ? "Cloud" : "Local"} (${filePath})`);
+
+        node.data[field] = {
+          filename: file.filename,
+          mimetype: file.mimetype,
+          size: file.size,
+          path: filePath,
+        };
+
+        // Optional: set a preview field if it exists
+        node.data[`${field.replace("File", "Preview")}`] = filePath;
+      }
     }
-// console.log(    {  name,
-//   description,
-//   trigger,
-//   triggerConfig: JSON.parse(triggerConfig || "{}"),})
+
     // ✅ Save automation
-    const [automation] = await db.insert(automations).values({
-      name,
-      description,
-      channelId,
-      trigger,
-      triggerConfig: JSON.parse(triggerConfig || "{}"),
-    }).returning();
+    const [automation] = await db
+      .insert(automations)
+      .values({
+        name,
+        description,
+        channelId,
+        trigger,
+        triggerConfig: JSON.parse(triggerConfig || "{}"),
+      })
+      .returning();
 
-
-    // console.log("Created automation:", automation);
-    // console.log("Parsed nodes:", parsedNodes);
-    // console.log("Parsed edges:", parsedEdges);
     // ✅ Save nodes
     for (const node of parsedNodes) {
       await db.insert(automationNodes).values({
@@ -327,7 +326,7 @@ export const createAutomation = asyncHandler(async (req: Request, res: Response)
         type: node.type,
         position: node.position,
         measured: node.measured,
-        data: node.data, // clean JSON, no circular refs
+        data: node.data,
       });
     }
 
@@ -341,7 +340,6 @@ export const createAutomation = asyncHandler(async (req: Request, res: Response)
         animated: !!edge.animated,
       });
     }
-    
 
     res.json({
       success: true,
@@ -350,10 +348,11 @@ export const createAutomation = asyncHandler(async (req: Request, res: Response)
       edges: parsedEdges,
     });
   } catch (err: any) {
-    console.error(err);
+    console.error("❌ Automation creation failed:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
+
 
 
 
@@ -395,7 +394,6 @@ export const updateAutomation = asyncHandler(async (req: Request, res: Response)
   } catch {
     parsedNodes = [];
   }
-  console.log("Parsed nodes:", parsedNodes);
 
   try {
     parsedEdges = typeof edges === "string" ? JSON.parse(edges) : edges;
@@ -404,37 +402,39 @@ export const updateAutomation = asyncHandler(async (req: Request, res: Response)
     parsedEdges = [];
   }
 
-  // ✅ Attach uploaded files to parsedNodes (same as create)
+  // ✅ Attach uploaded files (supports both local + cloud)
   if (req.files && Array.isArray(req.files)) {
-    const files = req.files as Express.Multer.File[];
+    const files = req.files as (Express.Multer.File & { cloudUrl?: string })[];
 
-    files.forEach((file) => {
+    for (const file of files) {
+      // fieldname format: node_<nodeId>_<field>
       const match = file.fieldname.match(/^node_(.+)_(.+)$/);
-      if (match) {
-        const nodeId = `node_${match[1]}`;
-        const field = match[2];
+      if (!match) continue;
 
-        const node = parsedNodes.find((n) => n.id === nodeId);
-        if (node && node.data) {
-          node.data[field] = {
-            filename: file.filename,
-            mimetype: file.mimetype,
-            size: file.size,
-            path: `/uploads/${file.filename}`,
-          };
-          node.data[`${field.replace("File", "Preview")}`] = `/uploads/${file.filename}`;
-        }
-      }
-    });
+      const nodeId = `node_${match[1]}`;
+      const field = match[2];
+      const node = parsedNodes.find((n) => n.id === nodeId);
+      if (!node || !node.data) continue;
+
+      const isCloudFile = !!file.cloudUrl;
+      const filePath =
+        file.cloudUrl ||
+        `/uploads/${path.basename(path.dirname(file.path))}/${file.filename}`;
+
+      console.log(`📤 Updating media: ${isCloudFile ? "Cloud" : "Local"} (${filePath})`);
+
+      node.data[field] = {
+        filename: file.filename,
+        mimetype: file.mimetype,
+        size: file.size,
+        path: filePath,
+      };
+
+      node.data[`${field.replace("File", "Preview")}`] = filePath;
+    }
   }
 
-  // console.log("Updating automation with data:", {name,
-  //   description,
-  //   trigger,
-  //   triggerConfig: JSON.parse(triggerConfig || "{}"),
-  //   ...rest,}); 
-
-  // ✅ Update automation main record
+  // ✅ Update main automation record
   const [automation] = await db
     .update(automations)
     .set({
@@ -451,12 +451,13 @@ export const updateAutomation = asyncHandler(async (req: Request, res: Response)
     throw new AppError(404, "Automation not found");
   }
 
-  console.log("Updating automation with ID:", automation.id);
+  console.log(`🔄 Updating automation with ID: ${automation.id}`);
 
-  // ✅ Delete existing nodes
+  // ✅ Delete existing nodes & edges before reinserting
   await db.delete(automationNodes).where(eq(automationNodes.automationId, automation.id));
+  await db.delete(automationEdges).where(eq(automationEdges.automationId, automation.id));
 
-  // ✅ Insert new nodes
+  // ✅ Insert updated nodes
   if (parsedNodes.length > 0) {
     await db.insert(automationNodes).values(
       parsedNodes.map((node: any) => ({
@@ -472,10 +473,7 @@ export const updateAutomation = asyncHandler(async (req: Request, res: Response)
     );
   }
 
-  // ✅ Delete existing edges
-  await db.delete(automationEdges).where(eq(automationEdges.automationId, automation.id));
-
-  // ✅ Insert new edges
+  // ✅ Insert updated edges
   if (parsedEdges.length > 0) {
     await db.insert(automationEdges).values(
       parsedEdges.map((edge: any) => ({
@@ -483,12 +481,11 @@ export const updateAutomation = asyncHandler(async (req: Request, res: Response)
         automationId: automation.id,
         sourceNodeId: edge.source,
         targetNodeId: edge.target,
-        animated: edge.animated,
+        animated: !!edge.animated,
       }))
     );
   }
 
-  // ✅ Respond with updated automation
   res.json({
     success: true,
     automation,
@@ -496,6 +493,7 @@ export const updateAutomation = asyncHandler(async (req: Request, res: Response)
     edges: parsedEdges,
   });
 });
+
 
 
 // DELETE automation (cascade deletes nodes + executions due to schema)

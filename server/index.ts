@@ -6,12 +6,15 @@ import { registerRoutes } from "./routes/index";
 import { setupVite, serveStatic, log } from "./vite";
 import { MessageStatusUpdater } from "./services/message-status-updater";
 import 'dotenv/config';
+import { initializeUploadsDirectory } from "./middlewares/upload.middleware";
 
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use("/uploads", express.static("uploads"));
+
+initializeUploadsDirectory();
 
 console.log("ENV::", process.env.NODE_ENV ,process.env.FORCE_HTTPS);
 // Set up session management
