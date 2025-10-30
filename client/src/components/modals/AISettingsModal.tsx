@@ -157,11 +157,67 @@ export default function AISettingsModal({
               error={errors.apiKey?.message}
             />
 
-            <Field
-              label="Model"
-              register={register("model")}
-              error={errors.model?.message}
-            />
+            <div className="space-y-2">
+              <Label>Model</Label>
+              <Select
+                onValueChange={(v) => setValue("model", v)}
+                defaultValue={watch("model")}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select model" />
+                </SelectTrigger>
+                <SelectContent>
+                  {form.provider === "openai" && (
+                    <>
+                      <SelectItem value="gpt-4o-mini">GPT-4o Mini</SelectItem>
+                      <SelectItem value="gpt-4o">GPT-4o</SelectItem>
+                      <SelectItem value="gpt-3.5-turbo">
+                        GPT-3.5 Turbo
+                      </SelectItem>
+                    </>
+                  )}
+
+                  {form.provider === "anthropic" && (
+                    <>
+                      <SelectItem value="claude-3-haiku">
+                        Claude 3 Haiku
+                      </SelectItem>
+                      <SelectItem value="claude-3-sonnet">
+                        Claude 3 Sonnet
+                      </SelectItem>
+                      <SelectItem value="claude-3-opus">
+                        Claude 3 Opus
+                      </SelectItem>
+                    </>
+                  )}
+
+                  {form.provider === "google" && (
+                    <>
+                      <SelectItem value="gemini-1.5-flash">
+                        Gemini 1.5 Flash
+                      </SelectItem>
+                      <SelectItem value="gemini-1.5-pro">
+                        Gemini 1.5 Pro
+                      </SelectItem>
+                    </>
+                  )}
+
+                  {form.provider === "azure" && (
+                    <>
+                      <SelectItem value="gpt-4o-mini">
+                        GPT-4o Mini (Azure)
+                      </SelectItem>
+                      <SelectItem value="gpt-35-turbo">
+                        GPT-3.5 Turbo (Azure)
+                      </SelectItem>
+                    </>
+                  )}
+                </SelectContent>
+              </Select>
+              {errors.model && (
+                <p className="text-red-500 text-sm">{errors.model.message}</p>
+              )}
+            </div>
 
             <Field
               label="Endpoint"
