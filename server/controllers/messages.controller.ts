@@ -26,7 +26,7 @@ export const getMessages = asyncHandler(async (req: Request, res: Response) => {
 export const createMessage = asyncHandler(async (req: Request, res: Response) => {
   const { conversationId } = req.params;
   const { content, fromUser, caption, templateName, parameters } = req.body;
-  const file = (req as any).file; // multer populated file if uploaded
+  const file = (req as any).file as Express.Multer.File & { cloudUrl?: string };
 
   // Get conversation
   const conversation = await storage.getConversation(conversationId);
@@ -58,29 +58,53 @@ export const createMessage = asyncHandler(async (req: Request, res: Response) =>
       } else if (file) {
         // Upload + send media
         const mimeType = file.mimetype;
-        console.log("Uploading media with mimetype:", file.path, mimeType);
         
-        // Upload media and get WhatsApp media ID
-        mediaId = await whatsappApi.uploadMedia(file.path, mimeType);
-        console.log("Media uploaded successfully, ID:", mediaId);
+        // Check if file was uploaded to cloud or is still local
+        const isCloudFile = !!file.cloudUrl;
+        const filePath = file.cloudUrl || file.path;
+        
+        console.log(`📤 Processing media: ${isCloudFile ? 'Cloud' : 'Local'}`);
+        console.log(`   File location: ${filePath}`);
+        console.log(`   MIME type: ${mimeType}`);
+        
+        // Upload media to WhatsApp
+        // If cloud file, download first; if local, read directly
+        if (isCloudFile) {
+          // Download from cloud URL and upload to WhatsApp
+          console.log("⬇️ Downloading from cloud for WhatsApp upload...");
+          const response = await fetch(file.cloudUrl!);
+          const buffer = Buffer.from(await response.arrayBuffer());
+          
+          // Upload buffer to WhatsApp
+          mediaId = await whatsappApi.uploadMediaBuffer(buffer, mimeType, file.originalname);
+          console.log("✅ Media uploaded to WhatsApp, ID:", mediaId);
+        } else {
+          // Upload from local file (fallback)
+          console.log("📁 Uploading local file to WhatsApp...");
+          mediaId = await whatsappApi.uploadMedia(file.path, mimeType);
+          console.log("✅ Media uploaded to WhatsApp, ID:", mediaId);
+        }
 
         // Get media URL from WhatsApp for display purposes
         try {
-          mediaUrl = await whatsappApi.getMediaUrl(mediaId);
-          console.log("Media URL retrieved:", mediaUrl);
+          mediaUrl = await whatsappApi.getMediaUrl(mediaId!);
+          console.log("🌐 WhatsApp media URL retrieved:", mediaUrl);
         } catch (error) {
-          console.warn("Failed to get media URL:", error);
-          // Continue without URL - we still have the mediaId
+          console.warn("⚠️ Failed to get WhatsApp media URL:", error);
+          // Use cloud URL as fallback
+          mediaUrl = file.cloudUrl || null;
         }
 
+        // Determine message type
         if (mimeType.startsWith("image")) messageType = "image";
         else if (mimeType.startsWith("video")) messageType = "video";
         else if (mimeType.startsWith("audio")) messageType = "audio";
         else messageType = "document";
 
+        // Send media message via WhatsApp
         result = await whatsappApi.sendMediaMessage(
           conversation.contactPhone,
-          mediaId,
+          mediaId!,
           messageType as any,
           caption || content
         );
@@ -100,15 +124,16 @@ export const createMessage = asyncHandler(async (req: Request, res: Response) =>
         status: "sent",
         whatsappMessageId: result?.messages?.[0]?.id,
         messageType,
-        type: messageType, // Ensure both fields are set
+        type: messageType,
         mediaId: mediaId || undefined,
-        mediaUrl: mediaUrl || undefined,
+        mediaUrl: mediaUrl || file?.cloudUrl || undefined, // Use cloud URL if available
         mediaMimeType: file?.mimetype || undefined,
         metadata: file
           ? { 
               mimeType: file.mimetype, 
               originalName: file.originalname,
-              filePath: file.path,
+              cloudUrl: file.cloudUrl, // Store cloud URL
+              isCloud: !!file.cloudUrl,
               fileSize: file.size
             }
           : {}
@@ -128,11 +153,11 @@ export const createMessage = asyncHandler(async (req: Request, res: Response) =>
 
       return res.json(message);
     } catch (error) {
-      console.error("Error sending WhatsApp message:", error);
+      console.error("❌ Error sending WhatsApp message:", error);
       throw new AppError(500, error instanceof Error ? error.message : "Failed to send message");
     }
   } else {
-    // Incoming message flow
+    // Incoming message flow (unchanged)
     const validatedMessage = insertMessageSchema.parse({
       ...req.body,
       conversationId
@@ -140,7 +165,6 @@ export const createMessage = asyncHandler(async (req: Request, res: Response) =>
 
     const message = await storage.createMessage(validatedMessage);
 
-    // Trigger automations
     try {
       if (!conversation.channelId) throw new Error("ChannelId is missing");
       if (!conversation.contactId) throw new Error("contactId is missing");
@@ -151,9 +175,9 @@ export const createMessage = asyncHandler(async (req: Request, res: Response) =>
         conversation.channelId,
         conversation.contactId
       );
-      console.log(`Triggered automations for message: ${message.id}`);
+      console.log(`✅ Triggered automations for message: ${message.id}`);
     } catch (error) {
-      console.error("Failed to trigger message automations:", error);
+      console.error("❌ Failed to trigger message automations:", error);
     }
 
     await storage.updateConversation(conversationId, {

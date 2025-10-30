@@ -315,6 +315,42 @@ export class WhatsAppApiService {
     return `${baseUrl}/${cleanPath}`;
   }
 
+   /**
+   * Upload media buffer to WhatsApp (for cloud files)
+   */
+   async uploadMediaBuffer(
+    buffer: Buffer,
+    mimeType: string,
+    filename: string
+  ): Promise<string> {
+    try {
+      const FormData = (await import("form-data")).default;
+      const form = new FormData();
+      
+      form.append("file", buffer, {
+        filename: filename,
+        contentType: mimeType,
+      });
+      form.append("messaging_product", "whatsapp");
+
+      const response = await axios.post(
+        `${this.baseUrl}/${this.channel.phoneNumberId}/media`,
+        form,
+        {
+          headers: {
+            Authorization: `Bearer ${this.channel.accessToken}`,
+            ...form.getHeaders(),
+          },
+        }
+      );
+
+      console.log("✅ WhatsApp media upload response:", response.data);
+      return response.data.id;
+    } catch (error) {
+      console.error("❌ WhatsApp upload buffer error:", error);
+      throw new Error("Failed to upload media buffer to WhatsApp");
+    }
+  }
 
   async uploadMedia(filePath: string, mimeType: string): Promise<string> {
     const resolvedPath = path.resolve(filePath);
