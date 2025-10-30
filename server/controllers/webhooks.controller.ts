@@ -1,11 +1,13 @@
 import type { Request, Response } from "express";
 import { storage } from "../storage";
-import { insertMessageSchema } from "@shared/schema";
+import { aiSettings, aiSettings, insertMessageSchema, messages } from "@shared/schema";
 import { AppError, asyncHandler } from "../middlewares/error.middleware";
 import crypto from "crypto";
 import { startAutomationExecutionFunction } from "./automation.controller";
 import { triggerService } from "server/services/automation-execution.service";
 import { WhatsAppApiService } from "server/services/whatsapp-api";
+import { db } from "server/db";
+import { desc, eq } from "drizzle-orm";
 
 export const getWebhookConfigs = asyncHandler(
   async (req: Request, res: Response) => {
@@ -710,9 +712,9 @@ async function checkAndSendAiReply(
   whatsappApi: any
 ): Promise<boolean> {
   // Get active AI settings
-  const aiSettings = await storage.getActiveAiSettings();
+  const getAiSettings = await db.select().from(aiSettings).limit(1).then(res => res[0]);
 
-  if (!aiSettings || !aiSettings.isActive) {
+  if (!getAiSettings || !getAiSettings.isActive) {
     return false;
   }
 
@@ -723,7 +725,7 @@ async function checkAndSendAiReply(
   }
 
   const messageLower = messageContent.toLowerCase().trim();
-  const hasMatch = triggerWords.some((word) => {
+  const hasMatch = triggerWords.some((word: string) => {
     const wordLower = word.toLowerCase().trim();
     // Match whole word or phrase
     return messageLower.includes(wordLower);
@@ -736,12 +738,9 @@ async function checkAndSendAiReply(
   console.log(`🤖 Trigger word matched for message: "${messageContent}"`);
 
   // Get conversation history for context
-  const conversationHistory = await storage.getMessagesByConversationId(
-    conversation.id,
-    20 // Last 20 messages for context
-  );
 
-  // Generate AI response
+  const conversationHistory = await db.select().from(messages).where(eq(messages.conversationId, conversation.id)).orderBy(desc(messages.timestamp));
+
   const aiResponse = await generateAiResponse(
     messageContent,
     conversationHistory,
