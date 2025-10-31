@@ -25,12 +25,14 @@ import { errorHandler } from "../middlewares/error.middleware";
 import { registerPanelConfigRoutes } from "./panel.config.routes";
 import { registerStorageSettingsRoutes } from "./storage.settings.route";
 import { registerAISettingsRoutes } from "./ai.settings.routes";
+import { registerChatbotRoutes } from "./chatbot.routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes (no authentication required)
   app.use("/api/auth", authRoutes);
 
   // Register all route modules
+  registerChatbotRoutes(app);
   registerStorageSettingsRoutes(app);
   registerAISettingsRoutes(app);
   registerChannelRoutes(app);

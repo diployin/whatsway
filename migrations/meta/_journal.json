@@ -78,6 +78,13 @@
       "when": 1761744804438,
       "tag": "0010_fancy_tarot",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1761910982176,
+      "tag": "0011_slim_dracula",
+      "breakpoints": true
     }
   ]
 }

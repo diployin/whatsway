@@ -243,6 +243,8 @@ export const conversations = pgTable(
     contactName: varchar("contact_name"), // Store contact name
     status: text("status").default("open"), // open, closed, assigned, pending
     priority: text("priority").default("normal"), // low, normal, high, urgent
+    chatbotId: integer('chatbot_id'),
+    sessionId: text('session_id'),
     tags: jsonb("tags").default([]),
     unreadCount: integer("unread_count").default(0), // Track unread messages
     lastMessageAt: timestamp("last_message_at"),
@@ -281,6 +283,7 @@ export const messages = pgTable(
     direction: varchar("direction").default("outbound"), // inbound, outbound
     content: text("content").notNull(),
     type: text("type").default("text"), // text, image, document, template
+    fromType: varchar("from_type").default("user"), // user, bot, system
     messageType: varchar("message_type"), // For WhatsApp message types
     mediaId: varchar("media_id"), // WhatsApp media ID
     mediaUrl: text("media_url"), // Download URL (fetched from Graph API)
@@ -313,6 +316,43 @@ export const messages = pgTable(
     messageCreatedIdx: index("messages_created_idx").on(table.createdAt),
   })
 );
+
+
+export const chatbots = pgTable('chatbots', {
+  id: varchar("id")
+  .primaryKey()
+  .default(sql`gen_random_uuid()`),
+  uuid: text('uuid').notNull().unique(),
+  title: text('title').notNull(),
+  bubbleMessage: text('bubble_message'),
+  welcomeMessage: text('welcome_message'),
+  instructions: text('instructions'),
+  connectMessage: text('connect_message'),
+  language: text('language').default('en'),
+  interactionType: text('interaction_type').default('ai-only'),
+  avatarId: integer('avatar_id'),
+  avatarEmoji: text('avatar_emoji'),
+  avatarColor: text('avatar_color'),
+  primaryColor: text('primary_color').default('#3B82F6'),
+  logoUrl: text('logo_url'),
+  embedWidth: integer('embed_width').default(420),
+  embedHeight: integer('embed_height').default(745),
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const trainingData = pgTable('training_data', {
+  id: varchar("id")
+  .primaryKey()
+  .default(sql`gen_random_uuid()`),
+  chatbotId: integer('chatbot_id').references(() => chatbots.id),
+  type: text('type').notNull(), // 'text', 'pdf', 'website', 'qa'
+  title: text('title'),
+  content: text('content'),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
 
 // Automation workflows table
 export const automations = pgTable(

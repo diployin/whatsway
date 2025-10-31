@@ -24,6 +24,7 @@ import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
 import Account from "./pages/account";
 import { AppLayout } from "./components/layout/AppLayout";
+import ChatbotBuilder from "./pages/chatbot-builder";
 
 // Define route permissions mapping
 const ROUTE_PERMISSIONS: Record<string, string> = {
@@ -170,6 +171,9 @@ function ProtectedRoutes() {
           </Route>
           <Route path="/analytics">
             <PermissionRoute component={Analytics} />
+          </Route>
+          <Route path="/chatbotBuilder">
+            <PermissionRoute component={ChatbotBuilder} />
           </Route>
           {/* <Route path="/analytics/campaign/:campaignId">
             <PermissionRoute

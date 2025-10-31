@@ -102,6 +102,13 @@ const navItems: NavItem[] = [
     requiredPrefix: "analytics.",
   },
   {
+    href: "/chatbotBuilder",
+    icon: Bot,
+    labelKey: "navigation.chatbotBuilder",
+    color: "text-teal-600",
+    alwaysVisible: true,
+  },
+  {
     href: "/logs",
     icon: ScrollText,
     labelKey: "navigation.messageLogs",
