@@ -72,4 +72,23 @@ export const api = {
   createAutomation: (data: any, channelId?: string) => apiRequest("POST", `/api/automations${channelId ? `?channelId=${channelId}` : ""}`, data),
   updateAutomation: (id: string, data: any) => apiRequest("PUT", `/api/automations/${id}`, data),
   deleteAutomation: (id: string) => apiRequest("DELETE", `/api/automations/${id}`),
+
+  // ====================== CHATBOT CRUD ======================
+  createChatbot: (data: unknown) => apiRequest("POST", "/api/chatbots", data),
+  getAllChatbots: () => apiRequest("GET", "/api/chatbots"),
+  getChatbot: (id: any) => apiRequest("GET", `/api/chatbots/${id}`),
+  updateChatbot: (id: any, data: unknown) => apiRequest("PUT", `/api/chatbots/${id}`, data),
+  deleteChatbot: (id: any) => apiRequest("DELETE", `/api/chatbots/${id}`),
+
+  // ====================== TRAINING DATA ======================
+  addTrainingData: (data: unknown) => apiRequest("POST", "/api/training-data", data),
+  getTrainingData: (chatbotId: any) => apiRequest("GET", `/api/training-data/${chatbotId}`),
+  deleteTrainingData: (id: any) => apiRequest("DELETE", `/api/training-data/${id}`),
+
+  // ====================== CONVERSATIONS ======================
+  // createConversation: (data: unknown) => apiRequest("POST", "/api/conversations", data),
+  sendMessage: (data: unknown) => apiRequest("POST", "/api/messages", data),
+  getConversationMessages: (conversationId: any) =>
+    apiRequest("GET", `/api/conversations/${conversationId}/messages`),
+
 };

@@ -1,6 +1,11 @@
 import type { Request, Response } from "express";
 import { storage } from "../storage";
-import { aiSettings, aiSettings, insertMessageSchema, messages } from "@shared/schema";
+import {
+  aiSettings,
+  aiSettings,
+  insertMessageSchema,
+  messages,
+} from "@shared/schema";
 import { AppError, asyncHandler } from "../middlewares/error.middleware";
 import crypto from "crypto";
 import { startAutomationExecutionFunction } from "./automation.controller";
@@ -447,14 +452,7 @@ async function handleMessageChange(value: any) {
   const waApi = new WhatsAppApiService(channel);
 
   for (const message of messages) {
-    const {
-      from,
-      id: whatsappMessageId,
-      text,
-      type,
-      timestamp,
-      interactive,
-    } = message;
+    const { from, id: whatsappMessageId, text, type, timestamp, interactive } = message;
 
     // Extract message content and interactive data
     let messageContent = "";
@@ -592,9 +590,7 @@ async function handleMessageChange(value: any) {
       );
 
       if (shouldSendAiReply) {
-        console.log(
-          `✅ AI auto-reply sent for conversation ${conversation.id}`
-        );
+        console.log(`✅ AI auto-reply sent for conversation ${conversation.id}`);
         // Continue to prevent automation triggers when AI handles it
         continue;
       }
@@ -605,18 +601,20 @@ async function handleMessageChange(value: any) {
 
     // --- Automation handling ---
     try {
-      const hasPendingExecution = triggerService
-        .getExecutionService()
-        .hasPendingExecution(conversation.id);
+      const hasPendingExecution =
+        triggerService.getExecutionService().hasPendingExecution(conversation.id);
 
       if (hasPendingExecution) {
         console.log(
           `Processing as user response to pending automation execution`
         );
 
-        const result = await triggerService
-          .getExecutionService()
-          .handleUserResponse(conversation.id, messageContent, interactiveData);
+        const result =
+          await triggerService.getExecutionService().handleUserResponse(
+            conversation.id,
+            messageContent,
+            interactiveData
+          );
 
         if (result && result.success) {
           console.log(
@@ -712,24 +710,39 @@ async function checkAndSendAiReply(
   whatsappApi: any
 ): Promise<boolean> {
   // Get active AI settings
-  const getAiSettings = await db.select().from(aiSettings).limit(1).then(res => res[0]);
-
+  const getAiSettings = await db
+  .select()
+  .from(aiSettings)
+  .limit(1)
+  .then((res) => res[0]);
+  
   if (!getAiSettings || !getAiSettings.isActive) {
     return false;
   }
 
-  // Check if message contains any trigger words
-  const triggerWords = aiSettings.words || [];
-  if (triggerWords.length === 0) {
+  // ✅ Parse words correctly (handle both string and array)
+  let triggerWords: string[] = [];
+
+  if (Array.isArray(getAiSettings.words)) {
+    triggerWords = getAiSettings.words;
+  } else if (typeof getAiSettings.words === "string") {
+    try {
+      triggerWords = JSON.parse(getAiSettings.words);
+    } catch {
+      console.warn("⚠️ AI settings words not valid JSON, using empty array");
+      triggerWords = [];
+    }
+  }
+
+  if (!Array.isArray(triggerWords) || triggerWords.length === 0) {
+    console.log("ℹ️ No trigger words configured, skipping AI auto-reply");
     return false;
   }
 
   const messageLower = messageContent.toLowerCase().trim();
-  const hasMatch = triggerWords.some((word: string) => {
-    const wordLower = word.toLowerCase().trim();
-    // Match whole word or phrase
-    return messageLower.includes(wordLower);
-  });
+  const hasMatch = triggerWords.some((word: string) =>
+    messageLower.includes(word.toLowerCase().trim())
+  );
 
   if (!hasMatch) {
     return false;
@@ -738,14 +751,18 @@ async function checkAndSendAiReply(
   console.log(`🤖 Trigger word matched for message: "${messageContent}"`);
 
   // Get conversation history for context
+  const conversationHistory = await db
+    .select()
+    .from(messages)
+    .where(eq(messages.conversationId, conversation.id))
+    .orderBy(desc(messages.timestamp));
 
-  const conversationHistory = await db.select().from(messages).where(eq(messages.conversationId, conversation.id)).orderBy(desc(messages.timestamp));
-
+  // Generate AI response
   const aiResponse = await generateAiResponse(
     messageContent,
     conversationHistory,
     contact,
-    aiSettings
+    getAiSettings
   );
 
   if (!aiResponse) {
@@ -811,16 +828,13 @@ async function generateAiResponse(
   aiSettings: any
 ): Promise<string | null> {
   try {
-    const { provider, apiKey, model, endpoint, temperature, maxTokens } =
-      aiSettings;
+    const { provider, apiKey, model, endpoint, temperature, maxTokens } = aiSettings;
 
     // Build conversation context
     const messages = [
       {
         role: "system",
-        content: `You are a helpful WhatsApp assistant. Respond naturally and helpfully to customer messages. Keep responses concise and friendly. Customer name: ${
-          contact?.name || "Customer"
-        }`,
+        content: `You are a helpful WhatsApp assistant. Respond naturally and helpfully to customer messages. Keep responses concise and friendly. Customer name: ${contact?.name || "Customer"}`,
       },
     ];
 
@@ -923,8 +937,7 @@ async function callAnthropic(
 ): Promise<string | null> {
   try {
     // Extract system message and convert format
-    const systemMessage =
-      messages.find((m) => m.role === "system")?.content || "";
+    const systemMessage = messages.find((m) => m.role === "system")?.content || "";
     const conversationMessages = messages
       .filter((m) => m.role !== "system")
       .map((m) => ({
@@ -961,6 +974,8 @@ async function callAnthropic(
     return null;
   }
 }
+
+
 
 async function handleMessageStatuses(statuses: any[], metadata: any) {
   const phoneNumberId = metadata?.phone_number_id;

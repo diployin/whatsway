@@ -3,10 +3,23 @@ import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -22,6 +35,12 @@ export default function LoginPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [error, setError] = useState<string | null>(null);
+
+  const { data: brandSettings } = useQuery({
+    queryKey: ["/api/brand-settings"],
+    queryFn: () => fetch("/api/brand-settings").then((res) => res.json()),
+    staleTime: 5 * 60 * 1000,
+  });
 
   const form = useForm({
     resolver: zodResolver(loginSchema),
@@ -41,12 +60,12 @@ export default function LoginPage() {
       window.location.href = "/";
     },
     onError: (error: Error) => {
-      const errorMessage = error.message.includes("401") 
-        ? "Invalid username or password" 
+      const errorMessage = error.message.includes("401")
+        ? "Invalid username or password"
         : error.message.includes("403")
         ? "Account is inactive. Please contact administrator."
         : "Login failed. Please try again.";
-      
+
       setError(errorMessage);
     },
   });
@@ -61,12 +80,24 @@ export default function LoginPage() {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="bg-primary text-primary-foreground rounded-full p-3">
-              <MessageSquare className="h-8 w-8" />
-            </div>
+            {brandSettings?.logo ? (
+              <img
+                src={brandSettings?.logo}
+                alt="Logo"
+                className="h-16 w-16 object-contain"
+              />
+            ) : (
+              <div className="bg-green-800 text-primary-foreground rounded-full p-3">
+                <MessageSquare className="h-8 w-8" />
+              </div>
+            )}
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">WhatsWay</h1>
-          <p className="mt-2 text-gray-600">Professional WhatsApp Business Platform</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            {brandSettings?.title || "Whatswayne"}
+          </h1>
+          <p className="mt-2 text-gray-600">
+            Professional WhatsApp Business Platform
+          </p>
         </div>
 
         <Card>
@@ -78,7 +109,10 @@ export default function LoginPage() {
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
                 {error && (
                   <Alert variant="destructive">
                     <AlertDescription>{error}</AlertDescription>
@@ -125,7 +159,7 @@ export default function LoginPage() {
 
                 <Button
                   type="submit"
-                  className="w-full"
+                  className="w-full bg-green-600 hover:bg-green-700"
                   disabled={loginMutation.isPending}
                 >
                   {loginMutation.isPending ? (
@@ -145,10 +179,12 @@ export default function LoginPage() {
                 <strong>Default Admin Credentials:</strong>
               </p>
               <p className="text-sm text-gray-600 text-center mt-1">
-                Username: <code className="bg-gray-200 px-1 rounded">demouser</code>
+                Username:{" "}
+                <code className="bg-gray-200 px-1 rounded">demouser</code>
               </p>
               <p className="text-sm text-gray-600 text-center">
-                Password: <code className="bg-gray-200 px-1 rounded">Demo@12345</code>
+                Password:{" "}
+                <code className="bg-gray-200 px-1 rounded">Demo@12345</code>
               </p>
             </div>
           </CardContent>
