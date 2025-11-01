@@ -64,7 +64,10 @@
     "settings": "الإعدادات",
     "team": "الفريق",
     "channels": "القنوات",
-    "account": "الحساب"
+    "account": "الحساب",
+    "chatbotBuilder": "منشئ روبوت الدردشة",
+    "widgetBuilder": "منشئ الودجت",
+    "website": "الموقع الإلكتروني"
   },
   "dashboard": {
     "uploadCSV": "تحميل ملف CSV",

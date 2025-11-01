@@ -67,7 +67,10 @@
     "team": "Team",
     "channels": "Channels",
     "webhooks": "Webhooks",
-    "account": "Account"
+    "account": "Account",
+    "chatbotBuilder": "Chatbot Builder",
+    "widgetBuilder": "Widget Builder",
+    "website": "Website"
   },
   "dashboard": {
     "uploadCSV": "Upload CSV",

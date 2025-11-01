@@ -7,12 +7,29 @@ import { setupVite, serveStatic, log } from "./vite";
 import { MessageStatusUpdater } from "./services/message-status-updater";
 import 'dotenv/config';
 import { initializeUploadsDirectory } from "./middlewares/upload.middleware";
+import cors from 'cors';
+import path from "path";
 
 
 const app = express();
+app.use(
+  cors({
+    origin: '*',
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use("/uploads", express.static("uploads"));
+
+
+app.use('/widget', express.static(path.join(process.cwd(), 'public'), {
+  setHeaders: (res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  }
+}));
 
 initializeUploadsDirectory();
 

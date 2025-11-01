@@ -64,7 +64,10 @@
     "settings": "设置",
     "team": "团队",
     "channels": "渠道",
-    "account": "账户"
+    "account": "账户",
+    "chatbotBuilder": "聊天机器人构建器",
+    "widgetBuilder": "小部件构建器",
+    "website": "网站"
   },
   "dashboard": {
     "uploadCSV": "上传 CSV",

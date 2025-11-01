@@ -25,6 +25,9 @@ import { useEffect } from "react";
 import Account from "./pages/account";
 import { AppLayout } from "./components/layout/AppLayout";
 import ChatbotBuilder from "./pages/chatbot-builder";
+import AddChatbotBuilder from "./pages/add-chatbot-builder";
+import WidgetBuilder from "./pages/widget-builder";
+import Websites from "./pages/websites";
 
 // Define route permissions mapping
 const ROUTE_PERMISSIONS: Record<string, string> = {
@@ -172,7 +175,16 @@ function ProtectedRoutes() {
           <Route path="/analytics">
             <PermissionRoute component={Analytics} />
           </Route>
-          <Route path="/chatbotBuilder">
+          <Route path="/websites">
+            <PermissionRoute component={Websites} />
+          </Route>
+          <Route path="/add/chatbot-builder">
+            <PermissionRoute component={AddChatbotBuilder} />
+          </Route>
+          <Route path="/widget-builder">
+            <PermissionRoute component={WidgetBuilder} />
+          </Route>
+          <Route path="/chatbot-builder">
             <PermissionRoute component={ChatbotBuilder} />
           </Route>
           {/* <Route path="/analytics/campaign/:campaignId">

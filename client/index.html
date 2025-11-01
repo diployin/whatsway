@@ -7,7 +7,11 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
-    <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
+    <script>
+      window.aiChatConfig = {
+          siteId: "a466bb3c-7a0c-470b-b3a6-8f750a12bcb9"
+      };
+  </script>
+  <script src="http://localhost:5000/widget/widget.js"></script>
   </body>
 </html>
