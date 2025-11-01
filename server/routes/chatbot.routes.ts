@@ -20,7 +20,7 @@ app.delete('/api/training-data/:id', chatbotController.deleteTrainingData);
 // Conversation routes
 app.post('/api/conversations', chatbotController.createConversation);
 app.post('/api/messages', chatbotController.sendMessage);
-app.get('/api/conversations/:conversationId/messages', chatbotController.getConversationMessages);
+// app.get('/api/conversations/:conversationId/messages', chatbotController.getConversationMessages);
 
 
 
