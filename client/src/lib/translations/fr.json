@@ -64,7 +64,10 @@
     "settings": "Paramètres",
     "team": "Équipe",
     "channels": "Canaux",
-    "account": "Compte"
+    "account": "Compte",
+    "chatbotBuilder": "Constructeur de chatbot",
+    "widgetBuilder": "Constructeur de widget",
+    "website": "Site web"
   },
   "dashboard": {
     "uploadCSV": "Télécharger le CSV",

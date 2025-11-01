@@ -651,6 +651,32 @@ export const aiSettings = pgTable("ai_settings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Tenants (Customers)
+export const tenants = pgTable("tenants", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  active: boolean("active").notNull().default(true),
+  settings: jsonb("settings").notNull().default(sql`'{}'::jsonb`), // brand colors, logo, etc.
+  stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Sites (Websites/Apps managed by tenants)
+export const sites = pgTable("sites", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tenantId: varchar("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  domain: text("domain").notNull(),
+  widgetCode: text("widget_code").notNull().unique(),
+  widgetEnabled: boolean("widget_enabled").notNull().default(true),
+  widgetConfig: jsonb("widget_config").notNull().default(sql`'{}'::jsonb`), // colors, position, greeting, etc.
+  aiTrainingConfig: jsonb("ai_training_config").notNull().default(sql`'{"trainFromKB": false, "trainFromDocuments": true}'::jsonb`), // AI training settings
+  autoAssignmentConfig: jsonb("auto_assignment_config").notNull().default(sql`'{"enabled": false, "strategy": "round_robin"}'::jsonb`), // Auto-assignment settings
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Permissions type definition
 export const PERMISSIONS = {
   // Dashboard permissions
@@ -833,6 +859,9 @@ export const insertUserActivityLogSchema = createInsertSchema(
   userActivityLogs
 ).omit({ id: true, createdAt: true });
 
+export const insertTenantSchema = createInsertSchema(tenants).omit({ id: true, createdAt: true });
+export const insertSiteSchema = createInsertSchema(sites).omit({ id: true, createdAt: true, widgetCode: true });
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -884,6 +913,13 @@ export type UserActivityLog = typeof userActivityLogs.$inferSelect;
 export type InsertUserActivityLog = z.infer<typeof insertUserActivityLogSchema>;
 export type PanelConfig = typeof panelConfig.$inferSelect;
 export type NewPanelConfig = typeof panelConfig.$inferInsert;
+
+export type Tenant = typeof tenants.$inferSelect;
+export type InsertTenant = z.infer<typeof insertTenantSchema>;
+
+
+export type Site = typeof sites.$inferSelect;
+export type InsertSite = z.infer<typeof insertSiteSchema>;
 
 // Drizzle Relations for proper joins and queries
 export const channelsRelations = relations(channels, ({ many }) => ({

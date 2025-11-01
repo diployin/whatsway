@@ -13,34 +13,42 @@ import { MessageQueueRepository } from "./repositories/message-queue.repository"
 import { ApiLogRepository } from "./repositories/api-log.repository";
 import { WhatsappChannelRepository } from "./repositories/whatsapp-channel.repository";
 
-import type {
-  User,
-  InsertUser,
-  Contact,
-  InsertContact,
-  Campaign,
-  InsertCampaign,
-  Channel,
-  InsertChannel,
-  Template,
-  InsertTemplate,
-  Conversation,
-  InsertConversation,
-  Message,
-  InsertMessage,
-  Automation,
-  InsertAutomation,
-  Analytics,
-  InsertAnalytics,
-  WhatsappChannel,
-  InsertWhatsappChannel,
-  WebhookConfig,
-  InsertWebhookConfig,
-  MessageQueue,
-  InsertMessageQueue,
-  ApiLog,
-  InsertApiLog,
+import {
+  type User,
+  type InsertUser,
+  type Contact,
+  type InsertContact,
+  type Campaign,
+  type InsertCampaign,
+  type Channel,
+  type InsertChannel,
+  type Template,
+  type InsertTemplate,
+  type Conversation,
+  type InsertConversation,
+  type Message,
+  type InsertMessage,
+  type Automation,
+  type InsertAutomation,
+  type Analytics,
+  type InsertAnalytics,
+  type WhatsappChannel,
+  type InsertWhatsappChannel,
+  type WebhookConfig,
+  type InsertWebhookConfig,
+  type MessageQueue,
+  type InsertMessageQueue,
+  type ApiLog,
+  type InsertApiLog,
+  type Tenant,
+  type InsertTenant,
+  type Site,
+  type InsertSite,
+  sites,
+  tenants,
 } from "@shared/schema";
+import { db } from "./db";
+import { desc, eq } from "drizzle-orm";
 
 export class DatabaseStorage implements IStorage {
   private userRepo = new UserRepository();
@@ -56,6 +64,53 @@ export class DatabaseStorage implements IStorage {
   private messageQueueRepo = new MessageQueueRepository();
   private apiLogRepo = new ApiLogRepository();
   private whatsappChannelRepo = new WhatsappChannelRepository();
+
+
+  
+  // Tenants
+  async getTenant(id: string): Promise<Tenant | undefined> {
+    const [tenant] = await db.select().from(tenants).where(eq(tenants.id, id));
+    return tenant || undefined;
+  }
+
+  async getTenants(): Promise<Tenant[]> {
+    return await db.select().from(tenants).orderBy(desc(tenants.createdAt));
+  }
+
+  async createTenant(insertTenant: InsertTenant): Promise<Tenant> {
+    const [tenant] = await db.insert(tenants).values(insertTenant).returning();
+    return tenant;
+  }
+
+  async updateTenant(id: string, data: Partial<InsertTenant>): Promise<Tenant> {
+    const [tenant] = await db.update(tenants).set(data).where(eq(tenants.id, id)).returning();
+    return tenant;
+  }
+
+  // Sites
+  async getSite(id: string): Promise<Site | undefined> {
+    const [site] = await db.select().from(sites).where(eq(sites.id, id));
+    return site || undefined;
+  }
+
+  async getSitesByTenant(tenantId: string): Promise<Site[]> {
+    return await db.select().from(sites).where(eq(sites.tenantId, tenantId));
+  }
+
+  async createSite(insertSite: InsertSite): Promise<Site> {
+    // Generate a unique widget code
+    const widgetCode = `wc_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+    const [site] = await db
+      .insert(sites)
+      .values({ ...insertSite, widgetCode })
+      .returning();
+    return site;
+  }
+
+  async updateSite(id: string, data: Partial<InsertSite>): Promise<Site> {
+    const [site] = await db.update(sites).set(data).where(eq(sites.id, id)).returning();
+    return site;
+  }
 
 
   // Returns statistics of message queue

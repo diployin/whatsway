@@ -65,7 +65,10 @@
     "team": "Equipo",
     "channels": "Canales",
     "billing": "Facturación",
-    "account": "Cuenta"
+    "account": "Cuenta",
+    "chatbotBuilder": "Constructor de Chatbot",
+    "widgetBuilder": "Constructor de Widget",
+    "website": "Sitio web"
   },
   "dashboard": {
     "title": "Resumen del Panel",

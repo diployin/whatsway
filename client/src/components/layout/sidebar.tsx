@@ -15,6 +15,7 @@ import {
   Menu,
   X,
   User,
+  Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ChannelSwitcher } from "@/components/channel-switcher";
@@ -102,12 +103,26 @@ const navItems: NavItem[] = [
     requiredPrefix: "analytics.",
   },
   {
-    href: "/chatbotBuilder",
+    href: "/chatbot-builder",
     icon: Bot,
     labelKey: "navigation.chatbotBuilder",
     color: "text-teal-600",
     alwaysVisible: true,
   },
+  {
+    href: "/widget-builder",
+    icon: Bot,
+    labelKey: "navigation.widgetBuilder",
+    color: "text-teal-600",
+    alwaysVisible: true,
+  },
+  // {
+  //   href: "/websites",
+  //   icon: Globe,
+  //   labelKey: "navigation.website",
+  //   color: "text-teal-600",
+  //   alwaysVisible: true,
+  // },
   {
     href: "/logs",
     icon: ScrollText,

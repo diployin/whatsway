@@ -63,7 +63,10 @@
     "analytics": "Análise",
     "settings": "Configurações",
     "team": "Equipe",
-    "channels": "Canais"
+    "channels": "Canais",
+    "chatbotBuilder": "Construtor de Chatbot",
+    "widgetBuilder": "Construtor de Widget",
+    "website": "Site"
   },
   "dashboard": {
     "uploadCSV": "Carregar CSV",
