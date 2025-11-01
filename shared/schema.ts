@@ -666,7 +666,7 @@ export const tenants = pgTable("tenants", {
 // Sites (Websites/Apps managed by tenants)
 export const sites = pgTable("sites", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  tenantId: varchar("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
+  tenantId: varchar("tenant_id"),
   name: text("name").notNull(),
   domain: text("domain").notNull(),
   widgetCode: text("widget_code").notNull().unique(),
