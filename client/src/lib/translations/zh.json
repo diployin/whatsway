@@ -69,6 +69,10 @@
     "widgetBuilder": "小部件构建器",
     "website": "网站"
   },
+  "widget":{
+    "title":"小部件构建器",
+    "subtitle":"为您的网站创建自定义 WhatsApp 聊天小部件"
+    },
   "dashboard": {
     "uploadCSV": "上传 CSV",
     "createAutomation": "创建自动化",

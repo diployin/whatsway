@@ -70,6 +70,10 @@
     "widgetBuilder": "Constructor de Widget",
     "website": "Sitio web"
   },
+  "widget":{
+    "title":"Constructor de Widget de Chat de WhatsApp",
+    "subtitle":"Crea y personaliza tu widget de chat de WhatsApp para interactuar con los visitantes de tu sitio web."
+    },
   "dashboard": {
     "title": "Resumen del Panel",
     "subtitle": "¡Bienvenido de vuelta! Esto es lo que está sucediendo con tu negocio de WhatsApp.",

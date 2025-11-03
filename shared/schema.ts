@@ -81,12 +81,14 @@ export const contacts = pgTable(
     channelId: varchar("channel_id").references(() => channels.id, {
       onDelete: "cascade",
     }),
+    tenantId: varchar('tenant_id'),
     name: text("name").notNull(),
     phone: text("phone").notNull(),
     email: text("email"),
     groups: jsonb("groups").$type<string[]>().default([]),
     tags: jsonb("tags").default([]),
     status: text("status").default("active"), // active, blocked, unsubscribed
+    source: varchar('source', { length: 100 }), // manual, import, api, chatbot
     lastContact: timestamp("last_contact"),
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
@@ -243,6 +245,7 @@ export const conversations = pgTable(
     contactName: varchar("contact_name"), // Store contact name
     status: text("status").default("open"), // open, closed, assigned, pending
     priority: text("priority").default("normal"), // low, normal, high, urgent
+    type: text("type").default("whatsapp"), // whatsapp, chatbot, sms, email
     chatbotId: integer('chatbot_id'),
     sessionId: text('session_id'),
     tags: jsonb("tags").default([]),
@@ -353,6 +356,40 @@ export const trainingData = pgTable('training_data', {
   metadata: jsonb('metadata'),
   createdAt: timestamp('created_at').defaultNow(),
 });
+
+// Knowledge Base Categories
+export const knowledgeCategories = pgTable('knowledge_categories', {
+  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
+  siteId: varchar('site_id').notNull(),
+  parentId: varchar('parent_id'),
+  name: varchar('name', { length: 255 }).notNull(),
+  icon: varchar('icon', { length: 50 }),
+  description: text('description'),
+  order: integer('order').default(0),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => ({
+  categorySiteIdx: index('categories_site_idx').on(table.siteId),
+  categoryParentIdx: index('categories_parent_idx').on(table.parentId),
+}));
+
+// Knowledge Base Articles
+export const knowledgeArticles = pgTable('knowledge_articles', {
+  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
+  categoryId: varchar('category_id').notNull(),
+  title: varchar('title', { length: 500 }).notNull(),
+  content: text('content').notNull(),
+  order: integer('order').default(0),
+  published: boolean('published').default(true),
+  views: integer('views').default(0),
+  helpful: integer('helpful').default(0),
+  notHelpful: integer('not_helpful').default(0),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => ({
+  articleCategoryIdx: index('articles_category_idx').on(table.categoryId),
+  articlePublishedIdx: index('articles_published_idx').on(table.published),
+}));
 
 // Automation workflows table
 export const automations = pgTable(

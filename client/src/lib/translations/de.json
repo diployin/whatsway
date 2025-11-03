@@ -69,6 +69,10 @@
     "widgetBuilder": "Widget-Builder",
     "website": "Website"
   },
+  "widget":{
+    "title":"Widget-Builder",
+    "subtitle":"Erstellen und passen Sie Ihr WhatsApp-Chat-Widget für Ihre Website an"
+    },
   "dashboard": {
     "uploadCSV": "CSV hochladen",
     "createAutomation": "Automatisierung erstellen",

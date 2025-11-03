@@ -34,6 +34,8 @@ import {
   Sparkles
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import Header from "@/components/layout/header";
+import { useTranslation } from "@/lib/i18n";
 
 interface TeamMember {
   id: string;
@@ -63,6 +65,7 @@ export default function WidgetBuilder() {
   const selectedSiteId = "1dd3660c-81b2-4b23-a18f-10eb64a619c1";
   const sites = [];
   const { toast } = useToast();
+  const {t} = useTranslation();
   
   const [config, setConfig] = useState({
     // Basic Settings
@@ -144,6 +147,10 @@ export default function WidgetBuilder() {
     shadowIntensity: "medium", // none, light, medium, strong
     animationSpeed: "normal", // none, slow, normal, fast
     enableSoundEffects: false,
+    aiTone: "friendly",
+    aiMaxResponseLength: 200,
+    aiFallbackMessage: "I'm sorry, I don't have the information you're looking for.",
+    systemPrompt: "You are a helpful customer support assistant. Guidelines: - Be friendly and professional- Keep responses concise- If you don't know something, admit it- Direct users to human support for complex issues- Use the customer's name when provided",
   });
 
   const [isPreviewOpen, setIsPreviewOpen] = useState(true);
@@ -239,22 +246,24 @@ export default function WidgetBuilder() {
   };
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">Widget Designer</h1>
-        <p className="text-muted-foreground mt-2">Create an Intercom-style chat widget with knowledge base</p>
-      </div>
+
+
+    <div className="flex-1 dots-bg min-h-screen">
+    <Header title={t("widget.title")} subtitle={t("widget.subtitle")}/>
+
+    <main className="p-6 space-y-6">
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Customization Panel */}
         <div className="space-y-6">
-          <Tabs defaultValue="design" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-6">
+          <Tabs defaultValue="design" className="space-y-7">
+            <TabsList className="grid w-full grid-cols-7">
               <TabsTrigger value="design">Design</TabsTrigger>
               <TabsTrigger value="content">Content</TabsTrigger>
               <TabsTrigger value="layouts">Layouts</TabsTrigger>
               <TabsTrigger value="features">Features</TabsTrigger>
               <TabsTrigger value="team">Team</TabsTrigger>
+              <TabsTrigger value="training">AI Training</TabsTrigger>
               <TabsTrigger value="advanced">Advanced</TabsTrigger>
             </TabsList>
 
@@ -967,6 +976,67 @@ export default function WidgetBuilder() {
               </Card>
             </TabsContent>
 
+            {/* AI Training Tab */}
+            <TabsContent value="training" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>AI Training</CardTitle>
+                  <CardDescription>Configure AI response behavior</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Response Tone</Label>
+                    <Select value={config?.aiTone} onValueChange={(value) => updateConfig("aiTone", value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="formal">Formal</SelectItem>
+                        <SelectItem value="friendly">Friendly</SelectItem>
+                        <SelectItem value="concise">Concise</SelectItem>
+                        <SelectItem value="detailed">Detailed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Max Response Length</Label>
+                    <Select value={config?.aiMaxResponseLength.toString()} onValueChange={(value) => updateConfig("aiMaxResponseLength", parseInt(value))}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="100">100 words</SelectItem>
+                        <SelectItem value="200">200 words</SelectItem>
+                        <SelectItem value="300">300 words</SelectItem>
+                        <SelectItem value="500">500 words</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Fallback Message</Label>
+                    <Textarea
+                      value={config?.aiFallbackMessage}
+                      onChange={(e) => updateConfig("aiFallbackMessage", e.target.value)}
+                      rows={3}
+                      placeholder="I'm sorry, I don't have the information you're looking for."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>System Prompt</Label>
+                    <Textarea
+                      value={config?.systemPrompt}
+                      onChange={(e) => updateConfig("systemPrompt", e.target.value)}
+                      rows={3}
+                      placeholder="You are a helpful customer support assistant."
+                    />
+                  </div>
+
+                </CardContent>
+              </Card>
+            </TabsContent>
+
             {/* Advanced Tab */}
             <TabsContent value="advanced" className="space-y-6">
               <Card>
@@ -1499,6 +1569,7 @@ export default function WidgetBuilder() {
           </Card>
         </div>
       </div>
+    </main>
     </div>
   );
 }

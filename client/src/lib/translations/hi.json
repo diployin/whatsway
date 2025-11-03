@@ -71,6 +71,10 @@
     "widgetBuilder": "विजेट बिल्डर",
     "website": "वेबसाइट"
   },
+  "widget":{
+    "title":"विजेट बिल्डर",
+    "subtitle":"अपने वेबसाइट विजेट को अनुकूलित और प्रबंधित करें"
+    },
   "dashboard": {
     "uploadCSV": "CSV अपलोड करें",
     "createAutomation": "स्वचालन बनाएं",

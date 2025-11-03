@@ -69,6 +69,10 @@
     "widgetBuilder": "Constructeur de widget",
     "website": "Site web"
   },
+  "widget":{
+    "title":"Constructeur de widget de chat WhatsApp",
+    "subtitle":"Personnalisez et intégrez le widget de chat WhatsApp sur votre site web pour une communication transparente avec les clients."
+    },
   "dashboard": {
     "uploadCSV": "Télécharger le CSV",
     "createAutomation": "Créer une automatisation",
