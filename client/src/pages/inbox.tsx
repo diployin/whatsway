@@ -68,7 +68,8 @@ import {
   Forward,
   Reply,
   Download,
-  Volume2
+  Volume2,
+  Bot
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { apiRequest } from "@/lib/queryClient";
@@ -184,16 +185,30 @@ const ConversationListItem = ({
           </span>
         </div>
         
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-600 truncate">
-            {getMessagePreview(conversation.lastMessageText) || "No messages yet"}
-          </p>
-          {conversation.unreadCount && conversation.unreadCount > 0 && (
-            <Badge className="ml-2 bg-green-600 text-white">
-              {conversation.unreadCount}
-            </Badge>
-          )}
-        </div>
+        <div className="flex items-center justify-between w-full">
+      {/* Left side: message preview + icon */}
+      <div className="flex items-center min-w-0">
+        {conversation.type === "whatsapp" && (
+          <MessageCircle className="w-4 h-4 text-green-600 inline-block mr-1 flex-shrink-0" />
+        )}
+        {conversation.type === "messenger" && (
+          <MessageCircle className="w-4 h-4 text-blue-600 inline-block mr-1 flex-shrink-0" />
+        )}
+        {conversation.type === "chatbot" && (
+          <Bot className="w-4 h-4 text-green-600 inline-block mr-1 flex-shrink-0" />
+        )}
+        <p className="text-sm text-gray-600 truncate">
+          {getMessagePreview(conversation.lastMessageText) || "No messages yet"}
+        </p>
+      </div>
+
+      {/* Right side: unread badge */}
+      {conversation.unreadCount && conversation.unreadCount > 0 &&(
+        <Badge className="ml-2 bg-green-600 text-white">
+          {conversation.unreadCount}
+        </Badge>
+      )}
+    </div>
       </div>
     </div>
   );
@@ -1303,7 +1318,11 @@ export default function Inbox() {
         return matchesSearch && conv.status === "open";
       case "resolved":
         return matchesSearch && conv.status === "resolved";
-        case "assigned":
+      case "whatsapp":
+        return matchesSearch && conv.type === "whatsapp";
+      case "chatbot":
+        return matchesSearch && conv.type === "chatbot";
+      case "assigned":
           return matchesSearch &&
                  conv.status === "assigned" &&
                  (user?.role === 'admin' || conv.assignedTo === user?.id);
@@ -1354,8 +1373,10 @@ export default function Inbox() {
           </div>
           
           <Tabs value={filterTab} onValueChange={setFilterTab}>
-            <TabsList className="grid w-full grid-cols-5 h-9">
+            <TabsList className="grid w-full grid-cols-7 h-9">
               <TabsTrigger value="all" className="text-xs">All</TabsTrigger>
+              <TabsTrigger value="whatsapp" className="text-xs">Whatsapp</TabsTrigger>
+              <TabsTrigger value="chatbot" className="text-xs">Chatbot</TabsTrigger>
               <TabsTrigger value="assigned" className="text-xs">Assigned</TabsTrigger>
               <TabsTrigger value="unread" className="text-xs">Unread</TabsTrigger>
               <TabsTrigger value="open" className="text-xs">Open</TabsTrigger>

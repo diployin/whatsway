@@ -72,6 +72,10 @@
     "widgetBuilder": "Widget Builder",
     "website": "Website"
   },
+  "widget":{
+  "title":"Widget Builder",
+  "subtitle":"Create and customize your WhatsApp chat widget for your website."
+  },
   "dashboard": {
     "uploadCSV": "Upload CSV",
     "createAutomation": "Create automation",

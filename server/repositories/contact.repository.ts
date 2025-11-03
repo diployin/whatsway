@@ -15,6 +15,27 @@ export class ContactRepository {
       .where(eq(contacts.channelId, channelId))
       .orderBy(desc(contacts.createdAt));
   }
+  async getContactsByTenant(tenantId: string): Promise<Contact[]> {
+    return await db
+      .select()
+      .from(contacts)
+      .where(eq(contacts.tenantId, tenantId))
+      .orderBy(desc(contacts.createdAt));
+  }
+  async getContactByEmail(email: string): Promise<Contact[]> {
+    return await db
+      .select()
+      .from(contacts)
+      .where(eq(contacts.email, email))
+      .orderBy(desc(contacts.createdAt));
+  }
+  async getContactByPhone(phone: string): Promise<Contact[]> {
+    return await db
+      .select()
+      .from(contacts)
+      .where(eq(contacts.phone, phone))
+      .orderBy(desc(contacts.createdAt));
+  }
 
   async getContactStats(channelId?: string) {
     const todayStart = startOfDay(new Date());

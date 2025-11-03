@@ -1,20 +1,20 @@
+// ============================================
+// ENHANCED WIDGET.JS - With Support User Chat
+// ============================================
+
 (function() {
   'use strict';
 
-  // Widget configuration
   const config = window.aiChatConfig || {};
-  // Get API base from script source (where widget.js was loaded from)
-  const scriptSrc = document.currentScript?.src || '';
-  const API_BASE = 'localhost:5000';
-  // const API_BASE = scriptSrc ? new URL(scriptSrc).origin : (config.apiBase || window.location.origin);
+  const API_BASE = config.url || 'http://localhost:5000';
   const siteId = config.siteId;
+  const channelId = config.channelId || null;
 
   if (!siteId) {
     console.error('AI Chat Widget: siteId is required');
     return;
   }
 
-  // Widget state
   let isOpen = false;
   let currentScreen = 'home';
   let widgetConfig = {};
@@ -24,8 +24,12 @@
   let currentArticle = null;
   let leadInfo = null;
   let conversationId = null;
+  let sessionId = generateSessionId();
+  let pollInterval = null;
+  let lastMessageId = null;
+  let assignedAgent = null;
+  let chatMode = 'bot'; // 'bot' or 'human'
 
-  // Default configuration
   const defaultConfig = {
     primaryColor: '#3b82f6',
     accentColor: '#8b5cf6',
@@ -36,7 +40,7 @@
     subtitle: 'How can we help?',
     greeting: 'Hi! How can I help you today?',
     appName: 'AI Chat Widget',
-    brandName: '',  // Will be populated from tenant settings
+    brandName: '',
     homeScreen: 'messenger',
     widgetStyle: 'modern',
     showPoweredBy: true,
@@ -44,58 +48,33 @@
     enableKnowledgeBase: true,
     teamMembers: [],
     responseTime: 'A few minutes',
-    
-    // Messenger Layout
     messengerButtonText: 'Send us a message',
     messengerSearchPlaceholder: 'Search our Help Center',
     articlesCount: 3,
     showTeamAvatars: true,
     showRecentArticles: true,
-    
-    // Help Center Layout
-    helpSearchPlaceholder: 'Search for answers...',
-    helpCategoriesTitle: 'Browse by category',
-    helpCtaText: 'Chat with us',
-    helpCategories: [],
-    categoriesCount: 6,
-    
-    // Contact Layout
-    contactTitle: 'How can we help?',
-    contactCtaText: 'Start a conversation',
-    contactStatusMessage: 'We typically reply within a few minutes',
-    showContactStatus: true,
-    showQuickActions: true,
-    quickActions: [],
-    
-    // Advanced Branding
     fontFamily: 'system',
     buttonStyle: 'solid',
     shadowIntensity: 'medium',
     animationSpeed: 'normal',
-    enableSoundEffects: false
   };
 
-  // Fetch widget configuration from API
+  // Generate unique session ID
+  function generateSessionId() {
+    return 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  }
+
+  // Fetch widget configuration
   async function fetchWidgetConfig() {
     try {
-      const response = await fetch(`${API_BASE}/api/widget/config/${siteId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      
+      const response = await fetch(`${API_BASE}/api/widget/config/${siteId}`);
       if (response.ok) {
         const data = await response.json();
-        // Map feature toggles from server to widget config
         const serverConfig = data.config || {};
         if (serverConfig.featureToggles) {
           serverConfig.enableKnowledgeBase = serverConfig.featureToggles.knowledgeBase;
           serverConfig.enableChat = serverConfig.featureToggles.chat;
-          serverConfig.enableVoiceCall = serverConfig.featureToggles.voiceCall;
-          serverConfig.enableQuickActions = serverConfig.featureToggles.quickActions;
         }
-        // Map home screen layout from server
         if (serverConfig.homeScreenLayout) {
           serverConfig.homeScreen = serverConfig.homeScreenLayout;
         }
@@ -109,16 +88,10 @@
     }
   }
 
-  // Fetch knowledge base articles from API
+  // Fetch knowledge base articles
   async function fetchKBArticles() {
     try {
-      const response = await fetch(`${API_BASE}/api/widget/kb/${siteId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      
+      const response = await fetch(`${API_BASE}/api/widget/kb/${siteId}`);
       if (response.ok) {
         kbData = await response.json();
       }
@@ -127,16 +100,10 @@
     }
   }
 
-  // Fetch full article by ID
+  // Fetch full article
   async function fetchArticle(articleId) {
     try {
-      const response = await fetch(`${API_BASE}/api/widget/article/${articleId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      
+      const response = await fetch(`${API_BASE}/api/widget/article/${articleId}`);
       if (response.ok) {
         const article = await response.json();
         showArticle(article);
@@ -146,9 +113,112 @@
     }
   }
 
-  // Create widget styles
+  // Poll for new messages from support agents
+  async function pollMessages() {
+    if (!conversationId) return;
+    
+    try {
+      const response = await fetch(
+        `${API_BASE}/api/widget/messages/${conversationId}?lastMessageId=${lastMessageId || ''}`
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Update assigned agent info
+        if (data.assignedAgent) {
+          assignedAgent = data.assignedAgent;
+          chatMode = 'human';
+          updateChatHeader();
+        }
+        
+        // Add new messages
+        if (data.messages && data.messages.length > 0) {
+          const messagesContainer = widgetContainer.querySelector('.ai-chat-widget-messages');
+          if (messagesContainer) {
+            data.messages.forEach(msg => {
+              if (msg.id !== lastMessageId) {
+                addMessageToUI(msg);
+                lastMessageId = msg.id;
+              }
+            });
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to poll messages:', error);
+    }
+  }
+
+  // Add message to UI
+  function addMessageToUI(message) {
+    const messagesContainer = widgetContainer.querySelector('.ai-chat-widget-messages');
+    if (!messagesContainer) return;
+    
+    const isUser = message.fromUser || message.direction === 'inbound';
+    const messageClass = isUser ? 'user' : 'bot';
+    
+    // Determine avatar and name
+    let avatarContent = 'AI';
+    let senderName = '';
+    
+    if (!isUser) {
+      if (message.fromType === 'agent' && assignedAgent) {
+        avatarContent = assignedAgent.name.substring(0, 2).toUpperCase();
+        senderName = assignedAgent.name;
+      } else {
+        avatarContent = 'AI';
+        senderName = 'AI Assistant';
+      }
+    }
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `ai-chat-widget-message ${messageClass}`;
+    messageDiv.setAttribute('data-message-id', message.id);
+    
+    if (isUser) {
+      messageDiv.innerHTML = `
+        <div class="ai-chat-widget-message-content">${escapeHtml(message.content)}</div>
+      `;
+    } else {
+      messageDiv.innerHTML = `
+        <div class="ai-chat-widget-message-avatar">${avatarContent}</div>
+        <div class="ai-chat-widget-message-wrapper">
+          ${senderName ? `<div class="ai-chat-widget-message-sender">${senderName}</div>` : ''}
+          <div class="ai-chat-widget-message-content">${escapeHtml(message.content)}</div>
+        </div>
+      `;
+    }
+    
+    messagesContainer.appendChild(messageDiv);
+  }
+
+  // Update chat header when agent joins
+  function updateChatHeader() {
+    const headerContent = widgetContainer.querySelector('.ai-chat-widget-header-content');
+    if (!headerContent) return;
+    
+    if (chatMode === 'human' && assignedAgent) {
+      headerContent.innerHTML = `
+        ${widgetConfig.appName ? `<div class="ai-chat-widget-app-name">${widgetConfig.appName}</div>` : ''}
+        <div class="ai-chat-widget-title">Chat with ${assignedAgent.name}</div>
+        <div class="ai-chat-widget-subtitle">
+          <span class="ai-chat-widget-online-indicator"></span>
+          Online
+        </div>
+      `;
+    } else {
+      headerContent.innerHTML = `
+        ${widgetConfig.appName ? `<div class="ai-chat-widget-app-name">${widgetConfig.appName}</div>` : ''}
+        <div class="ai-chat-widget-title">${widgetConfig.title}</div>
+        <div class="ai-chat-widget-subtitle">${widgetConfig.subtitle}</div>
+      `;
+    }
+  }
+
+  // Create styles
   function createStyles() {
-    // Get font family
     const fontImport = widgetConfig.fontFamily === 'inter' ? `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');` :
                       widgetConfig.fontFamily === 'roboto' ? `@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');` :
                       widgetConfig.fontFamily === 'open-sans' ? `@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap');` : '';
@@ -158,7 +228,6 @@
                       widgetConfig.fontFamily === 'open-sans' ? "'Open Sans', sans-serif" :
                       "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
     
-    // Get shadow intensity
     const shadowButton = widgetConfig.shadowIntensity === 'none' ? 'none' :
                         widgetConfig.shadowIntensity === 'light' ? '0 2px 8px rgba(0, 0, 0, 0.1)' :
                         widgetConfig.shadowIntensity === 'strong' ? '0 8px 24px rgba(0, 0, 0, 0.25)' :
@@ -174,16 +243,13 @@
                            widgetConfig.shadowIntensity === 'strong' ? '0 16px 64px rgba(0, 0, 0, 0.3)' :
                            '0 10px 40px rgba(0, 0, 0, 0.2)';
     
-    // Get animation speed
     const transitionSpeed = widgetConfig.animationSpeed === 'none' ? '0s' :
                           widgetConfig.animationSpeed === 'slow' ? '0.5s' :
-                          widgetConfig.animationSpeed === 'fast' ? '0.15s' :
-                          '0.3s';
+                          widgetConfig.animationSpeed === 'fast' ? '0.15s' : '0.3s';
     
     const transitionSpeedFast = widgetConfig.animationSpeed === 'none' ? '0s' :
                                widgetConfig.animationSpeed === 'slow' ? '0.3s' :
-                               widgetConfig.animationSpeed === 'fast' ? '0.1s' :
-                               '0.2s';
+                               widgetConfig.animationSpeed === 'fast' ? '0.1s' : '0.2s';
     
     const style = document.createElement('style');
     style.textContent = `
@@ -202,48 +268,27 @@
         height: 60px;
         border-radius: 50%;
         ${widgetConfig.buttonStyle === 'outline' 
-          ? `background: white;
-             border: 3px solid ${widgetConfig.primaryColor};`
+          ? `background: white; border: 3px solid ${widgetConfig.primaryColor};`
           : widgetConfig.buttonStyle === 'gradient'
-          ? `background: linear-gradient(135deg, ${widgetConfig.primaryColor}, ${widgetConfig.accentColor});
-             border: none;`
-          : `background: ${widgetConfig.primaryColor};
-             border: none;`}
+          ? `background: linear-gradient(135deg, ${widgetConfig.primaryColor}, ${widgetConfig.accentColor}); border: none;`
+          : `background: ${widgetConfig.primaryColor}; border: none;`}
         cursor: pointer;
         box-shadow: ${shadowButton};
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: transform ${transitionSpeedFast}, box-shadow ${transitionSpeedFast}, background ${transitionSpeedFast};
+        transition: transform ${transitionSpeedFast}, box-shadow ${transitionSpeedFast};
         z-index: 999998;
       }
 
       .ai-chat-widget-button:hover {
         transform: scale(1.05);
         box-shadow: ${shadowButtonHover};
-        ${widgetConfig.buttonStyle === 'outline' 
-          ? `background: ${widgetConfig.primaryColor}15;`
-          : ''}
       }
 
-      .ai-chat-widget-button.bottom-right {
-        bottom: 24px;
-        right: 24px;
-      }
-
-      .ai-chat-widget-button.bottom-left {
-        bottom: 24px;
-        left: 24px;
-      }
-
-      .ai-chat-widget-button.top-right {
-        top: 24px;
-        right: 24px;
-      }
-
-      .ai-chat-widget-button.top-left {
-        top: 24px;
-        left: 24px;
+      .ai-chat-widget-button.${widgetConfig.position} {
+        ${widgetConfig.position.includes('bottom') ? 'bottom: 24px;' : 'top: 24px;'}
+        ${widgetConfig.position.includes('right') ? 'right: 24px;' : 'left: 24px;'}
       }
 
       .ai-chat-widget-container {
@@ -266,24 +311,9 @@
         pointer-events: none;
       }
 
-      .ai-chat-widget-container.bottom-right {
-        bottom: 100px;
-        right: 24px;
-      }
-
-      .ai-chat-widget-container.bottom-left {
-        bottom: 100px;
-        left: 24px;
-      }
-
-      .ai-chat-widget-container.top-right {
-        top: 100px;
-        right: 24px;
-      }
-
-      .ai-chat-widget-container.top-left {
-        top: 100px;
-        left: 24px;
+      .ai-chat-widget-container.${widgetConfig.position} {
+        ${widgetConfig.position.includes('bottom') ? 'bottom: 100px;' : 'top: 100px;'}
+        ${widgetConfig.position.includes('right') ? 'right: 24px;' : 'left: 24px;'}
       }
 
       .ai-chat-widget-header {
@@ -301,10 +331,6 @@
         margin-bottom: 4px;
       }
 
-      .ai-chat-widget-header-content {
-        flex: 1;
-      }
-
       .ai-chat-widget-app-name {
         font-size: 15px;
         font-weight: 600;
@@ -320,9 +346,26 @@
       .ai-chat-widget-subtitle {
         font-size: 13px;
         opacity: 0.8;
+        display: flex;
+        align-items: center;
+        gap: 6px;
       }
 
-      .ai-chat-widget-close {
+      .ai-chat-widget-online-indicator {
+        width: 8px;
+        height: 8px;
+        background: #10b981;
+        border-radius: 50%;
+        display: inline-block;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+      }
+
+      .ai-chat-widget-close, .ai-chat-widget-back {
         background: none;
         border: none;
         color: white;
@@ -332,21 +375,7 @@
         transition: opacity 0.2s;
       }
 
-      .ai-chat-widget-close:hover {
-        opacity: 1;
-      }
-
-      .ai-chat-widget-back {
-        background: none;
-        border: none;
-        color: white;
-        cursor: pointer;
-        padding: 4px;
-        opacity: 0.8;
-        transition: opacity 0.2s;
-      }
-
-      .ai-chat-widget-back:hover {
+      .ai-chat-widget-close:hover, .ai-chat-widget-back:hover {
         opacity: 1;
       }
 
@@ -389,25 +418,14 @@
         margin-bottom: 8px;
       }
 
-      .ai-chat-widget-response-time strong {
-        color: #334155;
-        font-weight: 500;
-      }
-
       .ai-chat-widget-start-chat {
         width: 100%;
         padding: 12px;
         ${widgetConfig.buttonStyle === 'outline' 
-          ? `background: transparent;
-             color: ${widgetConfig.primaryColor};
-             border: 2px solid ${widgetConfig.primaryColor};`
+          ? `background: transparent; color: ${widgetConfig.primaryColor}; border: 2px solid ${widgetConfig.primaryColor};`
           : widgetConfig.buttonStyle === 'gradient'
-          ? `background: linear-gradient(135deg, ${widgetConfig.primaryColor}, ${widgetConfig.accentColor});
-             color: white;
-             border: none;`
-          : `background: ${widgetConfig.primaryColor};
-             color: white;
-             border: none;`}
+          ? `background: linear-gradient(135deg, ${widgetConfig.primaryColor}, ${widgetConfig.accentColor}); color: white; border: none;`
+          : `background: ${widgetConfig.primaryColor}; color: white; border: none;`}
         border-radius: 8px;
         font-size: 14px;
         font-weight: 500;
@@ -416,25 +434,15 @@
         align-items: center;
         justify-content: center;
         gap: 8px;
-        transition: opacity ${transitionSpeedFast}, background ${transitionSpeedFast}, transform ${transitionSpeedFast};
+        transition: opacity ${transitionSpeedFast};
       }
 
       .ai-chat-widget-start-chat:hover {
         opacity: 0.9;
-        ${widgetConfig.buttonStyle === 'outline' 
-          ? `background: ${widgetConfig.primaryColor}15;`
-          : ''}
       }
 
       .ai-chat-widget-search {
         margin-bottom: 16px;
-      }
-
-      .ai-chat-widget-search-label {
-        font-size: 14px;
-        font-weight: 500;
-        margin-bottom: 8px;
-        display: block;
       }
 
       .ai-chat-widget-search-input {
@@ -522,6 +530,19 @@
         flex-shrink: 0;
       }
 
+      .ai-chat-widget-message-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .ai-chat-widget-message-sender {
+        font-size: 11px;
+        font-weight: 500;
+        color: #64748b;
+        padding-left: 4px;
+      }
+
       .ai-chat-widget-message-content {
         max-width: 70%;
         padding: 10px 14px;
@@ -604,6 +625,11 @@
         opacity: 0.9;
       }
 
+      .ai-chat-widget-chat-send:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
       .ai-chat-widget-powered {
         padding: 12px;
         text-align: center;
@@ -612,120 +638,24 @@
         color: #94a3b8;
       }
 
-      .ai-chat-widget-feedback {
-        padding: 20px;
-        border-top: 1px solid #e2e8f0;
-        background: #f8fafc;
-      }
-
-      .ai-chat-widget-feedback-title {
-        font-size: 14px;
-        font-weight: 500;
-        color: #334155;
-        margin-bottom: 12px;
-      }
-
-      .ai-chat-widget-feedback-buttons {
-        display: flex;
-        gap: 8px;
-      }
-
-      .ai-chat-widget-feedback-btn {
-        flex: 1;
-        padding: 10px;
-        border: 1px solid #e2e8f0;
-        background: white;
-        border-radius: 8px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        font-size: 14px;
-        color: #64748b;
-        transition: all 0.2s;
-      }
-
-      .ai-chat-widget-feedback-btn:hover {
-        border-color: ${widgetConfig.primaryColor};
-        color: ${widgetConfig.primaryColor};
-      }
-
-      .ai-chat-widget-feedback-btn.active {
-        border-color: ${widgetConfig.primaryColor};
-        background: ${widgetConfig.primaryColor};
-        color: white;
-      }
-
-      .ai-chat-widget-feedback-thank-you {
-        font-size: 14px;
-        color: #10b981;
-        text-align: center;
-        padding: 12px;
-      }
-
-      .ai-chat-widget-bottom-nav {
-        display: flex;
-        border-top: 1px solid #e2e8f0;
-        background: white;
-      }
-
-      .ai-chat-widget-bottom-nav-btn {
-        flex: 1;
-        padding: 12px;
-        border: none;
-        background: transparent;
-        cursor: pointer;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 4px;
-        font-size: 11px;
-        color: #64748b;
-        transition: color 0.2s;
-      }
-
-      .ai-chat-widget-bottom-nav-btn:hover {
-        color: ${widgetConfig.primaryColor};
-      }
-
-      .ai-chat-widget-bottom-nav-btn.active {
-        color: ${widgetConfig.primaryColor};
-      }
-
-      .ai-chat-widget-bottom-nav-icon {
-        width: 20px;
-        height: 20px;
-      }
-
       @media (max-width: 480px) {
         .ai-chat-widget-container {
           width: calc(100vw - 32px);
           height: calc(100vh - 120px);
           max-height: 600px;
         }
-
-        .ai-chat-widget-container.bottom-right,
-        .ai-chat-widget-container.bottom-left,
-        .ai-chat-widget-container.top-right,
-        .ai-chat-widget-container.top-left {
-          left: 16px;
-          right: 16px;
-          width: calc(100vw - 32px);
-        }
       }
     `;
     document.head.appendChild(style);
   }
 
-  // Create message icon SVG
+  // SVG Icons
   function createMessageIcon(color = 'white') {
     return `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
     </svg>`;
   }
 
-  // Create close icon SVG
   function createCloseIcon() {
     return `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -733,49 +663,10 @@
     </svg>`;
   }
 
-  // Create back icon SVG
   function createBackIcon() {
     return `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <line x1="19" y1="12" x2="5" y2="12"></line>
       <polyline points="12 19 5 12 12 5"></polyline>
-    </svg>`;
-  }
-
-  // Create thumbs up icon SVG
-  function createThumbsUpIcon() {
-    return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
-    </svg>`;
-  }
-
-  // Create thumbs down icon SVG
-  function createThumbsDownIcon() {
-    return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path>
-    </svg>`;
-  }
-
-  // Create book icon SVG for KB
-  function createBookIcon() {
-    return `<svg class="ai-chat-widget-bottom-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-    </svg>`;
-  }
-
-  // Create phone icon SVG for voice
-  function createPhoneIcon() {
-    return `<svg class="ai-chat-widget-bottom-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-    </svg>`;
-  }
-
-  // Create history icon SVG
-  function createHistoryIcon() {
-    return `<svg class="ai-chat-widget-bottom-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <polyline points="23 4 23 10 17 10"></polyline>
-      <polyline points="1 20 1 14 7 14"></polyline>
-      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
     </svg>`;
   }
 
@@ -806,57 +697,21 @@
           <button class="ai-chat-widget-close">${createCloseIcon()}</button>
         </div>
       </div>
-      <div class="ai-chat-widget-content" style="flex: 1; overflow-y: auto;">
+      <div class="ai-chat-widget-content">
         ${renderHomeScreen()}
-      </div>
-      <div class="ai-chat-widget-bottom-nav">
-        <button class="ai-chat-widget-bottom-nav-btn ${currentScreen === 'chat' ? 'active' : ''}" data-nav="chat">
-          ${createMessageIcon().replace('width="28" height="28"', 'class="ai-chat-widget-bottom-nav-icon"')}
-          <span>Chat</span>
-        </button>
-        <button class="ai-chat-widget-bottom-nav-btn ${currentScreen === 'kb' ? 'active' : ''}" data-nav="kb">
-          ${createBookIcon()}
-          <span>Help</span>
-        </button>
-        <button class="ai-chat-widget-bottom-nav-btn" data-nav="voice">
-          ${createPhoneIcon()}
-          <span>Voice</span>
-        </button>
-        <button class="ai-chat-widget-bottom-nav-btn" data-nav="history">
-          ${createHistoryIcon()}
-          <span>History</span>
-        </button>
       </div>
       ${widgetConfig.showPoweredBy ? `<div class="ai-chat-widget-powered">Powered by ${widgetConfig.brandName || widgetConfig.appName || 'AI Chat'}</div>` : ''}
     `;
 
-    // Add event listeners
     container.querySelector('.ai-chat-widget-close').addEventListener('click', closeWidget);
     container.querySelector('.ai-chat-widget-back').addEventListener('click', goBack);
-
-    // Add bottom nav event listeners
-    const navButtons = container.querySelectorAll('.ai-chat-widget-bottom-nav-btn');
-    navButtons.forEach(button => {
-      button.addEventListener('click', () => handleBottomNav(button.dataset.nav));
-    });
 
     document.body.appendChild(container);
     return container;
   }
 
-  // Render home screen based on configuration
+  // Render home screen
   function renderHomeScreen() {
-    if (widgetConfig.homeScreen === 'messenger') {
-      return renderMessengerHome();
-    } else if (widgetConfig.homeScreen === 'help') {
-      return renderHelpHome();
-    } else {
-      return renderContactHome();
-    }
-  }
-
-  // Render messenger home screen
-  function renderMessengerHome() {
     const avatars = widgetConfig.teamMembers.slice(0, 3).map(member => {
       if (member.avatar) {
         return `<div class="ai-chat-widget-avatar">
@@ -882,22 +737,18 @@
       `).join('');
     }
 
-    const buttonText = widgetConfig.messengerButtonText || 'Send us a message';
-    const searchPlaceholder = widgetConfig.messengerSearchPlaceholder || 'Search our Help Center';
-
     return `
       <div class="ai-chat-widget-team">
         ${widgetConfig.showTeamAvatars !== false ? `<div class="ai-chat-widget-avatars">${avatars}</div>` : ''}
         <div class="ai-chat-widget-response-time">Our usual reply time: <strong>${widgetConfig.responseTime}</strong></div>
         <button class="ai-chat-widget-start-chat">
           ${createMessageIcon()}
-          ${buttonText}
+          ${widgetConfig.messengerButtonText || 'Send us a message'}
         </button>
       </div>
       ${widgetConfig.enableKnowledgeBase && kbData ? `
         <div class="ai-chat-widget-search">
-          <label class="ai-chat-widget-search-label">Find an answer quickly</label>
-          <input type="text" class="ai-chat-widget-search-input" placeholder="${searchPlaceholder}">
+          <input type="text" class="ai-chat-widget-search-input" placeholder="${widgetConfig.messengerSearchPlaceholder || 'Search our Help Center'}">
         </div>
         ${widgetConfig.showRecentArticles !== false ? `
           <div class="ai-chat-widget-articles">
@@ -909,129 +760,26 @@
     `;
   }
 
-  // Render help home screen
-  function renderHelpHome() {
-    const searchPlaceholder = widgetConfig.helpSearchPlaceholder || 'Search for answers...';
-    const categoriesTitle = widgetConfig.helpCategoriesTitle || 'Browse by category';
-    const ctaText = widgetConfig.helpCtaText || 'Chat with us';
-    
-    // Use custom help categories if configured, otherwise fallback to KB categories
-    let categoriesHtml = '';
-    if (widgetConfig.helpCategories && widgetConfig.helpCategories.length > 0) {
-      categoriesHtml = widgetConfig.helpCategories.map(category => {
-        const iconEmoji = category.icon === 'book-open' ? '📖' :
-                         category.icon === 'users' ? '👥' :
-                         category.icon === 'file-text' ? '📄' :
-                         category.icon === 'help-circle' ? '❓' :
-                         category.icon === 'settings' ? '⚙️' :
-                         category.icon === 'shield' ? '🛡️' : '📄';
-        return `
-          <div class="ai-chat-widget-article">
-            <div class="ai-chat-widget-article-title">${iconEmoji} ${category.label}</div>
-            <div class="ai-chat-widget-article-category">${category.description}</div>
-          </div>
-        `;
-      }).join('');
-    } else if (kbData && kbData.categories.length > 0) {
-      const categoriesCount = widgetConfig.categoriesCount || 6;
-      categoriesHtml = kbData.categories.slice(0, categoriesCount).map(category => `
-        <div class="ai-chat-widget-article" data-category-id="${category.id}">
-          <div class="ai-chat-widget-article-title">${category.name}</div>
-          <div class="ai-chat-widget-article-category">${category.articleCount} articles</div>
-        </div>
-      `).join('');
-    }
-
-    return `
-      <div class="ai-chat-widget-search">
-        <input type="text" class="ai-chat-widget-search-input" placeholder="${searchPlaceholder}" autofocus>
-      </div>
-      <div class="ai-chat-widget-articles">
-        <div class="ai-chat-widget-articles-title">${categoriesTitle}</div>
-        ${categoriesHtml || '<p style="font-size: 14px; color: #64748b;">No categories available</p>'}
-      </div>
-      ${widgetConfig.enableChat ? `
-        <button class="ai-chat-widget-start-chat" style="margin-top: 16px;">
-          ${createMessageIcon()}
-          ${ctaText}
-        </button>
-      ` : ''}
-    `;
-  }
-
-  // Render contact home screen
-  function renderContactHome() {
-    const contactTitle = widgetConfig.contactTitle || 'How can we help?';
-    const ctaText = widgetConfig.contactCtaText || 'Start a conversation';
-    const statusMessage = widgetConfig.contactStatusMessage || 'We typically reply within a few minutes';
-    const showStatus = widgetConfig.showContactStatus !== false;
-    
-    // Generate quick actions HTML if enabled
-    let quickActionsHtml = '';
-    if (widgetConfig.showQuickActions && widgetConfig.quickActions && widgetConfig.quickActions.length > 0) {
-      const activeQuickActions = widgetConfig.quickActions.filter(action => action.enabled);
-      if (activeQuickActions.length > 0) {
-        const actionsHTML = activeQuickActions.map(action => {
-          const iconEmoji = action.icon === 'calendar' ? '📅' :
-                           action.icon === 'play' ? '▶️' :
-                           action.icon === 'book' ? '📚' :
-                           action.icon === 'phone' ? '📞' :
-                           action.icon === 'mail' ? '✉️' :
-                           action.icon === 'users' ? '👥' : '📄';
-          const description = action.description || 'Get started quickly';
-          return `
-            <div class="ai-chat-widget-article ai-chat-widget-quick-action" data-action-url="${action.url || '#'}">
-              <div class="ai-chat-widget-article-title">${iconEmoji} ${action.label}</div>
-              <div class="ai-chat-widget-article-category">${description}</div>
-            </div>
-          `;
-        }).join('');
-        
-        quickActionsHtml = `
-          <div class="ai-chat-widget-articles">
-            ${actionsHTML}
-          </div>
-        `;
-      }
-    }
-    
-    return `
-      <div class="ai-chat-widget-team">
-        <div class="ai-chat-widget-contact-header">
-          <div class="ai-chat-widget-articles-title">${contactTitle}</div>
-          ${showStatus ? `<div class="ai-chat-widget-response-time">${statusMessage}</div>` : ''}
-        </div>
-      </div>
-      ${quickActionsHtml}
-      ${widgetConfig.enableChat ? `
-        <button class="ai-chat-widget-start-chat" style="margin-top: 16px;">
-          ${createMessageIcon()}
-          ${ctaText}
-        </button>
-      ` : ''}
-    `;
-  }
-
-  // Render lead form screen
+  // Render lead form
   function renderLeadForm() {
     return `
       <div class="ai-chat-widget-lead-form">
-        <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 8px; color: ${widgetConfig.textColor};">Welcome!</h3>
+        <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Welcome!</h3>
         <p style="font-size: 14px; margin-bottom: 20px; color: #64748b;">Please share your details so we can assist you better.</p>
         <form id="ai-chat-lead-form">
           <div style="margin-bottom: 16px;">
-            <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: ${widgetConfig.textColor};">Name *</label>
+            <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Name *</label>
             <input type="text" id="lead-name" required style="width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px;" placeholder="John Doe">
           </div>
           <div style="margin-bottom: 16px;">
-            <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: ${widgetConfig.textColor};">Email *</label>
+            <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Email *</label>
             <input type="email" id="lead-email" required style="width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px;" placeholder="john@example.com">
           </div>
           <div style="margin-bottom: 20px;">
-            <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: ${widgetConfig.textColor};">Mobile Number *</label>
+            <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Mobile Number *</label>
             <input type="tel" id="lead-mobile" required style="width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px;" placeholder="+1 234 567 8900">
           </div>
-          <button type="submit" style="width: 100%; padding: 12px; background-color: ${widgetConfig.primaryColor}; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer;">
+          <button type="submit" style="width: 100%; padding: 12px; background: ${widgetConfig.primaryColor}; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer;">
             Start Chat
           </button>
         </form>
@@ -1047,19 +795,14 @@
     const email = document.getElementById('lead-email').value.trim();
     const mobile = document.getElementById('lead-mobile').value.trim();
     
-    if (!name || !email || !mobile) {
-      return;
-    }
+    if (!name || !email || !mobile) return;
     
     leadInfo = { name, email, mobile };
     
     try {
-      // Save lead to API
-      const response = await fetch(`${API_BASE}/api/widget/leads`, {
+      await fetch(`${API_BASE}/api/widget/contacts`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           siteId: siteId,
           name: name,
@@ -1068,230 +811,31 @@
           source: 'chat_widget'
         })
       });
-      
-      // Always proceed to chat, even if API fails
-      proceedToChat();
     } catch (error) {
       console.error('Failed to save lead:', error);
-      // Still allow chat even if lead save fails
-      proceedToChat();
-    }
-  }
-
-  // Render voice lead form screen
-  function renderVoiceLeadForm() {
-    return `
-      <div class="ai-chat-widget-lead-form">
-        <div style="margin-bottom: 20px; text-align: center;">
-          ${createPhoneIcon()}
-        </div>
-        <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 8px; color: ${widgetConfig.textColor};">Start Voice Call</h3>
-        <p style="font-size: 14px; margin-bottom: 20px; color: #64748b;">Please share your details so we can connect you.</p>
-        <form id="ai-chat-voice-lead-form">
-          <div style="margin-bottom: 16px;">
-            <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: ${widgetConfig.textColor};">Name *</label>
-            <input type="text" id="voice-lead-name" required style="width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px;" placeholder="John Doe">
-          </div>
-          <div style="margin-bottom: 16px;">
-            <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: ${widgetConfig.textColor};">Email *</label>
-            <input type="email" id="voice-lead-email" required style="width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px;" placeholder="john@example.com">
-          </div>
-          <div style="margin-bottom: 20px;">
-            <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: ${widgetConfig.textColor};">Mobile Number *</label>
-            <input type="tel" id="voice-lead-mobile" required style="width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px;" placeholder="+1 234 567 8900">
-          </div>
-          <button type="submit" style="width: 100%; padding: 12px; background-color: ${widgetConfig.primaryColor}; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer;">
-            Start Voice Call
-          </button>
-        </form>
-      </div>
-    `;
-  }
-
-  // Submit voice lead form
-  async function submitVoiceLeadForm(event) {
-    event.preventDefault();
-    
-    const name = document.getElementById('voice-lead-name').value.trim();
-    const email = document.getElementById('voice-lead-email').value.trim();
-    const mobile = document.getElementById('voice-lead-mobile').value.trim();
-    
-    if (!name || !email || !mobile) {
-      return;
     }
     
-    leadInfo = { name, email, mobile };
-    
-    try {
-      // Save lead to API
-      await fetch(`${API_BASE}/api/widget/leads`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          siteId: siteId,
-          name: name,
-          email: email,
-          phone: mobile,
-          source: 'voice_widget'
-        })
-      });
-      
-      // Always start voice call, even if API fails
-      startVoiceCall();
-    } catch (error) {
-      console.error('Failed to save lead:', error);
-      // Still start voice call even if lead save fails
-      startVoiceCall();
-    }
+    proceedToChat();
   }
 
-  // Start voice call with ElevenLabs
-  async function startVoiceCall() {
-    currentScreen = 'voice-call';
-    const content = widgetContainer.querySelector('.ai-chat-widget-content');
-    
-    content.innerHTML = `
-      <div class="ai-chat-widget-voice-call" style="padding: 40px; text-align: center;">
-        <div style="margin-bottom: 24px;">
-          <div id="voice-status-icon" style="width: 80px; height: 80px; margin: 0 auto; background: ${widgetConfig.primaryColor}; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-            ${createPhoneIcon()}
-          </div>
-        </div>
-        <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 8px; color: ${widgetConfig.textColor};">Connecting...</h3>
-        <p id="voice-status-text" style="font-size: 14px; color: #64748b; margin-bottom: 32px;">Please wait while we connect you</p>
-        <div id="voice-controls" style="display: none;">
-          <button id="voice-mute-btn" style="padding: 12px 24px; margin: 0 8px; background: #64748b; color: white; border: none; border-radius: 6px; cursor: pointer;">
-            Mute
-          </button>
-          <button id="voice-end-btn" style="padding: 12px 24px; margin: 0 8px; background: #dc2626; color: white; border: none; border-radius: 6px; cursor: pointer;">
-            End Call
-          </button>
-        </div>
-      </div>
-    `;
-    
-    widgetContainer.querySelector('.ai-chat-widget-back').style.display = 'block';
-    
-    // Initialize voice call
-    try {
-      const response = await fetch(`${API_BASE}/api/widget/voice/init`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          siteId: siteId,
-          visitorName: leadInfo.name
-        })
-      });
-      
-      const data = await response.json();
-      
-      if (data.signedUrl) {
-        // Connect to ElevenLabs Conversational AI
-        await initializeElevenLabsCall(data.signedUrl);
-      } else {
-        throw new Error('No voice call URL received');
-      }
-    } catch (error) {
-      console.error('Voice call initialization failed:', error);
-      const statusText = content.querySelector('#voice-status-text');
-      statusText.textContent = 'Voice call is currently unavailable. Please try chat instead.';
-      statusText.style.color = '#dc2626';
-      
-      setTimeout(() => {
-        navigateToChat();
-      }, 3000);
-    }
-  }
-
-  // Initialize ElevenLabs Conversational AI call
-  async function initializeElevenLabsCall(signedUrl) {
-    const content = widgetContainer.querySelector('.ai-chat-widget-content');
-    const statusText = content.querySelector('#voice-status-text');
-    const controls = content.querySelector('#voice-controls');
-    
-    try {
-      // Request microphone access
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      
-      // Connect to ElevenLabs WebSocket
-      const ws = new WebSocket(signedUrl);
-      
-      ws.onopen = () => {
-        statusText.textContent = `Connected! Speaking with AI Assistant`;
-        controls.style.display = 'block';
-        
-        // Set up audio streaming (simplified - real implementation needs more audio handling)
-        const mediaRecorder = new MediaRecorder(stream);
-        mediaRecorder.ondataavailable = (event) => {
-          if (event.data.size > 0 && ws.readyState === WebSocket.OPEN) {
-            ws.send(event.data);
-          }
-        };
-        mediaRecorder.start(100); // Send audio chunks every 100ms
-        
-        // Handle incoming audio
-        ws.onmessage = (event) => {
-          // Play received audio (simplified)
-          if (event.data instanceof Blob) {
-            const audioUrl = URL.createObjectURL(event.data);
-            const audio = new Audio(audioUrl);
-            audio.play();
-          }
-        };
-        
-        // Mute button
-        content.querySelector('#voice-mute-btn').addEventListener('click', function() {
-          const audioTrack = stream.getAudioTracks()[0];
-          audioTrack.enabled = !audioTrack.enabled;
-          this.textContent = audioTrack.enabled ? 'Mute' : 'Unmute';
-        });
-        
-        // End call button
-        content.querySelector('#voice-end-btn').addEventListener('click', () => {
-          ws.close();
-          stream.getTracks().forEach(track => track.stop());
-          goBack();
-        });
-      };
-      
-      ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
-        statusText.textContent = 'Connection error. Please try again.';
-        statusText.style.color = '#dc2626';
-      };
-      
-      ws.onclose = () => {
-        stream.getTracks().forEach(track => track.stop());
-      };
-      
-    } catch (error) {
-      console.error('Microphone access denied:', error);
-      statusText.textContent = 'Microphone access is required for voice calls.';
-      statusText.style.color = '#dc2626';
-    }
-  }
-
-  // Proceed to chat after lead form
+  // Proceed to chat
   function proceedToChat() {
     currentScreen = 'chat';
     const content = widgetContainer.querySelector('.ai-chat-widget-content');
     content.innerHTML = renderChatScreen();
     
-    // Ensure back button is visible
     widgetContainer.querySelector('.ai-chat-widget-back').style.display = 'block';
     
-    // Add event listener for chat
     const sendButton = content.querySelector('.ai-chat-widget-chat-send');
     const input = content.querySelector('#ai-chat-input');
     
     sendButton.addEventListener('click', sendMessage);
     input.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') sendMessage();
+      if (e.key === 'Enter' && !sendButton.disabled) sendMessage();
     });
+    
+    // Start polling for messages from support agents
+    startPolling();
   }
 
   // Render chat screen
@@ -1316,126 +860,72 @@
     `;
   }
 
-  // Toggle widget visibility
-  function toggleWidget() {
-    if (isOpen) {
-      closeWidget();
-    } else {
-      openWidget();
+  // Start polling for new messages
+  function startPolling() {
+    if (pollInterval) {
+      clearInterval(pollInterval);
+    }
+    // Poll every 2 seconds
+    pollInterval = setInterval(pollMessages, 2000);
+  }
+
+  // Stop polling
+  function stopPolling() {
+    if (pollInterval) {
+      clearInterval(pollInterval);
+      pollInterval = null;
     }
   }
 
-  // Open widget
-  function openWidget() {
-    isOpen = true;
-    widgetContainer.classList.remove('hidden');
-    widgetButton.style.display = 'none';
-  }
-
-  // Close widget
-  function closeWidget() {
-    isOpen = false;
-    widgetContainer.classList.add('hidden');
-    widgetButton.style.display = 'flex';
-  }
-
-  // Navigate to chat screen
-  function navigateToChat() {
-    // Show back button
-    widgetContainer.querySelector('.ai-chat-widget-back').style.display = 'block';
-    
-    // If lead info not collected, show lead form first
-    if (!leadInfo) {
-      currentScreen = 'lead-form';
-      const content = widgetContainer.querySelector('.ai-chat-widget-content');
-      content.innerHTML = renderLeadForm();
-      
-      // Add event listener for form submission
-      const form = content.querySelector('#ai-chat-lead-form');
-      form.addEventListener('submit', submitLeadForm);
-    } else {
-      // Lead info already collected, go straight to chat
-      proceedToChat();
-    }
-  }
-
-  // Navigate to voice call screen
-  function navigateToVoice() {
-    // Show back button
-    widgetContainer.querySelector('.ai-chat-widget-back').style.display = 'block';
-    
-    // If lead info not collected, show lead form first
-    if (!leadInfo) {
-      currentScreen = 'voice-lead-form';
-      const content = widgetContainer.querySelector('.ai-chat-widget-content');
-      content.innerHTML = renderVoiceLeadForm();
-      
-      // Add event listener for form submission
-      const form = content.querySelector('#ai-chat-voice-lead-form');
-      form.addEventListener('submit', submitVoiceLeadForm);
-    } else {
-      // Lead info already collected, start voice call directly
-      startVoiceCall();
-    }
-  }
-
-  // Go back to home screen
-  function goBack() {
-    currentScreen = 'home';
-    const content = widgetContainer.querySelector('.ai-chat-widget-content');
-    content.innerHTML = renderHomeScreen();
-    
-    // Hide back button
-    widgetContainer.querySelector('.ai-chat-widget-back').style.display = 'none';
-    
-    // Re-attach event listeners
-    attachHomeEventListeners();
-  }
-
-  // Send chat message
+  // Send message
   async function sendMessage() {
     const input = document.querySelector('#ai-chat-input');
+    const sendButton = document.querySelector('.ai-chat-widget-chat-send');
     const message = input.value.trim();
     
-    if (!message) return;
+    if (!message || sendButton.disabled) return;
     
     const messagesContainer = widgetContainer.querySelector('.ai-chat-widget-messages');
     
+    // Disable input during processing
+    sendButton.disabled = true;
+    input.disabled = true;
+    
     // Add user message
-    messagesContainer.innerHTML += `
-      <div class="ai-chat-widget-message user">
-        <div class="ai-chat-widget-message-content">${message}</div>
-      </div>
+    const userMessageDiv = document.createElement('div');
+    userMessageDiv.className = 'ai-chat-widget-message user';
+    userMessageDiv.innerHTML = `
+      <div class="ai-chat-widget-message-content">${escapeHtml(message)}</div>
     `;
+    messagesContainer.appendChild(userMessageDiv);
     
-    // Clear input
     input.value = '';
-    
-    // Scroll to bottom
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
     
     // Add typing indicator
-    messagesContainer.innerHTML += `
-      <div class="ai-chat-widget-message bot ai-typing-indicator">
-        <div class="ai-chat-widget-message-avatar">AI</div>
-        <div class="ai-chat-widget-message-content">
-          <div class="ai-typing-dots">
-            <span></span><span></span><span></span>
-          </div>
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'ai-chat-widget-message bot ai-typing-indicator';
+    typingDiv.innerHTML = `
+      <div class="ai-chat-widget-message-avatar">${chatMode === 'human' && assignedAgent ? assignedAgent.name.substring(0, 2).toUpperCase() : 'AI'}</div>
+      <div class="ai-chat-widget-message-content">
+        <div class="ai-typing-dots">
+          <span></span><span></span><span></span>
         </div>
       </div>
     `;
+    messagesContainer.appendChild(typingDiv);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
     
     try {
-      // Send message to backend
       const response = await fetch(`${API_BASE}/api/widget/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          siteId: widgetConfig.siteId,
-          sessionId,
-          content: message,
+          siteId: siteId,
+          channelId: channelId,
+          sessionId: sessionId,
+          conversationId: conversationId,
+          message: message,
           visitorInfo: leadInfo || {}
         })
       });
@@ -1446,211 +936,175 @@
       
       const data = await response.json();
       
-      // Remove typing indicator
-      const typingIndicator = messagesContainer.querySelector('.ai-typing-indicator');
-      if (typingIndicator) {
-        typingIndicator.remove();
+      // Store conversation ID for subsequent messages
+      if (data.conversationId) {
+        conversationId = data.conversationId;
       }
       
-      // Add AI response
-      messagesContainer.innerHTML += `
-        <div class="ai-chat-widget-message bot">
-          <div class="ai-chat-widget-message-avatar">AI</div>
-          <div class="ai-chat-widget-message-content">${data.content}</div>
-        </div>
-      `;
+      // Update assigned agent if changed
+      if (data.assignedAgent) {
+        assignedAgent = data.assignedAgent;
+        chatMode = 'human';
+        updateChatHeader();
+      }
+      
+      // Remove typing indicator
+      typingDiv.remove();
+      
+      // Add AI/Agent response
+      const responseMessage = {
+        id: data.messageId || Date.now().toString(),
+        content: data.response,
+        fromUser: false,
+        fromType: data.fromType || 'bot'
+      };
+      addMessageToUI(responseMessage);
+      lastMessageId = responseMessage.id;
+      
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     } catch (error) {
-      console.error('Chat error:', error.message || error);
+      console.error('Chat error:', error);
       
-      // Remove typing indicator
-      const typingIndicator = messagesContainer.querySelector('.ai-typing-indicator');
-      if (typingIndicator) {
-        typingIndicator.remove();
-      }
+      typingDiv.remove();
       
-      // Show error message
-      messagesContainer.innerHTML += `
-        <div class="ai-chat-widget-message bot">
-          <div class="ai-chat-widget-message-avatar">AI</div>
-          <div class="ai-chat-widget-message-content">Sorry, I'm having trouble responding right now. Please try again.</div>
-        </div>
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'ai-chat-widget-message bot';
+      errorDiv.innerHTML = `
+        <div class="ai-chat-widget-message-avatar">AI</div>
+        <div class="ai-chat-widget-message-content">Sorry, I'm having trouble responding right now. Please try again.</div>
       `;
+      messagesContainer.appendChild(errorDiv);
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    } finally {
+      // Re-enable input
+      sendButton.disabled = false;
+      input.disabled = false;
+      input.focus();
     }
   }
 
-  // Show full article
+  // Show article
   function showArticle(article) {
     currentScreen = 'article';
     currentArticle = article;
     const content = widgetContainer.querySelector('.ai-chat-widget-content');
     content.innerHTML = `
       <div style="padding: 20px; flex: 1; overflow-y: auto;">
-        <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 16px; color: #1f2937;">${article.title}</h2>
+        <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 16px;">${article.title}</h2>
         <div style="font-size: 14px; line-height: 1.6; color: #4b5563;">${article.content}</div>
-      </div>
-      <div class="ai-chat-widget-feedback" id="article-feedback">
-        <div class="ai-chat-widget-feedback-title">Was this article helpful?</div>
-        <div class="ai-chat-widget-feedback-buttons">
-          <button class="ai-chat-widget-feedback-btn" data-feedback="helpful">
-            ${createThumbsUpIcon()}
-            Yes, helpful
-          </button>
-          <button class="ai-chat-widget-feedback-btn" data-feedback="not_helpful">
-            ${createThumbsDownIcon()}
-            No, not helpful
-          </button>
-        </div>
       </div>
     `;
     
-    // Show back button
+    widgetContainer.querySelector('.ai-chat-widget-back').style.display = 'block';
+  }
+
+  // Toggle widget
+  function toggleWidget() {
+    if (isOpen) {
+      closeWidget();
+    } else {
+      openWidget();
+    }
+  }
+
+  function openWidget() {
+    isOpen = true;
+    widgetContainer.classList.remove('hidden');
+    widgetButton.style.display = 'none';
+  }
+
+  function closeWidget() {
+    isOpen = false;
+    widgetContainer.classList.add('hidden');
+    widgetButton.style.display = 'flex';
+    
+    // Stop polling when widget is closed
+    stopPolling();
+  }
+
+  function navigateToChat() {
     widgetContainer.querySelector('.ai-chat-widget-back').style.display = 'block';
     
-    // Attach feedback button listeners
-    const feedbackButtons = content.querySelectorAll('.ai-chat-widget-feedback-btn');
-    feedbackButtons.forEach(button => {
-      button.addEventListener('click', () => sendFeedback(button.dataset.feedback));
-    });
-  }
-
-  // Send article feedback
-  async function sendFeedback(feedbackType) {
-    if (!currentArticle) return;
-    
-    const isHelpful = feedbackType === 'helpful';
-    
-    try {
-      await fetch(`${API_BASE}/api/feedback`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          articleId: currentArticle.id,
-          isHelpful,
-          siteId
-        })
-      });
+    if (!leadInfo) {
+      currentScreen = 'lead-form';
+      const content = widgetContainer.querySelector('.ai-chat-widget-content');
+      content.innerHTML = renderLeadForm();
       
-      // Show thank you message
-      const feedbackDiv = widgetContainer.querySelector('#article-feedback');
-      if (feedbackDiv) {
-        feedbackDiv.innerHTML = `
-          <div class="ai-chat-widget-feedback-thank-you">
-            ✓ Thank you for your feedback!
-          </div>
-        `;
-      }
-    } catch (error) {
-      console.error('Failed to send feedback:', error);
+      const form = content.querySelector('#ai-chat-lead-form');
+      form.addEventListener('submit', submitLeadForm);
+    } else {
+      proceedToChat();
     }
   }
 
-  // Handle bottom navigation
-  function handleBottomNav(navType) {
-    // Update active state
-    const navButtons = widgetContainer.querySelectorAll('.ai-chat-widget-bottom-nav-btn');
-    navButtons.forEach(btn => {
-      btn.classList.remove('active');
-      if (btn.dataset.nav === navType) {
-        btn.classList.add('active');
-      }
-    });
-
+  function goBack() {
+    currentScreen = 'home';
     const content = widgetContainer.querySelector('.ai-chat-widget-content');
+    content.innerHTML = renderHomeScreen();
     
-    switch (navType) {
-      case 'chat':
-        navigateToChat();
-        break;
-      case 'kb':
-        currentScreen = 'kb';
-        content.innerHTML = renderHelpHome();
-        attachHomeEventListeners();
-        widgetContainer.querySelector('.ai-chat-widget-back').style.display = 'none';
-        break;
-      case 'voice':
-        navigateToVoice();
-        break;
-      case 'history':
-        currentScreen = 'history';
-        content.innerHTML = `
-          <div style="padding: 40px; text-align: center;">
-            <div style="margin-bottom: 20px;">${createHistoryIcon()}</div>
-            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 12px; color: #1f2937;">Chat History</h3>
-            <p style="font-size: 14px; color: #64748b;">Your previous conversations will appear here</p>
-          </div>
-        `;
-        widgetContainer.querySelector('.ai-chat-widget-back').style.display = 'none';
-        break;
-    }
+    widgetContainer.querySelector('.ai-chat-widget-back').style.display = 'none';
+    attachHomeEventListeners();
+    
+    // Stop polling when leaving chat
+    stopPolling();
   }
 
-  // Attach event listeners to home screen elements
+  // Attach event listeners for home screen buttons and articles
   function attachHomeEventListeners() {
+    // Start chat button(s)
     const startChatButtons = widgetContainer.querySelectorAll('.ai-chat-widget-start-chat');
     startChatButtons.forEach(button => {
       button.addEventListener('click', navigateToChat);
     });
-    
+
+    // Knowledge base search
     const searchInput = widgetContainer.querySelector('.ai-chat-widget-search-input');
     if (searchInput) {
-      searchInput.addEventListener('click', () => {
-        // Could navigate to search screen
-        console.log('Search clicked');
+      searchInput.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        const articles = widgetContainer.querySelectorAll('.ai-chat-widget-article');
+        articles.forEach(article => {
+          const title = article.querySelector('.ai-chat-widget-article-title').textContent.toLowerCase();
+          article.style.display = title.includes(term) ? 'block' : 'none';
+        });
       });
     }
-    
-    const articles = widgetContainer.querySelectorAll('.ai-chat-widget-article');
-    articles.forEach(article => {
-      article.addEventListener('click', () => {
-        const articleId = article.dataset.articleId;
+
+    // Article click navigation
+    const articleElements = widgetContainer.querySelectorAll('.ai-chat-widget-article');
+    articleElements.forEach(articleEl => {
+      articleEl.addEventListener('click', () => {
+        const articleId = articleEl.getAttribute('data-article-id');
         if (articleId) {
           fetchArticle(articleId);
         }
       });
     });
-    
-    // Add quick action click handlers
-    const quickActions = widgetContainer.querySelectorAll('.ai-chat-widget-quick-action');
-    quickActions.forEach(action => {
-      action.addEventListener('click', () => {
-        const actionUrl = action.dataset.actionUrl;
-        if (actionUrl && actionUrl !== '#') {
-          window.open(actionUrl, '_blank');
-        }
-      });
-    });
+  }
+
+  // Escape HTML to prevent XSS
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
   }
 
   // Initialize widget
-  async function init() {
-    // Create wrapper div
-    const wrapper = document.createElement('div');
-    wrapper.className = 'ai-chat-widget';
-    document.body.appendChild(wrapper);
-
-    // Fetch configuration and KB articles
+  async function initWidget() {
     await fetchWidgetConfig();
     await fetchKBArticles();
-    
-    // Create styles
     createStyles();
-    
-    // Create widget elements
+
     widgetButton = createWidgetButton();
     widgetContainer = createWidgetContainer();
-    
-    // Attach initial event listeners
+
     attachHomeEventListeners();
   }
 
-  // Wait for DOM to be ready
+  // Run initialization when DOM is ready
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', initWidget);
   } else {
-    init();
+    initWidget();
   }
 })();

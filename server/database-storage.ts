@@ -179,6 +179,16 @@ async logApiRequest(log: InsertApiLog): Promise<ApiLog | null> {
   async getContactsByChannel(channelId: string): Promise<Contact[]> {
     return this.contactRepo.getByChannel(channelId);
   }
+
+  async getContactsByTenant(tenantId: string): Promise<Contact[]> {
+    return this.contactRepo.getContactsByTenant(tenantId);
+  }
+  async getContactByEmail(email: string): Promise<Contact[]> {
+    return this.contactRepo.getContactsByTenant(email);
+  }
+  async getContactsByPhone(phone: string): Promise<Contact[]> {
+    return this.contactRepo.getContactsByTenant(phone);
+  }
   async searchContactsByChannel(channelId: string): Promise<Contact[]> {
     return this.contactRepo.getByChannel(channelId);
   }
@@ -327,8 +337,14 @@ async logApiRequest(log: InsertApiLog): Promise<ApiLog | null> {
     return this.conversationRepo.getAll();
   }
 
+  async getConversationBySessionId(sessionId: string): Promise<Conversation[]> {
+    return this.conversationRepo.getBySessionId(sessionId);
+  }
   async getConversationsByChannel(channelId: string): Promise<Conversation[]> {
     return this.conversationRepo.getByChannel(channelId);
+  }
+  async getConversationsByContact(contactId: string): Promise<Conversation[]> {
+    return this.conversationRepo.getByContact(contactId);
   }
 
   async getConversationsNew(): Promise<Conversation[]> {
@@ -393,6 +409,10 @@ async logApiRequest(log: InsertApiLog): Promise<ApiLog | null> {
     whatsappMessageId: string
   ): Promise<Message | undefined> {
     return this.messageRepo.getByWhatsAppId(whatsappMessageId);
+  }
+
+  async getConversationMessages(conversationId: string): Promise<Message | undefined> {
+    return this.messageRepo.getByConversation(conversationId);
   }
 
   async getMessage(id: string): Promise<Message | undefined> {

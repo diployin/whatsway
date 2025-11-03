@@ -104,6 +104,40 @@ export class ConversationRepository {
     }));
   }
 
+  async getByContact(contactId: string): Promise<Conversation[]> {
+    const result = await db
+      .select({
+        conversation: conversations,
+        contact: contacts,
+      })
+      .from(conversations)
+      .leftJoin(contacts, eq(conversations.contactId, contacts.id))
+      .where(eq(conversations.contactId, contactId))
+      .orderBy(desc(conversations.lastMessageAt));
+    
+    return result.map(row => ({
+      ...row.conversation,
+      contact: row.contact,
+    }));
+  }
+  
+  async getBySessionId(sessionId: string): Promise<Conversation[]> {
+    const result = await db
+      .select({
+        conversation: conversations,
+        contact: contacts,
+      })
+      .from(conversations)
+      .leftJoin(contacts, eq(conversations.contactId, contacts.id))
+      .where(eq(conversations.sessionId, sessionId))
+      .orderBy(desc(conversations.lastMessageAt));
+    
+    return result.map(row => ({
+      ...row.conversation,
+      contact: row.contact,
+    }));
+  }
+
   async getById(id: string): Promise<Conversation | undefined> {
     const [conversation] = await db.select().from(conversations).where(eq(conversations.id, id));
     return conversation || undefined;
