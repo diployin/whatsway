@@ -88,6 +88,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Sites
+  async getSites(): Promise<Site | undefined> {
+    const sites2 = await db.select().from(sites);
+    return sites2 || [];
+  }
   async getSite(id: string): Promise<Site | undefined> {
     const [site] = await db.select().from(sites).where(eq(sites.id, id));
     return site || undefined;

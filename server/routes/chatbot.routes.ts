@@ -7,7 +7,8 @@ import type { Express } from "express";
 import { storage } from 'server/storage';
 import OpenAI from 'openai';
 import { requireAuth } from 'server/middlewares/auth.middleware';
-import { insertSiteSchema } from '@shared/schema';
+import { insertSiteSchema, sites } from '@shared/schema';
+import { io } from '../socket';
 
 // Initialize OpenAI
 const openai = new OpenAI({
@@ -16,7 +17,7 @@ const openai = new OpenAI({
 
 export function registerWidgetRoutes(app: Express) {
   
-  // CORS middleware for widget endpoints
+  // CORS middleware
   app.use('/api/widget', (req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -27,7 +28,7 @@ export function registerWidgetRoutes(app: Express) {
     next();
   });
 
-  // Get widget configuration (public endpoint)
+  // Get widget configuration
   app.get("/api/widget/config/:siteId", async (req, res) => {
     try {
       const { siteId } = req.params;
@@ -51,7 +52,7 @@ export function registerWidgetRoutes(app: Express) {
     }
   });
 
-  // Get knowledge base articles (public endpoint)
+  // Get knowledge base articles
   app.get("/api/widget/kb/:siteId", async (req, res) => {
     try {
       const site = await storage.getSite(req.params.siteId);
@@ -93,7 +94,7 @@ export function registerWidgetRoutes(app: Express) {
     }
   });
 
-  // Get full article (public endpoint)
+  // Get article
   app.get("/api/widget/article/:articleId", async (req, res) => {
     try {
       const article = await storage.getKnowledgeArticle(req.params.articleId);
@@ -121,377 +122,320 @@ export function registerWidgetRoutes(app: Express) {
     }
   });
 
-  // Save contact from widget (public endpoint)
+  // Save contact
   app.post("/api/widget/contacts", async (req, res) => {
     try {
       const { siteId, name, email, phone, source } = req.body;
-  
-      // Validate input
-      if (!siteId || !phone) {
-        return res.status(400).json({ error: "siteId and phone are required" });
-      }
-  
-      // Check if site exists
+      
       const site = await storage.getSite(siteId);
       if (!site) {
         return res.status(404).json({ error: "Site not found" });
       }
-  
-      // Check if contact already exists by phone
-      let existingContact = await storage.getContactByPhone(phone);
-      if (existingContact) {
-        return res.json({
-          success: true,
-          contactId: existingContact.id,
-          message: "Contact already exists",
+
+      // Check if contact exists
+      let contact = await storage.getContactByEmail(site.tenantId, email);
+      
+      if (!contact) {
+        contact = await storage.createContact({
+          tenantId: site.tenantId,
+          name,
+          email,
+          phone,
+          source: source || 'chat_widget',
+          tags: ['widget-lead'],
         });
       }
-  
-      // Create new contact if not found
-      const contact = await storage.createContact({
-        tenantId: site.tenantId,
-        name,
-        email,
-        phone,
-        source: source || "chat_widget",
-        tags: ["widget-lead"],
-      });
-  
+
       res.json({ success: true, contactId: contact.id });
     } catch (error: any) {
-      console.error("Failed to save contact:", error);
+      console.error('Failed to save contact:', error);
       res.status(500).json({ error: "Failed to save contact" });
     }
   });
 
-  // Handle chat messages with ChatGPT or Agent (public endpoint)
-  app.post("/api/widget/chat", async (req, res) => {
-    try {
-      const { siteId, channelId, sessionId, conversationId, message, visitorInfo } = req.body;
-      
-      if (!message || !siteId || !sessionId) {
-        return res.status(400).json({ error: "Missing required fields" });
-      }
+// Handle chat messages - WITH REAL-TIME SUPPORT
+app.post("/api/widget/chat", async (req, res) => {
+  try {
+    const { siteId, channelId, sessionId, conversationId, message, visitorInfo } = req.body;
 
-      const site = await storage.getSite(siteId);
-      if (!site || !site.widgetEnabled) {
-        return res.status(404).json({ error: "Widget not available" });
-      }
+    if (!message || !siteId || !sessionId) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
 
-      // Get or create contact
-      let contact = null;
-      if (visitorInfo?.email) {
-        const contacts = await storage.getContactsByTenant(site.tenantId);
-        contact = contacts.find(c => c.email === visitorInfo.email);
-        
-        if (!contact) {
-          contact = await storage.createContact({
-            tenantId: site.tenantId,
-            name: visitorInfo.name || 'Anonymous',
-            email: visitorInfo.email,
-            phone: visitorInfo.mobile || '',
-            source: 'chat_widget',
-            tags: ['widget-user'],
-          });
-        }
-      }
+    const site = await storage.getSite(siteId);
+    if (!site || !site.widgetEnabled) {
+      return res.status(404).json({ error: "Widget not available" });
+    }
 
-      // Get or create conversation
-      let conversation;
-      if (conversationId) {
-        conversation = await storage.getConversation(conversationId);
-      }
-      
-      if (!conversation) {
-        conversation = await storage.createConversation({
-          channelId: channelId || null,
-          contactId: contact?.id || null,
-          contactName: visitorInfo?.name || 'Anonymous',
-          contactPhone: visitorInfo?.mobile || '',
-          status: 'open',
-          type: 'chatbot',
-          sessionId: sessionId,
-          tags: ['widget-chat'],
+    // 🔹 Detect if user wants human help
+    const humanKeywords = [
+      "human", "agent", "person", "support", "real person", "real human",
+      "representative", "talk to someone", "customer care", "customer support"
+    ];
+    const wantsHuman = humanKeywords.some((kw) =>
+      message.toLowerCase().includes(kw)
+    );
+
+    // 🔹 Get or create contact
+    let contact = null;
+    if (visitorInfo?.email) {
+      contact = await storage.getContactByEmail(site.tenantId, visitorInfo.email);
+      if (!contact) {
+        contact = await storage.createContact({
+          tenantId: site.tenantId,
+          name: visitorInfo.name || "Anonymous",
+          email: visitorInfo.email,
+          phone: visitorInfo.mobile || "",
+          source: "chat_widget",
+          tags: ["widget-user"],
         });
       }
+    }
 
-      // Save user message
-      const userMessage = await storage.createMessage({
+    // 🔹 Get or create conversation
+    let conversation;
+    if (conversationId) {
+      conversation = await storage.getConversation(conversationId);
+    }
+    if (!conversation) {
+      conversation = await storage.createConversation({
+        channelId: channelId || null,
+        contactId: contact?.id || null,
+        contactName: visitorInfo?.name || "Anonymous",
+        contactPhone: visitorInfo?.mobile || "",
+        status: "open",
+        type: "chatbot",
+        sessionId: sessionId,
+        tags: ["widget-chat"],
+      });
+    }
+
+    // 🔹 Save user message
+    const userMessage = await storage.createMessage({
+      conversationId: conversation.id,
+      content: message,
+      direction: "inbound",
+      fromUser: true,
+      fromType: "user",
+      type: "text",
+      status: "received",
+    });
+
+    // 🔹 Emit user message to agents via Socket.io
+    if (io) {
+      io.to(`conversation:${conversation.id}`).emit("new_message", {
         conversationId: conversation.id,
-        content: message,
-        direction: 'inbound',
-        fromUser: true,
-        fromType: 'user',
-        type: 'text',
-        status: 'received',
+        message: {
+          id: userMessage.id,
+          content: message,
+          fromUser: true,
+          fromType: "user",
+          fromName: visitorInfo?.name || "Visitor",
+          createdAt: userMessage.createdAt,
+          status: "received",
+        },
       });
 
-      // Check if conversation is assigned to an agent
-      let assignedAgent = null;
-      if (conversation.assignedToId) {
-        const agent = await storage.getUser(conversation.assignedToId);
-        if (agent) {
-          assignedAgent = {
-            id: agent.id,
-            name: agent.name || agent.email,
-            email: agent.email
-          };
-        }
-      }
-
-      // If assigned to agent, don't send AI response - agent will reply manually
-      if (assignedAgent) {
-        // Update conversation to show new user message
-        await storage.updateConversation(conversation.id, {
-          lastMessageAt: new Date(),
-          lastMessageText: message,
-          updatedAt: new Date(),
-        });
-
-        return res.json({
-          success: true,
-          conversationId: conversation.id,
-          response: null, // No auto-response when assigned to agent
-          assignedAgent: assignedAgent,
-          waitingForAgent: true,
-          message: "Your message has been sent to our support team. They'll respond shortly."
-        });
-      }
-
-      // If not assigned, use AI to respond
-      // Get conversation history for context
-      const messages = await storage.getConversationMessages(conversation.id);
-      const conversationHistory = messages.slice(-10).map(msg => ({
-        role: msg.fromUser ? 'user' : 'assistant',
-        content: msg.content
-      }));
-
-      // Get AI training configuration
-      const aiConfig = site.aiTrainingConfig || {};
-      const systemPrompt = site.systemPrompt || 
-        `You are a helpful customer support assistant for ${site.name}. Be friendly, professional, and concise.`;
-
-      // Call ChatGPT API
-      const completion = await openai.chat.completions.create({
-        model: aiConfig.model || 'gpt-3.5-turbo',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          ...conversationHistory,
-          { role: 'user', content: message }
-        ],
-        temperature: aiConfig.temperature || 0.7,
-        max_tokens: aiConfig.maxTokens || 500,
+      await storage.updateMessage(userMessage.id, {
+        status: "delivered",
+        deliveredAt: new Date(),
       });
+    }
 
-      const aiResponse = completion.choices[0]?.message?.content || 
-        "I'm sorry, I couldn't generate a response. Please try again.";
+    // 🔹 Helper: Assign random agent
+    async function assignToRandomAgent(conversation, site) {
+      const teamMembers = site?.widgetConfig?.teamMembers || [];
+      if (teamMembers.length === 0) return null;
 
-      // Save AI response
-      const botMessage = await storage.createMessage({
-        conversationId: conversation.id,
-        content: aiResponse,
-        direction: 'outbound',
-        fromUser: false,
-        fromType: 'bot',
-        type: 'text',
-        status: 'sent',
-      });
+      const randomAgent =
+        teamMembers[Math.floor(Math.random() * teamMembers.length)];
 
-      // Update conversation last message
       await storage.updateConversation(conversation.id, {
-        lastMessageAt: new Date(),
-        lastMessageText: aiResponse,
+        status: "assigned",
+        assignedTo: randomAgent.id,
         updatedAt: new Date(),
       });
 
-      res.json({
+      if (io) {
+        io.to(`site:${siteId}`).emit("new_conversation_assigned", {
+          conversationId: conversation.id,
+          agentId: randomAgent.id,
+          agentName: randomAgent.name,
+        });
+      }
+
+      return randomAgent;
+    }
+
+    let aiResponse = null;
+    let aiMessageId = null;
+
+    const isAssigned =
+      conversation.status === "assigned" && conversation.assignedTo;
+
+    // 🔹 If user requests human support
+    if (wantsHuman && !isAssigned) {
+      const assignedAgent = await assignToRandomAgent(conversation, site);
+      if (assignedAgent) {
+        aiResponse = `I've connected you with ${assignedAgent.name} from our ${assignedAgent.role} team. They'll assist you shortly.`;
+      } else {
+        aiResponse = "All our agents are currently offline. Please wait while we connect you soon.";
+      }
+
+      const botMessage = await storage.createMessage({
+        conversationId: conversation.id,
+        content: aiResponse,
+        direction: "outbound",
+        fromUser: false,
+        fromType: "bot",
+        type: "text",
+        status: "sent",
+      });
+
+      if (io) {
+        io.to(`conversation:${conversation.id}`).emit("new_message", {
+          conversationId: conversation.id,
+          message: {
+            id: botMessage.id,
+            content: aiResponse,
+            fromUser: false,
+            fromType: "bot",
+            fromName: "AI Assistant",
+            createdAt: botMessage.createdAt,
+            status: "sent",
+          },
+        });
+      }
+
+      return res.json({
         success: true,
         response: aiResponse,
         conversationId: conversation.id,
         messageId: botMessage.id,
-        fromType: 'bot'
-      });
-
-    } catch (error: any) {
-      console.error('Widget chat error:', error);
-      res.status(500).json({ 
-        error: "Failed to process message",
-        message: error.message 
+        mode: "human",
       });
     }
-  });
 
-  // Get new messages for a conversation (polling endpoint for widget)
-  app.get("/api/widget/messages/:conversationId", async (req, res) => {
-    try {
-      const { conversationId } = req.params;
-      const { lastMessageId } = req.query;
-      
-      const conversation = await storage.getConversation(conversationId);
-      if (!conversation) {
-        return res.status(404).json({ error: "Conversation not found" });
-      }
+    // 🔹 If conversation is not assigned, use AI
+    if (!isAssigned) {
+      const messages = await storage.getConversationMessages(conversation.id);
+      const conversationHistory = messages.slice(-10).map((msg) => ({
+        role: msg.fromUser ? "user" : "assistant",
+        content: msg.content,
+      }));
 
-      // Get assigned agent info if exists
-      let assignedAgent = null;
-      if (conversation.assignedTo) {
-        const agent = await storage.getUser(conversation.assignedTo);
-        if (agent) {
-          assignedAgent = {
-            id: agent.id,
-            name: agent.firstName || agent.email,
-            email: agent.email
-          };
-        }
-      }
+      const aiConfig = site.aiTrainingConfig || {};
+      const systemPrompt =
+        aiConfig.systemPrompt ||
+        `You are a helpful customer support assistant for ${site.name}. Be friendly, professional, and concise. If the user's issue requires human assistance, let them know an agent will be with them shortly.`;
 
-      // Get all messages
-      const allMessages = await storage.getConversationMessages(conversationId);
-      // console.log(`Fetched ${allMessages.length} messages for conversation ${conversationId}`);
-      // Filter messages after lastMessageId if provided
-      let newMessages = allMessages;
-      if (lastMessageId) {
-        const lastIndex = allMessages.findIndex(m => m.id === lastMessageId);
-        if (lastIndex !== -1) {
-          newMessages = allMessages.slice(lastIndex + 1);
-        }
-      }
-console.log(`Returning ${newMessages.length} new messages since ID ${lastMessageId}`);
-      // Format messages for widget
-      const formattedMessages = newMessages
-        .filter(msg => msg.fromUser) // Only return bot/agent messages (user's own messages are already shown)
-        .map(msg => ({
-          id: msg.id,
-          content: msg.content,
-          fromUser: msg.fromUser,
-          fromType: msg.fromType,
-          direction: msg.direction,
-          createdAt: msg.createdAt,
-        }));
-
-      res.json({ 
-        messages: formattedMessages,
-        assignedAgent: assignedAgent,
-        conversationStatus: conversation.status
-      });
-    } catch (error: any) {
-      console.error('Failed to fetch messages:', error);
-      res.status(500).json({ error: "Failed to fetch messages" });
-    }
-  });
-
-  // Send message from agent to widget user (authenticated endpoint)
-  app.post("/api/conversations/:conversationId/agent-reply", requireAuth, async (req, res) => {
-    try {
-      const { conversationId } = req.params;
-      const { message } = req.body;
-      const userId = req.user?.id;
-
-      if (!message || !userId) {
-        return res.status(400).json({ error: "Message and user required" });
-      }
-
-      const conversation = await storage.getConversation(conversationId);
-      if (!conversation) {
-        return res.status(404).json({ error: "Conversation not found" });
-      }
-
-      // Verify user has access to this conversation's tenant
-      if (conversation.tenantId && conversation.tenantId !== req.user?.tenantId && req.user?.role !== 'super_admin') {
-        return res.status(403).json({ error: "Access denied" });
-      }
-
-      // Assign conversation to this agent if not already assigned
-      if (!conversation.assignedToId) {
-        await storage.updateConversation(conversationId, {
-          assignedToId: userId,
-          status: 'in_progress'
+      try {
+        const completion = await openai.chat.completions.create({
+          model: aiConfig.model || "gpt-3.5-turbo",
+          messages: [
+            { role: "system", content: systemPrompt },
+            ...conversationHistory,
+            { role: "user", content: message },
+          ],
+          temperature: aiConfig.temperature || 0.7,
+          max_tokens: aiConfig.maxTokens || 500,
         });
-      }
 
-      // Create agent message
-      const agentMessage = await storage.createMessage({
-        conversationId: conversation.id,
-        content: message,
-        direction: 'outbound',
-        fromUser: false,
-        fromType: 'agent',
-        type: 'text',
-        status: 'sent',
-        userId: userId
-      });
+        aiResponse =
+          completion.choices[0]?.message?.content ||
+          "I'm sorry, I couldn't generate a response. An agent will assist you shortly.";
 
-      // Update conversation
-      await storage.updateConversation(conversationId, {
-        lastMessageAt: new Date(),
-        lastMessageText: message,
-        updatedAt: new Date(),
-      });
-
-      res.json({
-        success: true,
-        message: agentMessage
-      });
-    } catch (error: any) {
-      console.error('Failed to send agent reply:', error);
-      res.status(500).json({ error: "Failed to send message" });
-    }
-  });
-
-  // Assign conversation to agent (authenticated endpoint)
-  app.post("/api/conversations/:conversationId/assign", requireAuth, async (req, res) => {
-    try {
-      const { conversationId } = req.params;
-      const { agentId } = req.body;
-
-      const conversation = await storage.getConversation(conversationId);
-      if (!conversation) {
-        return res.status(404).json({ error: "Conversation not found" });
-      }
-
-      // Verify permissions
-      if (conversation.tenantId && conversation.tenantId !== req.user?.tenantId && req.user?.role !== 'super_admin') {
-        return res.status(403).json({ error: "Access denied" });
-      }
-
-      // Update assignment
-      await storage.updateConversation(conversationId, {
-        assignedToId: agentId,
-        status: 'in_progress',
-        updatedAt: new Date()
-      });
-
-      // Get agent info
-      const agent = await storage.getUser(agentId);
-
-      // Send system message to conversation
-      if (agent) {
-        await storage.createMessage({
+        const botMessage = await storage.createMessage({
           conversationId: conversation.id,
-          content: `Conversation assigned to ${agent.name || agent.email}`,
-          direction: 'internal',
+          content: aiResponse,
+          direction: "outbound",
           fromUser: false,
-          fromType: 'system',
-          type: 'text',
-          status: 'sent',
+          fromType: "bot",
+          type: "text",
+          status: "sent",
         });
+
+        aiMessageId = botMessage.id;
+
+        if (io) {
+          io.to(`conversation:${conversation.id}`).emit("new_message", {
+            conversationId: conversation.id,
+            message: {
+              id: botMessage.id,
+              content: aiResponse,
+              fromUser: false,
+              fromType: "bot",
+              fromName: "AI Assistant",
+              createdAt: botMessage.createdAt,
+              status: "sent",
+            },
+          });
+        }
+      } catch (error) {
+        console.error("OpenAI error:", error);
+
+        // 🔹 Auto-assign to random agent if AI fails
+        const assignedAgent = await assignToRandomAgent(conversation, site);
+
+        aiResponse = assignedAgent
+          ? `I'm having trouble responding right now. I've connected you with ${assignedAgent.name} from our ${assignedAgent.role} team.`
+          : "I'm having trouble responding right now, and no agent is currently available.";
+
+        const botMessage = await storage.createMessage({
+          conversationId: conversation.id,
+          content: aiResponse,
+          direction: "outbound",
+          fromUser: false,
+          fromType: "bot",
+          type: "text",
+          status: "sent",
+        });
+
+        if (io) {
+          io.to(`conversation:${conversation.id}`).emit("new_message", {
+            conversationId: conversation.id,
+            message: {
+              id: botMessage.id,
+              content: aiResponse,
+              fromUser: false,
+              fromType: "bot",
+              fromName: "AI Assistant",
+              createdAt: botMessage.createdAt,
+              status: "sent",
+            },
+          });
+        }
       }
-
-      res.json({
-        success: true,
-        assignedTo: agent ? {
-          id: agent.id,
-          name: agent.name || agent.email,
-          email: agent.email
-        } : null
-      });
-    } catch (error: any) {
-      console.error('Failed to assign conversation:', error);
-      res.status(500).json({ error: "Failed to assign conversation" });
+    } else {
+      aiResponse = null; // assigned conversation handled by human
     }
-  });
 
-  // Get conversation history (optional - for restoring sessions)
+    // 🔹 Update conversation
+    await storage.updateConversation(conversation.id, {
+      lastMessageAt: new Date(),
+      lastMessageText: aiResponse || message,
+      unreadCount: (conversation.unreadCount || 0) + 1,
+      updatedAt: new Date(),
+    });
+
+    res.json({
+      success: true,
+      response: aiResponse,
+      conversationId: conversation.id,
+      messageId: aiMessageId,
+      mode: isAssigned ? "human" : "ai",
+    });
+  } catch (error) {
+    console.error("Widget chat error:", error);
+    res.status(500).json({
+      error: "Failed to process message",
+      message: error.message,
+    });
+  }
+});
+
+
+  // Get conversation history
   app.get("/api/widget/conversation/:conversationId", async (req, res) => {
     try {
       const { conversationId } = req.params;
@@ -502,6 +446,7 @@ console.log(`Returning ${newMessages.length} new messages since ID ${lastMessage
         content: msg.content,
         fromUser: msg.fromUser,
         fromType: msg.fromType,
+        status: msg.status,
         createdAt: msg.createdAt,
       }));
 
@@ -511,68 +456,101 @@ console.log(`Returning ${newMessages.length} new messages since ID ${lastMessage
     }
   });
 
+  // Request human agent
+  app.post("/api/widget/request-agent", async (req, res) => {
+    try {
+      const { conversationId, siteId } = req.body;
+
+      if (!conversationId) {
+        return res.status(400).json({ error: "Conversation ID required" });
+      }
+
+      const conversation = await storage.getConversation(conversationId);
+      if (!conversation) {
+        return res.status(404).json({ error: "Conversation not found" });
+      }
+
+      // Check for available agents
+      const onlineAgents = io?.getOnlineAgents?.(siteId);
+      
+      if (!onlineAgents || onlineAgents.length === 0) {
+        // No agents online - update status to pending
+        await storage.updateConversation(conversationId, {
+          status: 'pending',
+          updatedAt: new Date()
+        });
+
+        // Create system message
+        await storage.createMessage({
+          conversationId,
+          content: "All agents are currently busy. You'll be connected with the next available agent.",
+          direction: 'outbound',
+          fromUser: false,
+          fromType: 'system',
+          type: 'text',
+          status: 'sent'
+        });
+
+        return res.json({
+          success: true,
+          status: 'pending',
+          message: 'No agents available. You are in queue.'
+        });
+      }
+
+      // Assign to first available agent
+      const agent = onlineAgents[0];
+      await storage.updateConversation(conversationId, {
+        status: 'assigned',
+        assignedTo: agent.userId,
+        updatedAt: new Date()
+      });
+
+      // Create system message
+      await storage.createMessage({
+        conversationId,
+        content: `${agent.name || 'An agent'} has joined the conversation.`,
+        direction: 'outbound',
+        fromUser: false,
+        fromType: 'system',
+        type: 'text',
+        status: 'sent'
+      });
+
+      // Notify agent via Socket.io
+      if (io) {
+        io.to(`site:${siteId}`).emit('new_conversation_assigned', {
+          conversationId,
+          agentId: agent.userId
+        });
+      }
+
+      res.json({
+        success: true,
+        status: 'assigned',
+        agent: {
+          id: agent.userId,
+          name: agent.name
+        }
+      });
+
+    } catch (error: any) {
+      console.error('Request agent error:', error);
+      res.status(500).json({ error: "Failed to request agent" });
+    }
+  });
+
   // Site management routes (authenticated)
-  app.get("/api/sites", requireAuth, async (req, res) => {
-    try {
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        return res.status(400).json({ message: "No tenant associated with user" });
-      }
-      const sites = await storage.getSitesByTenant(tenantId);
-      res.json(sites);
-    } catch (error: any) {
-      res.status(500).json({ message: error.message });
-    }
-  });
-
-  app.post("/api/sites", requireAuth, async (req, res) => {
-    try {
-      const validated = insertSiteSchema.parse(req.body);
-      if (validated.tenantId !== req.user?.tenantId && req.user?.role !== "super_admin") {
-        return res.status(403).json({ message: "Access denied" });
-      }
-      const site = await storage.createSite(validated);
-      res.json(site);
-    } catch (error: any) {
-      res.status(400).json({ message: error.message });
-    }
-  });
-
-  app.patch("/api/sites/:id", requireAuth, async (req, res) => {
-    try {
-      const site = await storage.getSite(req.params.id);
-      if (!site) {
-        return res.status(404).json({ message: "Site not found" });
-      }
-      if (site.tenantId !== req.user?.tenantId && req.user?.role !== "admin") {
-        return res.status(403).json({ message: "Access denied" });
-      }
-      
-      const safeData: any = {};
-      if (req.body.name !== undefined) safeData.name = req.body.name;
-      if (req.body.domain !== undefined) safeData.domain = req.body.domain;
-      if (req.body.widgetEnabled !== undefined) safeData.widgetEnabled = req.body.widgetEnabled;
-      if (req.body.widgetConfig !== undefined) safeData.widgetConfig = req.body.widgetConfig;
-      if (req.body.aiTrainingConfig !== undefined) safeData.aiTrainingConfig = req.body.aiTrainingConfig;
-      if (req.body.systemPrompt !== undefined) safeData.systemPrompt = req.body.systemPrompt;
-      
-      const updatedSite = await storage.updateSite(req.params.id, safeData);
-      res.json(updatedSite);
-    } catch (error: any) {
-      res.status(400).json({ message: error.message });
-    }
-  });
 
 
-
-  app.get("/api/sites", requireAuth, async (req, res) => {
+  app.get("/api/sites", async (req, res) => {
     try {
       // Use authenticated user's tenantId
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        return res.status(400).json({ message: "No tenant associated with user" });
-      }
-      const sites = await storage.getSitesByTenant(tenantId);
+      // const tenantId = req.user?.id;
+      // if (!tenantId) {
+      //   return res.status(400).json({ message: "No associated with user" });
+      // }
+      const sites = await storage.getSites();
       res.json(sites);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
