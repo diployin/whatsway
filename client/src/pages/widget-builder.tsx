@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 // import { useSite } from "@/contexts/SiteContext";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -62,10 +62,23 @@ interface HelpCategory {
 
 export default function WidgetBuilder() {
   // const { selectedSiteId, sites } = useSite();
+  
   const selectedSiteId = "1dd3660c-81b2-4b23-a18f-10eb64a619c1";
   const sites = [];
   const { toast } = useToast();
   const {t} = useTranslation();
+
+  const { data: sitesw, isLoading, error } = useQuery({
+    queryKey: ["/api/sites"],
+    queryFn: async () => {
+      const res = await fetch("/api/sites");
+      if (!res.ok) throw new Error("Failed to fetch sites");
+      return res.json();
+    },
+  });
+  
+  console.log("sites", sitesw, "error", error);
+  
   
   const [config, setConfig] = useState({
     // Basic Settings
@@ -160,6 +173,22 @@ export default function WidgetBuilder() {
     { role: "bot", text: config.greeting, time: "Just now" },
   ]);
   const [chatInput, setChatInput] = useState("");
+
+  const { data: usersResponse, isLoading: usersLoading, error: usersError } = useQuery({
+    queryKey: ["/api/users"],
+    queryFn: async () => {
+      const response = await fetch("/api/users");
+      if (!response.ok) throw new Error("Failed to fetch users");
+      return response.json();
+    },
+  });
+
+  // normalize users list
+const userList: Array<any> = useMemo(() => {
+  if (!usersResponse) return [];
+  // possible shapes: [] or { data: [] } or { users: [] }
+  return usersResponse.data ?? usersResponse.users ?? usersResponse ?? [];
+}, [usersResponse]);
 
   // Fetch real KB articles for the site
   const { data: kbData } = useQuery({
@@ -905,76 +934,134 @@ export default function WidgetBuilder() {
               </Card>
             </TabsContent>
 
-            {/* Team Tab */}
-            <TabsContent value="team" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Team Members</CardTitle>
-                  <CardDescription>Configure your support team</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {config.teamMembers.map((member, index) => (
-                    <div key={member.id} className="flex items-center gap-4 p-3 border rounded-lg">
-                      <Avatar className="h-10 w-10">
-                        {member.avatar ? (
-                          <AvatarImage src={member.avatar} alt={member.name} />
-                        ) : null}
-                        <AvatarFallback>{member.name[0]}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 space-y-2">
-                        <div className="grid grid-cols-2 gap-2">
-                          <Input
-                            value={member.name}
-                            onChange={(e) => {
-                              const newMembers = [...config.teamMembers];
-                              newMembers[index].name = e.target.value;
-                              updateConfig("teamMembers", newMembers);
-                            }}
-                            placeholder="Name"
-                          />
-                          <Input
-                            value={member.role}
-                            onChange={(e) => {
-                              const newMembers = [...config.teamMembers];
-                              newMembers[index].role = e.target.value;
-                              updateConfig("teamMembers", newMembers);
-                            }}
-                            placeholder="Role"
-                          />
-                        </div>
-                        <Input
-                          type="url"
-                          value={member.avatar}
-                          onChange={(e) => {
-                            const newMembers = [...config.teamMembers];
-                            newMembers[index].avatar = e.target.value;
-                            updateConfig("teamMembers", newMembers);
-                          }}
-                          placeholder="Profile photo URL (optional)"
-                        />
-                      </div>
-                    </div>
+{/* Team Tab */}
+<TabsContent value="team" className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Team Members</CardTitle>
+          <CardDescription>Configure your support team</CardDescription>
+        </CardHeader>
+
+        <CardContent className="space-y-4">
+          {config.teamMembers.map((member, index) => (
+            <div key={member.id} className="flex items-center gap-4 p-3 border rounded-lg">
+              {/* Avatar */}
+              <Avatar className="h-10 w-10">
+                {member.avatar ? (
+                  <AvatarImage src={member.avatar} alt={member.name} />
+                ) : (
+                  <AvatarFallback>{member.name?.[0] ?? "U"}</AvatarFallback>
+                )}
+              </Avatar>
+
+              {/* Member Fields */}
+              <div className="flex-1 space-y-2">
+                {/* Select User Dropdown */}
+                <select
+                  value={member.userId || ""}
+                  onChange={(e) => {
+                    const selectedId = e.target.value;
+                    const selectedUser = userList.find((u) => u.id === selectedId);
+
+                    const newMembers = [...config.teamMembers];
+
+                    if (selectedUser) {
+                      newMembers[index] = {
+                        ...member,
+                        userId: selectedUser.id,
+                        name: `${selectedUser.firstName} ${selectedUser.lastName}`.trim(),
+                        role: selectedUser.role || "Support",
+                        avatar: selectedUser.avatar || "",
+                        email: selectedUser.email,
+                      };
+                    } else {
+                      newMembers[index].userId = "";
+                    }
+
+                    updateConfig("teamMembers", newMembers);
+                  }}
+                  className="border rounded-md px-2 py-1 w-full"
+                >
+                  <option value="">— Select a user —</option>
+                  {usersLoading && <option>Loading users...</option>}
+                  {userList.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {`${user.firstName} ${user.lastName}`} ({user.email})
+                    </option>
                   ))}
-                  
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => {
-                      const newMembers = [...config.teamMembers, {
-                        id: Date.now().toString(),
-                        name: "New Member",
-                        avatar: "",
-                        role: "Support"
-                      }];
+                </select>
+
+                {/* Editable fields */}
+                <div className="grid grid-cols-2 gap-2">
+                  <Input
+                    value={member.name}
+                    onChange={(e) => {
+                      const newMembers = [...config.teamMembers];
+                      newMembers[index].name = e.target.value;
                       updateConfig("teamMembers", newMembers);
                     }}
-                    data-testid="button-add-team-member"
-                  >
-                    Add Team Member
-                  </Button>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                    placeholder="Name"
+                  />
+                  <Input
+                    value={member.role}
+                    onChange={(e) => {
+                      const newMembers = [...config.teamMembers];
+                      newMembers[index].role = e.target.value;
+                      updateConfig("teamMembers", newMembers);
+                    }}
+                    placeholder="Role"
+                  />
+                </div>
+
+                <Input
+                  type="url"
+                  value={member.avatar}
+                  onChange={(e) => {
+                    const newMembers = [...config.teamMembers];
+                    newMembers[index].avatar = e.target.value;
+                    updateConfig("teamMembers", newMembers);
+                  }}
+                  placeholder="Profile photo URL (optional)"
+                />
+              </div>
+
+              {/* Remove Member */}
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  const newMembers = config.teamMembers.filter((_, i) => i !== index);
+                  updateConfig("teamMembers", newMembers);
+                }}
+              >
+                Remove
+              </Button>
+            </div>
+          ))}
+
+          {/* Add New Member */}
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => {
+              const newMembers = [
+                ...config.teamMembers,
+                {
+                  id: Date.now().toString(),
+                  name: "",
+                  role: "Support",
+                  avatar: "",
+                  userId: "",
+                },
+              ];
+              updateConfig("teamMembers", newMembers);
+            }}
+          >
+            Add Team Member
+          </Button>
+        </CardContent>
+      </Card>
+    </TabsContent>
+
 
             {/* AI Training Tab */}
             <TabsContent value="training" className="space-y-6">

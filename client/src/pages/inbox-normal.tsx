@@ -78,8 +78,6 @@ import { format, differenceInMinutes, differenceInHours, differenceInDays, isTod
 import { cn } from "@/lib/utils";
 import type { Conversation, Contact, User } from "@shared/schema";
 import { useAuth } from "@/contexts/auth-context";
-import { io, Socket } from 'socket.io-client';
-
 
 // Helper functions
 const formatLastSeen = (date: Date | string | null) => {
@@ -894,7 +892,6 @@ const TeamAssignDropdown = ({ conversationId, currentAssignee,currentAssigneeNam
   );
 };
 
-
 // Main Component
 export default function Inbox() {
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
@@ -906,13 +903,7 @@ export default function Inbox() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { user } = useAuth();
-  
-  // Socket.io state
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const [isTyping, setIsTyping] = useState(false);
-  const [typingUser, setTypingUser] = useState<string>("");
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const {user} = useAuth();
 
   // Fetch active channel
   const { data: activeChannel } = useQuery({
@@ -941,9 +932,16 @@ export default function Inbox() {
       if (!selectedConversation?.id) return [];
       const response = await api.getMessages(selectedConversation.id);
       const data = await response.json();
+      console.log('Fetched messages:', data);
       return data;
     },
     enabled: !!selectedConversation?.id,
+  });
+
+  // Fetch team members
+  const { data: teamMembers = [] } = useQuery({
+    queryKey: ["/api/team/members"],
+    enabled: !!selectedConversation,
   });
 
   // Auto-scroll to bottom when messages change
@@ -951,143 +949,44 @@ export default function Inbox() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Initialize Socket.io connection for real-time chat
+  // WebSocket connection for real-time updates
   useEffect(() => {
-    if (!user?.id) return;
-
-    const API_BASE = `${window.location.origin}`;
-    console.log('Connecting to Socket.io at', API_BASE);
-    const socketInstance = io(API_BASE, {
-      query: {
-        userId: user.id,
-        role: user.role || 'agent',
-        siteId: activeChannel?.id || 'default'
-      },
-      transports: ['websocket', 'polling']
-    });
-
-    socketInstance.on('connect', () => {
-      console.log('Socket.io connected for agent');
-    });
-
-    socketInstance.on('disconnect', () => {
-      console.log('Socket.io disconnected');
-    });
-
-    // Listen for new messages (from visitors or AI)
-    socketInstance.on('new_message', (data) => {
-      console.log('New message received:', data);
-      
-      // Refresh conversations list
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-      
-      // If message is for selected conversation, refresh messages
-      if (selectedConversation && data.conversationId === selectedConversation.id) {
-        queryClient.invalidateQueries({ 
-          queryKey: ["/api/conversations", selectedConversation.id, "messages"] 
-        });
-      }
-    });
-
-    // Listen for visitor typing
-    socketInstance.on('user_typing', (data) => {
-      if (selectedConversation?.id === data.conversationId) {
-        setIsTyping(true);
-        setTypingUser('Visitor');
-      }
-    });
-
-    socketInstance.on('user_stopped_typing', (data) => {
-      if (selectedConversation?.id === data.conversationId) {
-        setIsTyping(false);
-        setTypingUser('');
-      }
-    });
-
-    // New conversation assigned to this agent
-    socketInstance.on('new_conversation_assigned', (data) => {
-      if (data.agentId === user.id) {
-        queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-        toast({
-          title: "New Conversation Assigned",
-          description: "A new conversation has been assigned to you",
-        });
-      }
-    });
-
-    // Conversation transferred
-    socketInstance.on('conversation_transferred', (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-      if (selectedConversation?.id === data.conversationId) {
-        toast({
-          title: "Conversation Transferred",
-          description: `Transferred to ${data.agent?.name || 'another agent'}`,
-        });
-      }
-    });
-
-    // Messages marked as read
-    socketInstance.on('messages_read', (data) => {
-      if (selectedConversation?.id === data.conversationId) {
-        queryClient.invalidateQueries({ 
-          queryKey: ["/api/conversations", selectedConversation.id, "messages"] 
-        });
-      }
-    });
-
-    // Message status updates
-    socketInstance.on('message_status_update', (data) => {
-      queryClient.invalidateQueries({ 
-        queryKey: ["/api/conversations", selectedConversation?.id, "messages"] 
-      });
-    });
-
-    // Conversation status changed
-    socketInstance.on('conversation_status_changed', (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-      if (selectedConversation?.id === data.conversationId) {
-        toast({
-          title: "Conversation Status Changed",
-          description: `Status changed to: ${data.status}`,
-        });
-      }
-    });
-
-    setSocket(socketInstance);
-
-    return () => {
-      socketInstance.disconnect();
-    };
-  }, [user?.id, activeChannel?.id]);
-
-  // WebSocket connection for WhatsApp (keep existing)
-  useEffect(() => {
+    // Create WebSocket connection immediately
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    // const wsUrl = `${protocol}//${window.location.host}/ws`;
     const wsUrl = `${protocol}//${window.location.host}/ws`;
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
     ws.onopen = () => {
-      console.log('WebSocket connected (WhatsApp)');
-      ws.send(JSON.stringify({ type: 'join-all-conversations' }));
+      console.log('WebSocket connected');
+      // Join all conversations for updates
+      ws.send(JSON.stringify({
+        type: 'join-all-conversations'
+      }));
     };
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       
       if (data.type === 'new-message') {
+        // Refresh conversations list to update unread counts
         queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
         
+        // If the message is for the selected conversation, refresh messages
         if (selectedConversation && data.conversationId === selectedConversation.id) {
-          queryClient.invalidateQueries({ 
-            queryKey: ["/api/conversations", selectedConversation.id, "messages"] 
-          });
+          queryClient.invalidateQueries({ queryKey: ["/api/conversations", selectedConversation.id, "messages"] });
         }
       }
     };
 
-    ws.onerror = (error) => console.error('WebSocket error:', error);
-    ws.onclose = () => console.log('WebSocket disconnected');
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
+    ws.onclose = () => {
+      console.log('WebSocket disconnected');
+    };
 
     return () => {
       if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
@@ -1096,39 +995,26 @@ export default function Inbox() {
     };
   }, []);
 
-  // Join conversation room when selected
+  console.log("Query" , queryClient)
+
+  // Join specific conversation when selected
   useEffect(() => {
-    if (!selectedConversation || !socket) return;
+    if (!selectedConversation || !wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
     
-    // Join the conversation room via Socket.io
-    socket.emit('agent_join_conversation', {
-      conversationId: selectedConversation.id,
-      agentId: user?.id,
-      agentName: `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || user?.username
-    });
+    // Join the specific conversation for detailed updates
+    wsRef.current.send(JSON.stringify({
+      type: 'join-conversation',
+      conversationId: selectedConversation.id
+    }));
+  }, [selectedConversation]); 
 
-    // Join via WebSocket for WhatsApp
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({
-        type: 'join-conversation',
-        conversationId: selectedConversation.id
-      }));
-    }
-  }, [selectedConversation, socket]);
-
-  // Send message mutation (updated for Socket.io)
+  // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (data: { conversationId: string; content: string }) => {
       const response = await fetch(`/api/conversations/${data.conversationId}/messages`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          content: data.content, 
-          fromUser: true,
-          fromType: 'agent',
-          agentId: user?.id,
-          agentName: `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || user?.username
-        }),
+        body: JSON.stringify({ content: data.content, fromUser: true }),
       });
       
       if (!response.ok) {
@@ -1138,30 +1024,10 @@ export default function Inbox() {
       
       return response.json();
     },
-    onSuccess: (data) => {
-      // Emit via Socket.io for real-time delivery
-      if (socket && selectedConversation) {
-        socket.emit('agent_send_message', {
-          conversationId: selectedConversation.id,
-          content: messageText,
-          agentId: user?.id,
-          agentName: `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || user?.username
-        });
-      }
-
-      queryClient.invalidateQueries({ 
-        queryKey: ["/api/conversations", selectedConversation?.id, "messages"] 
-      });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations", selectedConversation?.id, "messages"] });
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-      
       setMessageText("");
-      
-      // Stop typing indicator
-      if (socket && selectedConversation) {
-        socket.emit('agent_stopped_typing', {
-          conversationId: selectedConversation.id
-        });
-      }
     },
     onError: (error: Error) => {
       toast({
@@ -1171,31 +1037,6 @@ export default function Inbox() {
       });
     },
   });
-
-  // Handle typing indicator
-  const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setMessageText(e.target.value);
-    
-    if (!socket || !selectedConversation) return;
-    
-    // Send typing indicator via Socket.io
-    socket.emit('agent_typing', {
-      conversationId: selectedConversation.id,
-      agentName: `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || user?.username
-    });
-    
-    // Clear previous timeout
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-    
-    // Set timeout to stop typing
-    typingTimeoutRef.current = setTimeout(() => {
-      socket.emit('agent_stopped_typing', {
-        conversationId: selectedConversation.id
-      });
-    }, 2000);
-  };
 
   // Update conversation status mutation
   const updateStatusMutation = useMutation({
@@ -1213,15 +1054,7 @@ export default function Inbox() {
       
       return response.json();
     },
-    onSuccess: (data, variables) => {
-      // Emit status change via Socket.io
-      if (socket) {
-        socket.emit('conversation_status_changed', {
-          conversationId: variables.conversationId,
-          status: variables.status
-        });
-      }
-      
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
       toast({
         title: "Success",
@@ -1262,9 +1095,7 @@ export default function Inbox() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ 
-        queryKey: ["/api/conversations", selectedConversation?.id, "messages"] 
-      });
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations", selectedConversation?.id, "messages"] });
       toast({
         title: "Success",
         description: "Template sent successfully",
@@ -1310,12 +1141,12 @@ export default function Inbox() {
     formData.append("media", file);
     formData.append("fromUser", "true");
     formData.append("conversationId", selectedConversation.id);
-    formData.append("caption", messageText || "");
+    formData.append("caption", messageText || ""); // optional text/caption
   
     try {
       const response = await fetch(`/api/conversations/${selectedConversation.id}/messages`, {
         method: "POST",
-        body: formData,
+        body: formData, // no headers! browser sets them
       });
   
       if (!response.ok) {
@@ -1323,14 +1154,13 @@ export default function Inbox() {
         throw new Error(error.message || "Failed to send media");
       }
   
+      const result = await response.json();
       toast({
         title: "Success",
         description: "Media sent successfully",
       });
   
-      queryClient.invalidateQueries({ 
-        queryKey: ["/api/conversations", selectedConversation.id, "messages"] 
-      });
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations", selectedConversation.id, "messages"] });
       setMessageText("");
     } catch (error: any) {
       toast({
@@ -1342,6 +1172,7 @@ export default function Inbox() {
   
     event.target.value = "";
   };
+  
 
   const updateConversationStatus = (status: string) => {
     if (!selectedConversation) return;
@@ -1425,6 +1256,7 @@ export default function Inbox() {
     }
   };
 
+
   const updateConversationMutation = useMutation({
     mutationFn: async (data: { id: string; updates: any }) => {
       const response = await fetch(`/api/conversations/${data.id}`, {
@@ -1432,13 +1264,14 @@ export default function Inbox() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data.updates),
       });
-      const result = await response.json();
+      const result = await response.json(); // parse JSON body
 
       if (!response.ok) {
+        // Optionally log the server error message if provided
         console.error(result.error || 'Unknown error');
         throw new Error(result.error || 'Failed to update conversation');
       }
-      
+  console.log("Update conversation result:", result);
       return result;
     },
     onSuccess: (updatedConversation) => {
@@ -1458,6 +1291,7 @@ export default function Inbox() {
     },
   });
 
+
   const handleAssignConversation = (assignedTo: string, assignedToName: string) => {
     if (!selectedConversation) return;
     
@@ -1472,22 +1306,10 @@ export default function Inbox() {
     });
   };
 
-  const handleCloseConversation = () => {
-    if (!socket || !selectedConversation) return;
-    
-    socket.emit('close_conversation', {
-      conversationId: selectedConversation.id,
-      agentId: user?.id
-    });
-    
-    updateConversationStatus('closed');
-  };
-
   // Filter conversations  
   const filteredConversations = conversations.filter((conv: any) => {
     const matchesSearch = conv.contact?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         conv.contactPhone?.includes(searchQuery) ||
-                         conv.contactName?.toLowerCase().includes(searchQuery.toLowerCase());
+                         conv.contactPhone?.includes(searchQuery);
     
     switch (filterTab) {
       case "unread":
@@ -1501,16 +1323,16 @@ export default function Inbox() {
       case "chatbot":
         return matchesSearch && conv.type === "chatbot";
       case "assigned":
-        return matchesSearch &&
-               conv.status === "assigned" &&
-               (user?.role === 'admin' || conv.assignedTo === user?.id);
+          return matchesSearch &&
+                 conv.status === "assigned" &&
+                 (user?.role === 'admin' || conv.assignedTo === user?.id);
       default:
         return matchesSearch;
     }
   });
 
-  // Check if 24-hour window has passed (for WhatsApp)
-  const is24HourWindowExpired = selectedConversation?.lastMessageAt && selectedConversation?.type === 'whatsapp' ? 
+  // Check if 24-hour window has passed
+  const is24HourWindowExpired = selectedConversation?.lastMessageAt ? 
     differenceInHours(new Date(), new Date(selectedConversation.lastMessageAt)) > 24 : false;
 
   if (!activeChannel) {
@@ -1533,7 +1355,7 @@ export default function Inbox() {
       <Header title="Team Inbox" />
       <div className="flex-1 flex bg-gray-50 overflow-hidden">
       
-        {/* Conversations List */}
+      {/* Conversations List */}
       <div className={cn(
         "bg-white border-r border-gray-200 flex flex-col",
         selectedConversation ? "hidden md:flex md:w-80 lg:w-96" : "w-full x-5 md:w-80 lg:w-96"
@@ -1587,10 +1409,10 @@ export default function Inbox() {
         </ScrollArea>
       </div>
 
-        {/* Chat Area - Updated with typing indicator */}
-        {selectedConversation ? (
-          <div className="flex-1 flex flex-col">
-             {/* Chat Header */}
+      {/* Chat Area */}
+      {selectedConversation ? (
+        <div className="flex-1 flex flex-col">
+          {/* Chat Header */}
           <div className="bg-white border-b border-gray-200 px-4 md:px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -1716,172 +1538,128 @@ export default function Inbox() {
               </div>
             </div>
           </div>
-            
-            {/* Messages Area - Updated */}
-            <ScrollArea className="flex-1 p-4 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImEiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PHBhdGggZD0iTTAgMTBoNDBNMTAgMHY0ME0wIDIwaDQwTTIwIDB2NDBNMCAzMGg0ME0zMCAwdjQwIiBmaWxsPSJub25lIiBzdHJva2U9IiNlMGUwZTAiIG9wYWNpdHk9IjAuMiIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNhKSIvPjwvc3ZnPg==')]">
-              <div className="min-h-full">
-                {messagesLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loading />
-                  </div>
-                ) : !messages || messages.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    No messages yet. Start a conversation!
-                  </div>
-                ) : (
-                  <div className="space-y-1">
-                    {messages.map((message: Message, index: number) => {
-                      const prevMessage = index > 0 ? messages[index - 1] : null;
-                      const showDate = !prevMessage || 
-                        !isToday(new Date(message.createdAt || new Date())) ||
-                        (prevMessage && !isToday(new Date(prevMessage.createdAt || new Date())));
-                      
-                      return (
-                        <MessageItem
-                          key={message.id}
-                          message={message}
-                          showDate={showDate}
-                        />
-                      );
-                    })}
-                    
-                    {/* Typing Indicator */}
-                    {isTyping && (
-                      <div className="flex items-end gap-2 mb-4">
-                        <Avatar className="h-8 w-8">
-                          <AvatarFallback className="bg-gray-200 text-xs">
-                            {typingUser[0] || 'V'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="bg-gray-100 rounded-2xl rounded-bl-sm px-4 py-3">
-                          <div className="flex gap-1">
-                            <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                            <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                            <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    
-                    <div ref={messagesEndRef} />
-                  </div>
-                )}
-              </div>
-            </ScrollArea>
 
-            {/* Message Input - Updated with typing handler */}
-            <div className="bg-white border-t border-gray-200 p-3 md:p-4">
-              {is24HourWindowExpired && selectedConversation.type === 'whatsapp' && (
-                <div className="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <div className="flex items-start gap-2">
-                    <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5" />
-                    <div className="text-sm">
-                      <p className="font-medium text-yellow-800">24-hour window expired</p>
-                      <p className="text-yellow-700">You can only send template messages now</p>
-                    </div>
-                  </div>
+          {/* Messages Area */}
+          <ScrollArea className="flex-1 p-4 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImEiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PHBhdGggZD0iTTAgMTBoNDBNMTAgMHY0ME0wIDIwaDQwTTIwIDB2NDBNMCAzMGg0ME0zMCAwdjQwIiBmaWxsPSJub25lIiBzdHJva2U9IiNlMGUwZTAiIG9wYWNpdHk9IjAuMiIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNhKSIvPjwvc3ZnPg==')]">
+            <div className="min-h-full">
+              {messagesLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loading />
+                </div>
+              ) : !messages || messages.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  No messages yet. Start a conversation!
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {messages.map((message: Message, index: number) => {
+                    const prevMessage = index > 0 ? messages[index - 1] : null;
+                    const showDate = !prevMessage || 
+                      !isToday(new Date(message.createdAt || new Date())) ||
+                      (prevMessage && !isToday(new Date(prevMessage.createdAt || new Date())));
+                    
+                    return (
+                      <MessageItem
+                        key={message.id}
+                        message={message}
+                        showDate={showDate}
+                      />
+                    );
+                  })}
+                  <div ref={messagesEndRef} />
                 </div>
               )}
+            </div>
+          </ScrollArea>
 
-              <div className="flex items-end gap-1 md:gap-2">
-                <div className="flex gap-1">
-                  {selectedConversation.type === 'whatsapp' && (
-                    <>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-8 w-8 md:h-9 md:w-9" 
-                              onClick={handleFileAttachment} 
-                              disabled={user?.username === 'demouser'}
-                            >
-                              <Paperclip className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Attach File</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                      
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        hidden
-                        onChange={handleFileChange}
-                        accept="image/*,video/*,audio/*,.pdf,.doc,.docx"
-                      />
-
-                      {user?.username === 'demouser' ? (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 md:h-9 md:w-9" disabled>
-                                <FileText className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Templates disabled for demo user</TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      ) : (
-                        <TemplateDialog
-                          channelId={activeChannel?.id}
-                          onSelectTemplate={handleSelectTemplate}
-                        />
-                      )}
-                    </>
-                  )}
+          {/* Message Input */}
+          <div className="bg-white border-t border-gray-200 p-3 md:p-4">
+            {is24HourWindowExpired && (
+              <div className="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5" />
+                  <div className="text-sm">
+                    <p className="font-medium text-yellow-800">24-hour window expired</p>
+                    <p className="text-yellow-700">You can only send template messages now</p>
+                  </div>
                 </div>
-
-                <Input
-                  placeholder={
-                    is24HourWindowExpired && selectedConversation.type === 'whatsapp' 
-                      ? "Templates only" 
-                      : "Type a message..."
-                  }
-                  value={messageText}
-                  onChange={handleTyping}
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSendMessage();
-                    }
-                  }}
-                  disabled={
-                    user?.username === 'demouser' 
-                      ? true 
-                      : (is24HourWindowExpired && selectedConversation.type === 'whatsapp')
-                  }
-                  className="flex-1"
-                />
-
-                <Button
-                  onClick={handleSendMessage}
-                  disabled={
-                    user?.username === 'demouser' 
-                      ? true 
-                      : (!messageText.trim() || 
-                         (is24HourWindowExpired && selectedConversation.type === 'whatsapp') || 
-                         sendMessageMutation.isPending)
-                  }
-                  size="icon"
-                  className="h-8 w-8 md:h-9 md:w-9 bg-green-600 hover:bg-green-700"
-                  data-testid="button-send-message"
-                >
-                  <Send className="h-4 w-4" />
-                </Button>
               </div>
+            )}
+
+            <div className="flex items-end gap-1 md:gap-2">
+              <div className="flex gap-1">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 md:h-9 md:w-9" onClick={handleFileAttachment} disabled={user?.username === 'demouser'}>
+                        <Paperclip className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Attach File</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  hidden
+                  onChange={handleFileChange}
+                  accept="image/*,video/*,audio/*,.pdf,.doc,.docx"
+                />
+{user?.username === 'demouser' ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 md:h-9 md:w-9" disabled>
+                        <FileText className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Templates disabled for demo user</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+
+                <TemplateDialog
+                  channelId={activeChannel?.id}
+                  onSelectTemplate={handleSelectTemplate}
+                />)}
+              </div>
+
+              <Input
+                placeholder={is24HourWindowExpired ? "Templates only" : "Type a message..."}
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
+                disabled={user?.username === 'demouser'? true : is24HourWindowExpired}
+                className="flex-1"
+              />
+
+              <Button
+                onClick={handleSendMessage}
+                disabled={user?.username === 'demouser'? true : (!messageText.trim() || is24HourWindowExpired || sendMessageMutation.isPending)}
+                size="icon"
+                className="h-8 w-8 md:h-9 md:w-9 bg-green-600 hover:bg-green-700"
+                data-testid="button-send-message"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
             </div>
           </div>
-        ) : (
-          <div className="hidden md:flex flex-1 items-center justify-center bg-gray-50">
-            <div className="text-center">
-              <MessageCircle className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Select a conversation</h3>
-              <p className="text-gray-500">Choose a conversation from the list to start messaging</p>
-            </div>
+        </div>
+      ) : (
+        <div className="hidden md:flex flex-1 items-center justify-center bg-gray-50">
+          <div className="text-center">
+            <MessageCircle className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Select a conversation</h3>
+            <p className="text-gray-500">Choose a conversation from the list to start messaging</p>
           </div>
-        )}
+        </div>
+      )}
       </div>
     </div>
   );

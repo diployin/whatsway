@@ -1,5 +1,5 @@
 // ============================================
-// ENHANCED WIDGET.JS - With Support User Chat
+// REAL-TIME WIDGET.JS - With Socket.io Support
 // ============================================
 
 (function() {
@@ -25,10 +25,10 @@
   let leadInfo = null;
   let conversationId = null;
   let sessionId = generateSessionId();
-  let pollInterval = null;
-  let lastMessageId = null;
-  let assignedAgent = null;
-  let chatMode = 'bot'; // 'bot' or 'human'
+  let socket = null;
+  let isConnected = false;
+  let currentMode = 'ai'; // 'ai' or 'human'
+  let typingTimeout = null;
 
   const defaultConfig = {
     primaryColor: '#3b82f6',
@@ -59,12 +59,238 @@
     animationSpeed: 'normal',
   };
 
-  // Generate unique session ID
   function generateSessionId() {
     return 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   }
 
-  // Fetch widget configuration
+  // Initialize Socket.io connection
+  function initializeSocket() {
+    if (socket && isConnected) return;
+
+    // Load Socket.io client
+    if (!window.io) {
+      const script = document.createElement('script');
+      script.src = `${API_BASE}/socket.io/socket.io.js`;
+      script.onload = () => connectSocket();
+      document.head.appendChild(script);
+    } else {
+      connectSocket();
+    }
+  }
+
+  function connectSocket() {
+    socket = io(API_BASE, {
+      query: {
+        sessionId: sessionId,
+        siteId: siteId,
+        conversationId: conversationId
+      },
+      transports: ['websocket', 'polling']
+    });
+
+    socket.on('connect', () => {
+      console.log('Socket connected');
+      isConnected = true;
+      
+      if (conversationId) {
+        socket.emit('join_conversation', { conversationId });
+      }
+      
+      updateConnectionStatus(true);
+    });
+
+    socket.on('disconnect', () => {
+      console.log('Socket disconnected');
+      isConnected = false;
+      updateConnectionStatus(false);
+    });
+
+    // Receive new message from admin/agent
+    socket.on('new_message', (data) => {
+      if (currentScreen === 'chat') {
+        addMessageToChat(data.message, false);
+        
+        // Mark as read
+        if (isOpen) {
+          socket.emit('message_read', { 
+            conversationId: conversationId,
+            messageId: data.message.id 
+          });
+        }
+      } else {
+        // Show notification badge
+        updateUnreadCount();
+      }
+    });
+
+    // Conversation assigned to agent
+    socket.on('conversation_assigned', (data) => {
+      currentMode = 'human';
+      showAgentAssignedNotification(data.agent);
+    });
+
+    // Agent typing indicator
+    socket.on('agent_typing', (data) => {
+      if (currentScreen === 'chat') {
+        showTypingIndicator(data.agentName || 'Agent');
+      }
+    });
+
+    // Agent stopped typing
+    socket.on('agent_stopped_typing', () => {
+      hideTypingIndicator();
+    });
+
+    // Conversation status changed
+    socket.on('conversation_status_changed', (data) => {
+      if (data.status === 'closed') {
+        showConversationClosedMessage();
+      }
+    });
+
+    // Message status update (delivered/read)
+    socket.on('message_status_update', (data) => {
+      updateMessageStatus(data.messageId, data.status);
+    });
+  }
+
+  function updateConnectionStatus(connected) {
+    const statusEl = widgetContainer?.querySelector('.ai-chat-connection-status');
+    if (statusEl) {
+      statusEl.textContent = connected ? 'Connected' : 'Connecting...';
+      statusEl.style.color = connected ? '#10b981' : '#f59e0b';
+    }
+  }
+
+  function showAgentAssignedNotification(agent) {
+    if (currentScreen !== 'chat') return;
+    
+    const messagesContainer = widgetContainer.querySelector('.ai-chat-widget-messages');
+    const agentName = agent?.name || 'Support Agent';
+    
+    messagesContainer.innerHTML += `
+      <div class="ai-chat-system-message">
+        <div class="ai-chat-system-message-content">
+          🎯 ${agentName} has joined the conversation
+        </div>
+      </div>
+    `;
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  }
+
+  function showTypingIndicator(agentName) {
+    const messagesContainer = widgetContainer.querySelector('.ai-chat-widget-messages');
+    
+    // Remove existing typing indicator
+    const existing = messagesContainer.querySelector('.ai-typing-indicator');
+    if (existing) existing.remove();
+    
+    messagesContainer.innerHTML += `
+      <div class="ai-chat-widget-message bot ai-typing-indicator">
+        <div class="ai-chat-widget-message-avatar">${agentName[0]}</div>
+        <div class="ai-chat-widget-message-content">
+          <div class="ai-typing-dots">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+      </div>
+    `;
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  }
+
+  function hideTypingIndicator() {
+    const messagesContainer = widgetContainer?.querySelector('.ai-chat-widget-messages');
+    if (!messagesContainer) return;
+    
+    const typingIndicator = messagesContainer.querySelector('.ai-typing-indicator');
+    if (typingIndicator) {
+      typingIndicator.remove();
+    }
+  }
+
+  function showConversationClosedMessage() {
+    if (currentScreen !== 'chat') return;
+    
+    const messagesContainer = widgetContainer.querySelector('.ai-chat-widget-messages');
+    messagesContainer.innerHTML += `
+      <div class="ai-chat-system-message">
+        <div class="ai-chat-system-message-content">
+          ✅ This conversation has been closed. Start a new conversation if you need more help.
+        </div>
+      </div>
+    `;
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  }
+
+  function addMessageToChat(message, isUser) {
+    const messagesContainer = widgetContainer.querySelector('.ai-chat-widget-messages');
+    if (!messagesContainer) return;
+    
+    const messageClass = isUser ? 'user' : 'bot';
+    const avatarText = isUser ? (leadInfo?.name?.[0] || 'U') : (message.fromName?.[0] || 'A');
+    
+    messagesContainer.innerHTML += `
+      <div class="ai-chat-widget-message ${messageClass}" data-message-id="${message.id || ''}">
+        ${!isUser ? `<div class="ai-chat-widget-message-avatar">${avatarText}</div>` : ''}
+        <div class="ai-chat-widget-message-content">
+          ${escapeHtml(message.content)}
+          ${isUser ? `<div class="ai-message-status" data-status="${message.status || 'sent'}">${getStatusIcon(message.status || 'sent')}</div>` : ''}
+        </div>
+        ${isUser ? `<div class="ai-chat-widget-message-avatar">${avatarText}</div>` : ''}
+      </div>
+    `;
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  }
+
+  function getStatusIcon(status) {
+    switch(status) {
+      case 'sent': return '✓';
+      case 'delivered': return '✓✓';
+      case 'read': return '✓✓';
+      default: return '';
+    }
+  }
+
+  function updateMessageStatus(messageId, status) {
+    const messageEl = widgetContainer?.querySelector(`[data-message-id="${messageId}"]`);
+    if (!messageEl) return;
+    
+    const statusEl = messageEl.querySelector('.ai-message-status');
+    if (statusEl) {
+      statusEl.setAttribute('data-status', status);
+      statusEl.textContent = getStatusIcon(status);
+    }
+  }
+
+  function updateUnreadCount() {
+    // Add badge to widget button
+    let badge = widgetButton.querySelector('.ai-chat-badge');
+    if (!badge) {
+      badge = document.createElement('div');
+      badge.className = 'ai-chat-badge';
+      widgetButton.appendChild(badge);
+    }
+    
+    const currentCount = parseInt(badge.textContent || '0');
+    badge.textContent = currentCount + 1;
+    badge.style.display = 'flex';
+  }
+
+  // Send typing indicator
+  function sendTypingIndicator() {
+    if (socket && isConnected && conversationId) {
+      socket.emit('user_typing', { conversationId });
+      
+      // Clear previous timeout
+      if (typingTimeout) clearTimeout(typingTimeout);
+      
+      // Send stopped typing after 2 seconds of inactivity
+      typingTimeout = setTimeout(() => {
+        socket.emit('user_stopped_typing', { conversationId });
+      }, 2000);
+    }
+  }
+
   async function fetchWidgetConfig() {
     try {
       const response = await fetch(`${API_BASE}/api/widget/config/${siteId}`);
@@ -88,7 +314,6 @@
     }
   }
 
-  // Fetch knowledge base articles
   async function fetchKBArticles() {
     try {
       const response = await fetch(`${API_BASE}/api/widget/kb/${siteId}`);
@@ -100,7 +325,6 @@
     }
   }
 
-  // Fetch full article
   async function fetchArticle(articleId) {
     try {
       const response = await fetch(`${API_BASE}/api/widget/article/${articleId}`);
@@ -113,111 +337,6 @@
     }
   }
 
-  // Poll for new messages from support agents
-  async function pollMessages() {
-    if (!conversationId) return;
-    
-    try {
-      const response = await fetch(
-        `${API_BASE}/api/widget/messages/${conversationId}?lastMessageId=${lastMessageId || ''}`
-      );
-      
-      if (response.ok) {
-        const data = await response.json();
-        
-        // Update assigned agent info
-        if (data.assignedAgent) {
-          assignedAgent = data.assignedAgent;
-          chatMode = 'human';
-          updateChatHeader();
-        }
-        
-        // Add new messages
-        if (data.messages && data.messages.length > 0) {
-          const messagesContainer = widgetContainer.querySelector('.ai-chat-widget-messages');
-          if (messagesContainer) {
-            data.messages.forEach(msg => {
-              if (msg.id !== lastMessageId) {
-                addMessageToUI(msg);
-                lastMessageId = msg.id;
-              }
-            });
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Failed to poll messages:', error);
-    }
-  }
-
-  // Add message to UI
-  function addMessageToUI(message) {
-    const messagesContainer = widgetContainer.querySelector('.ai-chat-widget-messages');
-    if (!messagesContainer) return;
-    
-    const isUser = message.fromUser || message.direction === 'inbound';
-    const messageClass = isUser ? 'user' : 'bot';
-    
-    // Determine avatar and name
-    let avatarContent = 'AI';
-    let senderName = '';
-    
-    if (!isUser) {
-      if (message.fromType === 'agent' && assignedAgent) {
-        avatarContent = assignedAgent.name.substring(0, 2).toUpperCase();
-        senderName = assignedAgent.name;
-      } else {
-        avatarContent = 'AI';
-        senderName = 'AI Assistant';
-      }
-    }
-    
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `ai-chat-widget-message ${messageClass}`;
-    messageDiv.setAttribute('data-message-id', message.id);
-    
-    if (isUser) {
-      messageDiv.innerHTML = `
-        <div class="ai-chat-widget-message-content">${escapeHtml(message.content)}</div>
-      `;
-    } else {
-      messageDiv.innerHTML = `
-        <div class="ai-chat-widget-message-avatar">${avatarContent}</div>
-        <div class="ai-chat-widget-message-wrapper">
-          ${senderName ? `<div class="ai-chat-widget-message-sender">${senderName}</div>` : ''}
-          <div class="ai-chat-widget-message-content">${escapeHtml(message.content)}</div>
-        </div>
-      `;
-    }
-    
-    messagesContainer.appendChild(messageDiv);
-  }
-
-  // Update chat header when agent joins
-  function updateChatHeader() {
-    const headerContent = widgetContainer.querySelector('.ai-chat-widget-header-content');
-    if (!headerContent) return;
-    
-    if (chatMode === 'human' && assignedAgent) {
-      headerContent.innerHTML = `
-        ${widgetConfig.appName ? `<div class="ai-chat-widget-app-name">${widgetConfig.appName}</div>` : ''}
-        <div class="ai-chat-widget-title">Chat with ${assignedAgent.name}</div>
-        <div class="ai-chat-widget-subtitle">
-          <span class="ai-chat-widget-online-indicator"></span>
-          Online
-        </div>
-      `;
-    } else {
-      headerContent.innerHTML = `
-        ${widgetConfig.appName ? `<div class="ai-chat-widget-app-name">${widgetConfig.appName}</div>` : ''}
-        <div class="ai-chat-widget-title">${widgetConfig.title}</div>
-        <div class="ai-chat-widget-subtitle">${widgetConfig.subtitle}</div>
-      `;
-    }
-  }
-
-  // Create styles
   function createStyles() {
     const fontImport = widgetConfig.fontFamily === 'inter' ? `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');` :
                       widgetConfig.fontFamily === 'roboto' ? `@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');` :
@@ -291,6 +410,23 @@
         ${widgetConfig.position.includes('right') ? 'right: 24px;' : 'left: 24px;'}
       }
 
+      .ai-chat-badge {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        background: #ef4444;
+        color: white;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 600;
+        border: 2px solid white;
+      }
+
       .ai-chat-widget-container {
         position: fixed;
         width: 380px;
@@ -331,6 +467,12 @@
         margin-bottom: 4px;
       }
 
+      .ai-chat-connection-status {
+        font-size: 11px;
+        opacity: 0.9;
+        margin-top: 4px;
+      }
+
       .ai-chat-widget-app-name {
         font-size: 15px;
         font-weight: 600;
@@ -346,23 +488,6 @@
       .ai-chat-widget-subtitle {
         font-size: 13px;
         opacity: 0.8;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-
-      .ai-chat-widget-online-indicator {
-        width: 8px;
-        height: 8px;
-        background: #10b981;
-        border-radius: 50%;
-        display: inline-block;
-        animation: pulse 2s infinite;
-      }
-
-      @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.5; }
       }
 
       .ai-chat-widget-close, .ai-chat-widget-back {
@@ -383,6 +508,22 @@
         flex: 1;
         overflow-y: auto;
         padding: 20px;
+      }
+
+      .ai-chat-system-message {
+        display: flex;
+        justify-content: center;
+        margin: 16px 0;
+      }
+
+      .ai-chat-system-message-content {
+        background: #f1f5f9;
+        color: #64748b;
+        padding: 8px 16px;
+        border-radius: 16px;
+        font-size: 13px;
+        text-align: center;
+        max-width: 80%;
       }
 
       .ai-chat-widget-team {
@@ -510,6 +651,7 @@
         margin-bottom: 16px;
         display: flex;
         gap: 8px;
+        align-items: flex-end;
       }
 
       .ai-chat-widget-message.user {
@@ -530,25 +672,13 @@
         flex-shrink: 0;
       }
 
-      .ai-chat-widget-message-wrapper {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-      }
-
-      .ai-chat-widget-message-sender {
-        font-size: 11px;
-        font-weight: 500;
-        color: #64748b;
-        padding-left: 4px;
-      }
-
       .ai-chat-widget-message-content {
         max-width: 70%;
         padding: 10px 14px;
         border-radius: 12px;
         font-size: 14px;
         line-height: 1.4;
+        position: relative;
       }
 
       .ai-chat-widget-message.bot .ai-chat-widget-message-content {
@@ -559,6 +689,17 @@
       .ai-chat-widget-message.user .ai-chat-widget-message-content {
         background: ${widgetConfig.primaryColor};
         color: white;
+      }
+
+      .ai-message-status {
+        font-size: 10px;
+        opacity: 0.7;
+        margin-top: 4px;
+        text-align: right;
+      }
+
+      .ai-message-status[data-status="read"] {
+        color: #10b981;
       }
 
       .ai-typing-dots {
@@ -649,7 +790,6 @@
     document.head.appendChild(style);
   }
 
-  // SVG Icons
   function createMessageIcon(color = 'white') {
     return `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
@@ -670,7 +810,6 @@
     </svg>`;
   }
 
-  // Create widget button
   function createWidgetButton() {
     const button = document.createElement('button');
     button.className = `ai-chat-widget-button ${widgetConfig.position}`;
@@ -681,7 +820,6 @@
     return button;
   }
 
-  // Create widget container
   function createWidgetContainer() {
     const container = document.createElement('div');
     container.className = `ai-chat-widget-container ${widgetConfig.position} hidden`;
@@ -693,6 +831,7 @@
             ${widgetConfig.appName ? `<div class="ai-chat-widget-app-name">${widgetConfig.appName}</div>` : ''}
             <div class="ai-chat-widget-title">${widgetConfig.title}</div>
             <div class="ai-chat-widget-subtitle">${widgetConfig.subtitle}</div>
+            <div class="ai-chat-connection-status">Connecting...</div>
           </div>
           <button class="ai-chat-widget-close">${createCloseIcon()}</button>
         </div>
@@ -710,7 +849,6 @@
     return container;
   }
 
-  // Render home screen
   function renderHomeScreen() {
     const avatars = widgetConfig.teamMembers.slice(0, 3).map(member => {
       if (member.avatar) {
@@ -760,7 +898,6 @@
     `;
   }
 
-  // Render lead form
   function renderLeadForm() {
     return `
       <div class="ai-chat-widget-lead-form">
@@ -787,7 +924,6 @@
     `;
   }
 
-  // Submit lead form
   async function submitLeadForm(event) {
     event.preventDefault();
     
@@ -818,13 +954,15 @@
     proceedToChat();
   }
 
-  // Proceed to chat
   function proceedToChat() {
     currentScreen = 'chat';
     const content = widgetContainer.querySelector('.ai-chat-widget-content');
     content.innerHTML = renderChatScreen();
     
     widgetContainer.querySelector('.ai-chat-widget-back').style.display = 'block';
+    
+    // Initialize socket connection
+    initializeSocket();
     
     const sendButton = content.querySelector('.ai-chat-widget-chat-send');
     const input = content.querySelector('#ai-chat-input');
@@ -834,11 +972,10 @@
       if (e.key === 'Enter' && !sendButton.disabled) sendMessage();
     });
     
-    // Start polling for messages from support agents
-    startPolling();
+    // Add typing indicator on input
+    input.addEventListener('input', sendTypingIndicator);
   }
 
-  // Render chat screen
   function renderChatScreen() {
     const greeting = leadInfo 
       ? `Hi ${leadInfo.name}! ${widgetConfig.greeting}`
@@ -860,24 +997,6 @@
     `;
   }
 
-  // Start polling for new messages
-  function startPolling() {
-    if (pollInterval) {
-      clearInterval(pollInterval);
-    }
-    // Poll every 2 seconds
-    pollInterval = setInterval(pollMessages, 2000);
-  }
-
-  // Stop polling
-  function stopPolling() {
-    if (pollInterval) {
-      clearInterval(pollInterval);
-      pollInterval = null;
-    }
-  }
-
-  // Send message
   async function sendMessage() {
     const input = document.querySelector('#ai-chat-input');
     const sendButton = document.querySelector('.ai-chat-widget-chat-send');
@@ -887,34 +1006,22 @@
     
     const messagesContainer = widgetContainer.querySelector('.ai-chat-widget-messages');
     
-    // Disable input during processing
     sendButton.disabled = true;
     input.disabled = true;
     
+    // Create temporary message ID
+    const tempMessageId = 'temp_' + Date.now();
+    
     // Add user message
-    const userMessageDiv = document.createElement('div');
-    userMessageDiv.className = 'ai-chat-widget-message user';
-    userMessageDiv.innerHTML = `
-      <div class="ai-chat-widget-message-content">${escapeHtml(message)}</div>
-    `;
-    messagesContainer.appendChild(userMessageDiv);
+    const userMessage = {
+      id: tempMessageId,
+      content: message,
+      status: 'sending'
+    };
+    
+    addMessageToChat(userMessage, true);
     
     input.value = '';
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    
-    // Add typing indicator
-    const typingDiv = document.createElement('div');
-    typingDiv.className = 'ai-chat-widget-message bot ai-typing-indicator';
-    typingDiv.innerHTML = `
-      <div class="ai-chat-widget-message-avatar">${chatMode === 'human' && assignedAgent ? assignedAgent.name.substring(0, 2).toUpperCase() : 'AI'}</div>
-      <div class="ai-chat-widget-message-content">
-        <div class="ai-typing-dots">
-          <span></span><span></span><span></span>
-        </div>
-      </div>
-    `;
-    messagesContainer.appendChild(typingDiv);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
     
     try {
       const response = await fetch(`${API_BASE}/api/widget/chat`, {
@@ -936,54 +1043,66 @@
       
       const data = await response.json();
       
-      // Store conversation ID for subsequent messages
+      // Store conversation ID
       if (data.conversationId) {
         conversationId = data.conversationId;
+        
+        // Join socket room
+        if (socket && isConnected) {
+          socket.emit('join_conversation', { conversationId });
+        }
       }
       
-      // Update assigned agent if changed
-      if (data.assignedAgent) {
-        assignedAgent = data.assignedAgent;
-        chatMode = 'human';
-        updateChatHeader();
+      // Update message status
+      updateMessageStatus(tempMessageId, 'sent');
+      
+      // If response from API (AI mode), add it
+      if (data.response && currentMode === 'ai') {
+        hideTypingIndicator();
+        addMessageToChat({
+          id: data.messageId,
+          content: data.response,
+          fromName: 'AI Assistant'
+        }, false);
+      } else if (currentMode === 'human') {
+        // Show waiting for agent message
+        if (!messagesContainer.querySelector('.ai-typing-indicator')) {
+          messagesContainer.innerHTML += `
+            <div class="ai-chat-system-message">
+              <div class="ai-chat-system-message-content">
+                Agent is typing...
+              </div>
+            </div>
+          `;
+        }
       }
       
-      // Remove typing indicator
-      typingDiv.remove();
-      
-      // Add AI/Agent response
-      const responseMessage = {
-        id: data.messageId || Date.now().toString(),
-        content: data.response,
-        fromUser: false,
-        fromType: data.fromType || 'bot'
-      };
-      addMessageToUI(responseMessage);
-      lastMessageId = responseMessage.id;
-      
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
     } catch (error) {
       console.error('Chat error:', error);
       
-      typingDiv.remove();
+      updateMessageStatus(tempMessageId, 'failed');
       
-      const errorDiv = document.createElement('div');
-      errorDiv.className = 'ai-chat-widget-message bot';
-      errorDiv.innerHTML = `
-        <div class="ai-chat-widget-message-avatar">AI</div>
-        <div class="ai-chat-widget-message-content">Sorry, I'm having trouble responding right now. Please try again.</div>
+      messagesContainer.innerHTML += `
+        <div class="ai-chat-system-message">
+          <div class="ai-chat-system-message-content" style="background: #fee2e2; color: #991b1b;">
+            ❌ Failed to send message. Please try again.
+          </div>
+        </div>
       `;
-      messagesContainer.appendChild(errorDiv);
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     } finally {
-      // Re-enable input
       sendButton.disabled = false;
       input.disabled = false;
       input.focus();
     }
   }
 
-  // Show article
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
   function showArticle(article) {
     currentScreen = 'article';
     currentArticle = article;
@@ -998,7 +1117,6 @@
     widgetContainer.querySelector('.ai-chat-widget-back').style.display = 'block';
   }
 
-  // Toggle widget
   function toggleWidget() {
     if (isOpen) {
       closeWidget();
@@ -1011,15 +1129,24 @@
     isOpen = true;
     widgetContainer.classList.remove('hidden');
     widgetButton.style.display = 'none';
+    
+    // Clear badge
+    const badge = widgetButton.querySelector('.ai-chat-badge');
+    if (badge) {
+      badge.style.display = 'none';
+      badge.textContent = '0';
+    }
+    
+    // Mark messages as read
+    if (socket && isConnected && conversationId) {
+      socket.emit('conversation_opened', { conversationId });
+    }
   }
 
   function closeWidget() {
     isOpen = false;
     widgetContainer.classList.add('hidden');
     widgetButton.style.display = 'flex';
-    
-    // Stop polling when widget is closed
-    stopPolling();
   }
 
   function navigateToChat() {
@@ -1044,37 +1171,18 @@
     
     widgetContainer.querySelector('.ai-chat-widget-back').style.display = 'none';
     attachHomeEventListeners();
-    
-    // Stop polling when leaving chat
-    stopPolling();
   }
 
-  // Attach event listeners for home screen buttons and articles
   function attachHomeEventListeners() {
-    // Start chat button(s)
     const startChatButtons = widgetContainer.querySelectorAll('.ai-chat-widget-start-chat');
     startChatButtons.forEach(button => {
       button.addEventListener('click', navigateToChat);
     });
-
-    // Knowledge base search
-    const searchInput = widgetContainer.querySelector('.ai-chat-widget-search-input');
-    if (searchInput) {
-      searchInput.addEventListener('input', (e) => {
-        const term = e.target.value.toLowerCase();
-        const articles = widgetContainer.querySelectorAll('.ai-chat-widget-article');
-        articles.forEach(article => {
-          const title = article.querySelector('.ai-chat-widget-article-title').textContent.toLowerCase();
-          article.style.display = title.includes(term) ? 'block' : 'none';
-        });
-      });
-    }
-
-    // Article click navigation
-    const articleElements = widgetContainer.querySelectorAll('.ai-chat-widget-article');
-    articleElements.forEach(articleEl => {
-      articleEl.addEventListener('click', () => {
-        const articleId = articleEl.getAttribute('data-article-id');
+    
+    const articles = widgetContainer.querySelectorAll('.ai-chat-widget-article');
+    articles.forEach(article => {
+      article.addEventListener('click', () => {
+        const articleId = article.dataset.articleId;
         if (articleId) {
           fetchArticle(articleId);
         }
@@ -1082,29 +1190,23 @@
     });
   }
 
-  // Escape HTML to prevent XSS
-  function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-  }
+  async function init() {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'ai-chat-widget';
+    document.body.appendChild(wrapper);
 
-  // Initialize widget
-  async function initWidget() {
     await fetchWidgetConfig();
     await fetchKBArticles();
+    
     createStyles();
-
     widgetButton = createWidgetButton();
     widgetContainer = createWidgetContainer();
-
     attachHomeEventListeners();
   }
 
-  // Run initialization when DOM is ready
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initWidget);
+    document.addEventListener('DOMContentLoaded', init);
   } else {
-    initWidget();
+    init();
   }
 })();
