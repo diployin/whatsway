@@ -596,4 +596,64 @@ app.post("/api/widget/chat", async (req, res) => {
       res.status(400).json({ message: error.message });
     }
   });
+
+
+
+  app.get("/api/get_sites", requireAuth, async (req, res) => {
+    try {
+      const sites = await storage.getSites();
+      res.status(200).json({success: true, message: 'getting sites successfully',sites});
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+
+app.post('/api/sites/create_or_update', requireAuth, async (req, res) => {
+  try {
+    const validated = insertSiteSchema.parse(req.body);
+    const userTenantId = req.user?.tenantId;
+    const userRole     = req.user?.role;
+    console.log("userTenantId", req.user)
+    console.log("userRoleee", userRole)
+
+    // if (validated.tenantId !== userTenantId && userRole !== 'super_admin') {
+    //   return res.status(403).json({ message: 'Access denied: invalid tenant' });
+    // }
+
+    const existingSite: any | undefined = await storage.getSites();
+
+    let site: any;
+
+    if (existingSite) {
+      // if (existingSite.tenantId !== userTenantId && userRole !== 'admin') {
+      //   return res.status(403).json({ message: 'Access denied: cannot update' });
+      // }
+
+      const safeData: any = {};
+      if (validated.name              !== undefined) safeData.name              = validated.name;
+      if (validated.domain            !== undefined) safeData.domain            = validated.domain;
+      if (validated.widgetEnabled     !== undefined) safeData.widgetEnabled     = validated.widgetEnabled;
+      if (validated.widgetConfig      !== undefined) safeData.widgetConfig      = validated.widgetConfig;
+      if (validated.aiTrainingConfig  !== undefined) safeData.aiTrainingConfig  = validated.aiTrainingConfig;
+      // if (validated.systemPrompt      !== undefined) safeData.systemPrompt      = validated.systemPrompt;
+      
+      site = await storage.updateSite(existingSite.id, safeData);
+    } else {
+      site = await storage.createSite(validated);
+    }
+
+    return res.status(200).json(site);
+
+  } catch (error: any) {
+    return res.status(400).json({ message: error.message });
+  }
+});
+
+  // new api for api sites create end
 }
+
+
+
+
+
