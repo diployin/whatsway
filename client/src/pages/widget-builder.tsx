@@ -94,6 +94,11 @@ export default function WidgetBuilder() {
     subtitle: "How can we help?",
     greeting: "Hi! How can I help you today?",
     appName: "AI Chat Widget", // For powered-by text
+
+
+    tenantId: "814ce300-52c5-41d7-b103-a8e7bfa62a54",
+    name: "My Site Name",
+    domain: window.location.host,
     
     // Home Screen
     homeScreen: "messenger", // messenger, help, contact
@@ -216,28 +221,54 @@ const userList: Array<any> = useMemo(() => {
   }, [selectedSiteId, sites]);
 
   // Save config mutation
+  const { data, isSuccess, isError } = useQuery({
+  queryKey: ['siteConfig'],
+  queryFn: async () => {
+    const res = await apiRequest("GET", "/api/get_sites");
+    return res.json();
+  },
+});
+
+useEffect(() => {
+  if (isSuccess && data?.sites?.widgetConfig) {
+    setConfig(prev => ({
+      ...prev,
+      ...data.sites.widgetConfig,
+      tenantId: data.sites.tenantId,
+      name:     data.sites.name,
+      domain:   data.sites.domain,
+    }));
+  }
+}, [isSuccess, data]);
+
+
+
+
   const saveConfigMutation = useMutation({
-    mutationFn: async (widgetConfig: typeof config) => {
-      const res = await apiRequest("PATCH", `/api/sites/${selectedSiteId}`, {
-        widgetConfig,
-      });
-      return await res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/sites"] });
-      toast({
-        title: "Configuration saved",
-        description: "Your widget design has been saved successfully",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to save widget configuration",
-        variant: "destructive",
-      });
-    },
-  });
+  mutationFn: async (widgetConfig: typeof config) => {
+    const res = await apiRequest("POST", `/api/sites/create_or_update`, {
+      widgetConfig,
+      tenantId: config.tenantId,
+      name:     config.name,
+      domain:   !config.domain ? window.location.host : config.domain,
+    });
+    return await res.json();
+  },
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ["/api/sites"] });
+    toast({
+      title: "Configuration saved",
+      description: "Your widget design has been saved successfully",
+    });
+  },
+  onError: () => {
+    toast({
+      title: "Error",
+      description: "Failed to save widget configuration",
+      variant: "destructive",
+    });
+  },
+});
 
   const updateConfig = (key: string, value: any) => {
     setConfig({ ...config, [key]: value });
@@ -816,7 +847,7 @@ const userList: Array<any> = useMemo(() => {
               )}
             </TabsContent>
 
-            {/* Content Tab */}
+           {/* Content Tab */}
             <TabsContent value="content" className="space-y-6">
               <Card>
                 <CardHeader>
@@ -841,6 +872,28 @@ const userList: Array<any> = useMemo(() => {
                       placeholder="How can we help?"
                     />
                   </div>
+
+
+                  {/* added two new fields (start) */}
+                   <div className="space-y-2">
+                    <Label>Name</Label>
+                    <Input
+                      value={config.name}
+                      onChange={(e) => updateConfig("name", e.target.value)}
+                      placeholder="Name"
+                    />
+                  </div>
+
+                   <div className="space-y-2">
+                    <Label>Domain</Label>
+                    <Input
+                      value={config.domain}
+                      onChange={(e) => updateConfig("domain", e.target.value)}
+                      placeholder="www.example.com"
+                    />
+                  </div>
+
+                  {/* added two new fields (end) */}
 
                   <div className="space-y-2">
                     <Label>Chat Greeting</Label>
