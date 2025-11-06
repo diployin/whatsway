@@ -97,6 +97,14 @@ export class DatabaseStorage implements IStorage {
     return site || undefined;
   }
 
+  async getSites(): Promise<Site | undefined> {
+  const [site] = await db
+    .select()
+    .from(sites)
+
+  return site || undefined;
+}
+
   async getSitesByTenant(tenantId: string): Promise<Site[]> {
     return await db.select().from(sites).where(eq(sites.tenantId, tenantId));
   }
