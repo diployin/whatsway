@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: () => {
       queryClient.setQueryData(["/api/auth/me"], null);
-      setLocation("/login");
+      setLocation("/");
     },
   });
 

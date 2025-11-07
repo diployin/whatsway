@@ -1,3 +1,4 @@
+import React, {useState} from "react";
 import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -28,7 +29,12 @@ import ChatbotBuilder from "./pages/chatbot-builder";
 import AddChatbotBuilder from "./pages/add-chatbot-builder";
 import WidgetBuilder from "./pages/widget-builder";
 import Websites from "./pages/websites";
-
+import Home from "./pages/Home";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+import Signup from "./pages/Signup";
+import LoadingAnimation from "./components/LoadingAnimation";
+import SignupPopup from "./components/SignupPopup";
 // Define route permissions mapping
 const ROUTE_PERMISSIONS: Record<string, string> = {
   "/contacts": "contacts.view",
@@ -44,6 +50,15 @@ const ROUTE_PERMISSIONS: Record<string, string> = {
   "/account": "",
 };
 
+// function ScrollToTop() {
+//   const [location] = useLocation();
+
+//   useEffect(() => {
+//     window.scrollTo(0, 0);
+//   }, [location]);
+
+//   return null;
+// }
 // Unauthorized component
 function UnauthorizedPage() {
   return (
@@ -95,12 +110,9 @@ function PermissionRoute({
 function ProtectedRoutes() {
   const { isAuthenticated, isLoading, user } = useAuth();
   const [location, setLocation] = useLocation();
-
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      setLocation("/login");
-    }
-  }, [isAuthenticated, isLoading, setLocation]);
+  const [showSignupPopup, setShowSignupPopup] = useState(false);
+  const [showLoading, setShowLoading] = useState(true);
+  
 
   // Check if user has access to current route
   useEffect(() => {
@@ -119,26 +131,80 @@ function ProtectedRoutes() {
     }
   }, [location, isAuthenticated, user, setLocation]);
 
-  if (isLoading) {
+
+ useEffect(() => {
+  const popupShown = sessionStorage.getItem("signupPopupShown");
+
+  // only skip if value is explicitly "true"
+  if (popupShown === "true") return;
+
+  const timer = setTimeout(() => {
+    if (!isAuthenticated) {
+      setShowSignupPopup(true);
+      sessionStorage.setItem("signupPopupShown", "true");
+    }
+  }, 30000);
+
+  const handleScroll = () => {
+    const alreadyShown = sessionStorage.getItem("signupPopupShown");
+    if (window.scrollY > window.innerHeight * 0.5 && alreadyShown !== "true") {
+      if (!isAuthenticated) {
+        setShowSignupPopup(true);
+        sessionStorage.setItem("signupPopupShown", "true");
+      }
+      window.removeEventListener("scroll", handleScroll);
+    }
+  };
+
+  window.addEventListener("scroll", handleScroll);
+
+  return () => {
+    clearTimeout(timer);
+    window.removeEventListener("scroll", handleScroll);
+  };
+}, [isAuthenticated]);
+
+
+  const handleClosePopup = () => {
+    setShowSignupPopup(false);
+  };
+
+
+
+  if (showLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <LoadingAnimation onComplete={() => setShowLoading(false)} />;
       </div>
     );
   }
 
-  if (!isAuthenticated) {
-    return null; // Router will handle the redirect
+
+ if (!isAuthenticated) {
+    return (
+      <>
+       <Header/>
+        <Switch>
+          <Route path="/" component={Home} />
+          <Route component={Home} />
+        </Switch>
+        <Footer/>
+      </>
+    );
   }
 
   return (
     <div className="flex min-h-screen bg-white">
       <Sidebar />
       <div className="flex-1 lg:ml-64">
+        
         <Switch>
+          {/* <ScrollToTop /> */}
           <Route path="/">
             <Dashboard />
           </Route>
+
+         
           <Route path="/contacts">
             <PermissionRoute
               component={Contacts}
@@ -207,6 +273,10 @@ function ProtectedRoutes() {
           </Route>
           <Route component={NotFound} />
         </Switch>
+
+        {/* {showSignupPopup && !isAuthenticated && (
+          <SignupPopup onClose={handleClosePopup} />
+        )} */}
       </div>
     </div>
   );
@@ -262,6 +332,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/login" component={LoginPage} />
+      <Route path='/signup' component={Signup}/>
       <Route path="/analytics/campaign/:campaignId" component={CampaignAnalytics}/>
       <Route component={ProtectedRoutes} />
     </Switch>
@@ -288,3 +359,7 @@ function App() {
 }
 
 export default App;
+
+
+
+

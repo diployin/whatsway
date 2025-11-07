@@ -5,6 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import {
   Card,
   CardContent,
@@ -76,10 +78,13 @@ export default function LoginPage() {
   };
 
   return (
+    <>
+    <Header/>
+   
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <div className="flex justify-center mb-4">
+          {/* <div className="flex justify-center mb-4">
             {brandSettings?.logo ? (
               <img
                 src={brandSettings?.logo}
@@ -91,7 +96,7 @@ export default function LoginPage() {
                 <MessageSquare className="h-8 w-8" />
               </div>
             )}
-          </div>
+          </div> */}
           <h1 className="text-3xl font-bold text-gray-900">
             {brandSettings?.title || "Whatswayne"}
           </h1>
@@ -191,5 +196,8 @@ export default function LoginPage() {
         </Card>
       </div>
     </div>
+ 
+  <Footer/>
+    </>
   );
 }
