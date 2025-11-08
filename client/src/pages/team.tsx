@@ -1,4 +1,4 @@
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
@@ -72,7 +72,6 @@ interface TeamMemberFormData {
   permissions: string[];
 }
 
-
 // For form state (checkbox booleans)
 type TeamMemberFormState = {
   firstName: string;
@@ -83,9 +82,6 @@ type TeamMemberFormState = {
   role: "admin" | "manager" | "agent";
   permissions: Record<string, boolean>; // ✅ form uses boolean map
 };
-
-
-
 
 export default function TeamPage() {
   const { toast } = useToast();
@@ -110,9 +106,9 @@ export default function TeamPage() {
   const saveMemberMutation = useMutation({
     mutationFn: async (data: TeamMemberFormData) => {
       if (editingMember) {
-        return apiRequest('PUT', `/api/team/members/${editingMember.id}`,data);
+        return apiRequest("PUT", `/api/team/members/${editingMember.id}`, data);
       } else {
-        return apiRequest('POST', "/api/team/members", data);
+        return apiRequest("POST", "/api/team/members", data);
         // new add
       }
     },
@@ -120,7 +116,9 @@ export default function TeamPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/team/members"] });
       toast({
         title: editingMember ? "Member updated" : "Member added",
-        description: `Team member has been ${editingMember ? "updated" : "added"} successfully.`,
+        description: `Team member has been ${
+          editingMember ? "updated" : "added"
+        } successfully.`,
       });
       setShowAddDialog(false);
       setEditingMember(null);
@@ -137,7 +135,8 @@ export default function TeamPage() {
   // Delete team member mutation
   const deleteMemberMutation = useMutation({
     mutationFn: async (memberId: string) => {
-      return apiRequest( "DELETE" , `/api/team/members/${memberId}` )},
+      return apiRequest("DELETE", `/api/team/members/${memberId}`);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/team/members"] });
       toast({
@@ -156,8 +155,16 @@ export default function TeamPage() {
 
   // Update member status mutation
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ memberId, status }: { memberId: string; status: string }) => {
-      return apiRequest("PATCH" ,`/api/team/members/${memberId}/status`, {status});
+    mutationFn: async ({
+      memberId,
+      status,
+    }: {
+      memberId: string;
+      status: string;
+    }) => {
+      return apiRequest("PATCH", `/api/team/members/${memberId}/status`, {
+        status,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/team/members"] });
@@ -194,7 +201,7 @@ export default function TeamPage() {
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case "active":
-        return "default";  
+        return "default";
       case "inactive":
         return "secondary";
       case "suspended":
@@ -224,7 +231,7 @@ export default function TeamPage() {
             Manage your team members, roles, and permissions
           </p>
         </div>
-        <Button onClick={() => handleOpenDialog()} >
+        <Button onClick={() => handleOpenDialog()}>
           <UserPlus className="mr-2 h-4 w-4" />
           Add Team Member
         </Button>
@@ -283,9 +290,11 @@ export default function TeamPage() {
                               <Avatar>
                                 <AvatarImage src={member.avatar || undefined} />
                                 <AvatarFallback>
-                                  {`${member.firstName || ""} ${member.lastName || ""}`
+                                  {`${member.firstName || ""} ${
+                                    member.lastName || ""
+                                  }`
                                     .split(" ")
-                                    .filter(n => n)
+                                    .filter((n) => n)
                                     .map((n) => n[0])
                                     .join("")
                                     .toUpperCase()}
@@ -298,16 +307,25 @@ export default function TeamPage() {
                               />
                             </div>
                             <div>
-                              <div className="font-medium">{`${member.firstName || ""} ${member.lastName || ""}`.trim() || member.username}</div>
+                              <div className="font-medium">
+                                {`${member.firstName || ""} ${
+                                  member.lastName || ""
+                                }`.trim() || member.username}
+                              </div>
                               <div className="text-sm text-muted-foreground">
-                                
-                                {user?.username === 'demouser' ? (
-                                    <span className=" px-2 py-1 rounded">
-                                      {(member.email).split("@")[0].slice(0, -2).replace(/./g, "*") + member.email.slice(member.email.indexOf("@") -2)}
-                                    </span>
-                                  ) : (
-                                    member.email
-                                  )}
+                                {user?.username === "demouser" ? (
+                                  <span className=" px-2 py-1 rounded">
+                                    {member.email
+                                      .split("@")[0]
+                                      .slice(0, -2)
+                                      .replace(/./g, "*") +
+                                      member.email.slice(
+                                        member.email.indexOf("@") - 2
+                                      )}
+                                  </span>
+                                ) : (
+                                  member.email
+                                )}
                               </div>
                             </div>
                           </div>
@@ -318,7 +336,14 @@ export default function TeamPage() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                        <Badge variant={getStatusBadgeVariant(member.status) || "default"}> {member.status} </Badge>       
+                          <Badge
+                            variant={
+                              getStatusBadgeVariant(member.status) || "default"
+                            }
+                          >
+                            {" "}
+                            {member.status}{" "}
+                          </Badge>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
@@ -346,7 +371,7 @@ export default function TeamPage() {
                                 Edit
                               </DropdownMenuItem>
                               <DropdownMenuItem
-                               disabled={user?.username === "demouser"}
+                                disabled={user?.username === "demouser"}
                                 onClick={() =>
                                   updateStatusMutation.mutate({
                                     memberId: member.id,
@@ -363,7 +388,7 @@ export default function TeamPage() {
                                   : "Activate"}
                               </DropdownMenuItem>
                               <DropdownMenuItem
-                               disabled={user?.username === "demouser"}
+                                disabled={user?.username === "demouser"}
                                 className="text-destructive"
                                 onClick={() => {
                                   if (
@@ -418,13 +443,17 @@ export default function TeamPage() {
                   ) : (
                     (activityLogs as any[]).map((log) => (
                       <TableRow key={log.id}>
-                        <TableCell> {user?.username === 'demouser' ? (
-                                  <span className=" px-2 py-1 rounded">
-                                    {log.userName.slice(0, -1).replace(/./g, "*") + log.userName.slice(-1)}
-                                  </span>
-                                ) : (
-                                  log.userName
-                                )}</TableCell>
+                        <TableCell>
+                          {" "}
+                          {user?.username === "demouser" ? (
+                            <span className=" px-2 py-1 rounded">
+                              {log.userName.slice(0, -1).replace(/./g, "*") +
+                                log.userName.slice(-1)}
+                            </span>
+                          ) : (
+                            log.userName
+                          )}
+                        </TableCell>
                         <TableCell>
                           <Badge variant="outline">{log.action}</Badge>
                         </TableCell>
@@ -436,11 +465,8 @@ export default function TeamPage() {
                           ) : (
                             <span>
                               <DetailsView details={log.details} />
-
                             </span>
-                          )
-
-                          }
+                          )}
                         </TableCell>
                         <TableCell>
                           {new Date(log.createdAt).toLocaleString()}
@@ -466,7 +492,6 @@ export default function TeamPage() {
   );
 }
 
-
 function DetailsView({ details }: { details?: any }) {
   if (!details) return "-";
 
@@ -474,10 +499,18 @@ function DetailsView({ details }: { details?: any }) {
     const { role, email, firstName, lastName, permissions } = details.updates;
     return (
       <>
-        <div><strong>Role:</strong> {role}</div>
-        <div><strong>Email:</strong> {email}</div>
-        <div><strong>Name:</strong> {firstName} {lastName}</div>
-        <div><strong>Permissions:</strong> {permissions.join(", ")}</div>
+        <div>
+          <strong>Role:</strong> {role}
+        </div>
+        <div>
+          <strong>Email:</strong> {email}
+        </div>
+        <div>
+          <strong>Name:</strong> {firstName} {lastName}
+        </div>
+        <div>
+          <strong>Permissions:</strong> {permissions.join(", ")}
+        </div>
       </>
     );
   }
@@ -489,15 +522,18 @@ function DetailsView({ details }: { details?: any }) {
   if (details.ipAddress) {
     return (
       <>
-        <div><strong>IP Address:</strong> {details.ipAddress}</div>
-        <div><strong>User Agent:</strong> {details.userAgent || "-"}</div>
+        <div>
+          <strong>IP Address:</strong> {details.ipAddress}
+        </div>
+        <div>
+          <strong>User Agent:</strong> {details.userAgent || "-"}
+        </div>
       </>
     );
   }
 
   return "-";
 }
-
 
 interface PermissionItem {
   key: string;
@@ -513,103 +549,105 @@ interface PermissionGroup {
 // External configuration - easily manageable
 const PERMISSION_GROUPS: PermissionGroup[] = [
   {
-    "title": "contacts",
-    "label": "Manage Contacts",
-    "permissions": [
-      { "key": "contacts:view", "label": "View" },
-      { "key": "contacts:create", "label": "Create" },
-      { "key": "contacts:edit", "label": "Edit" },
-      { "key": "contacts:delete", "label": "Delete" },
-      { "key": "contacts:import", "label": "Import" },
-      { "key": "contacts:export", "label": "Export" }
-    ]
+    title: "contacts",
+    label: "Manage Contacts",
+    permissions: [
+      { key: "contacts:view", label: "View" },
+      { key: "contacts:create", label: "Create" },
+      { key: "contacts:edit", label: "Edit" },
+      { key: "contacts:delete", label: "Delete" },
+      { key: "contacts:import", label: "Import" },
+      { key: "contacts:export", label: "Export" },
+    ],
   },
   {
-    "title": "campaigns",
-    "label": "Manage Campaigns",
-    "permissions": [
-      { "key": "campaigns:view", "label": "View" },
-      { "key": "campaigns:create", "label": "Create" },
-      { "key": "campaigns:edit", "label": "Edit" },
-      { "key": "campaigns:delete", "label": "Delete" },
-      { "key": "campaigns:send", "label": "Send" },
-      { "key": "campaigns:schedule", "label": "Schedule" }
-    ]
+    title: "campaigns",
+    label: "Manage Campaigns",
+    permissions: [
+      { key: "campaigns:view", label: "View" },
+      { key: "campaigns:create", label: "Create" },
+      { key: "campaigns:edit", label: "Edit" },
+      { key: "campaigns:delete", label: "Delete" },
+      { key: "campaigns:send", label: "Send" },
+      { key: "campaigns:schedule", label: "Schedule" },
+    ],
   },
   {
-    "title": "templates",
-    "label": "Manage Templates",
-    "permissions": [
-      { "key": "templates:view", "label": "View" },
-      { "key": "templates:create", "label": "Create" },
-      { "key": "templates:edit", "label": "Edit" },
-      { "key": "templates:delete", "label": "Delete" },
-      { "key": "templates:sync", "label": "Sync" }
-    ]
+    title: "templates",
+    label: "Manage Templates",
+    permissions: [
+      { key: "templates:view", label: "View" },
+      { key: "templates:create", label: "Create" },
+      { key: "templates:edit", label: "Edit" },
+      { key: "templates:delete", label: "Delete" },
+      { key: "templates:sync", label: "Sync" },
+    ],
   },
   {
-    "title": "analytics",
-    "label": "View Analytics",
-    "permissions": [
-      { "key": "analytics:view", "label": "View" },
-      { "key": "analytics:export", "label": "Export" }
-    ]
+    title: "analytics",
+    label: "View Analytics",
+    permissions: [
+      { key: "analytics:view", label: "View" },
+      { key: "analytics:export", label: "Export" },
+    ],
   },
   {
-    "title": "team",
-    "label": "Manage Team",
-    "permissions": [
-      { "key": "team:view", "label": "View" },
-      { "key": "team:create", "label": "Create" },
-      { "key": "team:edit", "label": "Edit" },
-      { "key": "team:delete", "label": "Delete" },
-      { "key": "team:permissions", "label": "Permissions" }
-    ]
+    title: "team",
+    label: "Manage Team",
+    permissions: [
+      { key: "team:view", label: "View" },
+      { key: "team:create", label: "Create" },
+      { key: "team:edit", label: "Edit" },
+      { key: "team:delete", label: "Delete" },
+      { key: "team:permissions", label: "Permissions" },
+    ],
   },
   {
-    "title": "inbox",
-    "label": "Manage Inbox",
-    "permissions": [
-      { "key": "inbox:view", "label": "View" },
-      { "key": "inbox:send", "label": "Send" },
-      { "key": "inbox:assign", "label": "Assign" },
-      { "key": "inbox:delete", "label": "Delete" },
-      { "key": "inbox:close", "label": "Close" }
-    ]
+    title: "inbox",
+    label: "Manage Inbox",
+    permissions: [
+      { key: "inbox:view", label: "View" },
+      { key: "inbox:send", label: "Send" },
+      { key: "inbox:assign", label: "Assign" },
+      { key: "inbox:delete", label: "Delete" },
+      { key: "inbox:close", label: "Close" },
+    ],
   },
   {
-    "title": "settings",
-    "label": "Manage Settings",
-    "permissions": [
-      { "key": "settings:view", "label": "View" },
-      { "key": "settings:channels", "label": "Channels" },
-      { "key": "settings:webhook", "label": "Webhook" },
-      { "key": "settings:team", "label": "Team" },
-      { "key": "settings:api", "label": "APIs" }
-    ]
+    title: "settings",
+    label: "Manage Settings",
+    permissions: [
+      { key: "settings:view", label: "View" },
+      { key: "settings:channels", label: "Channels" },
+      { key: "settings:webhook", label: "Webhook" },
+      { key: "settings:team", label: "Team" },
+      { key: "settings:api", label: "APIs" },
+    ],
   },
   {
-    "title": "automations",
-    "label": "Manage Automations",
-    "permissions": [
-      { "key": "automations:view", "label": "View" },
-      { "key": "automations:create", "label": "Create" },
-      { "key": "automations:edit", "label": "Edit" },
-      { "key": "automations:delete", "label": "Delete" }
-    ]
+    title: "automations",
+    label: "Manage Automations",
+    permissions: [
+      { key: "automations:view", label: "View" },
+      { key: "automations:create", label: "Create" },
+      { key: "automations:edit", label: "Edit" },
+      { key: "automations:delete", label: "Delete" },
+    ],
   },
   {
-    "title": "general",
-    "label": "General Settings",
-    "permissions": [
-      { "key": "data:export", "label": "Data Export" },
-      { "key": "logs:view", "label": "Logs View" }
-    ]
-  }
+    title: "general",
+    label: "General Settings",
+    permissions: [
+      { key: "data:export", label: "Data Export" },
+      { key: "logs:view", label: "Logs View" },
+    ],
+  },
 ];
 
 // Convert array from API → object for form
-function mapApiPermissionsToForm(permissions: string[]): Record<string, boolean> {
+function mapApiPermissionsToForm(
+  permissions: string[]
+): Record<string, boolean> {
   const result: Record<string, boolean> = {};
   permissions.forEach((key) => {
     result[key] = true;
@@ -621,7 +659,10 @@ function mapApiPermissionsToForm(permissions: string[]): Record<string, boolean>
     result[mainKey] = group.permissions.some((perm) => result[perm.key]);
   });
 
-  if (permissions.includes("analytics:export") || permissions.includes("analytics:view")) {
+  if (
+    permissions.includes("analytics:export") ||
+    permissions.includes("analytics:view")
+  ) {
     result.canViewAnalytics = true;
   }
   if (permissions.includes("contacts:export")) {
@@ -632,7 +673,9 @@ function mapApiPermissionsToForm(permissions: string[]): Record<string, boolean>
 }
 
 // Convert form object → array for API
-function mapFormPermissionsToApi(permissions: Record<string, boolean>): string[] {
+function mapFormPermissionsToApi(
+  permissions: Record<string, boolean>
+): string[] {
   const result: string[] = [];
 
   PERMISSION_GROUPS.forEach((group) => {
@@ -650,16 +693,17 @@ function mapFormPermissionsToApi(permissions: Record<string, boolean>): string[]
   return result;
 }
 
-
 // Helper functions
 const getMainPermissionKey = (groupTitle: string): string => {
-  if (groupTitle === 'analytics') return 'canViewAnalytics';
+  if (groupTitle === "analytics") return "canViewAnalytics";
   return `canManage${groupTitle.charAt(0).toUpperCase() + groupTitle.slice(1)}`;
 };
 
-const findGroupByPermission = (permissionKey: string): PermissionGroup | undefined => {
-  return PERMISSION_GROUPS.find(group => 
-    group.permissions.some(perm => perm.key === permissionKey)
+const findGroupByPermission = (
+  permissionKey: string
+): PermissionGroup | undefined => {
+  return PERMISSION_GROUPS.find((group) =>
+    group.permissions.some((perm) => perm.key === permissionKey)
   );
 };
 
@@ -675,7 +719,7 @@ function TeamMemberDialog({
   member: User | null;
   onSave: (data: TeamMemberFormData) => void;
 }) {
-  const {user} = useAuth()
+  const { user } = useAuth();
   const [formData, setFormData] = useState<TeamMemberFormState>({
     firstName: member?.firstName || "",
     lastName: member?.lastName || "",
@@ -687,9 +731,10 @@ function TeamMemberDialog({
       ? mapApiPermissionsToForm(member.permissions as string[]) // ✅ convert API → form
       : {},
   });
-  
 
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(
+  const [expandedSections, setExpandedSections] = useState<
+    Record<string, boolean>
+  >(
     PERMISSION_GROUPS.reduce((acc, group) => {
       acc[group.title] = false;
       return acc;
@@ -709,16 +754,15 @@ function TeamMemberDialog({
         : {},
     });
   }, [member]);
-  
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-  
+
     const payload = {
       ...formData,
       permissions: mapFormPermissionsToApi(formData.permissions),
     };
-  
+
     onSave(payload);
   };
 
@@ -734,53 +778,56 @@ function TeamMemberDialog({
 
   const updateGroupPermission = (group: PermissionGroup, checked: boolean) => {
     const updates: Record<string, boolean> = {};
-    
+
     // Update the main group permission
     const mainKey = getMainPermissionKey(group.title);
     updates[mainKey] = checked;
-    
+
     // Update all related granular permissions
-    group.permissions.forEach(perm => {
+    group.permissions.forEach((perm) => {
       updates[perm.key] = checked;
     });
 
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       permissions: {
         ...prev.permissions,
-        ...updates
-      }
+        ...updates,
+      },
     }));
   };
 
-  const updateGranularPermission = (permissionKey: string, checked: boolean) => {
+  const updateGranularPermission = (
+    permissionKey: string,
+    checked: boolean
+  ) => {
     const group = findGroupByPermission(permissionKey);
     if (!group) return;
 
     const updates = { [permissionKey]: checked };
-    
+
     // Check if all permissions in the group will be true after this update
-    const allGroupPermissionsChecked = group.permissions.every(perm => 
+    const allGroupPermissionsChecked = group.permissions.every((perm) =>
       perm.key === permissionKey ? checked : formData.permissions[perm.key]
     );
-    
+
     // Update the main group permission accordingly
     const mainKey = getMainPermissionKey(group.title);
     updates[mainKey] = allGroupPermissionsChecked;
 
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       permissions: {
         ...prev.permissions,
-        ...updates
-      }
+        ...updates,
+      },
     }));
   };
 
   const toggleSection = (groupTitle: string) => {
-    setExpandedSections(prev => ({
+    setExpandedSections((prev) => ({
       ...prev,
-      [groupTitle]: !prev[groupTitle]
+      [groupTitle]: !prev[groupTitle],
     }));
   };
 
@@ -791,7 +838,7 @@ function TeamMemberDialog({
 
   const renderPermissionGroup = (group: PermissionGroup) => {
     const isExpanded = expandedSections[group.title];
-    
+
     return (
       <div key={group.title} className="border rounded-lg p-3">
         <div className="flex items-center justify-between">
@@ -801,10 +848,11 @@ function TeamMemberDialog({
               onClick={() => toggleSection(group.title)}
               className="p-1 hover:bg-gray-100 rounded"
             >
-              {isExpanded ? 
-                <ChevronDown className="w-4 h-4" /> : 
+              {isExpanded ? (
+                <ChevronDown className="w-4 h-4" />
+              ) : (
                 <ChevronRight className="w-4 h-4" />
-              }
+              )}
             </button>
             <Label className="text-sm font-medium cursor-pointer">
               {group.label}
@@ -815,17 +863,18 @@ function TeamMemberDialog({
             onCheckedChange={(checked) => updateGroupPermission(group, checked)}
           />
         </div>
-        
+
         {isExpanded && (
           <div className="mt-3 ml-6 pl-4 border-l-2 border-gray-200">
             <div className="grid grid-cols-3 gap-x-4 gap-y-2">
-              {group.permissions.map(perm => (
+              {group.permissions.map((perm) => (
                 <div key={perm.key} className="flex items-center space-x-2">
                   <Checkbox
                     id={perm.key}
                     checked={formData.permissions[perm.key] || false}
-                    onCheckedChange={(checked) => 
-                      updateGranularPermission(perm.key, checked === true) // ✅ force boolean
+                    onCheckedChange={
+                      (checked) =>
+                        updateGranularPermission(perm.key, checked === true) // ✅ force boolean
                     }
                   />
                   <Label
@@ -844,17 +893,17 @@ function TeamMemberDialog({
   };
 
   const maskEmail = (email) => {
-    if (!email) return '';
-    const [localPart, domain] = email.split('@');
+    if (!email) return "";
+    const [localPart, domain] = email.split("@");
     if (!domain) return email;
     const visibleChars = 3;
     const maskedLocal =
       localPart.length > visibleChars
-        ? '*'.repeat(localPart.length - visibleChars) + localPart.slice(-visibleChars)
-        : '*'.repeat(localPart.length);
+        ? "*".repeat(localPart.length - visibleChars) +
+          localPart.slice(-visibleChars)
+        : "*".repeat(localPart.length);
     return `${maskedLocal}@${domain}`;
   };
-  
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -909,23 +958,23 @@ function TeamMemberDialog({
             </div>
 
             <div className="grid grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={
-                  user?.username === 'demouser'
-                    ? maskEmail(formData.email)
-                    : formData.email
-                }
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                readOnly={user?.username === 'demouser'} // Optional
-                required
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={
+                    user?.username === "demouser"
+                      ? maskEmail(formData.email)
+                      : formData.email
+                  }
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                  readOnly={user?.username === "demouser"} // Optional
+                  required
+                />
+              </div>
               {!member && (
                 <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>
@@ -967,9 +1016,9 @@ function TeamMemberDialog({
             <div className="space-y-4">
               <Label>Permissions</Label>
               <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-4">
-                {PERMISSION_GROUPS.map(renderPermissionGroup)}
-              </div>
+                <div className="grid grid-cols-2 gap-4">
+                  {PERMISSION_GROUPS.map(renderPermissionGroup)}
+                </div>
                 {/* Export Data - Simple permission */}
                 {/* <div className="flex items-center justify-between py-2">
                   <Label htmlFor="perm-export" className="text-sm font-normal">
