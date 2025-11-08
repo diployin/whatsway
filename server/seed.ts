@@ -50,7 +50,7 @@ async function seed() {
       return newUser;
     }
 
-    // Default permissions
+    // Default permissions 
     const defaultPermissions = [
       // Contacts
       'contacts:view',
