@@ -21,42 +21,11 @@ import { Button } from "@/components/ui/button";
 import { Loading } from "@/components/ui/loading";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { Feature, Plan, PlanPermissions, PlansDataTypes } from "@/types/types";
 
 const API_URL = "http://localhost:5001/api";
 
 // Interfaces
-export interface PlanPermissions {
-  channel: string;
-  contacts: string;
-  automation: string;
-}
-
-export interface Feature {
-  name: string;
-  included: boolean;
-}
-
-export interface Plan {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  popular: boolean;
-  badge: string;
-  color: string;
-  buttonColor: string;
-  monthlyPrice: string;
-  annualPrice: string;
-  permissions: PlanPermissions;
-  features: Feature[];
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface PlansDataTypes {
-  success: boolean;
-  data: Plan[];
-}
 
 interface FormData {
   name: string;
