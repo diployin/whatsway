@@ -9,7 +9,7 @@ interface User {
   email: string;
   firstName: string;
   lastName: string;
-  role: "admin" | "user";
+  role: "admin" | "user" | "superadmin";
   status: "active" | "inactive";
   permissions: string[];
 }
@@ -49,6 +49,109 @@ async function seed() {
       console.log(`✅ User '${username}' created successfully`);
       return newUser;
     }
+
+
+    // Default superadmin permission 
+
+
+    const DefaultsuperAdminPermissions = [
+  // Core Features – Dashboard, Campaigns, Templates, Contacts, ChatHub
+  'dashboard:view',
+
+  'campaigns:view',
+  'campaigns:create',
+  'campaigns:edit',
+  'campaigns:delete',
+  'campaigns:export',
+
+  'templates:view',
+  'templates:create',
+  'templates:edit',
+  'templates:delete',
+  'templates:export',
+
+  'contacts:view',
+  'contacts:create',
+  'contacts:edit',
+  'contacts:delete',
+  'contacts:export',
+
+  'chathub:view',
+  'chathub:send',
+  'chathub:assign',
+  'chathub:delete',
+
+  // Automation & AI – Bot Flow Builder, Workflows, AI Assistant, Auto Responses
+  'botflow:view',
+  'botflow:create',
+  'botflow:edit',
+  'botflow:delete',
+
+  'workflows:view',
+  'workflows:create',
+  'workflows:edit',
+  'workflows:delete',
+
+  'aiassistant:use',
+  'aiassistant:configure',
+
+  'autoresponses:view',
+  'autoresponses:create',
+  'autoresponses:edit',
+  'autoresponses:delete',
+
+  // WhatsApp Management – WABA Connection, Multi-Number, Webhooks, QR Codes
+  'waba:view',
+  'waba:connect',
+  'waba:disconnect',
+  'multi_number:view',
+  'multi_number:add',
+  'multi_number:edit',
+  'multi_number:delete',
+  'webhooks:view',
+  'webhooks:create',
+  'webhooks:edit',
+  'webhooks:delete',
+  'qrcodes:view',
+  'qrcodes:generate',
+  'qrcodes:delete',
+
+  // CRM & Leads – CRM Systems, Lead Management, Bulk Import, Segmentation
+  'crm:view',
+  'leads:view',
+  'leads:create',
+  'leads:edit',
+  'leads:delete',
+  'bulk_import:leads',
+  'segmentation:view',
+  'segmentation:create',
+  'segmentation:edit',
+  'segmentation:delete',
+
+  // Analytics & Reports – Analytics, Message Logs, Health Monitor, Reports
+  'analytics:view',
+  'message_logs:view',
+  'health_monitor:view',
+  'reports:view',
+  'reports:export',
+
+  // Team & Support – Team Members, Support Tickets, Settings, Notifications
+  'team:view',
+  'team:create',
+  'team:edit',
+  'team:delete',
+  'support_tickets:view',
+  'support_tickets:create',
+  'support_tickets:edit',
+  'support_tickets:close',
+  'notifications:view',
+  'notifications:send',
+
+  // Settings (global)
+  'settings:view',
+  'settings:edit'
+];
+
 
     // Default permissions 
     const defaultPermissions = [
@@ -95,6 +198,20 @@ async function seed() {
       'automations:delete',
     ];
 
+
+
+    // Create Super Admin
+    const SuperAdmin = await createUserIfNotExists({
+      username: "superadmin",
+      password: "Superadmin@123",
+      email: "superadmin@whatsway.com",
+      firstName: "Super",
+      lastName: "Admin",
+      role: "superadmin",
+      status: "active",
+      permissions: DefaultsuperAdminPermissions,
+    });
+
     // Create Admin
     const adminUser = await createUserIfNotExists({
       username: "whatsway",
@@ -126,6 +243,10 @@ async function seed() {
     console.log("Demo:");
     console.log("  Username: demouser");
     console.log("  Password: Demo@12345");
+
+    console.log("superadmin:");
+    console.log("Username: superadmin");
+    console.log("Password: Superadmin@123")
     console.log("\n⚠️  Please change passwords after first login!");
 
   } catch (error) {
