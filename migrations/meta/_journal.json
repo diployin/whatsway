@@ -120,6 +120,13 @@
       "when": 1762756865047,
       "tag": "0016_numerous_grey_gargoyle",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1762767568981,
+      "tag": "0017_sturdy_zaran",
+      "breakpoints": true
     }
   ]
 }
