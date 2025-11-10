@@ -779,7 +779,6 @@ export default function Sidebar() {
                   <Settings className="w-4 h-4 text-gray-400" />
                 </button>
               </DropdownMenuTrigger>
-
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>{t("common.myAccount")}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
