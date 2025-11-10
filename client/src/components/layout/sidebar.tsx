@@ -526,13 +526,13 @@ const sidebarItemsCategories = [
       { name: "Campaigns", icon: Megaphone, path: "/campaigns", badge: "24", color: "text-blue-600" },
       { name: "Templates", icon: FileText, path: "/templates", badge: "12", color: "text-purple-600" },
       { name: "Contacts", icon: Users, path: "/contacts", badge: "8.4k", color: "text-yellow-600" },
-      { name: "Chat Hub", icon: MessageSquare, path: "/chat-hub", badge: "5", color: "text-pink-600" },
+      // { name: "Chat Hub", icon: MessageSquare, path: "/chat-hub", badge: "5", color: "text-pink-600" },
     ],
   },
   {
     category: "Automation & AI",
     items: [
-      { name: "Bot Flow Builder", icon: Bot, path: "/bot-flow-builder", badge: "NEW", color: "text-indigo-600" },
+      { name: "Bot Flow Builder", icon: Bot, path: "/bot-builder", badge: "NEW", color: "text-indigo-600" },
       { name: "Workflows", icon: Zap, path: "/workflows", color: "text-teal-600" },
       { name: "AI Assistant", icon: Bot, path: "/ai-assistant", color: "text-red-600" },
       { name: "Auto Responses", icon: ScrollText, path: "/auto-responses", color: "text-orange-600" },
