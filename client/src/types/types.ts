@@ -3,6 +3,10 @@ export interface PlanPermissions {
   contacts: string;
   automation: string;
 }
+export interface Feature {
+  name: string;
+  included: boolean;
+}
 
 export interface Plan {
   id: string;
@@ -16,12 +20,12 @@ export interface Plan {
   monthlyPrice: string;
   annualPrice: string;
   permissions: PlanPermissions;
-  features: string[];
+  features: Feature[];
   createdAt: string;
   updatedAt: string;
 }
 
-export interface PlansDataTyps {
+export interface PlansDataTypes {
   success: boolean;
   data: Plan[];
 }

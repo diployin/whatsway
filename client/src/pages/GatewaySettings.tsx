@@ -31,6 +31,9 @@ interface PaymentProvider {
   config: {
     apiKey: string;
     apiSecret: string;
+    apiKeyTest: string;
+    apiSecretTest: string;
+    isLive: boolean;
   };
   supportedCurrencies: string[];
   supportedMethods: string[];
@@ -40,6 +43,9 @@ interface PaymentFormData {
   provider: "razorpay" | "stripe";
   apiKey: string;
   apiSecret: string;
+  apiKeyTest: string;
+  apiSecretTest: string;
+  isLive: boolean;
   isActive: boolean;
 }
 
@@ -48,8 +54,11 @@ const paymentGatewaySchema = z.object({
   provider: z.enum(["razorpay", "stripe"], {
     required_error: "Payment provider is required",
   }),
-  apiKey: z.string().min(1, "API Key is required"),
-  apiSecret: z.string().min(1, "API Secret is required"),
+  apiKey: z.string().min(1, "Live API Key is required"),
+  apiSecret: z.string().min(1, "Live API Secret is required"),
+  apiKeyTest: z.string().min(1, "Test API Key is required"),
+  apiSecretTest: z.string().min(1, "Test API Secret is required"),
+  isLive: z.boolean().default(false),
   isActive: z.boolean().default(true),
 });
 
@@ -60,6 +69,11 @@ export default function GatewaySettings() {
   const queryClient = useQueryClient();
   const [showApiKey, setShowApiKey] = useState(false);
   const [showApiSecret, setShowApiSecret] = useState(false);
+  const [showApiKeyTest, setShowApiKeyTest] = useState(false);
+  const [showApiSecretTest, setShowApiSecretTest] = useState(false);
+  const [existingProviderId, setExistingProviderId] = useState<string | null>(
+    null
+  );
 
   // Fetch existing providers
   const { data: paymentProviders, isLoading: paymentLoading } = useQuery({
@@ -77,6 +91,9 @@ export default function GatewaySettings() {
       provider: "razorpay",
       apiKey: "",
       apiSecret: "",
+      apiKeyTest: "",
+      apiSecretTest: "",
+      isLive: false,
       isActive: true,
     },
   });
@@ -93,18 +110,26 @@ export default function GatewaySettings() {
     );
 
     if (selectedProvider) {
+      setExistingProviderId(selectedProvider.id);
       paymentForm.reset({
         provider: selectedProvider.providerKey,
-        apiKey: selectedProvider.config.apiKey,
-        apiSecret: selectedProvider.config.apiSecret,
+        apiKey: selectedProvider.config.apiKey || "",
+        apiSecret: selectedProvider.config.apiSecret || "",
+        apiKeyTest: selectedProvider.config.apiKeyTest || "",
+        apiSecretTest: selectedProvider.config.apiSecretTest || "",
+        isLive: selectedProvider.config.isLive || false,
         isActive: selectedProvider.isActive,
       });
     } else {
-      // If no record exists for this provider, reset keys
+      // If no record exists for this provider, reset
+      setExistingProviderId(null);
       paymentForm.reset({
         provider,
         apiKey: "",
         apiSecret: "",
+        apiKeyTest: "",
+        apiSecretTest: "",
+        isLive: false,
         isActive: false,
       });
     }
@@ -123,13 +148,26 @@ export default function GatewaySettings() {
         config: {
           apiKey: data.apiKey,
           apiSecret: data.apiSecret,
+          apiKeyTest: data.apiKeyTest,
+          apiSecretTest: data.apiSecretTest,
+          isLive: data.isLive,
         },
         supportedCurrencies: [],
         supportedMethods: [],
       };
 
-      const res = await fetch("/api/payment-providers", {
-        method: "POST",
+      // Determine if we're updating or creating
+      let url = "/api/payment-providers";
+      let method = "POST";
+
+      if (existingProviderId) {
+        // Update existing provider
+        url = `/api/payment-providers/${existingProviderId}`;
+        method = "PUT";
+      }
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
@@ -143,10 +181,12 @@ export default function GatewaySettings() {
     },
     onSuccess: (data) => {
       toast({
-        title: "Payment gateway saved",
+        title: existingProviderId
+          ? "Payment gateway updated"
+          : "Payment gateway created",
         description:
           data.message ||
-          "Payment provider settings have been updated successfully.",
+          "Payment provider settings have been saved successfully.",
       });
       queryClient.invalidateQueries({
         queryKey: ["/api/payment-providers"],
@@ -234,14 +274,28 @@ export default function GatewaySettings() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">
-                    Total Providers
+                    Environment
                   </p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {paymentProviders?.data?.length || 0}
+                    {paymentForm.watch("isLive") ? "Live" : "Test"}
                   </p>
                 </div>
-                <div className="p-3 bg-green-100 rounded-lg">
-                  <CreditCard className="w-6 h-6 text-green-600" />
+                <div
+                  className={`p-3 rounded-lg ${
+                    paymentForm.watch("isLive")
+                      ? "bg-green-100"
+                      : "bg-orange-100"
+                  }`}
+                >
+                  <div
+                    className={`w-6 h-6 rounded-full ${
+                      paymentForm.watch("isLive")
+                        ? "bg-green-500"
+                        : "bg-orange-500"
+                    } flex items-center justify-center`}
+                  >
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -284,6 +338,12 @@ export default function GatewaySettings() {
                 <CreditCard className="w-5 h-5 mr-2" />
                 Payment Gateway Configuration
               </CardTitle>
+              {existingProviderId && (
+                <span className="text-sm text-green-600 font-medium flex items-center gap-1">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  Configured
+                </span>
+              )}
             </div>
           </CardHeader>
 
@@ -326,66 +386,189 @@ export default function GatewaySettings() {
                 )}
               </div>
 
-              {/* API Keys */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* API Key */}
-                <div className="space-y-2">
-                  <Label htmlFor="apiKey">API Key *</Label>
-                  <div className="relative">
-                    <Input
-                      id="apiKey"
-                      {...paymentForm.register("apiKey")}
-                      type={showApiKey ? "text" : "password"}
-                      placeholder={
-                        paymentForm.watch("provider") === "razorpay"
-                          ? "rzp_test_xxx or rzp_live_xxx"
-                          : "pk_test_xxx or pk_live_xxx"
-                      }
-                      className="pr-10"
-                    />
-                    <button
-                      type="button"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                      onClick={() => setShowApiKey(!showApiKey)}
-                    >
-                      {showApiKey ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                  </div>
-                  {paymentForm.formState.errors.apiKey && (
-                    <p className="text-red-500 text-sm">
-                      {paymentForm.formState.errors.apiKey.message}
-                    </p>
-                  )}
+              {/* Environment Mode Toggle */}
+              <div className="space-y-2">
+                <Label>Environment Mode *</Label>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant={
+                      !paymentForm.watch("isLive") ? "default" : "outline"
+                    }
+                    onClick={() => paymentForm.setValue("isLive", false)}
+                    className="flex-1"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                      Test Mode
+                    </div>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={
+                      paymentForm.watch("isLive") ? "default" : "outline"
+                    }
+                    onClick={() => paymentForm.setValue("isLive", true)}
+                    className="flex-1"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      Live Mode
+                    </div>
+                  </Button>
+                </div>
+                <p className="text-xs text-gray-500">
+                  {paymentForm.watch("isLive")
+                    ? "⚠️ Live mode will process real payments"
+                    : "Test mode is safe for development and testing"}
+                </p>
+              </div>
+
+              {/* Test API Keys Section */}
+              <div className="space-y-4 p-4 border-2 border-orange-200 rounded-lg bg-orange-50">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                  <h3 className="text-lg font-semibold text-orange-900">
+                    Test Credentials
+                  </h3>
                 </div>
 
-                {/* API Secret */}
-                <div className="space-y-2">
-                  <Label htmlFor="apiSecret">API Secret *</Label>
-                  <div className="relative">
-                    <Input
-                      id="apiSecret"
-                      {...paymentForm.register("apiSecret")}
-                      type={showApiSecret ? "text" : "password"}
-                      placeholder={
-                        paymentForm.watch("provider") === "razorpay"
-                          ? "Enter Razorpay Secret Key"
-                          : "Enter Stripe Secret Key"
-                      }
-                      className="pr-10"
-                    />
-                    <button
-                      type="button"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                      onClick={() => setShowApiSecret(!showApiSecret)}
-                    >
-                      {showApiSecret ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Test API Key */}
+                  <div className="space-y-2">
+                    <Label htmlFor="apiKeyTest">Test API Key *</Label>
+                    <div className="relative">
+                      <Input
+                        id="apiKeyTest"
+                        {...paymentForm.register("apiKeyTest")}
+                        type={showApiKeyTest ? "text" : "password"}
+                        placeholder={
+                          paymentForm.watch("provider") === "razorpay"
+                            ? "rzp_test_xxxxxxxxxxxxx"
+                            : "pk_test_xxxxxxxxxxxxx"
+                        }
+                        className="pr-10"
+                      />
+                      <button
+                        type="button"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        onClick={() => setShowApiKeyTest(!showApiKeyTest)}
+                      >
+                        {showApiKeyTest ? (
+                          <EyeOff size={18} />
+                        ) : (
+                          <Eye size={18} />
+                        )}
+                      </button>
+                    </div>
+                    {paymentForm.formState.errors.apiKeyTest && (
+                      <p className="text-red-500 text-sm">
+                        {paymentForm.formState.errors.apiKeyTest.message}
+                      </p>
+                    )}
                   </div>
-                  {paymentForm.formState.errors.apiSecret && (
-                    <p className="text-red-500 text-sm">
-                      {paymentForm.formState.errors.apiSecret.message}
-                    </p>
-                  )}
+
+                  {/* Test API Secret */}
+                  <div className="space-y-2">
+                    <Label htmlFor="apiSecretTest">Test API Secret *</Label>
+                    <div className="relative">
+                      <Input
+                        id="apiSecretTest"
+                        {...paymentForm.register("apiSecretTest")}
+                        type={showApiSecretTest ? "text" : "password"}
+                        placeholder="Enter Test Secret Key"
+                        className="pr-10"
+                      />
+                      <button
+                        type="button"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        onClick={() => setShowApiSecretTest(!showApiSecretTest)}
+                      >
+                        {showApiSecretTest ? (
+                          <EyeOff size={18} />
+                        ) : (
+                          <Eye size={18} />
+                        )}
+                      </button>
+                    </div>
+                    {paymentForm.formState.errors.apiSecretTest && (
+                      <p className="text-red-500 text-sm">
+                        {paymentForm.formState.errors.apiSecretTest.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Live API Keys Section */}
+              <div className="space-y-4 p-4 border-2 border-green-200 rounded-lg bg-green-50">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <h3 className="text-lg font-semibold text-green-900">
+                    Live Credentials
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Live API Key */}
+                  <div className="space-y-2">
+                    <Label htmlFor="apiKey">Live API Key *</Label>
+                    <div className="relative">
+                      <Input
+                        id="apiKey"
+                        {...paymentForm.register("apiKey")}
+                        type={showApiKey ? "text" : "password"}
+                        placeholder={
+                          paymentForm.watch("provider") === "razorpay"
+                            ? "rzp_live_xxxxxxxxxxxxx"
+                            : "pk_live_xxxxxxxxxxxxx"
+                        }
+                        className="pr-10"
+                      />
+                      <button
+                        type="button"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        onClick={() => setShowApiKey(!showApiKey)}
+                      >
+                        {showApiKey ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                    {paymentForm.formState.errors.apiKey && (
+                      <p className="text-red-500 text-sm">
+                        {paymentForm.formState.errors.apiKey.message}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Live API Secret */}
+                  <div className="space-y-2">
+                    <Label htmlFor="apiSecret">Live API Secret *</Label>
+                    <div className="relative">
+                      <Input
+                        id="apiSecret"
+                        {...paymentForm.register("apiSecret")}
+                        type={showApiSecret ? "text" : "password"}
+                        placeholder="Enter Live Secret Key"
+                        className="pr-10"
+                      />
+                      <button
+                        type="button"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        onClick={() => setShowApiSecret(!showApiSecret)}
+                      >
+                        {showApiSecret ? (
+                          <EyeOff size={18} />
+                        ) : (
+                          <Eye size={18} />
+                        )}
+                      </button>
+                    </div>
+                    {paymentForm.formState.errors.apiSecret && (
+                      <p className="text-red-500 text-sm">
+                        {paymentForm.formState.errors.apiSecret.message}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -421,14 +604,27 @@ export default function GatewaySettings() {
                     </h4>
                     <p className="text-sm text-blue-800">
                       Get your Razorpay credentials from the Razorpay Dashboard.
-                      You'll need Key ID (starts with rzp_test_ or rzp_live_)
-                      and Key Secret.
+                      You'll need both Test and Live credentials.
                     </p>
+                    <ul className="text-sm text-blue-800 space-y-1 mt-2">
+                      <li>
+                        • Test keys start with{" "}
+                        <code className="bg-blue-100 px-1 rounded">
+                          rzp_test_
+                        </code>
+                      </li>
+                      <li>
+                        • Live keys start with{" "}
+                        <code className="bg-blue-100 px-1 rounded">
+                          rzp_live_
+                        </code>
+                      </li>
+                    </ul>
                     <a
                       href="https://dashboard.razorpay.com/app/keys"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-blue-600 hover:underline inline-block"
+                      className="text-sm text-blue-600 hover:underline inline-block mt-2"
                     >
                       Get Razorpay API Keys →
                     </a>
@@ -445,14 +641,35 @@ export default function GatewaySettings() {
                     </h4>
                     <p className="text-sm text-purple-800">
                       Get your Stripe credentials from the Stripe Dashboard.
-                      You'll need Publishable Key (starts with pk_test_ or
-                      pk_live_) and Secret Key.
+                      You'll need both Test and Live credentials.
                     </p>
+                    <ul className="text-sm text-purple-800 space-y-1 mt-2">
+                      <li>
+                        • Test keys start with{" "}
+                        <code className="bg-purple-100 px-1 rounded">
+                          pk_test_
+                        </code>{" "}
+                        or{" "}
+                        <code className="bg-purple-100 px-1 rounded">
+                          sk_test_
+                        </code>
+                      </li>
+                      <li>
+                        • Live keys start with{" "}
+                        <code className="bg-purple-100 px-1 rounded">
+                          pk_live_
+                        </code>{" "}
+                        or{" "}
+                        <code className="bg-purple-100 px-1 rounded">
+                          sk_live_
+                        </code>
+                      </li>
+                    </ul>
                     <a
                       href="https://dashboard.stripe.com/apikeys"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-purple-600 hover:underline inline-block"
+                      className="text-sm text-purple-600 hover:underline inline-block mt-2"
                     >
                       Get Stripe API Keys →
                     </a>
@@ -467,7 +684,11 @@ export default function GatewaySettings() {
                   disabled={upsertMutation.isPending}
                   className="min-w-[200px]"
                 >
-                  {upsertMutation.isPending ? "Saving..." : "Save Settings"}
+                  {upsertMutation.isPending
+                    ? "Saving..."
+                    : existingProviderId
+                    ? "Update Settings"
+                    : "Save Settings"}
                 </Button>
               </div>
             </form>
