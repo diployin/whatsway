@@ -2,9 +2,10 @@ import type { Request, Response } from "express";
 import { storage } from "../storage";
 import {
   aiSettings,
-  aiSettings,
   insertMessageSchema,
   messages,
+  subscriptions,
+  transactions,
 } from "@shared/schema";
 import { AppError, asyncHandler } from "../middlewares/error.middleware";
 import crypto from "crypto";
@@ -1215,3 +1216,433 @@ export const cleanupExpiredExecutions = asyncHandler(
     });
   }
 );
+
+
+
+
+
+// Razorpay Webhook Handler
+export const razorpayWebhook = async (req: Request, res: Response) => {
+  try {
+    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET || '';
+    const signature = req.headers['x-razorpay-signature'] as string;
+    
+    // Verify webhook signature
+    const expectedSignature = crypto
+      .createHmac('sha256', webhookSecret)
+      .update(JSON.stringify(req.body))
+      .digest('hex');
+
+    if (signature !== expectedSignature) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid webhook signature' 
+      });
+    }
+
+    const event = req.body;
+    const eventType = event.event;
+
+    console.log('Razorpay Webhook Event:', eventType);
+
+    switch (eventType) {
+      case 'payment.authorized':
+        await handleRazorpayPaymentAuthorized(event);
+        break;
+      
+      case 'payment.captured':
+        await handleRazorpayPaymentCaptured(event);
+        break;
+      
+      case 'payment.failed':
+        await handleRazorpayPaymentFailed(event);
+        break;
+      
+      case 'order.paid':
+        await handleRazorpayOrderPaid(event);
+        break;
+      
+      case 'refund.created':
+        await handleRazorpayRefundCreated(event);
+        break;
+
+      default:
+        console.log('Unhandled Razorpay event:', eventType);
+    }
+
+    res.status(200).json({ success: true, message: 'Webhook received' });
+  } catch (error) {
+    console.error('Razorpay webhook error:', error);
+    res.status(500).json({ success: false, message: 'Webhook processing failed', error });
+  }
+};
+
+// Stripe Webhook Handler
+export const stripeWebhook = async (req: Request, res: Response) => {
+  try {
+    const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
+    const signature = req.headers['stripe-signature'] as string;
+
+    let event;
+
+    try {
+      // Verify webhook signature
+      event = stripe.webhooks.constructEvent(
+        req.body,
+        signature,
+        webhookSecret
+      );
+    } catch (err: any) {
+      console.error('Stripe signature verification failed:', err.message);
+      return res.status(400).json({ 
+        success: false, 
+        message: `Webhook signature verification failed: ${err.message}` 
+      });
+    }
+
+    const eventType = event.type;
+    console.log('Stripe Webhook Event:', eventType);
+
+    switch (eventType) {
+      case 'payment_intent.succeeded':
+        await handleStripePaymentIntentSucceeded(event.data.object);
+        break;
+      
+      case 'payment_intent.payment_failed':
+        await handleStripePaymentIntentFailed(event.data.object);
+        break;
+      
+      case 'charge.succeeded':
+        await handleStripeChargeSucceeded(event.data.object);
+        break;
+      
+      case 'charge.refunded':
+        await handleStripeChargeRefunded(event.data.object);
+        break;
+      
+      case 'invoice.paid':
+        await handleStripeInvoicePaid(event.data.object);
+        break;
+      
+      case 'invoice.payment_failed':
+        await handleStripeInvoicePaymentFailed(event.data.object);
+        break;
+      
+      case 'customer.subscription.created':
+        await handleStripeSubscriptionCreated(event.data.object);
+        break;
+      
+      case 'customer.subscription.updated':
+        await handleStripeSubscriptionUpdated(event.data.object);
+        break;
+      
+      case 'customer.subscription.deleted':
+        await handleStripeSubscriptionDeleted(event.data.object);
+        break;
+
+      default:
+        console.log('Unhandled Stripe event:', eventType);
+    }
+
+    res.status(200).json({ success: true, message: 'Webhook received' });
+  } catch (error) {
+    console.error('Stripe webhook error:', error);
+    res.status(500).json({ success: false, message: 'Webhook processing failed', error });
+  }
+};
+
+// ==================== RAZORPAY HANDLERS ====================
+
+async function handleRazorpayPaymentAuthorized(event: any) {
+  const payment = event.payload.payment.entity;
+  console.log('Payment authorized:', payment.id);
+  
+  // Update transaction status to authorized (optional intermediate state)
+  await updateTransactionByProviderOrderId(
+    payment.order_id,
+    {
+      status: 'authorized',
+      providerPaymentId: payment.id,
+      metadata: {
+        method: payment.method,
+        amount: payment.amount / 100,
+        currency: payment.currency
+      }
+    }
+  );
+}
+
+async function handleRazorpayPaymentCaptured(event: any) {
+  const payment = event.payload.payment.entity;
+  console.log('Payment captured:', payment.id);
+  
+  // Find transaction by order_id
+  const transaction = await findTransactionByProviderOrderId(payment.order_id);
+  
+  if (transaction) {
+    // Update transaction to completed
+    await db.update(transactions)
+      .set({
+        status: 'completed',
+        providerPaymentId: payment.id,
+        paidAt: new Date(),
+        metadata: {
+          method: payment.method,
+          amount: payment.amount / 100,
+          currency: payment.currency,
+          cardId: payment.card_id,
+          bank: payment.bank,
+          wallet: payment.wallet
+        },
+        updatedAt: new Date()
+      })
+      .where(eq(transactions.id, transaction.id));
+
+    // Create subscription if not exists
+    await createSubscriptionFromTransaction(transaction);
+  }
+}
+
+async function handleRazorpayPaymentFailed(event: any) {
+  const payment = event.payload.payment.entity;
+  console.log('Payment failed:', payment.id);
+  
+  await updateTransactionByProviderOrderId(
+    payment.order_id,
+    {
+      status: 'failed',
+      providerPaymentId: payment.id,
+      metadata: {
+        errorCode: payment.error_code,
+        errorDescription: payment.error_description,
+        errorReason: payment.error_reason
+      }
+    }
+  );
+}
+
+async function handleRazorpayOrderPaid(event: any) {
+  const order = event.payload.order.entity;
+  console.log('Order paid:', order.id);
+  
+  await updateTransactionByProviderOrderId(
+    order.id,
+    {
+      status: 'completed',
+      paidAt: new Date()
+    }
+  );
+}
+
+async function handleRazorpayRefundCreated(event: any) {
+  const refund = event.payload.refund.entity;
+  console.log('Refund created:', refund.id);
+  
+  await updateTransactionByProviderPaymentId(
+    refund.payment_id,
+    {
+      status: 'refunded',
+      refundedAt: new Date(),
+      metadata: {
+        refundId: refund.id,
+        refundAmount: refund.amount / 100
+      }
+    }
+  );
+}
+
+// ==================== STRIPE HANDLERS ====================
+
+async function handleStripePaymentIntentSucceeded(paymentIntent: any) {
+  console.log('Payment intent succeeded:', paymentIntent.id);
+  
+  // Find transaction by provider transaction ID
+  const transaction = await findTransactionByProviderTransactionId(paymentIntent.id);
+  
+  if (transaction) {
+    await db.update(transactions)
+      .set({
+        status: 'completed',
+        paidAt: new Date(),
+        metadata: {
+          paymentMethod: paymentIntent.payment_method,
+          amount: paymentIntent.amount / 100,
+          currency: paymentIntent.currency
+        },
+        updatedAt: new Date()
+      })
+      .where(eq(transactions.id, transaction.id));
+
+    await createSubscriptionFromTransaction(transaction);
+  }
+}
+
+async function handleStripePaymentIntentFailed(paymentIntent: any) {
+  console.log('Payment intent failed:', paymentIntent.id);
+  
+  await updateTransactionByProviderTransactionId(
+    paymentIntent.id,
+    {
+      status: 'failed',
+      metadata: {
+        errorMessage: paymentIntent.last_payment_error?.message,
+        errorCode: paymentIntent.last_payment_error?.code
+      }
+    }
+  );
+}
+
+async function handleStripeChargeSucceeded(charge: any) {
+  console.log('Charge succeeded:', charge.id);
+  
+  await updateTransactionByProviderTransactionId(
+    charge.payment_intent,
+    {
+      providerPaymentId: charge.id,
+      metadata: {
+        cardLast4: charge.payment_method_details?.card?.last4,
+        cardBrand: charge.payment_method_details?.card?.brand,
+        receiptUrl: charge.receipt_url
+      }
+    }
+  );
+}
+
+async function handleStripeChargeRefunded(charge: any) {
+  console.log('Charge refunded:', charge.id);
+  
+  await updateTransactionByProviderPaymentId(
+    charge.id,
+    {
+      status: 'refunded',
+      refundedAt: new Date(),
+      metadata: {
+        refundAmount: charge.amount_refunded / 100
+      }
+    }
+  );
+}
+
+async function handleStripeInvoicePaid(invoice: any) {
+  console.log('Invoice paid:', invoice.id);
+  // Handle subscription renewal or invoice payment
+}
+
+async function handleStripeInvoicePaymentFailed(invoice: any) {
+  console.log('Invoice payment failed:', invoice.id);
+  // Handle failed subscription renewal
+}
+
+async function handleStripeSubscriptionCreated(subscription: any) {
+  console.log('Subscription created:', subscription.id);
+  // Handle subscription creation from Stripe
+}
+
+async function handleStripeSubscriptionUpdated(subscription: any) {
+  console.log('Subscription updated:', subscription.id);
+  // Handle subscription updates
+}
+
+async function handleStripeSubscriptionDeleted(subscription: any) {
+  console.log('Subscription deleted:', subscription.id);
+  // Handle subscription cancellation
+}
+
+// ==================== HELPER FUNCTIONS ====================
+
+async function findTransactionByProviderOrderId(orderId: string) {
+  const result = await db
+    .select()
+    .from(transactions)
+    .where(eq(transactions.providerOrderId, orderId))
+    .limit(1);
+  
+  return result.length > 0 ? result[0] : null;
+}
+
+async function findTransactionByProviderTransactionId(transactionId: string) {
+  const result = await db
+    .select()
+    .from(transactions)
+    .where(eq(transactions.providerTransactionId, transactionId))
+    .limit(1);
+  
+  return result.length > 0 ? result[0] : null;
+}
+
+async function findTransactionByProviderPaymentId(paymentId: string) {
+  const result = await db
+    .select()
+    .from(transactions)
+    .where(eq(transactions.providerPaymentId, paymentId))
+    .limit(1);
+  
+  return result.length > 0 ? result[0] : null;
+}
+
+async function updateTransactionByProviderOrderId(orderId: string, updateData: any) {
+  const transaction = await findTransactionByProviderOrderId(orderId);
+  if (transaction) {
+    await db.update(transactions)
+      .set({ ...updateData, updatedAt: new Date() })
+      .where(eq(transactions.id, transaction.id));
+  }
+}
+
+async function updateTransactionByProviderTransactionId(transactionId: string, updateData: any) {
+  const transaction = await findTransactionByProviderTransactionId(transactionId);
+  if (transaction) {
+    await db.update(transactions)
+      .set({ ...updateData, updatedAt: new Date() })
+      .where(eq(transactions.id, transaction.id));
+  }
+}
+
+async function updateTransactionByProviderPaymentId(paymentId: string, updateData: any) {
+  const transaction = await findTransactionByProviderPaymentId(paymentId);
+  if (transaction) {
+    await db.update(transactions)
+      .set({ ...updateData, updatedAt: new Date() })
+      .where(eq(transactions.id, transaction.id));
+  }
+}
+
+async function createSubscriptionFromTransaction(transaction: any) {
+  // Check if subscription already exists
+  if (transaction.subscriptionId) {
+    return;
+  }
+
+  // Calculate subscription dates
+  const startDate = new Date();
+  const endDate = new Date();
+  
+  if (transaction.billingCycle === 'annual') {
+    endDate.setFullYear(endDate.getFullYear() + 1);
+  } else {
+    endDate.setMonth(endDate.getMonth() + 1);
+  }
+
+  // Create subscription
+  const newSubscription = await db
+    .insert(subscriptions)
+    .values({
+      userId: transaction.userId,
+      planId: transaction.planId,
+      status: 'active',
+      billingCycle: transaction.billingCycle,
+      startDate,
+      endDate,
+      autoRenew: true
+    })
+    .returning();
+
+  // Update transaction with subscription ID
+  await db
+    .update(transactions)
+    .set({ subscriptionId: newSubscription[0].id })
+    .where(eq(transactions.id, transaction.id));
+
+  console.log('Subscription created:', newSubscription[0].id);
+}
