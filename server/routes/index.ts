@@ -17,6 +17,7 @@ import { registerWhatsAppRoutes } from "./whatsapp.routes";
 import { registerWebhookRoutes } from "./webhooks.routes";
 import { registerMessageRoutes } from "./messages.routes";
 import { registerMessageLogsRoutes } from "./messages.logs.routes";
+import { registerPlansRoutes } from "./plans.routes";
 import teamRoutes from "./team.routes";
 import authRoutes from "./auth.routes";
 
@@ -33,6 +34,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register all route modules
   registerWidgetRoutes(app);
+  registerPlansRoutes(app);
   registerStorageSettingsRoutes(app);
   registerAISettingsRoutes(app);
   registerChannelRoutes(app);
