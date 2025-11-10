@@ -35,6 +35,24 @@ import LoadingAnimation from "./components/LoadingAnimation";
 import SignupPopup from "./components/SignupPopup";
 import Plans from "./pages/plans";
 import GatewaySettings from "./pages/GatewaySettings";
+import BotFlowBuilder from "./pages/BotFlowBuilder";
+import Workflows from "./pages/Workflows";
+import AIAssistant from "./pages/AIAssistant";
+import AutoResponses from "./pages/AutoResponses";
+import WABAConnection from "./pages/WABAConnection";
+import MultiNumber from "./pages/MultiNumbert";
+import Webhooks from "./pages/Webhooks";
+import QRCodes from "./pages/QRCodes";
+import CRMSystem from "./pages/CRMSystem";
+import LeadManagement from "./pages/LeadManagement";
+import BulkImport from "./pages/BulkImport";
+import Segmentation from "./pages/Segmentation";
+import MessageLogs from "./pages/MessageLogs";
+import HealthMonitor from "./pages/HealthMonitor";
+import Reports from "./pages/Reports";
+import SupportTickets from "./pages/SupportTickets";
+import Notifications from "./pages/Notifications";
+import ChatHub from "./pages/ChatHub";
 // Define route permissions mapping
 const ROUTE_PERMISSIONS: Record<string, string> = {
   "/contacts": "contacts.view",
@@ -48,6 +66,7 @@ const ROUTE_PERMISSIONS: Record<string, string> = {
   "/logs": "logs.view",
   "/settings": "settings.view",
   "/account": "",
+  "/bot-builder":""
 };
 
 // function ScrollToTop() {
@@ -277,6 +296,78 @@ function ProtectedRoutes() {
           </Route>
           <Route path="/account">
             <PermissionRoute component={Account} />
+          </Route>
+
+          <Route path="/bot-builder">
+          <PermissionRoute component={BotFlowBuilder}/>
+          </Route>
+
+          <Route path="/workflows">
+          <PermissionRoute component={Workflows}/>
+          </Route>
+
+          <Route path="/ai-assistant">
+          <PermissionRoute component={AIAssistant}/>
+          </Route>
+
+          <Route path="/auto-responses">
+          <PermissionRoute component={AutoResponses}/>
+          </Route>
+
+          <Route path="/waba-connection">
+          <PermissionRoute component={WABAConnection}/>
+          </Route>
+
+          <Route path="/multi-number">
+          <PermissionRoute component={MultiNumber}/>
+          </Route>
+
+          <Route path="/webhooks">
+          <PermissionRoute component={Webhooks}/>
+          </Route>
+
+          <Route path="/qr-codes">
+          <PermissionRoute component={QRCodes}/>
+          </Route>
+
+          <Route path="/crm-systems">
+          <PermissionRoute component={CRMSystem}/>
+          </Route>
+
+          <Route path="/leads">
+          <PermissionRoute component={LeadManagement}/>
+          </Route>
+
+          <Route path="/bulk-import">
+          <PermissionRoute component={BulkImport}/>
+          </Route>
+
+          <Route path="/segmentation">
+          <PermissionRoute component={Segmentation}/>
+          </Route>
+
+          <Route path="/message-logs">
+          <PermissionRoute component={MessageLogs}/>
+          </Route>
+
+          <Route path="/health-monitor">
+          <PermissionRoute component={HealthMonitor}/>
+          </Route>
+
+          <Route path="/reports">
+          <PermissionRoute component={Reports}/>
+          </Route>
+
+          <Route path="/support-tickets">
+          <PermissionRoute component={SupportTickets}/>
+          </Route>
+
+           <Route path="/notifications">
+          <PermissionRoute component={Notifications}/>
+          </Route>
+
+          <Route path="/chat-hub">
+          <PermissionRoute component={ChatHub}/>
           </Route>
           <Route component={NotFound} />
         </Switch>
