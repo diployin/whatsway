@@ -22,4 +22,11 @@ export function registerWebhookRoutes(app: Express) {
 
   // Global webhook endpoint
   app.all("/webhook/d420e261-9c12-4cee-9d65-253cda8ab4bc", webhooksController.handleWebhook);
-}
+
+  // ==================== PAYMENT WEBHOOKS ====================
+
+  app.post('/webhooks/razorpay', webhooksController.razorpayWebhook);
+
+  // Stripe Webhook
+  app.post('/webhooks/stripe', webhooksController.stripeWebhook);
+} 
