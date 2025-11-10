@@ -11,17 +11,17 @@ import type { Express } from "express";
 export function registerPlansRoutes(app: Express) {
 
 // GET all plans
-app.get('/plans',requireAuth, getAllPlans);
+app.get('/api/admin/plans', getAllPlans);
 
 // GET single plan by ID
-app.get('/plans/:id',requireAuth, getPlanById);
+app.get('/api/admin/plans/:id', getPlanById);
 
 // POST create new plan
-app.post('/plans',requireAuth, createPlan);
+app.post('/api/admin/plans', createPlan);
 
 // PUT update plan by ID
-app.put('/plans/:id',requireAuth, updatePlan);
+app.put('/api/admin/plans/:id', updatePlan);
 
 // DELETE plan by ID
-app.delete('/plans/:id',requireAuth, deletePlan);
+app.delete('/api/admin/plans/:id', deletePlan);
 }
