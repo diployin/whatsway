@@ -9,6 +9,7 @@ import {
   jsonb,
   index,
   unique,
+  numeric,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
@@ -27,6 +28,7 @@ export const users = pgTable("users", {
   avatar: text("avatar"),
   status: text("status").notNull().default("active"), // active, inactive
   permissions: text("permissions").array().notNull(),
+  channelId: varchar("channel_id"),
   lastLogin: timestamp("last_login"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -390,6 +392,39 @@ export const knowledgeArticles = pgTable('knowledge_articles', {
   articleCategoryIdx: index('articles_category_idx').on(table.categoryId),
   articlePublishedIdx: index('articles_published_idx').on(table.published),
 }));
+
+//plans
+export const plans = pgTable("plans", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  icon: varchar("icon"), // optional: store icon name like 'Zap', 'Crown'
+  popular: boolean("popular").default(false),
+  badge: varchar("badge"),
+  color: varchar("color"),
+  buttonColor: varchar("button_color"),
+
+  // Pricing
+  monthlyPrice: numeric("monthly_price", { precision: 10, scale: 2 }).default("0"),
+  annualPrice: numeric("annual_price", { precision: 10, scale: 2 }).default("0"),
+
+  // Permissions (JSON for flexibility)
+  permissions: jsonb("permissions").$type<{
+    channel: string;
+    contacts: string;
+    automation: string;
+  }>(),
+
+  // Features (Array of objects)
+  features: jsonb("features").$type<
+    { name: string; included: boolean }[]
+  >(),
+
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+
 
 // Automation workflows table
 export const automations = pgTable(
