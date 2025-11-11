@@ -53,6 +53,7 @@ import Reports from "./pages/Reports";
 import SupportTickets from "./pages/SupportTickets";
 import Notifications from "./pages/Notifications";
 import ChatHub from "./pages/ChatHub";
+import { Component } from "lucide-react";
 // Define route permissions mapping
 const ROUTE_PERMISSIONS: Record<string, string> = {
   "/contacts": "contacts.view",
@@ -196,7 +197,7 @@ function ProtectedRoutes() {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated ) {
     return (
       <>
         <Header />
@@ -219,6 +220,8 @@ function ProtectedRoutes() {
             <Dashboard />
           </Route>
 
+          
+          
           <Route path="/contacts">
             <PermissionRoute
               component={Contacts}
@@ -431,6 +434,7 @@ function Router() {
     <Switch>
       <Route path="/login" component={LoginPage} />
       <Route path="/signup" component={Signup} />
+      <Route path="/" component={Home}/>
       <Route
         path="/analytics/campaign/:campaignId"
         component={CampaignAnalytics}
