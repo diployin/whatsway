@@ -66,7 +66,7 @@ const ROUTE_PERMISSIONS: Record<string, string> = {
   "/logs": "logs.view",
   "/settings": "settings.view",
   "/account": "",
-  "/bot-builder":""
+  "/bot-builder": "",
 };
 
 // function ScrollToTop() {
@@ -299,75 +299,75 @@ function ProtectedRoutes() {
           </Route>
 
           <Route path="/bot-builder">
-          <PermissionRoute component={BotFlowBuilder}/>
+            <PermissionRoute component={BotFlowBuilder} />
           </Route>
 
           <Route path="/workflows">
-          <PermissionRoute component={Workflows}/>
+            <PermissionRoute component={Workflows} />
           </Route>
 
           <Route path="/ai-assistant">
-          <PermissionRoute component={AIAssistant}/>
+            <PermissionRoute component={AIAssistant} />
           </Route>
 
           <Route path="/auto-responses">
-          <PermissionRoute component={AutoResponses}/>
+            <PermissionRoute component={AutoResponses} />
           </Route>
 
           <Route path="/waba-connection">
-          <PermissionRoute component={WABAConnection}/>
+            <PermissionRoute component={WABAConnection} />
           </Route>
 
           <Route path="/multi-number">
-          <PermissionRoute component={MultiNumber}/>
+            <PermissionRoute component={MultiNumber} />
           </Route>
 
           <Route path="/webhooks">
-          <PermissionRoute component={Webhooks}/>
+            <PermissionRoute component={Webhooks} />
           </Route>
 
           <Route path="/qr-codes">
-          <PermissionRoute component={QRCodes}/>
+            <PermissionRoute component={QRCodes} />
           </Route>
 
           <Route path="/crm-systems">
-          <PermissionRoute component={CRMSystem}/>
+            <PermissionRoute component={CRMSystem} />
           </Route>
 
           <Route path="/leads">
-          <PermissionRoute component={LeadManagement}/>
+            <PermissionRoute component={LeadManagement} />
           </Route>
 
           <Route path="/bulk-import">
-          <PermissionRoute component={BulkImport}/>
+            <PermissionRoute component={BulkImport} />
           </Route>
 
           <Route path="/segmentation">
-          <PermissionRoute component={Segmentation}/>
+            <PermissionRoute component={Segmentation} />
           </Route>
 
           <Route path="/message-logs">
-          <PermissionRoute component={MessageLogs}/>
+            <PermissionRoute component={MessageLogs} />
           </Route>
 
           <Route path="/health-monitor">
-          <PermissionRoute component={HealthMonitor}/>
+            <PermissionRoute component={HealthMonitor} />
           </Route>
 
           <Route path="/reports">
-          <PermissionRoute component={Reports}/>
+            <PermissionRoute component={Reports} />
           </Route>
 
           <Route path="/support-tickets">
-          <PermissionRoute component={SupportTickets}/>
+            <PermissionRoute component={SupportTickets} />
           </Route>
 
-           <Route path="/notifications">
-          <PermissionRoute component={Notifications}/>
+          <Route path="/notifications">
+            <PermissionRoute component={Notifications} />
           </Route>
 
           <Route path="/chat-hub">
-          <PermissionRoute component={ChatHub}/>
+            <PermissionRoute component={ChatHub} />
           </Route>
           <Route component={NotFound} />
         </Switch>
