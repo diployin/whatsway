@@ -16,6 +16,7 @@ import { registerAutomationRoutes } from "./automation.routes";
 import { registerWhatsAppRoutes } from "./whatsapp.routes";
 import { registerWebhookRoutes } from "./webhooks.routes";
 import { registerMessageRoutes } from "./messages.routes";
+import { registerPaymentsRoutes } from "./payment.routes";
 import { registerMessageLogsRoutes } from "./messages.logs.routes";
 import { registerPlansRoutes } from "./plans.routes";
 import teamRoutes from "./team.routes";
@@ -52,6 +53,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerMessageRoutes(app);
   registerMessageLogsRoutes(app);
   registerPanelConfigRoutes(app)
+  registerPaymentsRoutes(app);
   
   // Team management routes
   app.use("/api/team", teamRoutes);

@@ -14,7 +14,9 @@ import { TemplateDialog } from "@/components/templates/TemplateDialog";
 import { useAuth } from "@/contexts/auth-context";
 
 export default function Templates() {
-  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(
+    null
+  );
   const [showDialog, setShowDialog] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
   const { toast } = useToast();
@@ -26,7 +28,9 @@ export default function Templates() {
   });
 
   // Fetch templates
-  const { data: templates = [], isLoading: templatesLoading } = useQuery<Template[]>({
+  const { data: templates = [], isLoading: templatesLoading } = useQuery<
+    Template[]
+  >({
     queryKey: ["/api/templates"],
     enabled: !!activeChannel,
   });
@@ -35,12 +39,13 @@ export default function Templates() {
   const createTemplateMutation = useMutation({
     mutationFn: async (data: any) => {
       const components = [];
-      
+
       // Add header component if present
       if (data.header || data.mediaType !== "text") {
         components.push({
           type: "HEADER",
-          format: data.mediaType === "text" ? "TEXT" : data.mediaType.toUpperCase(),
+          format:
+            data.mediaType === "text" ? "TEXT" : data.mediaType.toUpperCase(),
           text: data.header,
         });
       }
@@ -84,7 +89,11 @@ export default function Templates() {
       };
 
       if (editingTemplate) {
-        return await apiRequest("PATCH", `/api/templates/${editingTemplate.id}`, payload);
+        return await apiRequest(
+          "PATCH",
+          `/api/templates/${editingTemplate.id}`,
+          payload
+        );
       } else {
         return await apiRequest("POST", "/api/templates", payload);
       }
@@ -93,8 +102,8 @@ export default function Templates() {
       queryClient.invalidateQueries({ queryKey: ["/api/templates"] });
       toast({
         title: editingTemplate ? "Template updated" : "Template created",
-        description: editingTemplate 
-          ? "Your template has been updated successfully." 
+        description: editingTemplate
+          ? "Your template has been updated successfully."
           : "Your template has been created and submitted for approval.",
       });
       setShowDialog(false);
@@ -172,7 +181,11 @@ export default function Templates() {
   };
 
   const handleDeleteTemplate = (template: Template) => {
-    if (confirm(`Are you sure you want to delete the template "${template.name}"?`)) {
+    if (
+      confirm(
+        `Are you sure you want to delete the template "${template.name}"?`
+      )
+    ) {
       deleteTemplateMutation.mutate(template.id);
     }
   };
@@ -184,8 +197,8 @@ export default function Templates() {
   if (!activeChannel) {
     return (
       <div className="flex-1 dots-bg min-h-screen">
-        <Header 
-          title="Templates" 
+        <Header
+          title="Templates"
           subtitle="Create and manage WhatsApp message templates"
         />
         <main className="p-6">
@@ -196,9 +209,9 @@ export default function Templates() {
                 <p className="text-gray-500">
                   Please select or create a WhatsApp channel first
                 </p>
-                <Button 
+                <Button
                   className="mt-4"
-                  onClick={() => window.location.href = "/settings"}
+                  onClick={() => (window.location.href = "/settings")}
                 >
                   Go to Settings
                 </Button>
@@ -212,8 +225,8 @@ export default function Templates() {
 
   return (
     <div className="flex-1 dots-bg min-h-screen">
-      <Header 
-        title="Templates" 
+      <Header
+        title="Templates"
         subtitle="Create and manage WhatsApp message templates"
       />
 
@@ -232,10 +245,14 @@ export default function Templates() {
                   onClick={handleSyncTemplates}
                   disabled={syncTemplatesMutation.isPending}
                 >
-                  <RefreshCw className={`w-4 h-4 mr-2 ${syncTemplatesMutation.isPending ? 'animate-spin' : ''}`} />
+                  <RefreshCw
+                    className={`w-4 h-4 mr-2 ${
+                      syncTemplatesMutation.isPending ? "animate-spin" : ""
+                    }`}
+                  />
                   Sync from WhatsApp
                 </Button>
-                <Button onClick={handleCreateTemplate} >
+                <Button onClick={handleCreateTemplate}>
                   <Plus className="w-4 h-4 mr-2" />
                   Create Template
                 </Button>

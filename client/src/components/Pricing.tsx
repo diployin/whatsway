@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Check,
   X,
@@ -7,104 +7,56 @@ import {
   Rocket,
   Building,
   ArrowRight,
+  AlertCircle,
+  Star,
 } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
+import { Plan, PlansDataTypes } from "@/types/types";
+import { useToast } from "@/hooks/use-toast";
 
 const Pricing = () => {
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
   const [isAnnual, setIsAnnual] = useState(false);
+  const { toast } = useToast();
 
-  const plans = [
-    {
-      name: "Starter",
-      icon: Zap,
-      price: { monthly: 0, annual: 0 },
-      contacts: "1,000",
-      description: "Perfect for small businesses getting started",
-      features: [
-        { name: "Up to 1,000 contacts", included: true },
-        { name: "Basic message templates", included: true },
-        { name: "Manual campaigns", included: true },
-        { name: "Basic analytics", included: true },
-        { name: "Email support", included: true },
-        { name: "Automation workflows", included: false },
-        { name: "Advanced analytics", included: false },
-        { name: "Priority support", included: false },
-      ],
-      popular: false,
-      color: "border-gray-200",
-      buttonColor: "bg-gray-900 hover:bg-gray-800",
-      badge: null,
-    },
-    {
-      name: "Professional",
-      icon: Crown,
-      price: { monthly: 49, annual: 39 },
-      contacts: "10,000",
-      description: "Ideal for growing businesses",
-      features: [
-        { name: "Up to 10,000 contacts", included: true },
-        { name: "Advanced templates", included: true },
-        { name: "Automated campaigns", included: true },
-        { name: "Advanced analytics", included: true },
-        { name: "Priority support", included: true },
-        { name: "Automation workflows", included: true },
-        { name: "A/B testing", included: true },
-        { name: "Custom integrations", included: false },
-      ],
-      popular: true,
-      color: "border-blue-500 ring-2 ring-blue-200",
-      buttonColor:
-        "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700",
-      badge: "Most Popular",
-    },
-    {
-      name: "Business",
-      icon: Rocket,
-      price: { monthly: 99, annual: 79 },
-      contacts: "50,000",
-      description: "For established businesses scaling up",
-      features: [
-        { name: "Up to 50,000 contacts", included: true },
-        { name: "Custom templates", included: true },
-        { name: "Advanced automation", included: true },
-        { name: "Real-time analytics", included: true },
-        { name: "Priority support", included: true },
-        { name: "Chatbot integration", included: true },
-        { name: "API access", included: true },
-        { name: "White-label options", included: false },
-      ],
-      popular: false,
-      color: "border-purple-200",
-      buttonColor:
-        "bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700",
-      badge: null,
-    },
-    {
-      name: "Enterprise",
-      icon: Building,
-      price: { monthly: 199, annual: 159 },
-      contacts: "Unlimited",
-      description: "For large organizations with custom needs",
-      features: [
-        { name: "Unlimited contacts", included: true },
-        { name: "White-label solution", included: true },
-        { name: "Custom integrations", included: true },
-        { name: "Advanced automation", included: true },
-        { name: "Dedicated support", included: true },
-        { name: "Custom analytics", included: true },
-        { name: "SLA guarantee", included: true },
-        { name: "Custom onboarding", included: true },
-      ],
-      popular: false,
-      color: "border-orange-200",
-      buttonColor:
-        "bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700",
-      badge: "Enterprise",
-    },
-  ];
+  // Icon mapping
+  const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+    Zap,
+    Crown,
+    Rocket,
+    Star,
+    Building,
+  };
+
+  const fetchPlans = async (): Promise<void> => {
+    try {
+      setLoading(true);
+      const response = await apiRequest("GET", "/api/admin/plans");
+      const data: PlansDataTypes = await response.json();
+      if (data.success) {
+        setPlans(data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching plans:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch plans",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPlans();
+  }, []);
 
   return (
     <section id="pricing" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
       <div className="max-w-7xl mx-auto">
+        {/* Header Section */}
         <div className="text-center mb-16">
           <div className="inline-flex items-center bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium mb-6">
             <Crown className="w-4 h-4 mr-2" />
@@ -157,77 +109,166 @@ const Pricing = () => {
           </div>
         </div>
 
-        {/* Pricing Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 lg:gap-8 mb-16 relative">
-          {plans.map((plan, index) => (
-            <div
-              key={index}
-              className={`bg-white p-8 rounded-2xl shadow-lg border-2 ${
-                plan.color
-              } ${
-                plan.popular ? "relative transform scale-105" : ""
-              } hover:shadow-xl transition-all`}
-            >
-              {plan.badge && (
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <span className="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-medium">
-                    {plan.badge}
-                  </span>
-                </div>
-              )}
+        {/* Loading State */}
+        {loading ? (
+          <div className="text-center py-20">
+            <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mb-4"></div>
+            <p className="text-gray-600 font-medium">Loading plans...</p>
+          </div>
+        ) : plans.length === 0 ? (
+          // Empty State
+          <div className="text-center py-20 bg-gray-50 rounded-2xl">
+            <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              No Plans Available
+            </h3>
+            <p className="text-gray-600">
+              Please check back later for pricing options.
+            </p>
+          </div>
+        ) : (
+          // Pricing Cards
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 lg:gap-8 mb-16">
+            {plans.map((plan) => {
+              const IconComponent = iconMap[plan.icon] || Zap;
+              const isPopular = plan.popular;
 
-              <div className="text-center mb-8">
-                <div className="bg-gray-100 p-3 rounded-xl w-fit mx-auto mb-4">
-                  <plan.icon className="w-8 h-8 text-gray-700" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                  {plan.name}
-                </h3>
-                <p className="text-gray-600 text-sm mb-4">{plan.description}</p>
+              return (
+                <div
+                  key={plan.id}
+                  className={`bg-white p-8 rounded-2xl shadow-lg border-2 ${
+                    plan.color
+                  } ${
+                    isPopular ? "relative transform scale-105" : ""
+                  } hover:shadow-xl transition-all`}
+                >
+                  {/* Popular Badge */}
+                  {plan.badge && (
+                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                      <span className="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-medium">
+                        {plan.badge}
+                      </span>
+                    </div>
+                  )}
 
-                <div className="flex items-baseline justify-center mb-2">
-                  <span className="text-4xl font-bold text-gray-900">
-                    ${isAnnual ? plan.price.annual : plan.price.monthly}
-                  </span>
-                  <span className="text-gray-600 ml-2">
-                    /{isAnnual ? "year" : "month"}
-                  </span>
-                </div>
+                  <div className="text-center mb-8">
+                    {/* Icon */}
+                    <div className="bg-gray-100 p-3 rounded-xl w-fit mx-auto mb-4">
+                      <IconComponent className="w-8 h-8 text-gray-700" />
+                    </div>
 
-                <div className="text-gray-600 text-sm">
-                  Up to {plan.contacts} contacts
-                </div>
-              </div>
+                    {/* Plan Name */}
+                    <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                      {plan.name}
+                    </h3>
 
-              <ul className="space-y-4 mb-8">
-                {plan.features.map((feature, featureIndex) => (
-                  <li key={featureIndex} className="flex items-start space-x-3">
-                    {feature.included ? (
-                      <Check className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                    ) : (
-                      <X className="w-5 h-5 text-gray-300 mt-0.5 flex-shrink-0" />
+                    {/* Description */}
+                    <p className="text-gray-600 text-sm mb-4 min-h-[40px]">
+                      {plan.description}
+                    </p>
+
+                    {/* Price */}
+                    <div className="flex items-baseline justify-center mb-2">
+                      <span className="text-4xl font-bold text-gray-900">
+                        ${isAnnual ? plan.annualPrice : plan.monthlyPrice}
+                      </span>
+                      <span className="text-gray-600 ml-2">
+                        /{isAnnual ? "year" : "month"}
+                      </span>
+                    </div>
+
+                    {/* Permissions */}
+                    {plan.permissions && (
+                      <div className="space-y-1">
+                        <div className="text-gray-600 text-sm">
+                          Up to {plan.permissions.contacts} contacts
+                        </div>
+                        <div className="text-gray-600 text-sm">
+                          {plan.permissions.channel} WhatsApp Channels
+                        </div>
+                        {plan.permissions.automation && (
+                          <div className="text-gray-600 text-sm">
+                            {plan.permissions.automation} Automation
+                          </div>
+                        )}
+                      </div>
                     )}
-                    <span
-                      className={`text-sm ${
-                        feature.included ? "text-gray-700" : "text-gray-400"
-                      }`}
-                    >
-                      {feature.name}
-                    </span>
-                  </li>
-                ))}
-              </ul>
+                  </div>
 
-              <button
-                className={`w-full py-3 rounded-xl font-semibold transition-all transform hover:scale-105 ${plan.buttonColor} text-white`}
-              >
-                {plan.price.monthly === 0
-                  ? "Get Started Free"
-                  : "Start Free Trial"}
-              </button>
-            </div>
-          ))}
-        </div>
+                  {/* Features */}
+                  <ul className="space-y-4 mb-8">
+                    {plan.features && plan.features.length > 0 ? (
+                      plan.features.map((feature, featureIndex) => (
+                        <li
+                          key={featureIndex}
+                          className="flex items-start space-x-3"
+                        >
+                          {feature.included ? (
+                            <Check className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                          ) : (
+                            <X className="w-5 h-5 text-gray-300 mt-0.5 flex-shrink-0" />
+                          )}
+                          <span
+                            className={`text-sm ${
+                              feature.included
+                                ? "text-gray-700"
+                                : "text-gray-400"
+                            }`}
+                          >
+                            {feature.name}
+                          </span>
+                        </li>
+                      ))
+                    ) : (
+                      // Default features when no features in API
+                      <>
+                        <li className="flex items-start space-x-3">
+                          <Check className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                          <span className="text-sm text-gray-700">
+                            {plan.permissions.contacts} contacts
+                          </span>
+                        </li>
+                        <li className="flex items-start space-x-3">
+                          <Check className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                          <span className="text-sm text-gray-700">
+                            {plan.permissions.channel} WhatsApp channels
+                          </span>
+                        </li>
+                        <li className="flex items-start space-x-3">
+                          <Check className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                          <span className="text-sm text-gray-700">
+                            {plan.permissions.automation} automation
+                          </span>
+                        </li>
+                        <li className="flex items-start space-x-3">
+                          <Check className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                          <span className="text-sm text-gray-700">
+                            Basic analytics
+                          </span>
+                        </li>
+                        <li className="flex items-start space-x-3">
+                          <Check className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                          <span className="text-sm text-gray-700">
+                            Email support
+                          </span>
+                        </li>
+                      </>
+                    )}
+                  </ul>
+
+                  {/* CTA Button */}
+                  <button
+                    className={`w-full py-3 rounded-xl font-semibold transition-all transform hover:scale-105 ${plan.buttonColor} text-white`}
+                  >
+                    {parseFloat(plan.monthlyPrice) === 0
+                      ? "Get Started Free"
+                      : "Start Free Trial"}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* FAQ Section */}
         <div className="bg-gray-50 p-8 rounded-2xl">

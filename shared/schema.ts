@@ -424,6 +424,83 @@ export const plans = pgTable("plans", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Payment Providers table
+export const paymentProviders = pgTable("payment_providers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(), // e.g., "Razorpay", "Stripe", "PayPal"
+  providerKey: varchar("provider_key").notNull().unique(), // e.g., "razorpay", "stripe"
+  description: text("description"),
+  logo: varchar("logo"), // URL or icon name
+  isActive: boolean("is_active").default(true),
+  // Provider Configuration (API Keys, etc.)
+  config: jsonb("config").$type<{
+    apiKey?: string;
+    apiSecret?: string;
+    webhookSecret?: string;
+    publicKey?: string;
+    merchantId?: string;
+    [key: string]: any;
+  }>(),
+  // Supported features
+  supportedCurrencies: jsonb("supported_currencies").$type<string[]>(),
+  supportedMethods: jsonb("supported_methods").$type<string[]>(), // ["card", "upi", "wallet"]
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// User Subscriptions table
+export const subscriptions = pgTable("subscriptions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  planId: varchar("plan_id").notNull().references(() => plans.id),
+  status: varchar("status").notNull(), // "active", "expired", "cancelled", "pending"
+  billingCycle: varchar("billing_cycle").notNull(), // "monthly" or "annual"
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  autoRenew: boolean("auto_renew").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Transactions table
+export const transactions = pgTable("transactions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  planId: varchar("plan_id").notNull().references(() => plans.id),
+  subscriptionId: varchar("subscription_id").references(() => subscriptions.id),
+  paymentProviderId: varchar("payment_provider_id").notNull().references(() => paymentProviders.id),
+  
+  // Transaction details
+  amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: varchar("currency").default("USD"),
+  billingCycle: varchar("billing_cycle").notNull(), // "monthly" or "annual"
+  
+  // Payment provider details
+  providerTransactionId: varchar("provider_transaction_id"), // Transaction ID from payment provider
+  providerOrderId: varchar("provider_order_id"), // Order ID from payment provider
+  providerPaymentId: varchar("provider_payment_id"), // Payment ID from payment provider
+  
+  // Transaction status
+  status: varchar("status").notNull(), // "pending", "completed", "failed", "refunded", "cancelled"
+  paymentMethod: varchar("payment_method"), // "card", "upi", "wallet", "netbanking"
+  
+  // Additional details
+  metadata: jsonb("metadata").$type<{
+    cardLast4?: string;
+    cardBrand?: string;
+    upiId?: string;
+    failureReason?: string;
+    refundReason?: string;
+    [key: string]: any;
+  }>(),
+  
+  // Timestamps
+  paidAt: timestamp("paid_at"),
+  refundedAt: timestamp("refunded_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 
 
 // Automation workflows table

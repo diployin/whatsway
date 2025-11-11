@@ -369,12 +369,9 @@
 //   );
 // }
 
-
-
-
-
 import React, { useState } from "react";
 import { Link, useLocation } from "wouter";
+import { MdOutlinePayment } from "react-icons/md";
 import {
   LayoutDashboard,
   Users,
@@ -390,7 +387,7 @@ import {
   Menu,
   LogOut,
   X,
-  Bell
+  Bell,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ChannelSwitcher } from "@/components/channel-switcher";
@@ -421,7 +418,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   {
-    href: "/",
+    href: "/dashboard",
     icon: LayoutDashboard,
     labelKey: "navigation.dashboard",
     color: "text-green-600",
@@ -484,7 +481,7 @@ const navItems: NavItem[] = [
     allowedRoles: ["superadmin", "admin", "user"],
   },
   {
-    href: "/logs",
+    href: "/message-logs",
     icon: ScrollText,
     labelKey: "navigation.messageLogs",
     color: "text-yellow-600",
@@ -515,6 +512,22 @@ const navItems: NavItem[] = [
     requiredPrefix: "notifications.",
     allowedRoles: ["superadmin", "admin"],
   },
+  {
+    href: "/plans",
+    icon: Bell,
+    labelKey: "navigation.plans",
+    color: "text-blue-400",
+    // requiredPrefix: "notifications.",
+    allowedRoles: ["superadmin"],
+  },
+  {
+    href: "/gateway",
+    icon: Bell,
+    labelKey: "navigation.plans",
+    color: "text-blue-400",
+    // requiredPrefix: "notifications.",
+    allowedRoles: ["superadmin"],
+  },
 ];
 
 // Category-based structure for superadmin
@@ -522,7 +535,7 @@ const sidebarItemsCategories = [
   {
     category: "Core Features",
     items: [
-      { name: "Dashboard", icon: LayoutDashboard, path: "/", color: "text-green-600" },
+      { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard", color: "text-green-600" },
       { name: "Campaigns", icon: Megaphone, path: "/campaigns", badge: "24", color: "text-blue-600" },
       { name: "Templates", icon: FileText, path: "/templates", badge: "12", color: "text-purple-600" },
       { name: "Contacts", icon: Users, path: "/contacts", badge: "8.4k", color: "text-yellow-600" },
@@ -541,41 +554,132 @@ const sidebarItemsCategories = [
   {
     category: "WhatsApp Management",
     items: [
-      { name: "WABA Connection", icon: Menu, path: "/waba-connection", color: "text-green-700" },
-      { name: "Multi-Number", icon: UsersRound, path: "/multi-number", color: "text-blue-700" },
-      { name: "Webhooks", icon: Settings, path: "/webhooks", color: "text-purple-700" },
-      { name: "QR Codes", icon: Menu, path: "/qr-codes", color: "text-yellow-700" },
+      {
+        name: "WABA Connection",
+        icon: Menu,
+        path: "/waba-connection",
+        color: "text-green-700",
+      },
+      {
+        name: "Multi-Number",
+        icon: UsersRound,
+        path: "/multi-number",
+        color: "text-blue-700",
+      },
+      {
+        name: "Webhooks",
+        icon: Settings,
+        path: "/webhooks",
+        color: "text-purple-700",
+      },
+      {
+        name: "QR Codes",
+        icon: Menu,
+        path: "/qr-codes",
+        color: "text-yellow-700",
+      },
     ],
   },
   {
     category: "CRM & Leads",
     items: [
-      { name: "CRM Systems", icon: Users, path: "/crm-systems", color: "text-green-500" },
-      { name: "Lead Management", icon: Megaphone, path: "/leads", color: "text-blue-500" },
-      { name: "Bulk Import", icon: FileText, path: "/bulk-import", color: "text-purple-500" },
-      { name: "Segmentation", icon: BarChart3, path: "/segmentation", color: "text-pink-500" },
+      {
+        name: "CRM Systems",
+        icon: Users,
+        path: "/crm-systems",
+        color: "text-green-500",
+      },
+      {
+        name: "Lead Management",
+        icon: Megaphone,
+        path: "/leads",
+        color: "text-blue-500",
+      },
+      {
+        name: "Bulk Import",
+        icon: FileText,
+        path: "/bulk-import",
+        color: "text-purple-500",
+      },
+      {
+        name: "Segmentation",
+        icon: BarChart3,
+        path: "/segmentation",
+        color: "text-pink-500",
+      },
     ],
   },
   {
     category: "Analytics & Report",
     items: [
-      { name: "Analytics", icon: BarChart3, path: "/analytics", color: "text-teal-500" },
-      { name: "Message Logs", icon: ScrollText, path: "/message-logs", color: "text-orange-500" },
-      { name: "Health Monitor", icon: Settings, path: "/health-monitor", color: "text-red-500" },
-      { name: "Reports", icon: FileText, path: "/reports", color: "text-indigo-500" },
+      {
+        name: "Analytics",
+        icon: BarChart3,
+        path: "/analytics",
+        color: "text-teal-500",
+      },
+      {
+        name: "Message Logs",
+        icon: ScrollText,
+        path: "/message-logs",
+        color: "text-orange-500",
+      },
+      {
+        name: "Health Monitor",
+        icon: Settings,
+        path: "/health-monitor",
+        color: "text-red-500",
+      },
+      {
+        name: "Reports",
+        icon: FileText,
+        path: "/reports",
+        color: "text-indigo-500",
+      },
     ],
   },
   {
     category: "Team & Support",
     items: [
-      { name: "Team", icon: UsersRound, path: "/team", color: "text-green-400" },
-      { name: "Support Tickets", icon: MessageSquare, path: "/support-tickets", color: "text-blue-400" },
-      { name: "Settings", icon: Settings, path: "/settings", color: "text-purple-400" },
-      { name: "Notifications", icon: Bell, path: "/notifications", color: "text-pink-400" },
+      {
+        name: "Team",
+        icon: UsersRound,
+        path: "/team",
+        color: "text-green-400",
+      },
+      {
+        name: "Support Tickets",
+        icon: MessageSquare,
+        path: "/support-tickets",
+        color: "text-blue-400",
+      },
+      {
+        name: "Settings",
+        icon: Settings,
+        path: "/settings",
+        color: "text-purple-400",
+      },
+      {
+        name: "Notifications",
+        icon: Bell,
+        path: "/notifications",
+        color: "text-pink-400",
+      },
+      {
+        name: "Plans Management",
+        icon: MdOutlinePayment,
+        path: "/plans",
+        color: "text-blue-400",
+      },
+      {
+        name: "Payment Gateway Management",
+        icon: MdOutlinePayment,
+        path: "/gateway",
+        color: "text-blue-400",
+      },
     ],
   },
 ];
-
 
 export default function Sidebar() {
   const [location] = useLocation();
@@ -587,7 +691,7 @@ export default function Sidebar() {
   const isSuper = user?.role === "superadmin";
   const isAdmin = user?.role === "admin";
 
-    const handleToggleAI = (): void => {
+  const handleToggleAI = (): void => {
     setIsAIActive(!isAIActive);
   };
 
@@ -608,12 +712,22 @@ export default function Sidebar() {
     if (!user.permissions) {
       return false;
     }
-    const perms = Array.isArray(user.permissions) ? user.permissions : Object.keys(user.permissions);
+    const perms = Array.isArray(user.permissions)
+      ? user.permissions
+      : Object.keys(user.permissions);
     const normalize = (str: string) => str.replace(".", ":");
-    return perms.some(perm => perm.startsWith(normalize(item.requiredPrefix!)));
+    return perms.some((perm) =>
+      perm.startsWith(normalize(item.requiredPrefix!))
+    );
   };
 
-  const renderLink = (name: string, Icon: React.ComponentType<{ className?: string }>, path: string, badge?: string | number, colorClass?: string) => {
+  const renderLink = (
+    name: string,
+    Icon: React.ComponentType<{ className?: string }>,
+    path: string,
+    badge?: string | number,
+    colorClass?: string
+  ) => {
     const isActive = location === path;
     return (
       <Link
@@ -628,12 +742,12 @@ export default function Sidebar() {
         onClick={() => setIsMobileOpen(false)}
       >
         <Icon
-        className={cn(
-          "w-5 h-5 mr-3",
-          isActive ? "text-green-600" : colorClass
-        )}
-      />
-                         
+          className={cn(
+            "w-5 h-5 mr-3",
+            isActive ? "text-green-600" : colorClass
+          )}
+        />
+
         {name}
         {badge && (
           <span className="ml-auto bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
@@ -669,7 +783,11 @@ export default function Sidebar() {
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
             <div className="flex items-center space-x-3">
-              <img src="/logo192.png" alt="Logo" className="w-8 h-8 object-contain" />
+              <img
+                src="/logo192.png"
+                alt="Logo"
+                className="w-8 h-8 object-contain"
+              />
               <h1 className="text-xl font-bold text-gray-900">YourApp</h1>
             </div>
             <button
@@ -684,49 +802,63 @@ export default function Sidebar() {
             <ChannelSwitcher />
           </div> */}
 
-          {
-            isAdmin ? <div className="px-6 py-3 border-b border-gray-100">
-            <ChannelSwitcher />
-          </div> : ''
-
-          }
+          {isAdmin ? (
+            <div className="px-6 py-3 border-b border-gray-100">
+              <ChannelSwitcher />
+            </div>
+          ) : (
+            ""
+          )}
 
           <nav className="flex-1 px-4 py-4 space-y-4 overflow-y-auto">
             {isSuper
-              ? sidebarItemsCategories.map(category => (
+              ? sidebarItemsCategories.map((category) => (
                   <div key={category.category}>
                     <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                       {t(category.category)}
                     </h3>
                     <div className="mt-1 space-y-1">
-                      {category.items.map(item =>
-                        renderLink(item.name, item.icon, item.path, item.badge, item.color)
+                      {category.items.map((item) =>
+                        renderLink(
+                          item.name,
+                          item.icon,
+                          item.path,
+                          item.badge,
+                          item.color
+                        )
                       )}
                     </div>
                   </div>
                 ))
-              : navItems.filter(canView).map(item =>
-                  renderLink(t(item.labelKey), item.icon, item.href, item.badge, item.color)
-                )}
+              : navItems
+                  .filter(canView)
+                  .map((item) =>
+                    renderLink(
+                      t(item.labelKey),
+                      item.icon,
+                      item.href,
+                      item.badge,
+                      item.color
+                    )
+                  )}
           </nav>
 
           <div className="px-6 py-3 border-t border-gray-100">
             <LanguageSelector />
           </div>
 
-
-                    {/* Smaller Toggle Button with Green Color */}
-           <div className="p-4 border-t border-gray-100">
-             <div className="flex items-center space-x-3 p-3 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg">
-               <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-                 <Bot className="w-4 h-4 text-white" />
-               </div>
-               <div className="flex-1">
-                 <p className="text-sm font-medium text-gray-900">
-                   {t("common.aiAssistant")}
-                 </p>
-                 <div className="flex items-center space-x-2">
-                   <div
+          {/* Smaller Toggle Button with Green Color */}
+          <div className="p-4 border-t border-gray-100">
+            <div className="flex items-center space-x-3 p-3 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg">
+              <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+                <Bot className="w-4 h-4 text-white" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-900">
+                  {t("common.aiAssistant")}
+                </p>
+                <div className="flex items-center space-x-2">
+                  <div
                     className={`w-2 h-2 rounded-full transition-colors ${
                       isAIActive ? "bg-green-500 pulse-gentle" : "bg-gray-400"
                     }`}
@@ -753,15 +885,17 @@ export default function Sidebar() {
             </div>
           </div>
 
-
-
           <div className="p-4 border-t border-gray-100">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="w-full flex items-center space-x-3 hover:bg-gray-50 rounded-lg p-2 transition-colors">
                   <div className="w-8 h-8 rounded-full bg-gradient-to-r from-green-600 to-green-500 flex items-center justify-center">
                     <span className="text-sm font-medium text-white">
-                      {(user?.firstName?.[0] || user?.username?.[0] || "U").toUpperCase()}
+                      {(
+                        user?.firstName?.[0] ||
+                        user?.username?.[0] ||
+                        "U"
+                      ).toUpperCase()}
                     </span>
                   </div>
                   <div className="flex-1 min-w-0 text-left">
@@ -789,7 +923,10 @@ export default function Sidebar() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logout} className="cursor-pointer text-red-600">
+                <DropdownMenuItem
+                  onClick={logout}
+                  className="cursor-pointer text-red-600"
+                >
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>{t("common.logout")}</span>
                 </DropdownMenuItem>
@@ -801,5 +938,3 @@ export default function Sidebar() {
     </>
   );
 }
-
-

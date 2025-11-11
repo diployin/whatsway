@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, { useState, useEffect } from "react";
 import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -21,8 +21,6 @@ import Settings from "@/pages/settings";
 import Logs from "@/pages/logs";
 import Team from "@/pages/team";
 import Sidebar from "@/components/layout/sidebar";
-import { Loader2 } from "lucide-react";
-import { useEffect } from "react";
 import Account from "./pages/account";
 import { AppLayout } from "./components/layout/AppLayout";
 import ChatbotBuilder from "./pages/chatbot-builder";
@@ -35,6 +33,8 @@ import Footer from "./components/Footer";
 import Signup from "./pages/Signup";
 import LoadingAnimation from "./components/LoadingAnimation";
 import SignupPopup from "./components/SignupPopup";
+import Plans from "./pages/plans";
+import GatewaySettings from "./pages/GatewaySettings";
 import BotFlowBuilder from "./pages/BotFlowBuilder";
 import Workflows from "./pages/Workflows";
 import AIAssistant from "./pages/AIAssistant";
@@ -96,14 +96,14 @@ function UnauthorizedPage() {
 function PermissionRoute({
   component: Component,
   requiredPermission,
-}: {
+}: Readonly<{
   component: React.ComponentType;
   requiredPermission?: string;
-}) {
+}>) {
   const { user } = useAuth();
 
   const hasPermission = (permission?: string) => {
-    if (!permission) return true; // No permission required
+    if (!permission) return true;
     if (!user?.permissions) return false;
 
     const perms = Array.isArray(user.permissions)
@@ -131,7 +131,6 @@ function ProtectedRoutes() {
   const [location, setLocation] = useLocation();
   const [showSignupPopup, setShowSignupPopup] = useState(false);
   const [showLoading, setShowLoading] = useState(true);
-  
 
   // Check if user has access to current route
   useEffect(() => {
@@ -150,45 +149,44 @@ function ProtectedRoutes() {
     }
   }, [location, isAuthenticated, user, setLocation]);
 
+  useEffect(() => {
+    const popupShown = sessionStorage.getItem("signupPopupShown");
 
- useEffect(() => {
-  const popupShown = sessionStorage.getItem("signupPopupShown");
+    // only skip if value is explicitly "true"
+    if (popupShown === "true") return;
 
-  // only skip if value is explicitly "true"
-  if (popupShown === "true") return;
-
-  const timer = setTimeout(() => {
-    if (!isAuthenticated) {
-      setShowSignupPopup(true);
-      sessionStorage.setItem("signupPopupShown", "true");
-    }
-  }, 30000);
-
-  const handleScroll = () => {
-    const alreadyShown = sessionStorage.getItem("signupPopupShown");
-    if (window.scrollY > window.innerHeight * 0.5 && alreadyShown !== "true") {
+    const timer = setTimeout(() => {
       if (!isAuthenticated) {
         setShowSignupPopup(true);
         sessionStorage.setItem("signupPopupShown", "true");
       }
+    }, 30000);
+
+    const handleScroll = () => {
+      const alreadyShown = sessionStorage.getItem("signupPopupShown");
+      if (
+        window.scrollY > window.innerHeight * 0.5 &&
+        alreadyShown !== "true"
+      ) {
+        if (!isAuthenticated) {
+          setShowSignupPopup(true);
+          sessionStorage.setItem("signupPopupShown", "true");
+        }
+        window.removeEventListener("scroll", handleScroll);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      clearTimeout(timer);
       window.removeEventListener("scroll", handleScroll);
-    }
-  };
-
-  window.addEventListener("scroll", handleScroll);
-
-  return () => {
-    clearTimeout(timer);
-    window.removeEventListener("scroll", handleScroll);
-  };
-}, [isAuthenticated]);
-
+    };
+  }, [isAuthenticated]);
 
   const handleClosePopup = () => {
     setShowSignupPopup(false);
   };
-
-
 
   if (showLoading) {
     return (
@@ -198,16 +196,15 @@ function ProtectedRoutes() {
     );
   }
 
-
- if (!isAuthenticated) {
+  if (!isAuthenticated) {
     return (
       <>
-       <Header/>
+        <Header />
         <Switch>
           <Route path="/" component={Home} />
           <Route component={Home} />
         </Switch>
-        <Footer/>
+        <Footer />
       </>
     );
   }
@@ -216,14 +213,12 @@ function ProtectedRoutes() {
     <div className="flex min-h-screen bg-white">
       <Sidebar />
       <div className="flex-1 lg:ml-64">
-        
         <Switch>
           {/* <ScrollToTop /> */}
-          <Route path="/">
+          <Route path="/dashboard">
             <Dashboard />
           </Route>
 
-         
           <Route path="/contacts">
             <PermissionRoute
               component={Contacts}
@@ -246,6 +241,18 @@ function ProtectedRoutes() {
             <PermissionRoute
               component={Inbox}
               requiredPermission="inbox:view"
+            />
+          </Route>
+          <Route path="/plans">
+            <PermissionRoute
+              component={Plans}
+              // requiredPermission="plans:view"
+            />
+          </Route>
+          <Route path="/gateway">
+            <PermissionRoute
+              component={GatewaySettings}
+              // requiredPermission="plans:view"
             />
           </Route>
           <Route path="/team">
@@ -423,8 +430,11 @@ function Router() {
   return (
     <Switch>
       <Route path="/login" component={LoginPage} />
-      <Route path='/signup' component={Signup}/>
-      <Route path="/analytics/campaign/:campaignId" component={CampaignAnalytics}/>
+      <Route path="/signup" component={Signup} />
+      <Route
+        path="/analytics/campaign/:campaignId"
+        component={CampaignAnalytics}
+      />
       <Route component={ProtectedRoutes} />
     </Switch>
   );
@@ -434,16 +444,16 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AppLayout>
-      <AuthProvider>
-        <ChannelProvider>
-          <TooltipProvider>
-            <UnreadCountProvider>
-              <Toaster />
-              <Router />
-            </UnreadCountProvider>
-          </TooltipProvider>
-        </ChannelProvider>
-      </AuthProvider>
+        <AuthProvider>
+          <ChannelProvider>
+            <TooltipProvider>
+              <UnreadCountProvider>
+                <Toaster />
+                <Router />
+              </UnreadCountProvider>
+            </TooltipProvider>
+          </ChannelProvider>
+        </AuthProvider>
       </AppLayout>
     </QueryClientProvider>
   );
