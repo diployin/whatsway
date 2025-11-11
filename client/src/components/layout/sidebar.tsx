@@ -394,6 +394,8 @@ import { ChannelSwitcher } from "@/components/channel-switcher";
 import { useTranslation } from "@/lib/i18n";
 import { LanguageSelector } from "@/components/language-selector";
 import { useAuth } from "@/contexts/auth-context";
+import logo from '../../images/logo1924.jpg'
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -530,22 +532,63 @@ const navItems: NavItem[] = [
   },
 ];
 
-// Category-based structure for superadmin
+
+
 const sidebarItemsCategories = [
+      { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard", color: "text-green-600" },
+      { name: "Campaigns", icon: Megaphone, path: "/campaigns", badge: "", color: "text-blue-600" },
+      { name: "Templates", icon: FileText, path: "/templates", badge: "", color: "text-purple-600" },
+      { name: "Contacts", icon: Users, path: "/contacts", badge: "", color: "text-yellow-600" },
+       {
+        name: "Analytics",
+        icon: BarChart3,
+        path: "/analytics",
+        color: "text-teal-500",
+      },
+      {
+        name: "Notifications",
+        icon: Bell,
+        path: "/notifications",
+        color: "text-pink-400",
+      },
+      {
+        name: "Subscription Plans",
+        icon: MdOutlinePayment,
+        path: "/plans",
+        color: "text-blue-400",
+      },
+      {
+        name: "Payment Gateway",
+        icon: MdOutlinePayment,
+        path: "/gateway",
+        color: "text-blue-400",
+      },
+       {
+        name: "Settings",
+        icon: Settings,
+        path: "/settings",
+        color: "text-purple-400",
+      },
+      
+    ]
+
+// Category-based structure for superadmin
+const sidebarItemsCategoriesOld = [
   {
     category: "Core Features",
     items: [
       { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard", color: "text-green-600" },
-      { name: "Campaigns", icon: Megaphone, path: "/campaigns", badge: "24", color: "text-blue-600" },
-      { name: "Templates", icon: FileText, path: "/templates", badge: "12", color: "text-purple-600" },
-      { name: "Contacts", icon: Users, path: "/contacts", badge: "8.4k", color: "text-yellow-600" },
+      { name: "Campaigns", icon: Megaphone, path: "/campaigns", badge: "", color: "text-blue-600" },
+      { name: "Templates", icon: FileText, path: "/templates", badge: "", color: "text-purple-600" },
+      { name: "Contacts", icon: Users, path: "/contacts", badge: "", color: "text-yellow-600" },
       // { name: "Chat Hub", icon: MessageSquare, path: "/chat-hub", badge: "5", color: "text-pink-600" },
+       
     ],
   },
   {
     category: "Automation & AI",
     items: [
-      { name: "Bot Flow Builder", icon: Bot, path: "/bot-builder", badge: "NEW", color: "text-indigo-600" },
+      { name: "Bot Flow Builder", icon: Bot, path: "/bot-builder", badge: "", color: "text-indigo-600" },
       { name: "Workflows", icon: Zap, path: "/workflows", color: "text-teal-600" },
       { name: "AI Assistant", icon: Bot, path: "/ai-assistant", color: "text-red-600" },
       { name: "Auto Responses", icon: ScrollText, path: "/auto-responses", color: "text-orange-600" },
@@ -784,11 +827,11 @@ export default function Sidebar() {
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
             <div className="flex items-center space-x-3">
               <img
-                src="/logo192.png"
+                src={logo}
                 alt="Logo"
                 className="w-8 h-8 object-contain"
               />
-              <h1 className="text-xl font-bold text-gray-900">YourApp</h1>
+              <h1 className="text-xl font-bold text-gray-900">Whatsway</h1>
             </div>
             <button
               onClick={() => setIsMobileOpen(false)}
@@ -812,13 +855,7 @@ export default function Sidebar() {
 
           <nav className="flex-1 px-4 py-4 space-y-4 overflow-y-auto">
             {isSuper
-              ? sidebarItemsCategories.map((category) => (
-                  <div key={category.category}>
-                    <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                      {t(category.category)}
-                    </h3>
-                    <div className="mt-1 space-y-1">
-                      {category.items.map((item) =>
+              ? sidebarItemsCategories.map((item) => 
                         renderLink(
                           item.name,
                           item.icon,
@@ -826,10 +863,8 @@ export default function Sidebar() {
                           item.badge,
                           item.color
                         )
-                      )}
-                    </div>
-                  </div>
-                ))
+                  
+                      )
               : navItems
                   .filter(canView)
                   .map((item) =>
@@ -843,11 +878,14 @@ export default function Sidebar() {
                   )}
           </nav>
 
+          {isAdmin ? 
           <div className="px-6 py-3 border-t border-gray-100">
             <LanguageSelector />
           </div>
+           : ''}
 
           {/* Smaller Toggle Button with Green Color */}
+          {isAdmin ? 
           <div className="p-4 border-t border-gray-100">
             <div className="flex items-center space-x-3 p-3 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg">
               <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
@@ -883,9 +921,9 @@ export default function Sidebar() {
                 />
               </button>
             </div>
-          </div>
+          </div> : ''}
 
-          <div className="p-4 border-t border-gray-100">
+          {/* <div className="p-4 border-t border-gray-100">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="w-full flex items-center space-x-3 hover:bg-gray-50 rounded-lg p-2 transition-colors">
@@ -932,7 +970,7 @@ export default function Sidebar() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          </div>
+          </div> */}
         </div>
       </div>
     </>

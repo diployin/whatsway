@@ -26,6 +26,7 @@ export class UserRepository {
     const [user] = await db.select().from(users).where(eq(users.username, username));
     return user || undefined;
   }
+  
 
   async create(insertUser: InsertUser): Promise<User> {
     const [user] = await db

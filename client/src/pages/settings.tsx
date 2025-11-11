@@ -9,9 +9,12 @@ import { ApiKeySettings } from "@/components/settings/ApiKeySettings";
 import { GeneralSettings } from "@/components/settings/GeneralSettings";
 import StorageSettings from "@/components/settings/StorageSettings";
 import AISettings from "@/components/settings/AISettings";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState("general_setting");
+  const {user} = useAuth()
+  const isAdmin =  user?.role === "superadmin";
 
   return (
     <div className="flex-1 dots-bg min-h-screen">
@@ -27,20 +30,25 @@ export default function Settings() {
           className="space-y-6"
         >
           <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger
-              value="general_setting"
-              className="flex items-center space-x-2"
-            >
-              <SettingsIcon className="w-4 h-4" />
-              <span>General Setting</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="storage_setting"
-              className="flex items-center space-x-2"
-            >
-              <Database className="w-4 h-4" />
-              <span>Storage Setting</span>
-            </TabsTrigger>
+           {isAdmin ? (
+  <>
+    <TabsTrigger
+      value="general_setting"
+      className="flex items-center space-x-2"
+    >
+      <SettingsIcon className="w-4 h-4" />
+      <span>General Setting</span>
+    </TabsTrigger>
+
+    <TabsTrigger
+      value="storage_setting"
+      className="flex items-center space-x-2"
+    >
+      <Database className="w-4 h-4" />
+      <span>Storage Setting</span>
+    </TabsTrigger>
+  </>
+) : null}
             <TabsTrigger
               value="ai_setting"
               className="flex items-center space-x-2"

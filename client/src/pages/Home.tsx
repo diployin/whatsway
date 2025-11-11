@@ -8,6 +8,8 @@ import Pricing from "@/components/Pricing";
 import CTA from "@/components/CTA";
 import { useQuery } from "@tanstack/react-query";
 import { PlansDataTypes } from "@/types/types";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 const Home = () => {
   const { data: paymentProviders } = useQuery<PlansDataTypes>({
@@ -19,6 +21,7 @@ const Home = () => {
   });
   return (
     <>
+      <Header/>
       <Hero />
       <Features />
       <HowItWorks />
@@ -28,6 +31,7 @@ const Home = () => {
         <Pricing />
       )}
       <CTA />
+      <Footer/>
     </>
   );
 };

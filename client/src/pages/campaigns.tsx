@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Header from "@/components/layout/header";
 import {
   Card,
   CardContent,
@@ -230,9 +231,9 @@ export default function Campaigns() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      {/* <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">{t('campaigns.title')}</h1>
           <p className="text-muted-foreground">
@@ -247,12 +248,24 @@ export default function Campaigns() {
           <Plus className="h-4 w-4" />
           {t('campaigns.createCampaign')}
         </Button>
-      </div>
+      </div> */}
+
+
+       <Header
+              title={t('campaigns.title')}
+              subtitle={t('campaigns.subtitle')}
+              action={{
+                label: `${t('campaigns.createCampaign')}`,
+                onClick: () =>{ setCreateDialogOpen(true)},
+              }}
+            />
 
       {/* Campaign Statistics */}
+      <div className="px-4 py-4">
       <CampaignStatistics campaigns={campaigns} />
-
+      </div>
       {/* Campaigns List */}
+      <div className="px-4 py-4">
       <Card>
         <CardHeader>
           <CardTitle>{t('campaigns.allCampaigns')}</CardTitle>
@@ -267,7 +280,7 @@ export default function Campaigns() {
           />
         </CardContent>
       </Card>
-
+</div>
       {/* Create Campaign Dialog */}
       <CreateCampaignDialog
         open={createDialogOpen}
