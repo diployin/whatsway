@@ -10,14 +10,13 @@ import { useQuery } from "@tanstack/react-query";
 import { PlansDataTypes } from "@/types/types";
 
 const Home = () => {
-  const { data: paymentProviders, isLoading: paymentLoading } =
-    useQuery<PlansDataTypes>({
-      queryKey: ["/api/admin/plans"],
-      queryFn: async () => {
-        const res = await fetch("/api/admin/plans");
-        return res.json();
-      },
-    });
+  const { data: paymentProviders } = useQuery<PlansDataTypes>({
+    queryKey: ["/api/admin/plans"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/plans");
+      return res.json();
+    },
+  });
   return (
     <>
       <Hero />
@@ -28,7 +27,6 @@ const Home = () => {
       {paymentProviders?.success && paymentProviders?.data?.length > 0 && (
         <Pricing />
       )}
-
       <CTA />
     </>
   );

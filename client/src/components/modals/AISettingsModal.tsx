@@ -57,7 +57,7 @@ export default function AISettingsModal({
   onOpenChange,
   existingData,
   onSuccess,
-}: Props) {
+}: Readonly<Props>) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const {
@@ -293,13 +293,13 @@ function Field({
   step,
   register,
   error,
-}: {
+}: Readonly<{
   label: string;
   type?: string;
   step?: string;
   register: any;
   error?: string;
-}) {
+}>) {
   return (
     <div className="space-y-2">
       <Label>{label}</Label>
