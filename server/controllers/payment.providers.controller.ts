@@ -17,13 +17,22 @@ export const getAllProviders = async (req: Request, res: Response) => {
 export const getActiveProviders = async (req: Request, res: Response) => {
   try {
     const providers = await db
-      .select()
+      .select({
+        id: paymentProviders.id,
+        name: paymentProviders.name,
+        providerKey: paymentProviders.providerKey,
+        logo: paymentProviders.logo,
+      })
       .from(paymentProviders)
       .where(eq(paymentProviders.isActive, true));
-    
+
     res.status(200).json({ success: true, data: providers });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Error fetching active providers', error });
+    res.status(500).json({
+      success: false,
+      message: "Error fetching active providers",
+      error,
+    });
   }
 };
 
