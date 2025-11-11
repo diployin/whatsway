@@ -18,6 +18,10 @@ import {
   updateTransactionStatus,
   completeTransaction,
   refundTransaction,
+  initiatePayment,
+  verifyRazorpayPayment,
+  verifyStripePayment,
+  getPaymentStatus,
 } from "../controllers/transactions.controller";
 
 // Subscriptions Controllers
@@ -84,6 +88,18 @@ export function registerPaymentsRoutes(app: Express) {
 
   // POST refund transaction
   app.post("/api/transactions/:id/refund", refundTransaction);
+
+
+  app.post('/api/payment/initiate', initiatePayment);
+
+// POST - Verify Razorpay payment after user completes payment
+app.post('/api/payment/verify/razorpay', verifyRazorpayPayment);
+
+// POST - Verify Stripe payment after user completes payment
+app.post('/api/payment/verify/stripe', verifyStripePayment);
+
+// GET - Check payment/transaction status
+app.get('/api/payment/status/:transactionId', getPaymentStatus);
 
   // ==================== SUBSCRIPTIONS ROUTES ====================
 
