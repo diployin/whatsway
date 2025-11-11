@@ -60,7 +60,7 @@ export default function LoginPage() {
     },
     onSuccess: () => {
       // Force a full page refresh to ensure proper auth state loading
-      window.location.href = "/";
+      window.location.href = "/dashboard";
     },
     onError: (error: Error) => {
       const errorMessage = error.message.includes("401")

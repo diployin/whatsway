@@ -215,7 +215,7 @@ function ProtectedRoutes() {
       <div className="flex-1 lg:ml-64">
         <Switch>
           {/* <ScrollToTop /> */}
-          <Route path="/">
+          <Route path="/dashboard">
             <Dashboard />
           </Route>
 

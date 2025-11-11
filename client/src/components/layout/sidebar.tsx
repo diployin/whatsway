@@ -418,7 +418,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   {
-    href: "/",
+    href: "/dashboard",
     icon: LayoutDashboard,
     labelKey: "navigation.dashboard",
     color: "text-green-600",
@@ -481,7 +481,7 @@ const navItems: NavItem[] = [
     allowedRoles: ["superadmin", "admin", "user"],
   },
   {
-    href: "/logs",
+    href: "/message-logs",
     icon: ScrollText,
     labelKey: "navigation.messageLogs",
     color: "text-yellow-600",
@@ -535,7 +535,7 @@ const sidebarItemsCategories = [
   {
     category: "Core Features",
     items: [
-      { name: "Dashboard", icon: LayoutDashboard, path: "/", color: "text-green-600" },
+      { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard", color: "text-green-600" },
       { name: "Campaigns", icon: Megaphone, path: "/campaigns", badge: "24", color: "text-blue-600" },
       { name: "Templates", icon: FileText, path: "/templates", badge: "12", color: "text-purple-600" },
       { name: "Contacts", icon: Users, path: "/contacts", badge: "8.4k", color: "text-yellow-600" },
