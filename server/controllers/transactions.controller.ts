@@ -8,10 +8,12 @@ import {
   users,
   paymentProviders,
 } from "@shared/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, gte, lte, or, like, sql } from "drizzle-orm";
 import Stripe from "stripe";
 import Razorpay from "razorpay";
 import crypto from "crypto";
+import ExcelJS from "exceljs";
+
 
 // Initialize Stripe with test or production keys
 const stripe = new Stripe(
@@ -23,6 +25,265 @@ const stripe = new Stripe(
 
 // Get all transactions
 export const getAllTransactions = async (req: Request, res: Response) => {
+  try {
+    const {
+      search,
+      status,
+      paymentMethod,
+      billingCycle,
+      providerId,
+      startDate,
+      endDate,
+      minAmount,
+      maxAmount,
+      page = "1",
+      limit = "20",
+    } = req.query;
+
+    // Build filter conditions
+    const conditions = [];
+
+    // Search by user email, provider transaction ID, or order ID
+    if (search && typeof search === "string") {
+      conditions.push(
+        or(
+          like(users.email, `%${search}%`),
+          like(transactions.providerTransactionId, `%${search}%`),
+          like(transactions.providerOrderId, `%${search}%`)
+        )
+      );
+    }
+
+    // Filter by status
+    if (status && typeof status === "string") {
+      conditions.push(eq(transactions.status, status));
+    }
+
+    // Filter by payment method
+    if (paymentMethod && typeof paymentMethod === "string") {
+      conditions.push(eq(transactions.paymentMethod, paymentMethod));
+    }
+
+    // Filter by billing cycle
+    if (billingCycle && typeof billingCycle === "string") {
+      conditions.push(eq(transactions.billingCycle, billingCycle));
+    }
+
+    // Filter by payment provider
+    if (providerId && typeof providerId === "string") {
+      conditions.push(eq(transactions.paymentProviderId, providerId));
+    }
+
+    // Filter by date range
+    if (startDate && typeof startDate === "string") {
+      conditions.push(gte(transactions.createdAt, new Date(startDate)));
+    }
+    if (endDate && typeof endDate === "string") {
+      conditions.push(lte(transactions.createdAt, new Date(endDate)));
+    }
+
+    // Filter by amount range
+    if (minAmount && typeof minAmount === "string") {
+      conditions.push(gte(transactions.amount, minAmount));
+    }
+    if (maxAmount && typeof maxAmount === "string") {
+      conditions.push(lte(transactions.amount, maxAmount));
+    }
+
+    // Calculate pagination
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const offset = (pageNum - 1) * limitNum;
+
+    // Build query with conditions
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    // Get transactions with pagination
+    const allTransactions = await db
+    .select({
+      transaction: transactions, // full transaction details
+      user: {
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+      },
+      plan: {
+        id: plans.id,
+        name: plans.name,
+        price: plans.annualPrice,
+        monthlyPrice: plans.monthlyPrice,
+        permissions: plans.permissions,
+        features: plans.features
+      },
+      provider: {
+        id: paymentProviders.id,
+        name: paymentProviders.name,
+        providerKey: paymentProviders.providerKey,
+      },
+    })
+      .from(transactions)
+      .leftJoin(users, eq(transactions.userId, users.id))
+      .leftJoin(plans, eq(transactions.planId, plans.id))
+      .leftJoin(
+        paymentProviders,
+        eq(transactions.paymentProviderId, paymentProviders.id)
+      )
+      .where(whereClause)
+      .orderBy(desc(transactions.createdAt))
+      .limit(limitNum)
+      .offset(offset);
+
+    // Get total count for pagination
+    const totalCountResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(transactions)
+      .leftJoin(users, eq(transactions.userId, users.id))
+      .where(whereClause);
+
+    const totalCount = Number(totalCountResult[0]?.count || 0);
+    const totalPages = Math.ceil(totalCount / limitNum);
+
+    res.status(200).json({
+      success: true,
+      data: allTransactions,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        totalCount,
+        totalPages,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching transactions:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching transactions",
+      error,
+    });
+  }
+};
+
+// Get transaction statistics
+export const getTransactionStats = async (req: Request, res: Response) => {
+  try {
+    const { startDate, endDate } = req.query;
+
+    const conditions = [];
+    if (startDate && typeof startDate === "string") {
+      conditions.push(gte(transactions.createdAt, new Date(startDate)));
+    }
+    if (endDate && typeof endDate === "string") {
+      conditions.push(lte(transactions.createdAt, new Date(endDate)));
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    // Get total revenue
+    const revenueResult = await db
+      .select({
+        total: sql<number>`SUM(CAST(${transactions.amount} AS DECIMAL))`,
+      })
+      .from(transactions)
+      .where(
+        whereClause
+          ? and(whereClause, eq(transactions.status, "completed"))
+          : eq(transactions.status, "completed")
+      );
+
+    // Get transaction counts by status
+    const statusCounts = await db
+      .select({
+        status: transactions.status,
+        count: sql<number>`count(*)`,
+      })
+      .from(transactions)
+      .where(whereClause)
+      .groupBy(transactions.status);
+
+    // Get revenue by billing cycle
+    const billingCycleRevenue = await db
+      .select({
+        billingCycle: transactions.billingCycle,
+        total: sql<number>`SUM(CAST(${transactions.amount} AS DECIMAL))`,
+      })
+      .from(transactions)
+      .where(
+        whereClause
+          ? and(whereClause, eq(transactions.status, "completed"))
+          : eq(transactions.status, "completed")
+      )
+      .groupBy(transactions.billingCycle);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        totalRevenue: Number(revenueResult[0]?.total || 0),
+        statusCounts: statusCounts.map((s) => ({
+          status: s.status,
+          count: Number(s.count),
+        })),
+        billingCycleRevenue: billingCycleRevenue.map((b) => ({
+          billingCycle: b.billingCycle,
+          total: Number(b.total),
+        })),
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching transaction stats:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching transaction statistics",
+      error,
+    });
+  }
+};
+
+// Get single transaction by ID
+export const getTransactionById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const transaction = await db
+      .select({
+        transaction: transactions,
+        user: users,
+        plan: plans,
+        provider: paymentProviders,
+      })
+      .from(transactions)
+      .leftJoin(users, eq(transactions.userId, users.id))
+      .leftJoin(plans, eq(transactions.planId, plans.id))
+      .leftJoin(
+        paymentProviders,
+        eq(transactions.paymentProviderId, paymentProviders.id)
+      )
+      .where(eq(transactions.id, id))
+      .limit(1);
+
+    if (!transaction || transaction.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Transaction not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: transaction[0],
+    });
+  } catch (error) {
+    console.error("Error fetching transaction:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching transaction",
+      error,
+    });
+  }
+};
+
+
+export const exportTransactions = async (req: Request, res: Response) => {
   try {
     const allTransactions = await db
       .select({
@@ -40,47 +301,136 @@ export const getAllTransactions = async (req: Request, res: Response) => {
       )
       .orderBy(desc(transactions.createdAt));
 
-    res.status(200).json({ success: true, data: allTransactions });
+    // Create workbook and worksheet
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Transactions");
+
+    // Define columns
+    worksheet.columns = [
+      { header: "Transaction ID", key: "id", width: 25 },
+      { header: "User Email", key: "userEmail", width: 30 },
+      { header: "Plan", key: "planName", width: 20 },
+      { header: "Provider", key: "provider", width: 20 },
+      { header: "Amount", key: "amount", width: 15 },
+      { header: "Currency", key: "currency", width: 10 },
+      { header: "Billing Cycle", key: "billingCycle", width: 15 },
+      { header: "Status", key: "status", width: 15 },
+      { header: "Payment Method", key: "paymentMethod", width: 20 },
+      { header: "Provider Txn ID", key: "providerTransactionId", width: 25 },
+      { header: "Provider Order ID", key: "providerOrderId", width: 25 },
+      { header: "Paid At", key: "paidAt", width: 25 },
+      { header: "Created At", key: "createdAt", width: 25 },
+    ];
+
+    // Add data rows
+    allTransactions.forEach((t) => {
+      worksheet.addRow({
+        id: t.transaction.id,
+        userEmail: t.user?.email || "",
+        planName: t.plan?.name || "",
+        provider: t.provider?.name || "",
+        amount: t.transaction.amount,
+        currency: t.transaction.currency,
+        billingCycle: t.transaction.billingCycle,
+        status: t.transaction.status,
+        paymentMethod: t.transaction.paymentMethod || "",
+        providerTransactionId: t.transaction.providerTransactionId || "",
+        providerOrderId: t.transaction.providerOrderId || "",
+        paidAt: t.transaction.paidAt
+          ? new Date(t.transaction.paidAt).toLocaleString()
+          : "",
+        createdAt: t.transaction.createdAt
+          ? new Date(t.transaction.createdAt).toLocaleString()
+          : "",
+      });
+    });
+
+    // Style header row
+    const headerRow = worksheet.getRow(1);
+    headerRow.font = { bold: true, color: { argb: "FFFFFFFF" } };
+    headerRow.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FF0078D4" }, // Blue header background
+    };
+    headerRow.alignment = { horizontal: "center" };
+    headerRow.border = {
+      bottom: { style: "thin", color: { argb: "FF000000" } },
+    };
+
+    // Add borders to all rows
+    worksheet.eachRow({ includeEmpty: false }, (row) => {
+      row.eachCell((cell) => {
+        cell.border = {
+          top: { style: "thin", color: { argb: "FFCCCCCC" } },
+          left: { style: "thin", color: { argb: "FFCCCCCC" } },
+          bottom: { style: "thin", color: { argb: "FFCCCCCC" } },
+          right: { style: "thin", color: { argb: "FFCCCCCC" } },
+        };
+        cell.alignment = { vertical: "middle", wrapText: true };
+      });
+    });
+
+    // Write workbook to buffer
+    const buffer = await workbook.xlsx.writeBuffer();
+
+    // Send as downloadable Excel file
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=transactions_${new Date()
+        .toISOString()
+        .split("T")[0]}.xlsx`
+    );
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+
+    res.send(Buffer.from(buffer));
   } catch (error) {
-    res
-      .status(500)
-      .json({ success: false, message: "Error fetching transactions", error });
+    console.error("Error exporting transactions:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error exporting transactions",
+      error,
+    });
   }
 };
+
 
 // Get transaction by ID
-export const getTransactionById = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const transaction = await db
-      .select({
-        transaction: transactions,
-        user: users,
-        plan: plans,
-        provider: paymentProviders,
-      })
-      .from(transactions)
-      .leftJoin(users, eq(transactions.userId, users.id))
-      .leftJoin(plans, eq(transactions.planId, plans.id))
-      .leftJoin(
-        paymentProviders,
-        eq(transactions.paymentProviderId, paymentProviders.id)
-      )
-      .where(eq(transactions.id, id));
+// export const getTransactionById = async (req: Request, res: Response) => {
+//   try {
+//     const { id } = req.params;
+//     const transaction = await db
+//       .select({
+//         transaction: transactions,
+//         user: users,
+//         plan: plans,
+//         provider: paymentProviders,
+//       })
+//       .from(transactions)
+//       .leftJoin(users, eq(transactions.userId, users.id))
+//       .leftJoin(plans, eq(transactions.planId, plans.id))
+//       .leftJoin(
+//         paymentProviders,
+//         eq(transactions.paymentProviderId, paymentProviders.id)
+//       )
+//       .where(eq(transactions.id, id));
 
-    if (transaction.length === 0) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Transaction not found" });
-    }
+//     if (transaction.length === 0) {
+//       return res
+//         .status(404)
+//         .json({ success: false, message: "Transaction not found" });
+//     }
 
-    res.status(200).json({ success: true, data: transaction[0] });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ success: false, message: "Error fetching transaction", error });
-  }
-};
+//     res.status(200).json({ success: true, data: transaction[0] });
+//   } catch (error) {
+//     res
+//       .status(500)
+//       .json({ success: false, message: "Error fetching transaction", error });
+//   }
+// };
 
 // Get transactions by user ID
 export const getTransactionsByUserId = async (req: Request, res: Response) => {

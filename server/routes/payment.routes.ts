@@ -22,6 +22,8 @@ import {
   verifyRazorpayPayment,
   verifyStripePayment,
   getPaymentStatus,
+  getTransactionStats,
+  exportTransactions,
 } from "../controllers/transactions.controller";
 
 // Subscriptions Controllers
@@ -71,6 +73,10 @@ export function registerPaymentsRoutes(app: Express) {
   // GET all transactions
   app.get("/api/transactions", getAllTransactions);
 
+  app.get("/api/transactions/stats", getTransactionStats);
+
+  app.get("/api/transactions/export", exportTransactions);
+
   // GET single transaction by ID
   app.get("/api/transactions/:id", getTransactionById);
 
@@ -89,17 +95,16 @@ export function registerPaymentsRoutes(app: Express) {
   // POST refund transaction
   app.post("/api/transactions/:id/refund", refundTransaction);
 
+  app.post("/api/payment/initiate", initiatePayment);
 
-  app.post('/api/payment/initiate', initiatePayment);
+  // POST - Verify Razorpay payment after user completes payment
+  app.post("/api/payment/verify/razorpay", verifyRazorpayPayment);
 
-// POST - Verify Razorpay payment after user completes payment
-app.post('/api/payment/verify/razorpay', verifyRazorpayPayment);
+  // POST - Verify Stripe payment after user completes payment
+  app.post("/api/payment/verify/stripe", verifyStripePayment);
 
-// POST - Verify Stripe payment after user completes payment
-app.post('/api/payment/verify/stripe', verifyStripePayment);
-
-// GET - Check payment/transaction status
-app.get('/api/payment/status/:transactionId', getPaymentStatus);
+  // GET - Check payment/transaction status
+  app.get("/api/payment/status/:transactionId", getPaymentStatus);
 
   // ==================== SUBSCRIPTIONS ROUTES ====================
 
