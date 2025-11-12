@@ -1,19 +1,25 @@
 // controllers/transactionsController.ts
-import { Request, Response } from 'express';
-import { db } from '../db';
-import { transactions, subscriptions, plans, users, paymentProviders } from '@shared/schema';
-import { eq, and, desc } from 'drizzle-orm';
-import Stripe from 'stripe';
+import { Request, Response } from "express";
+import { db } from "../db";
+import {
+  transactions,
+  subscriptions,
+  plans,
+  users,
+  paymentProviders,
+} from "@shared/schema";
+import { eq, and, desc } from "drizzle-orm";
+import Stripe from "stripe";
 import Razorpay from "razorpay";
+import crypto from "crypto";
 
-
-// Initialize Stripe with test or production keys  
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || process.env.TESTING_STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-10-29.clover',
-});
-
-
-
+// Initialize Stripe with test or production keys
+const stripe = new Stripe(
+  process.env.STRIPE_SECRET_KEY || process.env.TESTING_STRIPE_SECRET_KEY || "",
+  {
+    apiVersion: "2025-10-29.clover",
+  }
+);
 
 // Get all transactions
 export const getAllTransactions = async (req: Request, res: Response) => {
@@ -23,17 +29,22 @@ export const getAllTransactions = async (req: Request, res: Response) => {
         transaction: transactions,
         user: users,
         plan: plans,
-        provider: paymentProviders
+        provider: paymentProviders,
       })
       .from(transactions)
       .leftJoin(users, eq(transactions.userId, users.id))
       .leftJoin(plans, eq(transactions.planId, plans.id))
-      .leftJoin(paymentProviders, eq(transactions.paymentProviderId, paymentProviders.id))
+      .leftJoin(
+        paymentProviders,
+        eq(transactions.paymentProviderId, paymentProviders.id)
+      )
       .orderBy(desc(transactions.createdAt));
 
     res.status(200).json({ success: true, data: allTransactions });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Error fetching transactions', error });
+    res
+      .status(500)
+      .json({ success: false, message: "Error fetching transactions", error });
   }
 };
 
@@ -46,21 +57,28 @@ export const getTransactionById = async (req: Request, res: Response) => {
         transaction: transactions,
         user: users,
         plan: plans,
-        provider: paymentProviders
+        provider: paymentProviders,
       })
       .from(transactions)
       .leftJoin(users, eq(transactions.userId, users.id))
       .leftJoin(plans, eq(transactions.planId, plans.id))
-      .leftJoin(paymentProviders, eq(transactions.paymentProviderId, paymentProviders.id))
+      .leftJoin(
+        paymentProviders,
+        eq(transactions.paymentProviderId, paymentProviders.id)
+      )
       .where(eq(transactions.id, id));
 
     if (transaction.length === 0) {
-      return res.status(404).json({ success: false, message: 'Transaction not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: "Transaction not found" });
     }
 
     res.status(200).json({ success: true, data: transaction[0] });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Error fetching transaction', error });
+    res
+      .status(500)
+      .json({ success: false, message: "Error fetching transaction", error });
   }
 };
 
@@ -72,17 +90,24 @@ export const getTransactionsByUserId = async (req: Request, res: Response) => {
       .select({
         transaction: transactions,
         plan: plans,
-        provider: paymentProviders
+        provider: paymentProviders,
       })
       .from(transactions)
       .leftJoin(plans, eq(transactions.planId, plans.id))
-      .leftJoin(paymentProviders, eq(transactions.paymentProviderId, paymentProviders.id))
+      .leftJoin(
+        paymentProviders,
+        eq(transactions.paymentProviderId, paymentProviders.id)
+      )
       .where(eq(transactions.userId, userId))
       .orderBy(desc(transactions.createdAt));
 
     res.status(200).json({ success: true, data: userTransactions });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Error fetching user transactions', error });
+    res.status(500).json({
+      success: false,
+      message: "Error fetching user transactions",
+      error,
+    });
   }
 };
 
@@ -94,13 +119,15 @@ export const createTransaction = async (req: Request, res: Response) => {
       planId,
       paymentProviderId,
       billingCycle, // "monthly" or "annual"
-      paymentMethod
+      paymentMethod,
     } = req.body;
 
     // Fetch plan details
     const planData = await db.select().from(plans).where(eq(plans.id, planId));
     if (planData.length === 0) {
-      return res.status(404).json({ success: false, message: 'Plan not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: "Plan not found" });
     }
 
     // Fetch payment provider
@@ -110,15 +137,20 @@ export const createTransaction = async (req: Request, res: Response) => {
       .where(eq(paymentProviders.id, paymentProviderId));
 
     if (provider.length === 0) {
-      return res.status(404).json({ success: false, message: 'Payment provider not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: "Payment provider not found" });
     }
 
     if (!provider[0].isActive) {
-      return res.status(400).json({ success: false, message: 'Payment provider is not active' });
+      return res
+        .status(400)
+        .json({ success: false, message: "Payment provider is not active" });
     }
 
     const plan = planData[0];
-    const amount = billingCycle === 'annual' ? plan.annualPrice : plan.monthlyPrice;
+    const amount =
+      billingCycle === "annual" ? plan.annualPrice : plan.monthlyPrice;
 
     // Create transaction record
     const newTransaction = await db
@@ -128,21 +160,23 @@ export const createTransaction = async (req: Request, res: Response) => {
         planId,
         paymentProviderId,
         amount,
-        currency: 'INR', // You can make this dynamic
+        currency: "INR", // You can make this dynamic
         billingCycle,
-        status: 'pending',
+        status: "pending",
         paymentMethod,
-        metadata: {}
+        metadata: {},
       })
       .returning();
 
-    res.status(201).json({ 
-      success: true, 
-      message: 'Transaction created successfully',
-      data: newTransaction[0] 
+    res.status(201).json({
+      success: true,
+      message: "Transaction created successfully",
+      data: newTransaction[0],
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Error creating transaction', error });
+    res
+      .status(500)
+      .json({ success: false, message: "Error creating transaction", error });
   }
 };
 
@@ -155,26 +189,27 @@ export const updateTransactionStatus = async (req: Request, res: Response) => {
       providerTransactionId,
       providerOrderId,
       providerPaymentId,
-      metadata
+      metadata,
     } = req.body;
 
     const updateData: any = {
       status,
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
-    if (providerTransactionId) updateData.providerTransactionId = providerTransactionId;
+    if (providerTransactionId)
+      updateData.providerTransactionId = providerTransactionId;
     if (providerOrderId) updateData.providerOrderId = providerOrderId;
     if (providerPaymentId) updateData.providerPaymentId = providerPaymentId;
     if (metadata) updateData.metadata = metadata;
 
     // If payment is completed, set paidAt timestamp
-    if (status === 'completed') {
+    if (status === "completed") {
       updateData.paidAt = new Date();
     }
 
     // If payment is refunded, set refundedAt timestamp
-    if (status === 'refunded') {
+    if (status === "refunded") {
       updateData.refundedAt = new Date();
     }
 
@@ -185,16 +220,20 @@ export const updateTransactionStatus = async (req: Request, res: Response) => {
       .returning();
 
     if (updatedTransaction.length === 0) {
-      return res.status(404).json({ success: false, message: 'Transaction not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: "Transaction not found" });
     }
 
-    res.status(200).json({ 
-      success: true, 
-      message: 'Transaction updated successfully',
-      data: updatedTransaction[0] 
+    res.status(200).json({
+      success: true,
+      message: "Transaction updated successfully",
+      data: updatedTransaction[0],
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Error updating transaction', error });
+    res
+      .status(500)
+      .json({ success: false, message: "Error updating transaction", error });
   }
 };
 
@@ -206,7 +245,7 @@ export const completeTransaction = async (req: Request, res: Response) => {
       providerTransactionId,
       providerOrderId,
       providerPaymentId,
-      metadata
+      metadata,
     } = req.body;
 
     // Get transaction details
@@ -216,7 +255,9 @@ export const completeTransaction = async (req: Request, res: Response) => {
       .where(eq(transactions.id, id));
 
     if (transactionData.length === 0) {
-      return res.status(404).json({ success: false, message: 'Transaction not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: "Transaction not found" });
     }
 
     const transaction = transactionData[0];
@@ -225,13 +266,13 @@ export const completeTransaction = async (req: Request, res: Response) => {
     const updatedTransaction = await db
       .update(transactions)
       .set({
-        status: 'completed',
+        status: "completed",
         providerTransactionId,
         providerOrderId,
         providerPaymentId,
         metadata,
         paidAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       })
       .where(eq(transactions.id, id))
       .returning();
@@ -239,8 +280,8 @@ export const completeTransaction = async (req: Request, res: Response) => {
     // Calculate subscription dates
     const startDate = new Date();
     const endDate = new Date();
-    
-    if (transaction.billingCycle === 'annual') {
+
+    if (transaction.billingCycle === "annual") {
       endDate.setFullYear(endDate.getFullYear() + 1);
     } else {
       endDate.setMonth(endDate.getMonth() + 1);
@@ -252,11 +293,11 @@ export const completeTransaction = async (req: Request, res: Response) => {
       .values({
         userId: transaction.userId,
         planId: transaction.planId,
-        status: 'active',
+        status: "active",
         billingCycle: transaction.billingCycle,
         startDate,
         endDate,
-        autoRenew: true
+        autoRenew: true,
       })
       .returning();
 
@@ -266,16 +307,18 @@ export const completeTransaction = async (req: Request, res: Response) => {
       .set({ subscriptionId: newSubscription[0].id })
       .where(eq(transactions.id, id));
 
-    res.status(200).json({ 
-      success: true, 
-      message: 'Transaction completed and subscription created successfully',
+    res.status(200).json({
+      success: true,
+      message: "Transaction completed and subscription created successfully",
       data: {
         transaction: updatedTransaction[0],
-        subscription: newSubscription[0]
-      }
+        subscription: newSubscription[0],
+      },
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Error completing transaction', error });
+    res
+      .status(500)
+      .json({ success: false, message: "Error completing transaction", error });
   }
 };
 
@@ -292,15 +335,17 @@ export const refundTransaction = async (req: Request, res: Response) => {
       .where(eq(transactions.id, id));
 
     if (transactionData.length === 0) {
-      return res.status(404).json({ success: false, message: 'Transaction not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: "Transaction not found" });
     }
 
     const transaction = transactionData[0];
 
-    if (transaction.status !== 'completed') {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Only completed transactions can be refunded' 
+    if (transaction.status !== "completed") {
+      return res.status(400).json({
+        success: false,
+        message: "Only completed transactions can be refunded",
       });
     }
 
@@ -308,10 +353,10 @@ export const refundTransaction = async (req: Request, res: Response) => {
     const updatedTransaction = await db
       .update(transactions)
       .set({
-        status: 'refunded',
+        status: "refunded",
         refundedAt: new Date(),
         metadata: { ...transaction.metadata, refundReason },
-        updatedAt: new Date()
+        updatedAt: new Date(),
       })
       .where(eq(transactions.id, id))
       .returning();
@@ -320,17 +365,19 @@ export const refundTransaction = async (req: Request, res: Response) => {
     if (transaction.subscriptionId) {
       await db
         .update(subscriptions)
-        .set({ status: 'cancelled', updatedAt: new Date() })
+        .set({ status: "cancelled", updatedAt: new Date() })
         .where(eq(subscriptions.id, transaction.subscriptionId));
     }
 
-    res.status(200).json({ 
-      success: true, 
-      message: 'Transaction refunded successfully',
-      data: updatedTransaction[0] 
+    res.status(200).json({
+      success: true,
+      message: "Transaction refunded successfully",
+      data: updatedTransaction[0],
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Error refunding transaction', error });
+    res
+      .status(500)
+      .json({ success: false, message: "Error refunding transaction", error });
   }
 };
 
@@ -342,6 +389,7 @@ export const initiatePayment = async (req: Request, res: Response) => {
     const {
       userId,
       planId,
+      currency,
       paymentProviderId,
       billingCycle, // "monthly" or "annual"
     } = req.body;
@@ -349,7 +397,9 @@ export const initiatePayment = async (req: Request, res: Response) => {
     // Fetch plan details
     const planData = await db.select().from(plans).where(eq(plans.id, planId));
     if (planData.length === 0) {
-      return res.status(404).json({ success: false, message: 'Plan not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: "Plan not found" });
     }
 
     // Fetch payment provider
@@ -359,17 +409,22 @@ export const initiatePayment = async (req: Request, res: Response) => {
       .where(eq(paymentProviders.id, paymentProviderId));
 
     if (providerData.length === 0) {
-      return res.status(404).json({ success: false, message: 'Payment provider not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: "Payment provider not found" });
     }
 
     const provider = providerData[0];
 
     if (!provider.isActive) {
-      return res.status(400).json({ success: false, message: 'Payment provider is not active' });
+      return res
+        .status(400)
+        .json({ success: false, message: "Payment provider is not active" });
     }
 
     const plan = planData[0];
-    const amount = billingCycle === 'annual' ? plan.annualPrice : plan.monthlyPrice;
+    const amount =
+      billingCycle === "annual" ? plan.annualPrice : plan.monthlyPrice;
 
     // Create transaction record
     const newTransaction = await db
@@ -379,10 +434,10 @@ export const initiatePayment = async (req: Request, res: Response) => {
         planId,
         paymentProviderId,
         amount,
-        currency: 'INR',
+        currency,
         billingCycle,
-        status: 'pending',
-        metadata: {}
+        status: "pending",
+        metadata: {},
       })
       .returning();
 
@@ -391,14 +446,22 @@ export const initiatePayment = async (req: Request, res: Response) => {
     // Initialize payment based on provider
     let paymentData;
 
-    if (provider.providerKey === 'razorpay') {
-      paymentData = await initializeRazorpayPayment(transaction, provider, amount);
-    } else if (provider.providerKey === 'stripe') {
-      paymentData = await initializeStripePayment(transaction, provider, amount);
+    if (provider.providerKey === "razorpay") {
+      paymentData = await initializeRazorpayPayment(
+        transaction,
+        provider,
+        amount
+      );
+    } else if (provider.providerKey === "stripe") {
+      paymentData = await initializeStripePayment(
+        transaction,
+        provider,
+        amount
+      );
     } else {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Unsupported payment provider' 
+      return res.status(400).json({
+        success: false,
+        message: "Unsupported payment provider",
       });
     }
 
@@ -408,30 +471,36 @@ export const initiatePayment = async (req: Request, res: Response) => {
       .set({
         providerOrderId: paymentData.orderId,
         providerTransactionId: paymentData.paymentIntentId,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       })
       .where(eq(transactions.id, transaction.id));
 
     res.status(201).json({
       success: true,
-      message: 'Payment initiated successfully',
+      message: "Payment initiated successfully",
       data: {
         transactionId: transaction.id,
         provider: provider.providerKey,
         amount: amount,
         currency: transaction.currency,
-        ...paymentData
-      }
+        ...paymentData,
+      },
     });
   } catch (error) {
-    console.error('Error initiating payment:', error);
-    res.status(500).json({ success: false, message: 'Error initiating payment', error });
+    console.error("Error initiating payment:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Error initiating payment", error });
   }
 };
 
 // ==================== RAZORPAY INITIALIZATION ====================
 
-async function initializeRazorpayPayment(transaction: any, provider: any, amount: string) {
+async function initializeRazorpayPayment(
+  transaction: any,
+  provider: any,
+  amount: string
+) {
   const razorpay = new Razorpay({
     key_id: provider.config.apiKey || process.env.RAZORPAY_KEY_ID,
     key_secret: provider.config.apiSecret || process.env.RAZORPAY_KEY_SECRET,
@@ -455,23 +524,28 @@ async function initializeRazorpayPayment(transaction: any, provider: any, amount
     keyId: provider.config.apiKey || process.env.RAZORPAY_KEY_ID,
     amount: order.amount,
     currency: order.currency,
-    name: 'Your Company Name',
-    description: 'Subscription Payment',
+    name: "Your Company Name",
+    description: "Subscription Payment",
     prefill: {
-      name: '',
-      email: '',
-      contact: ''
-    }
+      name: "",
+      email: "",
+      contact: "",
+    },
   };
 }
 
 // ==================== STRIPE INITIALIZATION ====================
 
-async function initializeStripePayment(transaction: any, provider: any, amount: string) {
+async function initializeStripePayment(
+  transaction: any,
+  provider: any,
+  amount: string
+) {
   // Create Stripe Payment Intent
   const paymentIntent = await stripe.paymentIntents.create({
     amount: Math.round(parseFloat(amount) * 100), // Amount in cents
     currency: transaction.currency.toLowerCase(),
+    description: `description: Payment for Pro plan (monthly plan) by user ${transaction.userId}`,
     metadata: {
       transactionId: transaction.id,
       userId: transaction.userId,
@@ -486,7 +560,8 @@ async function initializeStripePayment(transaction: any, provider: any, amount: 
     orderId: null,
     paymentIntentId: paymentIntent.id,
     clientSecret: paymentIntent.client_secret,
-    publishableKey: provider.config.publicKey || process.env.STRIPE_PUBLISHABLE_KEY,
+    publishableKey:
+      provider.config.publicKey || process.env.STRIPE_PUBLISHABLE_KEY,
     amount: paymentIntent.amount,
     currency: paymentIntent.currency,
   };
@@ -501,44 +576,44 @@ export const verifyRazorpayPayment = async (req: Request, res: Response) => {
       razorpay_order_id,
       razorpay_payment_id,
       razorpay_signature,
-      transactionId
+      transactionId,
     } = req.body;
 
     // Get provider details
     const providerData = await db
       .select()
       .from(paymentProviders)
-      .where(eq(paymentProviders.providerKey, 'razorpay'))
+      .where(eq(paymentProviders.providerKey, "razorpay"))
       .limit(1);
 
     if (providerData.length === 0) {
-      return res.status(404).json({ success: false, message: 'Razorpay provider not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: "Razorpay provider not found" });
     }
 
     const provider = providerData[0];
     const secret = provider.config.apiSecret || process.env.RAZORPAY_KEY_SECRET;
 
-    // Verify signature
-    const crypto = require('crypto');
     const generated_signature = crypto
-      .createHmac('sha256', secret)
-      .update(razorpay_order_id + '|' + razorpay_payment_id)
-      .digest('hex');
+      .createHmac("sha256", secret)
+      .update(razorpay_order_id + "|" + razorpay_payment_id)
+      .digest("hex");
 
     if (generated_signature !== razorpay_signature) {
       // Update transaction as failed
       await db
         .update(transactions)
         .set({
-          status: 'failed',
-          metadata: { error: 'Invalid signature' },
-          updatedAt: new Date()
+          status: "failed",
+          metadata: { error: "Invalid signature" },
+          updatedAt: new Date(),
         })
         .where(eq(transactions.id, transactionId));
 
       return res.status(400).json({
         success: false,
-        message: 'Payment verification failed - Invalid signature'
+        message: "Payment verification failed - Invalid signature",
       });
     }
 
@@ -546,29 +621,31 @@ export const verifyRazorpayPayment = async (req: Request, res: Response) => {
     await db
       .update(transactions)
       .set({
-        status: 'completed',
+        status: "completed",
         providerOrderId: razorpay_order_id,
         providerPaymentId: razorpay_payment_id,
         paidAt: new Date(),
         metadata: { verified: true },
-        updatedAt: new Date()
+        updatedAt: new Date(),
       })
       .where(eq(transactions.id, transactionId));
 
     res.status(200).json({
       success: true,
-      message: 'Payment verified successfully',
+      message: "Payment verified successfully",
       data: {
         transactionId,
         orderId: razorpay_order_id,
-        paymentId: razorpay_payment_id
-      }
+        paymentId: razorpay_payment_id,
+      },
     });
 
     // Note: Subscription creation will be handled by webhook
   } catch (error) {
-    console.error('Error verifying Razorpay payment:', error);
-    res.status(500).json({ success: false, message: 'Error verifying payment', error });
+    console.error("Error verifying Razorpay payment:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Error verifying payment", error });
   }
 };
 
@@ -577,34 +654,39 @@ export const verifyStripePayment = async (req: Request, res: Response) => {
   try {
     const { payment_intent_id, transactionId } = req.body;
 
-    // Retrieve payment intent from Stripe
-    const paymentIntent = await stripe.paymentIntents.retrieve(payment_intent_id);
+    console.log("payment_intent_id", payment_intent_id);
+    console.log("transactionId", transactionId);
 
-    if (paymentIntent.status === 'succeeded') {
+    // Retrieve payment intent from Stripe
+    const paymentIntent = await stripe.paymentIntents.retrieve(
+      payment_intent_id
+    );
+
+    if (paymentIntent.status === "succeeded") {
       // Update transaction
       await db
         .update(transactions)
         .set({
-          status: 'completed',
+          status: "completed",
           providerTransactionId: payment_intent_id,
           providerPaymentId: paymentIntent.charges.data[0]?.id,
           paidAt: new Date(),
           metadata: {
             paymentMethod: paymentIntent.payment_method,
-            verified: true
+            verified: true,
           },
-          updatedAt: new Date()
+          updatedAt: new Date(),
         })
         .where(eq(transactions.id, transactionId));
 
       res.status(200).json({
         success: true,
-        message: 'Payment verified successfully',
+        message: "Payment verified successfully",
         data: {
           transactionId,
           paymentIntentId: payment_intent_id,
-          status: paymentIntent.status
-        }
+          status: paymentIntent.status,
+        },
       });
 
       // Note: Subscription creation will be handled by webhook
@@ -613,26 +695,28 @@ export const verifyStripePayment = async (req: Request, res: Response) => {
       await db
         .update(transactions)
         .set({
-          status: 'failed',
-          metadata: { 
+          status: "failed",
+          metadata: {
             status: paymentIntent.status,
-            error: paymentIntent.last_payment_error?.message 
+            error: paymentIntent.last_payment_error?.message,
           },
-          updatedAt: new Date()
+          updatedAt: new Date(),
         })
         .where(eq(transactions.id, transactionId));
 
       res.status(400).json({
         success: false,
-        message: 'Payment not completed',
+        message: "Payment not completed",
         data: {
-          status: paymentIntent.status
-        }
+          status: paymentIntent.status,
+        },
       });
     }
   } catch (error) {
-    console.error('Error verifying Stripe payment:', error);
-    res.status(500).json({ success: false, message: 'Error verifying payment', error });
+    console.error("Error verifying Stripe payment:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Error verifying payment", error });
   }
 };
 
@@ -649,7 +733,9 @@ export const getPaymentStatus = async (req: Request, res: Response) => {
       .where(eq(transactions.id, transactionId));
 
     if (transactionData.length === 0) {
-      return res.status(404).json({ success: false, message: 'Transaction not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: "Transaction not found" });
     }
 
     const transaction = transactionData[0];
@@ -662,11 +748,15 @@ export const getPaymentStatus = async (req: Request, res: Response) => {
         amount: transaction.amount,
         currency: transaction.currency,
         paidAt: transaction.paidAt,
-        createdAt: transaction.createdAt
-      }
+        createdAt: transaction.createdAt,
+      },
     });
   } catch (error) {
-    console.error('Error fetching payment status:', error);
-    res.status(500).json({ success: false, message: 'Error fetching payment status', error });
+    console.error("Error fetching payment status:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching payment status",
+      error,
+    });
   }
 };

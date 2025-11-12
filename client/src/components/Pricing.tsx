@@ -11,10 +11,11 @@ import {
   Star,
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
-import { Plan, PlansDataTypes } from "@/types/types";
+import { PaymentProvidersResponse, Plan, PlansDataTypes } from "@/types/types";
 import { useToast } from "@/hooks/use-toast";
 import CheckoutModal from "./modals/CheckoutPage";
 import { useAuth } from "@/contexts/auth-context";
+import { useQuery } from "@tanstack/react-query";
 
 const Pricing = () => {
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -23,9 +24,18 @@ const Pricing = () => {
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
-  const { isAuthenticated, isLoading, user } = useAuth();
-  console.log("isAuthenticated user", user);
+  // Fetch payment providers
+  const { data: paymentProviders, isLoading: isLoadingProviders } =
+    useQuery<PaymentProvidersResponse>({
+      queryKey: ["/api/payment-providers"],
+      queryFn: async () => {
+        const res = await fetch("/api/payment-providers");
+        if (!res.ok) throw new Error("Failed to fetch payment providers");
+        return res.json();
+      },
+    });
 
   // Icon mapping
   const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -64,8 +74,8 @@ const Pricing = () => {
   const handleSelectPlan = (plan: Plan) => {
     if (!user) {
       return toast({
-        title: "Auth Error ",
-        description: "Plz login before buy plan",
+        title: "Authentication Required",
+        description: "Please login before purchasing a plan",
         variant: "destructive",
       });
     }
@@ -348,6 +358,9 @@ const Pricing = () => {
           isAnnual={isAnnual}
           open={checkoutOpen}
           onOpenChange={setCheckoutOpen}
+          userId={user?.id}
+          paymentProviders={paymentProviders?.data}
+          isLoadingProviders={isLoadingProviders}
         />
       )}
     </>
