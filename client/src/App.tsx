@@ -54,6 +54,7 @@ import SupportTickets from "./pages/SupportTickets";
 import Notifications from "./pages/Notifications";
 import ChatHub from "./pages/ChatHub";
 import { Component } from "lucide-react";
+import User from "./pages/users";
 // Define route permissions mapping
 const ROUTE_PERMISSIONS: Record<string, string> = {
   "/contacts": "contacts.view",
@@ -226,6 +227,12 @@ function ProtectedRoutes() {
             <PermissionRoute
               component={Contacts}
               requiredPermission="contacts:view"
+            />
+          </Route>
+
+          <Route path="/users">
+            <PermissionRoute
+              component={User}
             />
           </Route>
           <Route path="/campaigns">

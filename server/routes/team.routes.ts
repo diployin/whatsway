@@ -84,34 +84,47 @@ const updateStatusSchema = z.object({
   status: z.enum(["active", "inactive"]),
 });
 
-// Get all team members (users)
-router.get("/members",requireAuth,
-requirePermission(PERMISSIONS.TEAM_VIEW), async (req, res) => {
-  try {
-    const members = await db
-      .select({
-        id: users.id,
-        username: users.username,
-        email: users.email,
-        firstName: users.firstName,
-        lastName: users.lastName,
-        role: users.role,
-        status: users.status,
-        permissions: users.permissions,
-        avatar: users.avatar,
-        lastLogin: users.lastLogin,
-        createdAt: users.createdAt,
-        updatedAt: users.updatedAt,
-      })
-      .from(users)
-      .orderBy(desc(users.createdAt));
+// Get all team members (created by current user)
+router.get(
+  "/members",
+  requireAuth,
+  requirePermission(PERMISSIONS.TEAM_VIEW),
+  async (req, res) => {
+    try {
+      // Ensure req.user is available
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized: User not found" });
+      }
 
-    res.json(members);
-  } catch (error) {
-    console.error("Error fetching team members:", error);
-    res.status(500).json({ error: "Failed to fetch team members" });
+      const members = await db
+        .select({
+          id: users.id,
+          username: users.username,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          role: users.role,
+          status: users.status,
+          permissions: users.permissions,
+          avatar: users.avatar,
+          lastLogin: users.lastLogin,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+          createdBy: users.createdBy,
+        })
+        .from(users)
+        .where(eq(users.createdBy, userId)) // 🔥 Filter only team created by logged-in user
+        .orderBy(desc(users.createdAt));
+
+      res.json(members);
+    } catch (error) {
+      console.error("Error fetching team members:", error);
+      res.status(500).json({ error: "Failed to fetch team members" });
+    }
   }
-});
+);
+
 
 // Get single team member
 router.get("/members/:id",requireAuth,
@@ -168,10 +181,11 @@ requirePermission(PERMISSIONS.TEAM_CREATE), validateRequest(createUserSchema), a
       email,
       firstName,
       lastName,
-      role,
+      role:"team",
       permissions,
       avatar: avatar || null,
       status: "active",
+      created_by: (req.user as { id: string }).id
     })
 
     const [newUser] = await db
@@ -182,10 +196,11 @@ requirePermission(PERMISSIONS.TEAM_CREATE), validateRequest(createUserSchema), a
         email,
         firstName,
         lastName,
-        role,
+        role:'team',
         permissions, // already an array from schema
         avatar: avatar || null,
         status: "active",
+        createdBy: (req.user as { id: string }).id
       })
       .returning();
 

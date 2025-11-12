@@ -536,6 +536,7 @@ const navItems: NavItem[] = [
 
 const sidebarItemsCategories = [
       { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard", color: "text-green-600" },
+      { name: "Users", icon: Users, path: "/users", color: "text-green-600" },
       { name: "Campaigns", icon: Megaphone, path: "/campaigns", badge: "", color: "text-blue-600" },
       { name: "Templates", icon: FileText, path: "/templates", badge: "", color: "text-purple-600" },
       { name: "Contacts", icon: Users, path: "/contacts", badge: "", color: "text-yellow-600" },

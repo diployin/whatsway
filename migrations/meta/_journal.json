@@ -127,6 +127,27 @@
       "when": 1762767568981,
       "tag": "0017_sturdy_zaran",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1762941532794,
+      "tag": "0018_sloppy_puppet_master",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1762941795998,
+      "tag": "0019_woozy_nightmare",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1762942008629,
+      "tag": "0020_steep_mystique",
+      "breakpoints": true
     }
   ]
 }
