@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { db } from "../db";
 import {users} from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { eq, or, like, sql, and } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
 
@@ -53,9 +53,48 @@ import bcrypt from "bcryptjs";
 
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
-    const allUsers = await db.select().from(users);
-    res.status(200).json({ success: true, data: allUsers });
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const search = (req.query.search as string) || "";
+    const role = (req.query.role as string) || "admin";
+    const offset = (page - 1) * limit;
+
+    const conditions = [
+      eq(users.role, role),
+      search ? or(
+        like(users.username, sql`${'%' + search + '%'}`),
+        like(users.email, sql`${'%' + search + '%'}`)
+      ) : undefined,
+    ].filter(Boolean);
+
+    const allUsers = await db
+      .select()
+      .from(users)
+      .where(and(...(conditions as any)))
+      .limit(limit)
+      .offset(offset)
+      // .orderBy(users.createdAt, "desc");
+
+    const totalCountResult = await db
+  .select({ total: sql<number>`COUNT(*)` })
+  .from(users)
+  .where(and(...(conditions as any)));
+
+const total = totalCountResult[0]?.total ?? 0;
+
+
+    res.status(200).json({
+      success: true,
+      data: allUsers,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
+    console.error("Error fetching users:", error);
     res.status(500).json({ success: false, message: "Error fetching users", error });
   }
 };
