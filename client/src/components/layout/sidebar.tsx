@@ -539,7 +539,7 @@ const sidebarItemsCategories = [
       { name: "Users", icon: Users, path: "/users", color: "text-green-600" },
       { name: "Campaigns", icon: Megaphone, path: "/campaigns", badge: "", color: "text-blue-600" },
       { name: "Templates", icon: FileText, path: "/templates", badge: "", color: "text-purple-600" },
-      { name: "Contacts", icon: Users, path: "/contacts", badge: "", color: "text-yellow-600" },
+      { name: "Contacts", icon: Users, path: "/contacts-management", badge: "", color: "text-yellow-600" },
        {
         name: "Analytics",
         icon: BarChart3,
@@ -556,6 +556,12 @@ const sidebarItemsCategories = [
         name: "Subscription Plans",
         icon: MdOutlinePayment,
         path: "/plans",
+        color: "text-blue-400",
+      },
+      {
+        name: "Transactions logs",
+        icon: MdOutlinePayment,
+        path: "/transactions-logs",
         color: "text-blue-400",
       },
       {
