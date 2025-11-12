@@ -41,6 +41,8 @@ export default function Dashboard() {
     },
   });
 
+  const isAdmin = user?.role === 'superadmin'
+
   const { data: activityLogs = [], isLoading } = useQuery({
     queryKey: ["/api/team/activity-logs"],
     queryFn: async () => {
