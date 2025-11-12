@@ -13,6 +13,7 @@
     "db:update": "drizzle-kit generate && drizzle-kit push",
     "seed": "tsx server/seed.ts",
     "studio": "prisma studio --port 4444",
+    "db:studio": "drizzle-kit studio",
     "update:code": "git pull && npm run build && pm2 restart all && pm2 logs"
   },
   "dependencies": {
