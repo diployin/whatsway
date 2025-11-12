@@ -29,6 +29,7 @@ import { registerPanelConfigRoutes } from "./panel.config.routes";
 import { registerStorageSettingsRoutes } from "./storage.settings.route";
 import { registerAISettingsRoutes } from "./ai.settings.routes";
 import { registerWidgetRoutes } from "./chatbot.routes";
+import { registerTicketsRoutes } from "./support.tickets.routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes (no authentication required)
@@ -56,6 +57,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerMessageLogsRoutes(app);
   registerPanelConfigRoutes(app)
   registerPaymentsRoutes(app);
+  registerTicketsRoutes(app);
   
   // Team management routes
   app.use("/api/team", teamRoutes);

@@ -570,6 +570,12 @@ const sidebarItemsCategories = [
         path: "/gateway",
         color: "text-blue-400",
       },
+      {
+        name: "Support Tickets",
+        icon: MdOutlinePayment,
+        path: "/support-tickets",
+        color: "text-blue-400",
+      },
        {
         name: "Settings",
         icon: Settings,
