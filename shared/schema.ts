@@ -10,6 +10,7 @@ import {
   index,
   unique,
   numeric,
+  pgEnum,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
@@ -501,6 +502,65 @@ export const transactions = pgTable("transactions", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
+
+
+
+
+export const ticketStatusEnum = pgEnum('ticket_status', ['open', 'in_progress', 'resolved', 'closed']);
+export const ticketPriorityEnum = pgEnum('ticket_priority', ['low', 'medium', 'high', 'urgent']);
+export const userTypeEnum = pgEnum('user_type', ['user', 'team', 'admin' , "superadmin"]);
+
+// Support Tickets table
+export const supportTickets = pgTable('support_tickets', {
+  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
+  title: text('title').notNull(),
+  description: text('description').notNull(),
+  status: ticketStatusEnum('status').notNull().default('open'),
+  priority: ticketPriorityEnum('priority').notNull().default('medium'),
+  
+  // Creator info (can be user or listener)
+  creatorId: varchar('creator_id').notNull(), // ID from users or listeners table
+  creatorType: userTypeEnum('creator_type').notNull(), // 'user' or 'team'
+  creatorName: text('creator_name').notNull(), // Cached for display
+  creatorEmail: text('creator_email').notNull(), // Cached for display
+  
+  // Assignment (admin only)
+  assignedToId: varchar('assigned_to_id'), // ID from admin_users table
+  assignedToName: text('assigned_to_name'), // Cached for display
+  
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  resolvedAt: timestamp('resolved_at'),
+  closedAt: timestamp('closed_at'),
+});
+
+// Ticket Messages table
+export const ticketMessages = pgTable('ticket_messages', {
+  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
+  ticketId: varchar('ticket_id').notNull().references(() => supportTickets.id, { onDelete: 'cascade' }),
+  
+  // Sender info (can be user, listener, or admin)
+  senderId: varchar('sender_id').notNull(),
+  senderType: userTypeEnum('sender_type').notNull(), // 'user', 'listener', or 'admin'
+  senderName: text('sender_name').notNull(), // Cached for display
+  
+  message: text('message').notNull(),
+  isInternal: boolean('is_internal').notNull().default(false), // Admin notes only
+  
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+// Relations
+export const supportTicketsRelations = relations(supportTickets, ({ many }) => ({
+  messages: many(ticketMessages),
+}));
+
+export const ticketMessagesRelations = relations(ticketMessages, ({ one }) => ({
+  ticket: one(supportTickets, {
+    fields: [ticketMessages.ticketId],
+    references: [supportTickets.id],
+  }),
+}));
 
 
 

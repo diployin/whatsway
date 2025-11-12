@@ -23,7 +23,6 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Feature, Plan, PlanPermissions, PlansDataTypes } from "@/types/types";
 
-const API_URL = "http://localhost:5001/api";
 
 // Interfaces
 
@@ -103,8 +102,8 @@ export default function Plans() {
   const handleSubmit = async (): Promise<void> => {
     try {
       const url = editingPlan
-        ? `${API_URL}/admin/plans/${editingPlan.id}`
-        : `${API_URL}/admin/plans`;
+        ? `/api/admin/plans/${editingPlan.id}`
+        : `/api/admin/plans`;
 
       const method = editingPlan ? "PUT" : "POST";
 

@@ -57,6 +57,7 @@ import { Component } from "lucide-react";
 import User from "./pages/users";
 import TransactionsPage from "./pages/transactions-page";
 import ContactsManagements from "./pages/contacts-managements";
+import SupportTicketsNew from "./pages/support-tickets";
 // Define route permissions mapping
 const ROUTE_PERMISSIONS: Record<string, string> = {
   "/contacts": "contacts.view",
@@ -379,7 +380,7 @@ function ProtectedRoutes() {
           </Route>
 
           <Route path="/support-tickets">
-            <PermissionRoute component={SupportTickets} />
+            <PermissionRoute component={SupportTicketsNew} />
           </Route>
 
           <Route path="/notifications">
