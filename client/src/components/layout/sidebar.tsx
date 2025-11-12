@@ -725,12 +725,11 @@ const sidebarItemsCategoriesOld = [
 ];
 
 export default function Sidebar() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const { user, logout } = useAuth();
   const { t } = useTranslation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isAIActive, setIsAIActive] = useState(false);
-
   const isSuper = user?.role === "superadmin";
   const isAdmin = user?.role === "admin";
 
@@ -825,7 +824,7 @@ export default function Sidebar() {
       >
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-            <div className="flex items-center space-x-3">
+            <div onClick={()=> setLocation('/')} className="flex items-center space-x-3">
               <img
                 src={logo}
                 alt="Logo"
