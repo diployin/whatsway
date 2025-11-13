@@ -126,6 +126,48 @@ router.get(
 );
 
 
+
+
+
+router.post(
+  "/membersByUserId",
+  async (req, res) => {
+    try {
+      // Ensure req.user is available
+      const { userId } = req.body
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized: User not found" });
+      }
+
+      const members = await db
+        .select({
+          id: users.id,
+          username: users.username,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          role: users.role,
+          status: users.status,
+          permissions: users.permissions,
+          avatar: users.avatar,
+          lastLogin: users.lastLogin,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+          createdBy: users.createdBy,
+        })
+        .from(users)
+        .where(eq(users.createdBy, userId))
+        .orderBy(desc(users.createdAt));
+
+      res.json(members);
+    } catch (error) {
+      console.error("Error fetching team members:", error);
+      res.status(500).json({ error: "Failed to fetch team members" });
+    }
+  }
+);
+
+
 // Get single team member
 router.get("/members/:id",requireAuth,
 requirePermission(PERMISSIONS.TEAM_VIEW), async (req, res) => {

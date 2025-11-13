@@ -29,9 +29,12 @@ export function registerContactRoutes(app: Express) {
   app.post("/api/contacts",
     extractChannelId, requireAuth,
     requirePermission(PERMISSIONS.CONTACTS_CREATE),
-    validateRequest(insertContactSchema),
+    validateRequest(insertContactSchema), 
     contactsController.createContact
   );
+
+
+  app.get("/api/user/contacts/:userId", contactsController.getContactsByUser);
 
   // Update contact
   app.put(

@@ -43,7 +43,7 @@ export function ChannelSettings() {
   const [testingChannelId, setTestingChannelId] = useState<string | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
-  // Fetch WhatsApp channels
+  // Fetch WhatsApp channels 
   const { data: channels = [], isLoading: channelsLoading } = useQuery<
     Channel[]
   >({

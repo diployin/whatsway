@@ -185,6 +185,12 @@ async logApiRequest(log: InsertApiLog): Promise<ApiLog | null> {
     return this.contactRepo.getAll();
   }
 
+ 
+async getContactsByUser(userId: string): Promise<Contact[]> {
+  return this.contactRepo.getContactsByUserId(userId); // ye repository ka method hai
+}
+
+
   async getContactsByChannel(channelId: string): Promise<Contact[]> {
     return this.contactRepo.getByChannel(channelId);
   }

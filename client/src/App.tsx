@@ -58,6 +58,7 @@ import User from "./pages/users";
 import TransactionsPage from "./pages/transactions-page";
 import ContactsManagements from "./pages/contacts-managements";
 import SupportTicketsNew from "./pages/support-tickets";
+import userDetails from "./pages/userDetails";
 // Define route permissions mapping
 const ROUTE_PERMISSIONS: Record<string, string> = {
   "/contacts": "contacts.view",
@@ -238,6 +239,8 @@ function ProtectedRoutes() {
               component={User}
             />
           </Route>
+
+          <Route path="/users/:id" component={userDetails} />
           <Route path="/campaigns">
             <PermissionRoute
               component={Campaigns}

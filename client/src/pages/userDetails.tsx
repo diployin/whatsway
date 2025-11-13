@@ -1,0 +1,103 @@
+import { useState } from "react";
+import Header from "@/components/layout/header";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { User, Smartphone, BotIcon, Key, SettingsIcon, Database } from "lucide-react";
+import TeamMembers from "@/components/user-details/TeamMembers";
+import Channels from "@/components/user-details/Channel";
+import Contacts from "@/components/user-details/Contacts";
+import {useRoute} from "wouter";
+
+interface UserType {
+  id: string;
+  username: string;
+  email: string;
+  role: string;
+  phone?: string;
+  groups?: string[];
+}
+
+export default function UserDetails() {
+  const [activeTab, setActiveTab] = useState("channels");
+  const [match, params] = useRoute("/users/:id");
+  const userId = params?.id;
+  if (!userId) return <p>User ID not found in URL.</p>;
+  // Static user data for now
+  const user: UserType = {
+    id: "1",
+    username: "JohnDoe",
+    email: "john.doe@example.com",
+    role: "admin",
+    phone: "+123456789",
+    groups: ["Team A", "Project X"],
+  };
+
+  return (
+    <div className="flex-1 min-h-screen dots-bg">
+      <Header title="User Details" subtitle={`All Details for a user`} />
+
+      <main className="p-6">
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="space-y-6"
+        >
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger
+              value="channels"
+              className="flex items-center space-x-2"
+            >
+              <Smartphone className="w-4 h-4" />
+              <span>Channels</span>
+            </TabsTrigger>
+
+            <TabsTrigger
+              value="team"
+              className="flex items-center space-x-2"
+            >
+              <User className="w-4 h-4" />
+              <span>Team Members</span>
+            </TabsTrigger>
+
+            <TabsTrigger
+              value="Contact"
+              className="flex items-center space-x-2"
+            >
+              <BotIcon className="w-4 h-4" />
+              <span>Contacts</span>
+            </TabsTrigger>
+
+            <TabsTrigger
+              value="campaigns"
+              className="flex items-center space-x-2"
+            >
+              <SettingsIcon className="w-4 h-4" />
+              <span>Campaigns</span>
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Channels Tab */}
+          <TabsContent value="channels">
+           <Channels userId={userId}/>
+          </TabsContent>
+
+          {/* Team Members Tab */}
+          <TabsContent value="team">
+            {/* <h2 className="text-lg font-semibold mb-2">Team Members</h2>
+            <p>Team members for {user.username} will be listed here.</p> */}
+            <TeamMembers userId={userId}/>
+          </TabsContent>
+
+          <TabsContent value="Contact">
+           <Contacts userId={userId}/>
+          </TabsContent>
+
+          {/* Settings Tab */}
+          <TabsContent value="campaigns">
+            <h2 className="text-lg font-semibold mb-2">campaigns</h2>
+            <p>User-specific campaigns can be managed here.</p>
+          </TabsContent>
+        </Tabs>
+      </main>
+    </div>
+  );
+}

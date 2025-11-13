@@ -37,6 +37,7 @@ export interface IStorage {
 
   // Contacts
   getContacts(): Promise<Contact[]>;
+  getContactsByUser(userId: String): Promise<Contact[]>;
   getContactsByChannel(channelId: string): Promise<Contact[]>;
   getContact(id: string): Promise<Contact | undefined>;
   getContactByPhone(phone: string): Promise<Contact | undefined>;
@@ -342,6 +343,15 @@ async searchContactsByChannel(channelId: string, query: string): Promise<Contact
       (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0)
     );
   }
+
+  async getContactsByUser(userId: string): Promise<Contact[]> {
+  return Array.from(this.contacts.values())
+    .filter(c => c.createdBy === userId) // filter by createdBy
+    .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+}
+
+
+  
 
   async getContact(id: string): Promise<Contact | undefined> {
     return this.contacts.get(id);

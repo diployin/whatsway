@@ -15,6 +15,16 @@ export class ContactRepository {
       .where(eq(contacts.channelId, channelId))
       .orderBy(desc(contacts.createdAt));
   }
+
+  async getContactsByUserId(userId: string): Promise<Contact[]> {
+      return await db
+        .select()
+        .from(contacts)
+        .where(eq(contacts.createdBy, userId))
+        .orderBy(desc(contacts.createdAt));
+    }
+
+    
   async getContactsByTenant(tenantId: string): Promise<Contact[]> {
     return await db
       .select()

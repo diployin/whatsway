@@ -43,6 +43,22 @@ export const getContacts = asyncHandler(
   }
 );
 
+export const getContactsByUser = asyncHandler(async (req: Request, res: Response) => {
+  const { userId } = req.params;
+
+  if (!userId) {
+    throw new AppError(400, "User ID is required");
+  }
+
+  // Storage method call
+  const contacts = await storage.getContactsByUser(userId);
+
+  res.json({
+    success: true,
+    data: contacts,
+  });
+});
+
 export const getContactsWithPagination = asyncHandler(
   async (req: RequestWithChannel, res: Response) => {
     const { search, channelId, page = "1", limit = "10" , group , status } = req.query;
@@ -136,6 +152,7 @@ export const getContact = asyncHandler(async (req: Request, res: Response) => {
 export const createContact = asyncHandler(
   async (req: RequestWithChannel, res: Response) => {
     const validatedContact = insertContactSchema.parse(req.body);
+    const createdBy =(req.session as any).user.id;
 
     // Use channelId from query or active channel
     let channelId = req.query.channelId as string | undefined;
@@ -161,6 +178,7 @@ export const createContact = asyncHandler(
     const contact = await storage.createContact({
       ...validatedContact,
       channelId,
+      createdBy,
     });
 
     res.json(contact);

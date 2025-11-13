@@ -7,6 +7,8 @@ export function registerChannelRoutes(app: Express) {
   // Get all channels
   app.get("/api/channels", channelsController.getChannels);
 
+  app.post("/api/channels/userid", channelsController.getChannelsByUserId)
+
   // Get active channel
   app.get("/api/channels/active", channelsController.getActiveChannel);
 

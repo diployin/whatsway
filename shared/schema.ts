@@ -96,6 +96,7 @@ export const contacts = pgTable(
     lastContact: timestamp("last_contact"),
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
+    createdBy: varchar("created_by").default(''),
   },
   (table) => ({
     contactChannelIdx: index("contacts_channel_idx").on(table.channelId),
