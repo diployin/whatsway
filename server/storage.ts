@@ -110,6 +110,7 @@ export interface IStorage {
 
   // Channels
   getChannels(): Promise<Channel[]>;
+  getChannelsByUser(userId: string): Promise<Channel[]>;
   getChannel(id: string): Promise<Channel | undefined>;
   getChannelByPhoneNumberId(phoneNumberId: string): Promise<Channel | undefined>;
   createChannel(channel: InsertChannel): Promise<Channel>;
@@ -447,6 +448,13 @@ async searchContactsByChannel(channelId: string, query: string): Promise<Contact
       (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0)
     );
   }
+
+ async getChannelsByUser(userId: string): Promise<Channel[]> {
+    return Array.from(this.channels.values())
+      .filter(channel => channel.createdBy === userId)
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+  }
+
 
   async getChannel(id: string): Promise<Channel | undefined> {
     return this.channels.get(id);

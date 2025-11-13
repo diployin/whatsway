@@ -280,6 +280,12 @@ async logApiRequest(log: InsertApiLog): Promise<ApiLog | null> {
     return this.channelRepo.getById(id);
   }
 
+   async getChannelsByUser(userId: string): Promise<Channel[]> {
+    return this.channelRepo.getByUser(userId);
+  }
+
+
+
   async getChannelByPhoneNumberId(
     phoneNumberId: string
   ): Promise<Channel | undefined> {

@@ -1,13 +1,37 @@
 import type { Request, Response } from 'express';
 import { storage } from '../storage';
-import { insertChannelSchema } from '@shared/schema';
+import { insertChannelSchema, Channel } from '@shared/schema';
 import { AppError, asyncHandler } from '../middlewares/error.middleware';
 import type { RequestWithChannel } from '../middlewares/channel.middleware';
 
-export const getChannels = asyncHandler(async (req: Request, res: Response) => {
+export const getAllChannels = asyncHandler(async (req: Request, res: Response) => {
   const channels = await storage.getChannels();
   res.json(channels);
 });
+
+
+export const getChannels = asyncHandler(async (req: Request, res: Response) => {
+  // @ts-ignore: custom property added by auth middleware
+  const user = (req.session as any).user;
+
+  if (!user) {
+    return res.status(401).json({ message: 'Not authenticated' });
+  }
+
+  let channels: Channel[] = [];
+
+  if (user.role === 'superadmin') {
+    // Superadmin sees all channels
+    channels = await storage.getChannels();
+  } else {
+    // Admin (or other roles) sees only their own channels
+    channels = await storage.getChannelsByUser(user.id);
+  }
+
+  console.log("CHECK CHANNELS:", channels);
+  res.json(channels);
+});
+
 
 export const getActiveChannel = asyncHandler(async (req: Request, res: Response) => {
   const channel = await storage.getActiveChannel();
@@ -19,6 +43,9 @@ export const getActiveChannel = asyncHandler(async (req: Request, res: Response)
 
 export const createChannel = asyncHandler(async (req: Request, res: Response) => {
   const validatedChannel = insertChannelSchema.parse(req.body);
+  // 2️⃣ Add creator info 
+  const createdBy = (req.session as any).user.id || 'unknown';
+  validatedChannel.createdBy = createdBy;
   
   // If this is set as active, deactivate all other channels
   if (validatedChannel.isActive) {

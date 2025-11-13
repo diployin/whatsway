@@ -6,7 +6,7 @@
   'use strict';
 
   const config = window.aiChatConfig || {};
-  const API_BASE = config.url || 'http://localhost:5000';
+  const API_BASE = config.url || 'http://localhost:5001';
   const siteId = config.siteId;
   const channelId = config.channelId || null;
 

@@ -204,6 +204,7 @@ export const channels = pgTable("channels", {
   healthDetails: jsonb("health_details").default({}), // Detailed health information
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+  createdBy: varchar("created_by").default(''),
 });
 
 export const templates = pgTable("templates", {

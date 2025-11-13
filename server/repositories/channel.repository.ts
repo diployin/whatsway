@@ -11,6 +11,14 @@ export class ChannelRepository {
     return await db.select().from(channels).orderBy(desc(channels.createdAt));
   }
 
+  async getByUser(userId: string): Promise<Channel[]> {
+    return await db
+      .select()
+      .from(channels)
+      .where(eq(channels.createdBy, userId))
+      .orderBy(desc(channels.createdAt));
+  }
+
   async getById(id: string): Promise<Channel | undefined> {
     const [channel] = await db.select().from(channels).where(eq(channels.id, id));
     return channel || undefined;
