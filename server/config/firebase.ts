@@ -1,6 +1,8 @@
 "use strict";
 
+import { firebaseConfig } from "@shared/schema";
 import admin from "firebase-admin";
+import { db } from "server/db";
 import { storage } from "server/storage";
 
 class FirebaseService {
@@ -17,12 +19,14 @@ class FirebaseService {
       console.log("[Firebase] Loading Firebase credentials from database...");
 
       // Get credentials from DB
-      // const projectId = await storage.getSetting("firebase_project_id");
-      // const privateKey = await storage.getSetting("firebase_private_key");
-      // const clientEmail = await storage.getSetting("firebase_client_email");
-      const projectId = '';
-      const privateKey = "";
-      const clientEmail = '';
+      const [firebaseData] = await db.select().from(firebaseConfig)
+      console.log(firebaseData)
+
+      const projectId = firebaseData.projectId;
+      const privateKey =  firebaseData.privateKey ;
+      const clientEmail =  firebaseData.clientEmail ;
+
+      console.log(projectId ,privateKey ,clientEmail)
 
       if (!projectId || !privateKey || !clientEmail) {
         throw new Error("Firebase credentials missing in database settings");

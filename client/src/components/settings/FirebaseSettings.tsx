@@ -104,6 +104,9 @@ export default function FirebaseSettings() {
                 { label: "Messaging Sender ID", key: "messagingSenderId" },
                 { label: "App ID", key: "appId" },
                 { label: "Measurement ID", key: "measurementId" },
+                { label: "Private Key", key: "privateKey" },
+                { label: "Client Email", key: "clientEmail" },
+                { label: "Vapid Key", key: "vapidKey" },
               ].map((item, idx) => (
                 <div key={idx} className="space-y-2">
                   <Label className="font-medium">{item.label}</Label>
@@ -154,6 +157,9 @@ const FirebaseModal = ({ open, onClose, onSave, firebase }: any) => {
     messagingSenderId: firebase?.messagingSenderId || "",
     appId: firebase?.appId || "",
     measurementId: firebase?.measurementId || "",
+    privateKey: firebase?.privateKey || "",
+    clientEmail: firebase?.clientEmail || "",
+    vapidKey: firebase?.vapidKey || "",
   });
 
   const handleChange = (name: string, value: string) =>
@@ -175,7 +181,10 @@ const FirebaseModal = ({ open, onClose, onSave, firebase }: any) => {
             { key: "storageBucket", label: "Storage Bucket" },
             { key: "messagingSenderId", label: "Messaging Sender ID" },
             { key: "appId", label: "App ID" },
-            { key: "measurementId", label: "Measurement ID" },
+            { label: "Measurement ID", key: "measurementId" },
+            { label: "Private Key", key: "privateKey" },
+            { label: "Client Email", key: "clientEmail" },
+            { label: "Vapid Key", key: "vapidKey" },
           ].map((item, i) => (
             <div key={i} className="space-y-2">
               <Label>{item.label}</Label>

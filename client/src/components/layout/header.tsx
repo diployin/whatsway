@@ -51,14 +51,29 @@
 // }
 
 
-
-import { Bell, Plus, LogOut, Settings, User } from "lucide-react";
+import { Bell, Plus, LogOut, Settings, User, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useUnreadCount } from "@/contexts/UnreadCountContext";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useLocation } from "wouter";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/auth-context";
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
 
+// Firebase imports
+import { initializeApp, getApps, FirebaseApp } from "firebase/app";
+import {
+  getFirestore,
+  collection,
+  query,
+  where,
+  orderBy,
+  onSnapshot,
+  updateDoc,
+  doc,
+  Timestamp,
+} from "firebase/firestore";
+import { getMessaging, getToken } from "firebase/messaging";
 
 interface HeaderProps {
   title: string;
@@ -70,107 +85,250 @@ interface HeaderProps {
   userPhotoUrl?: string;
 }
 
-export default function Header({ title, subtitle, action, userPhotoUrl}: HeaderProps) {
-  const unreadCount = useUnreadCount();
+// GLOBAL firebase instance (single initialization only)
+let firebaseApp: FirebaseApp | null = null;
+let messaging: any = null;
+
+export default function Header({ title, subtitle, action, userPhotoUrl }: HeaderProps) {
   const [, setLocation] = useLocation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [notifModal, setNotifModal] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const {user, logout} = useAuth()
+  const { user, logout } = useAuth();
 
-  const username = user?.firstName +''+ user?.lastName || "User"
-  // Close dropdown on click outside
+  const username = (user?.firstName || "") + " " + (user?.lastName || "");
+
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Fetch firebase config
+  const { data: firebaseConfig } = useQuery({
+    queryKey: ["/api/firebase"],
+    queryFn: async () => {
+      const res = await axios.get("/api/firebase");
+      return res.data;
+    },
+    staleTime: 3600000,
+  });
+
+  // 🔥 Initialize Firebase only once + start Firestore listener
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+    if (!firebaseConfig) return;
+
+    try {
+      // Build firebase config object
+      const cfg = {
+        apiKey: firebaseConfig.apiKey,
+        authDomain: firebaseConfig.authDomain,
+        projectId: firebaseConfig.projectId,
+        storageBucket: firebaseConfig.storageBucket,
+        messagingSenderId: firebaseConfig.messagingSenderId,
+        appId: firebaseConfig.appId,
+        measurementId: firebaseConfig.measurementId,
+      };
+
+      // Initialize ONCE
+      if (!firebaseApp) {
+        firebaseApp = getApps().length ? getApps()[0] : initializeApp(cfg);
+        messaging = getMessaging(firebaseApp);
+      }
+
+      const db = getFirestore(firebaseApp);
+      const colRef = collection(db, "notifications");
+
+      const q = user?.id
+        ? query(colRef, where("userId", "==", user.id), orderBy("createdAt", "desc"))
+        : query(colRef, orderBy("createdAt", "desc"));
+
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const list: any[] = [];
+        let unread = 0;
+
+        snapshot.forEach((d) => {
+          const data = d.data();
+          list.push({
+            id: d.id,
+            title: data.title,
+            body: data.body,
+            createdAt: data.createdAt,
+            read: data.read ?? false,
+          });
+          if (!data.read) unread++;
+        });
+
+        setNotifications(list);
+        setUnreadCount(unread);
+      });
+
+      return () => unsubscribe();
+    } catch (err) {
+      console.error("Firebase init error:", err);
+    }
+  }, [firebaseConfig, user?.id]);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const close = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setDropdownOpen(false);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
   }, []);
 
+  // Mark single notification
+  const markAsRead = async (id: string) => {
+    if (!firebaseApp) return;
+
+    const db = getFirestore(firebaseApp);
+    await updateDoc(doc(db, "notifications", id), { read: true });
+  };
+
+  // Mark all notifications
+  const markAllAsRead = async () => {
+    if (!firebaseApp) return;
+
+    const db = getFirestore(firebaseApp);
+    const tasks = notifications.map((n) =>
+      !n.read ? updateDoc(doc(db, "notifications", n.id), { read: true }) : null
+    );
+
+    await Promise.all(tasks);
+  };
+
+  // UI unchanged --------------------------------------
   return (
-    <header className="bg-white shadow-sm border-b border-gray-100 px-6 py-4">
-      <div className="flex items-center justify-between">
-        {/* Title & Subtitle */}
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
-          {subtitle && <p className="text-sm text-gray-600">{subtitle}</p>}
-        </div>
+    <>
+      <header className="bg-white shadow-sm border-b border-gray-100 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
+            {subtitle && <p className="text-sm text-gray-600">{subtitle}</p>}
+          </div>
 
-        <div className="flex items-center space-x-4">
-          {/* Action Button */}
-          {action && (
-            <Button
-              onClick={action.onClick}
-              className="bg-green-600 hover:bg-green-700 text-white"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              {action.label}
-            </Button>
-          )}
+          <div className="flex items-center space-x-4">
+            {action && (
+              <Button onClick={action.onClick} className="bg-green-600 text-white">
+                <Plus className="w-4 h-4 mr-2" /> {action.label}
+              </Button>
+            )}
 
-          {/* Notifications */}
-          <div className="relative">
-            <button
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
-              onClick={() => setLocation("/inbox")}
-            >
-              <Bell className="w-5 h-5" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                  {unreadCount}
-                </span>
+            <div className="relative">
+              <button
+                onClick={() => setNotifModal(true)}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg"
+              >
+                <Bell className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+            </div>
+
+            <div className="relative" ref={dropdownRef}>
+              <button
+                className="w-10 h-10 rounded-full overflow-hidden border-2"
+                onClick={() => setDropdownOpen((x) => !x)}
+              >
+                <img
+                  src={
+                    userPhotoUrl ||
+                    `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}`
+                  }
+                  className="w-full h-full object-cover"
+                />
+              </button>
+
+              {dropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-50">
+                  <div className="px-4 py-2 border-b text-gray-800 font-semibold">
+                    {username}
+                  </div>
+
+                  <button
+                    className="flex items-center w-full px-4 py-2 hover:bg-gray-100"
+                    onClick={() => {
+                      setLocation("/settings");
+                      setDropdownOpen(false);
+                    }}
+                  >
+                    <Settings className="w-4 h-4 mr-2" /> Settings
+                  </button>
+
+                  <button
+                    className="flex items-center w-full px-4 py-2 hover:bg-gray-100"
+                    onClick={() => {
+                      setLocation("/account");
+                      setDropdownOpen(false);
+                    }}
+                  >
+                    <User className="w-4 h-4 mr-2" /> Account
+                  </button>
+
+                  <button className="flex items-center w-full px-4 py-2 hover:bg-gray-100" onClick={logout}>
+                    <LogOut className="w-4 h-4 mr-2" /> Logout
+                  </button>
+                </div>
               )}
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Notifications modal */}
+      <Dialog open={notifModal} onOpenChange={setNotifModal}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Notifications</DialogTitle>
+            <DialogDescription>Your latest alerts</DialogDescription>
+          </DialogHeader>
+
+          <div className="mt-3 flex items-center justify-between">
+            <div className="text-sm text-gray-600">
+              {notifications.length} notification{notifications.length !== 1 && "s"}
+            </div>
+            <button onClick={markAllAsRead} className="text-sm text-blue-600 hover:underline">
+              Mark all as read
             </button>
           </div>
 
-          {/* User Profile */}
-          <div className="relative" ref={dropdownRef}>
-            <button
-              className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-200 hover:border-gray-400 transition-colors"
-              onClick={() => setDropdownOpen(!dropdownOpen)}
-            >
-              <img
-                src={
-                  userPhotoUrl ||
-                  `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=0D8ABC&color=fff`
-                }
-                alt="User Profile"
-                className="w-full h-full object-cover"
-              />
-            </button>
+          <div className="max-h-[420px] overflow-y-auto mt-3 space-y-3">
+            {notifications.length === 0 ? (
+              <div className="text-center text-gray-500 py-8">No notifications</div>
+            ) : (
+              notifications.map((n) => {
+                let time = "";
+                if (n.createdAt?.toDate) time = n.createdAt.toDate().toLocaleString();
+                else if (typeof n.createdAt === "string") time = new Date(n.createdAt).toLocaleString();
 
-            {dropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-              {/* User Name */}
-                <div className="px-4 py-2 border-b border-gray-100 text-gray-800 font-semibold">
-                  {username}
-                </div>
+                return (
+                  <div key={n.id} className={`p-4 border rounded-lg ${n.read ? "bg-white" : "bg-green-50"}`}>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <h4 className="font-medium">{n.title}</h4>
+                          {!n.read && <CheckCircle className="w-4 h-4 text-green-600" />}
+                        </div>
+                        <p className="text-sm mt-1">{n.body}</p>
+                        <p className="text-xs text-gray-400 mt-2">{time}</p>
+                      </div>
 
-                <button
-                  className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-gray-100"
-                  onClick={() => { setLocation("/settings"); setDropdownOpen(false); }}
-                >
-                  <Settings className="w-4 h-4 mr-2" /> Settings
-                </button>
-                <button
-                  className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-gray-100"
-                  onClick={() => { setLocation("/account"); setDropdownOpen(false); }}
-                >
-                  <User className="w-4 h-4 mr-2" /> Accounts
-                </button>
-                <button
-                  className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-gray-100"
-                  onClick={logout}
-                >
-                  <LogOut  className="w-4 h-4 mr-2" /> Logout
-                </button>
-              </div>
+                      {!n.read && (
+                        <button className="text-sm text-blue-600 hover:underline" onClick={() => markAsRead(n.id)}>
+                          Mark read
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
             )}
           </div>
-        </div>
-      </div>
-    </header>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
