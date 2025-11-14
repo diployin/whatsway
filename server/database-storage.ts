@@ -322,6 +322,22 @@ async getContactsByUser(userId: string): Promise<Contact[]> {
     return this.templateRepo.getAll();
   }
 
+  
+async getTemplatesByChannelAndUser(channelId: string, userId: string): Promise<Template[]> {
+  const channel = await this.getChannel(channelId); // getChannel method जो channelId से channel return करे
+  if (!channel || channel.createdBy !== userId) {
+    return [];
+  }
+
+  const allTemplates = await this.templateRepo.getAll();
+  return allTemplates
+    .filter(template => template.channelId === channelId)
+    .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+}
+
+
+  
+
   async getTemplatesByChannel(channelId: string): Promise<Template[]> {
     return this.templateRepo.getByChannel(channelId);
   }

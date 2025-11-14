@@ -16,7 +16,7 @@ export function registerTemplateRoutes(app: Express) {
 
   // Get single template
   app.get("/api/templates/:id",requireAuth,
-  requirePermission(PERMISSIONS.TEMPLATES_VIEW), templatesController.getTemplate);
+  requirePermission(PERMISSIONS.TEMPLATES_VIEW), templatesController.getTemplatesByUser);
 
   // Create template
   app.post("/api/templates",requireAuth,
