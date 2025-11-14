@@ -118,6 +118,7 @@ export const campaigns = pgTable(
     channelId: varchar("channel_id").references(() => channels.id, {
       onDelete: "cascade",
     }),
+    createdBy :varchar("created_by"),
     name: text("name").notNull(),
     description: text("description"),
     campaignType: text("campaign_type").notNull(), // contacts, csv, api
@@ -213,6 +214,7 @@ export const templates = pgTable("templates", {
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   channelId: varchar("channel_id").references(() => channels.id),
+  createdBy :varchar("created_by"),
   name: text("name").notNull(),
   category: text("category").notNull(), // marketing, transactional, authentication, utility
   language: text("language").default("en_US"),
@@ -325,6 +327,42 @@ export const messages = pgTable(
     messageCreatedIdx: index("messages_created_idx").on(table.createdAt),
   })
 );
+
+// Notifications table
+export const notifications = pgTable("notifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+
+  targetType: text("target_type").notNull(), // "all", "users", "admins", "team", "specific"
+
+  targetIds: text("target_ids").array().default(sql`ARRAY[]::text[]`),
+
+  status: text("status").notNull().default("draft"), // "draft", "sent"
+  sentAt: timestamp("sent_at"),
+
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+
+export const sentNotifications = pgTable("sent_notifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+
+  notificationId: varchar("notification_id")
+    .references(() => notifications.id)
+    .notNull(),
+
+  userId: varchar("user_id")
+    .references(() => users.id)
+    .notNull(),
+
+  isRead: boolean("is_read").default(false),
+  readAt: timestamp("read_at"),
+
+  sentAt: timestamp("sent_at").defaultNow(),
+});
+
 
 
 export const chatbots = pgTable('chatbots', {
@@ -831,6 +869,22 @@ export const panelConfig = pgTable("panel_config", {
 });
 
 
+export const firebaseConfig = pgTable("firebase_config", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+
+  apiKey: text("api_key"),
+  authDomain: text("auth_domain"),
+  projectId: text("project_id"),
+  storageBucket: text("storage_bucket"),
+  messagingSenderId: text("messaging_sender_id"),
+  appId: text("app_id"),
+  measurementId: text("measurement_id"),
+
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+
 export const storageSettings = pgTable("storage_settings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   provider: text("provider").default("digitalocean"), // can extend later
@@ -1074,6 +1128,11 @@ export const insertUserActivityLogSchema = createInsertSchema(
 export const insertTenantSchema = createInsertSchema(tenants).omit({ id: true, createdAt: true });
 export const insertSiteSchema = createInsertSchema(sites).omit({ id: true, createdAt: true, widgetCode: true });
 
+export const insertNotificationSchema = createInsertSchema(notifications).omit({ 
+  id: true, 
+  createdAt: true 
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -1129,6 +1188,8 @@ export type NewPanelConfig = typeof panelConfig.$inferInsert;
 export type Tenant = typeof tenants.$inferSelect;
 export type InsertTenant = z.infer<typeof insertTenantSchema>;
 
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+export type Notification = typeof notifications.$inferSelect;
 
 export type Site = typeof sites.$inferSelect;
 export type InsertSite = z.infer<typeof insertSiteSchema>;
