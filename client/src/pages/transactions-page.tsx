@@ -18,12 +18,12 @@ import {
   IndianRupeeIcon,
 } from "lucide-react";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-  } from "@/components/ui/select";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { formatDateTime } from "@/lib/formatDate";
 
 function TransactionsPage() {
@@ -106,7 +106,7 @@ function TransactionsPage() {
         params: filters,
         responseType: "blob",
       });
-  
+
       const blob = new Blob([response.data], {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
@@ -120,7 +120,6 @@ function TransactionsPage() {
       console.error("Export failed:", error);
     }
   };
-  
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -165,29 +164,33 @@ function TransactionsPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-6">
-            <h1 className="text-3xl font-bold text-gray-900">Transactions</h1>
-            <p className="text-gray-600 mt-1">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+          <div className="py-4 sm:py-6">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
+              Transactions
+            </h1>
+            <p className="text-sm sm:text-base text-gray-600 mt-1">
               Manage and monitor all payment transactions
             </p>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
+          <div className="bg-white rounded-lg shadow p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Revenue</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">
+                <p className="text-xs sm:text-sm text-gray-600">
+                  Total Revenue
+                </p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">
                   ₹{stats.totalRevenue.toLocaleString()}
                 </p>
               </div>
-              <div className="p-3 bg-green-100 rounded-full">
-                <IndianRupeeIcon className="w-6 h-6 text-green-600" />
+              <div className="p-2 sm:p-3 bg-green-100 rounded-full">
+                <IndianRupeeIcon className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
               </div>
             </div>
           </div>
@@ -212,231 +215,287 @@ function TransactionsPage() {
             return (
               <div
                 key={status}
-                className="bg-white rounded-lg shadow p-6 flex items-center justify-between"
+                className="bg-white rounded-lg shadow p-4 sm:p-6 flex items-center justify-between"
               >
                 <div>
-                  <p className="text-sm text-gray-600 capitalize">{status}</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">
+                  <p className="text-xs sm:text-sm text-gray-600 capitalize">
+                    {status}
+                  </p>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">
                     {stat?.count || 0}
                   </p>
                 </div>
-                <div className={`p-3 bg-${color}-100 rounded-full`}>
-                  <Icon className={`w-6 h-6 text-${color}-600`} />
+                <div
+                  className={`p-2 sm:p-3 rounded-full ${
+                    color === "blue"
+                      ? "bg-blue-100"
+                      : color === "yellow"
+                      ? "bg-yellow-100"
+                      : "bg-red-100"
+                  }`}
+                >
+                  <Icon
+                    className={`w-5 h-5 sm:w-6 sm:h-6 ${
+                      color === "blue"
+                        ? "text-blue-600"
+                        : color === "yellow"
+                        ? "text-yellow-600"
+                        : "text-red-600"
+                    }`}
+                  />
                 </div>
               </div>
             );
           })}
         </div>
 
-        <div className="bg-white rounded-lg shadow mb-6">
-  <div className="p-6">
-    <div className="flex flex-col lg:flex-row gap-4">
-      {/* Search */}
-      <div className="flex-1 relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-        <input
-          type="text"
-          placeholder="Search by email, transaction ID, or order ID..."
-          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          value={filters.search}
-          onChange={(e) => handleFilterChange("search", e.target.value)}
-        />
-      </div>
+        {/* Filters */}
+        <div className="bg-white rounded-lg shadow mb-4 sm:mb-6">
+          <div className="p-3 sm:p-4 md:p-6">
+            <div className="flex flex-col lg:flex-row gap-3 sm:gap-4">
+              {/* Search */}
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
+                <input
+                  type="text"
+                  placeholder="Search transactions..."
+                  className="w-full pl-9 sm:pl-10 pr-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  value={filters.search}
+                  onChange={(e) => handleFilterChange("search", e.target.value)}
+                />
+              </div>
 
-      {/* Filter Toggle */}
-      <button
-        onClick={() => setShowFilters(!showFilters)}
-        className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
-      >
-        <Filter className="w-5 h-5" />
-        Filters
-        {Object.values(filters).filter((v) => v && v !== 1 && v !== 20).length > 0 && (
-          <span className="bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full">
-            {Object.values(filters).filter((v) => v && v !== 1 && v !== 20).length}
-          </span>
-        )}
-      </button>
+              {/* Filter Toggle */}
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className="px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2"
+              >
+                <Filter className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden sm:inline">Filters</span>
+                {Object.values(filters).filter((v) => v && v !== 1 && v !== 20)
+                  .length > 0 && (
+                  <span className="bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full">
+                    {
+                      Object.values(filters).filter(
+                        (v) => v && v !== 1 && v !== 20
+                      ).length
+                    }
+                  </span>
+                )}
+              </button>
 
-      {/* Export */}
-      <button
-        onClick={handleExport}
-        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center gap-2"
-      >
-        <Download className="w-5 h-5" />
-        Export
-      </button>
-    </div>
+              {/* Export */}
+              <button
+                onClick={handleExport}
+                className="px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center justify-center gap-2"
+              >
+                <Download className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden sm:inline">Export</span>
+              </button>
+            </div>
 
-    {/* Advanced Filters */}
-    {showFilters && (
-      <div className="mt-6 pt-6 border-t grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Status */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-          <Select
-            value={filters.status || "all"}
-            onValueChange={(value) =>
-              handleFilterChange("status", value === "all" ? "" : value)
-            }
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="All Statuses" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="failed">Failed</SelectItem>
-              <SelectItem value="refunded">Refunded</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
-            </SelectContent>
-          </Select>
+            {/* Advanced Filters */}
+            {showFilters && (
+              <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                {/* Status */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                    Status
+                  </label>
+                  <Select
+                    value={filters.status || "all"}
+                    onValueChange={(value) =>
+                      handleFilterChange("status", value === "all" ? "" : value)
+                    }
+                  >
+                    <SelectTrigger className="w-full text-sm">
+                      <SelectValue placeholder="All Statuses" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                      <SelectItem value="failed">Failed</SelectItem>
+                      <SelectItem value="refunded">Refunded</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Payment Method */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                    Payment Method
+                  </label>
+                  <Select
+                    value={filters.paymentMethod || "all"}
+                    onValueChange={(value) =>
+                      handleFilterChange(
+                        "paymentMethod",
+                        value === "all" ? "" : value
+                      )
+                    }
+                  >
+                    <SelectTrigger className="w-full text-sm">
+                      <SelectValue placeholder="All Methods" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Methods</SelectItem>
+                      <SelectItem value="card">Card</SelectItem>
+                      <SelectItem value="upi">UPI</SelectItem>
+                      <SelectItem value="wallet">Wallet</SelectItem>
+                      <SelectItem value="netbanking">Net Banking</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Billing Cycle */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                    Billing Cycle
+                  </label>
+                  <Select
+                    value={filters.billingCycle || "all"}
+                    onValueChange={(value) =>
+                      handleFilterChange(
+                        "billingCycle",
+                        value === "all" ? "" : value
+                      )
+                    }
+                  >
+                    <SelectTrigger className="w-full text-sm">
+                      <SelectValue placeholder="All Cycles" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Cycles</SelectItem>
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                      <SelectItem value="annual">Annual</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Start Date */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                    Start Date
+                  </label>
+                  <input
+                    type="date"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    value={filters.startDate}
+                    onChange={(e) =>
+                      handleFilterChange("startDate", e.target.value)
+                    }
+                  />
+                </div>
+
+                {/* End Date */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                    End Date
+                  </label>
+                  <input
+                    type="date"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    value={filters.endDate}
+                    onChange={(e) =>
+                      handleFilterChange("endDate", e.target.value)
+                    }
+                  />
+                </div>
+
+                {/* Min Amount */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                    Min Amount
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="0.00"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    value={filters.minAmount}
+                    onChange={(e) =>
+                      handleFilterChange("minAmount", e.target.value)
+                    }
+                  />
+                </div>
+
+                {/* Max Amount */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                    Max Amount
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="0.00"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    value={filters.maxAmount}
+                    onChange={(e) =>
+                      handleFilterChange("maxAmount", e.target.value)
+                    }
+                  />
+                </div>
+
+                {/* Clear Filters */}
+                <div className="flex items-end">
+                  <button
+                    onClick={clearFilters}
+                    className="w-full px-3 sm:px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2"
+                  >
+                    <X className="w-4 h-4" />
+                    Clear Filters
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-
-        {/* Payment Method */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Payment Method
-          </label>
-          <Select
-            value={filters.paymentMethod || "all"}
-            onValueChange={(value) =>
-              handleFilterChange("paymentMethod", value === "all" ? "" : value)
-            }
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="All Methods" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Methods</SelectItem>
-              <SelectItem value="card">Card</SelectItem>
-              <SelectItem value="upi">UPI</SelectItem>
-              <SelectItem value="wallet">Wallet</SelectItem>
-              <SelectItem value="netbanking">Net Banking</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Billing Cycle */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Billing Cycle</label>
-          <Select
-            value={filters.billingCycle || "all"}
-            onValueChange={(value) =>
-              handleFilterChange("billingCycle", value === "all" ? "" : value)
-            }
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="All Cycles" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Cycles</SelectItem>
-              <SelectItem value="monthly">Monthly</SelectItem>
-              <SelectItem value="annual">Annual</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Start Date */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
-          <input
-            type="date"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            value={filters.startDate}
-            onChange={(e) => handleFilterChange("startDate", e.target.value)}
-          />
-        </div>
-
-        {/* End Date */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
-          <input
-            type="date"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            value={filters.endDate}
-            onChange={(e) => handleFilterChange("endDate", e.target.value)}
-          />
-        </div>
-
-        {/* Min Amount */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Min Amount</label>
-          <input
-            type="number"
-            placeholder="0.00"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            value={filters.minAmount}
-            onChange={(e) => handleFilterChange("minAmount", e.target.value)}
-          />
-        </div>
-
-        {/* Max Amount */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Max Amount</label>
-          <input
-            type="number"
-            placeholder="0.00"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            value={filters.maxAmount}
-            onChange={(e) => handleFilterChange("maxAmount", e.target.value)}
-          />
-        </div>
-
-        {/* Clear Filters */}
-        <div className="flex items-end">
-          <button
-            onClick={clearFilters}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2"
-          >
-            <X className="w-4 h-4" />
-            Clear Filters
-          </button>
-        </div>
-      </div>
-    )}
-  </div>
-</div>
 
         {/* Table */}
         <div className="bg-white rounded-lg shadow overflow-hidden">
           {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+            <div className="flex flex-col items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-blue-500"></div>
+              <p className="text-sm text-gray-500 mt-4">
+                Loading transactions...
+              </p>
             </div>
           ) : transactions.length === 0 ? (
             <div className="text-center py-12">
-              <CreditCard className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <CreditCard className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
                 No transactions found
               </h3>
-              <p className="text-gray-600">Try adjusting your filters</p>
+              <p className="text-sm text-gray-600">
+                Try adjusting your filters
+              </p>
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto">
+              {/* Desktop & Tablet Table View */}
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Transaction ID
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         User
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Plan
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Amount
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Status
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
                         Payment By
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Date
                       </th>
                     </tr>
@@ -447,46 +506,46 @@ function TransactionsPage() {
                         key={item.transaction.id}
                         className="hover:bg-gray-50"
                       >
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
+                        <td className="px-3 lg:px-6 py-3 lg:py-4 whitespace-nowrap">
+                          <div className="text-xs sm:text-sm font-medium text-gray-900">
                             {item.transaction.providerTransactionId}
                           </div>
                           <div className="text-xs text-gray-500">
                             {item.transaction.providerOrderId}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
+                        <td className="px-3 lg:px-6 py-3 lg:py-4 whitespace-nowrap">
+                          <div className="text-xs sm:text-sm text-gray-900 max-w-[150px] truncate">
                             {item.user?.email}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
+                        <td className="px-3 lg:px-6 py-3 lg:py-4 whitespace-nowrap">
+                          <div className="text-xs sm:text-sm text-gray-900">
                             {item.plan?.name}
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-gray-500 capitalize">
                             {item.transaction.billingCycle}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
+                        <td className="px-3 lg:px-6 py-3 lg:py-4 whitespace-nowrap">
+                          <div className="text-xs sm:text-sm font-medium text-gray-900">
                             {item.transaction.currency}{" "}
                             {Number(item.transaction.amount).toFixed(2)}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-3 lg:px-6 py-3 lg:py-4 whitespace-nowrap">
                           <div className="flex items-center gap-2">
                             {getStatusIcon(item.transaction.status)}
                             {getStatusBadge(item.transaction.status)}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-3 lg:px-6 py-3 lg:py-4 whitespace-nowrap hidden lg:table-cell">
                           <div className="text-sm text-gray-900 capitalize">
                             {item.provider.name}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                           {formatDateTime(item.transaction.createdAt)}
+                        <td className="px-3 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
+                          {formatDateTime(item.transaction.createdAt)}
                         </td>
                       </tr>
                     ))}
@@ -494,95 +553,162 @@ function TransactionsPage() {
                 </table>
               </div>
 
+              {/* Mobile Card View */}
+              <div className="md:hidden space-y-3 p-3">
+                {transactions.map((item: any) => (
+                  <div
+                    key={item.transaction.id}
+                    className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
+                  >
+                    {/* Header */}
+                    <div className="flex items-start justify-between mb-3 gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-mono text-gray-900 font-medium truncate">
+                          {item.transaction.providerTransactionId}
+                        </div>
+                        <div className="text-xs text-gray-500 truncate">
+                          {item.transaction.providerOrderId}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        {getStatusIcon(item.transaction.status)}
+                        {getStatusBadge(item.transaction.status)}
+                      </div>
+                    </div>
+
+                    {/* Details Grid */}
+                    <div className="space-y-2 text-sm border-t border-gray-100 pt-3">
+                      <div className="flex justify-between items-start">
+                        <span className="text-gray-500 text-xs">User:</span>
+                        <span className="text-gray-900 text-xs font-medium text-right truncate ml-2 max-w-[60%]">
+                          {item.user?.email}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500 text-xs">Plan:</span>
+                        <span className="text-gray-900 text-xs font-medium">
+                          {item.plan?.name}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500 text-xs">Cycle:</span>
+                        <span className="text-gray-900 text-xs capitalize">
+                          {item.transaction.billingCycle}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500 text-xs">Amount:</span>
+                        <span className="text-gray-900 text-xs font-bold">
+                          {item.transaction.currency}{" "}
+                          {Number(item.transaction.amount).toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500 text-xs">Payment:</span>
+                        <span className="text-gray-900 text-xs capitalize">
+                          {item.provider.name}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500 text-xs">Date:</span>
+                        <span className="text-gray-900 text-xs">
+                          {formatDateTime(item.transaction.createdAt)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
               {/* Pagination */}
-              <div className="bg-gray-50 px-6 py-4 border-t flex flex-wrap items-center justify-between gap-3">
-                {/* Left side: summary + per-page selector */}
-                <div className="flex items-center gap-4">
-                  <div className="text-sm text-gray-700">
-                    Showing{" "}
-                    <span className="font-medium">
-                      {(filters.page - 1) * filters.limit + 1}
-                    </span>{" "}
-                    to{" "}
-                    <span className="font-medium">
-                      {Math.min(filters.page * filters.limit, totalCount)}
-                    </span>{" "}
-                    of <span className="font-medium">{totalCount}</span> results
+              <div className="bg-gray-50 px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-t">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
+                  {/* Left: Info & Per Page */}
+                  <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 w-full sm:w-auto">
+                    <div className="text-xs sm:text-sm text-gray-700 text-center sm:text-left">
+                      Showing{" "}
+                      <span className="font-medium">
+                        {(filters.page - 1) * filters.limit + 1}
+                      </span>{" "}
+                      to{" "}
+                      <span className="font-medium">
+                        {Math.min(filters.page * filters.limit, totalCount)}
+                      </span>{" "}
+                      of <span className="font-medium">{totalCount}</span>
+                    </div>
+
+                    <select
+                      value={filters.limit}
+                      onChange={(e) =>
+                        setFilters((prev) => ({
+                          ...prev,
+                          limit: Number(e.target.value),
+                          page: 1,
+                        }))
+                      }
+                      className="border border-gray-300 rounded-md px-2 py-1 text-xs sm:text-sm"
+                    >
+                      {[10, 20, 50, 100, 500].map((val) => (
+                        <option key={val} value={val}>
+                          {val}/page
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
-                  {/* Items per page selector */}
-                  <select
-                    value={filters.limit}
-                    onChange={(e) =>
-                      setFilters((prev) => ({
-                        ...prev,
-                        limit: Number(e.target.value),
-                        page: 1,
-                      }))
-                    }
-                    className="border border-gray-300 rounded-md px-2 py-1 text-sm"
-                  >
-                    {[10, 20, 50, 100, 500].map((val) => (
-                      <option key={val} value={val}>
-                        {val}/page
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                  {/* Right: Navigation */}
+                  <div className="flex items-center gap-2 w-full sm:w-auto justify-center">
+                    <button
+                      onClick={() =>
+                        setFilters((prev) => ({
+                          ...prev,
+                          page: Math.max(1, prev.page - 1),
+                        }))
+                      }
+                      disabled={filters.page === 1}
+                      className="px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg hover:bg-white disabled:opacity-50 flex items-center gap-1"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      <span className="hidden sm:inline">Previous</span>
+                    </button>
 
-                {/* Right side: navigation + jump to page */}
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() =>
-                      setFilters((prev) => ({
-                        ...prev,
-                        page: Math.max(1, prev.page - 1),
-                      }))
-                    }
-                    disabled={filters.page === 1}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-white disabled:opacity-50 flex items-center gap-2"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                    Previous
-                  </button>
-
-                  {/* Jump to page input */}
-                  <div className="flex items-center gap-1">
-                    <input
-                      type="number"
-                      min={1}
-                      max={totalPages}
-                      placeholder={`${filters.page}/${totalPages}`}
-                      className="w-20 text-center border rounded-md px-2 py-1 text-sm"
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          const value = Number(
-                            (e.target as HTMLInputElement).value
-                          );
-                          if (value >= 1 && value <= totalPages) {
-                            setFilters((prev) => ({ ...prev, page: value }));
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="number"
+                        min={1}
+                        max={totalPages}
+                        placeholder={String(filters.page)}
+                        className="w-14 sm:w-16 text-center border rounded-md px-2 py-1 text-xs sm:text-sm"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            const value = Number(
+                              (e.target as HTMLInputElement).value
+                            );
+                            if (value >= 1 && value <= totalPages) {
+                              setFilters((prev) => ({ ...prev, page: value }));
+                            }
                           }
-                        }
-                      }}
-                    />
-                    <span className="text-sm text-gray-600">
-                      / {totalPages}
-                    </span>
-                  </div>
+                        }}
+                      />
+                      <span className="text-xs sm:text-sm text-gray-600">
+                        / {totalPages}
+                      </span>
+                    </div>
 
-                  <button
-                    onClick={() =>
-                      setFilters((prev) => ({
-                        ...prev,
-                        page: Math.min(totalPages, prev.page + 1),
-                      }))
-                    }
-                    disabled={filters.page >= totalPages}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-white disabled:opacity-50 flex items-center gap-2"
-                  >
-                    Next
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
+                    <button
+                      onClick={() =>
+                        setFilters((prev) => ({
+                          ...prev,
+                          page: Math.min(totalPages, prev.page + 1),
+                        }))
+                      }
+                      disabled={filters.page >= totalPages}
+                      className="px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg hover:bg-white disabled:opacity-50 flex items-center gap-1"
+                    >
+                      <span className="hidden sm:inline">Next</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </>
