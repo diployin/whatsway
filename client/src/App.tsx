@@ -32,7 +32,6 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Signup from "./pages/Signup";
 import LoadingAnimation from "./components/LoadingAnimation";
-import SignupPopup from "./components/SignupPopup";
 import Plans from "./pages/plans";
 import GatewaySettings from "./pages/GatewaySettings";
 import BotFlowBuilder from "./pages/BotFlowBuilder";
@@ -50,10 +49,8 @@ import Segmentation from "./pages/Segmentation";
 import MessageLogs from "./pages/MessageLogs";
 import HealthMonitor from "./pages/HealthMonitor";
 import Reports from "./pages/Reports";
-import SupportTickets from "./pages/SupportTickets";
 import Notifications from "./pages/Notifications";
 import ChatHub from "./pages/ChatHub";
-import { Component } from "lucide-react";
 import User from "./pages/users";
 import TransactionsPage from "./pages/transactions-page";
 import ContactsManagements from "./pages/contacts-managements";
@@ -202,7 +199,7 @@ function ProtectedRoutes() {
     );
   }
 
-  if (!isAuthenticated ) {
+  if (!isAuthenticated) {
     return (
       <>
         <Header />
@@ -225,8 +222,6 @@ function ProtectedRoutes() {
             <Dashboard />
           </Route>
 
-          
-          
           <Route path="/contacts">
             <PermissionRoute
               component={Contacts}
@@ -235,9 +230,7 @@ function ProtectedRoutes() {
           </Route>
 
           <Route path="/users">
-            <PermissionRoute
-              component={User}
-            />
+            <PermissionRoute component={User} />
           </Route>
 
           <Route path="/users/:id" component={userDetails} />
@@ -455,7 +448,7 @@ function Router() {
     <Switch>
       <Route path="/login" component={LoginPage} />
       <Route path="/signup" component={Signup} />
-      <Route path="/" component={Home}/>
+      <Route path="/" component={Home} />
       <Route
         path="/analytics/campaign/:campaignId"
         component={CampaignAnalytics}

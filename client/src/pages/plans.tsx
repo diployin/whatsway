@@ -23,7 +23,6 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Feature, Plan, PlanPermissions, PlansDataTypes } from "@/types/types";
 
-
 // Interfaces
 
 interface FormData {
@@ -305,53 +304,70 @@ export default function Plans() {
         {/* Main Card */}
         <Card>
           <CardHeader>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 flex-wrap">
               <CardTitle className="flex items-center">
                 <Award className="w-5 h-5 mr-2" />
                 Pricing Plans
               </CardTitle>
-              <div className="flex items-center gap-2">
-                {/* Billing Toggle */}
-                <div className="inline-flex items-center gap-2 bg-gray-100 rounded-lg p-1">
-                  <button
-                    onClick={() => setIsAnnual(false)}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                      !isAnnual
-                        ? "bg-white text-gray-900 shadow-sm"
-                        : "text-gray-600 hover:text-gray-900"
-                    }`}
-                  >
-                    Monthly
-                  </button>
-                  <button
-                    onClick={() => setIsAnnual(true)}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                      isAnnual
-                        ? "bg-white text-gray-900 shadow-sm"
-                        : "text-gray-600 hover:text-gray-900"
-                    }`}
-                  >
-                    Annual
-                    {isAnnual && (
-                      <span className="ml-1 text-xs text-green-600 font-bold">
-                        -20%
-                      </span>
-                    )}
-                  </button>
+              <div className="w-full">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                  {/* Left: Billing toggle (wraps) */}
+                  <div className="flex items-center gap-2 flex-wrap min-w-0">
+                    <div className="inline-flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+                      <button
+                        onClick={() => setIsAnnual(false)}
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all w-full sm:w-auto text-center ${
+                          !isAnnual
+                            ? "bg-white text-gray-900 shadow-sm"
+                            : "text-gray-600 hover:text-gray-900"
+                        }`}
+                        aria-pressed={!isAnnual}
+                      >
+                        <span className="truncate">Monthly</span>
+                      </button>
+
+                      <button
+                        onClick={() => setIsAnnual(true)}
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all w-full sm:w-auto text-center ${
+                          isAnnual
+                            ? "bg-white text-gray-900 shadow-sm"
+                            : "text-gray-600 hover:text-gray-900"
+                        }`}
+                        aria-pressed={isAnnual}
+                      >
+                        <span className="truncate inline-flex items-center">
+                          Annual
+                          {isAnnual && (
+                            <span className="ml-1 text-xs text-green-600 font-bold">
+                              -20%
+                            </span>
+                          )}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Right: Create/Cancel button */}
+                  <div className="flex-shrink-0 w-full sm:w-auto">
+                    <Button
+                      onClick={() => setShowForm(!showForm)}
+                      className="w-full sm:w-auto flex items-center justify-center"
+                      aria-expanded={showForm}
+                    >
+                      {showForm ? (
+                        <>
+                          <XCircle className="w-4 h-4 mr-2" />
+                          Cancel
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="w-4 h-4 mr-2" />
+                          Create Plan
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
-                <Button onClick={() => setShowForm(!showForm)}>
-                  {showForm ? (
-                    <>
-                      <XCircle className="w-4 h-4 mr-2" />
-                      Cancel
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Create Plan
-                    </>
-                  )}
-                </Button>
               </div>
             </div>
           </CardHeader>

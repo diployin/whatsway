@@ -9,14 +9,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { EmptyState } from "@/components/ui/empty-state";
-import { 
-  FileText, 
-  Eye, 
-  Edit, 
-  Copy, 
-  Trash, 
-  MoreVertical, 
-  Search 
+import {
+  FileText,
+  Eye,
+  Edit,
+  Copy,
+  Trash,
+  MoreVertical,
+  Search,
 } from "lucide-react";
 import { format } from "date-fns";
 import type { Template } from "@shared/schema";
@@ -39,7 +39,7 @@ export function TemplatesTable({
 }: TemplatesTableProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
-  const {user} = useAuth()
+  const { user } = useAuth();
 
   const filteredTemplates = templates.filter((template) => {
     const query = searchQuery.toLowerCase();
@@ -52,13 +52,20 @@ export function TemplatesTable({
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      APPROVED: { variant: "default" as const, className: "bg-green-100 text-green-800" },
-      PENDING: { variant: "secondary" as const, className: "bg-yellow-100 text-yellow-800" },
+      APPROVED: {
+        variant: "default" as const,
+        className: "bg-green-100 text-green-800",
+      },
+      PENDING: {
+        variant: "secondary" as const,
+        className: "bg-yellow-100 text-yellow-800",
+      },
       REJECTED: { variant: "destructive" as const, className: "" },
     };
 
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.PENDING;
-    
+    const config =
+      statusConfig[status as keyof typeof statusConfig] || statusConfig.PENDING;
+
     return (
       <Badge variant={config.variant} className={config.className}>
         {status}
@@ -95,7 +102,7 @@ export function TemplatesTable({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-2 w-[85%] mx-auto ">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <Input
@@ -129,7 +136,10 @@ export function TemplatesTable({
                     {template.language || "en_US"}
                   </p>
                 </div>
-                <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                <div
+                  className="flex items-center gap-2"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   {getStatusBadge(template.status)}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -138,19 +148,27 @@ export function TemplatesTable({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => onViewTemplate(template)}>
+                      <DropdownMenuItem
+                        onClick={() => onViewTemplate(template)}
+                      >
                         <Eye className="mr-2 h-4 w-4" />
                         Preview
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onEditTemplate(template)}>
+                      <DropdownMenuItem
+                        onClick={() => onEditTemplate(template)}
+                      >
                         <Edit className="mr-2 h-4 w-4" />
                         Edit
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onDuplicateTemplate(template)} disabled={user?.username === 'demouser'} >
+                      <DropdownMenuItem
+                        onClick={() => onDuplicateTemplate(template)}
+                        disabled={user?.username === "demouser"}
+                      >
                         <Copy className="mr-2 h-4 w-4" />
                         Duplicate
                       </DropdownMenuItem>
-                      <DropdownMenuItem disabled={user?.username === 'demouser'}
+                      <DropdownMenuItem
+                        disabled={user?.username === "demouser"}
                         onClick={() => onDeleteTemplate(template)}
                         className="text-red-600"
                       >
@@ -166,24 +184,27 @@ export function TemplatesTable({
                 {template.header && (
                   <p className="text-sm font-medium">{template.header}</p>
                 )}
-                <p className="text-sm text-gray-600 line-clamp-3">{template.body}</p>
+                <p className="text-sm text-gray-600 line-clamp-3">
+                  {template.body}
+                </p>
                 {template.footer && (
                   <p className="text-xs text-gray-500">{template.footer}</p>
                 )}
               </div>
 
-              {template.components && template.components.some(c => c.type === "BUTTONS") && (
-                <div className="flex flex-wrap gap-1 mt-3">
-                  {template.components
-                    .filter(c => c.type === "BUTTONS")
-                    .flatMap(c => c.buttons || [])
-                    .map((button, idx) => (
-                      <Badge key={idx} variant="outline" className="text-xs">
-                        {button.text}
-                      </Badge>
-                    ))}
-                </div>
-              )}
+              {template.components &&
+                template.components.some((c) => c.type === "BUTTONS") && (
+                  <div className="flex flex-wrap gap-1 mt-3">
+                    {template.components
+                      .filter((c) => c.type === "BUTTONS")
+                      .flatMap((c) => c.buttons || [])
+                      .map((button, idx) => (
+                        <Badge key={idx} variant="outline" className="text-xs">
+                          {button.text}
+                        </Badge>
+                      ))}
+                  </div>
+                )}
 
               <div className="mt-3 pt-3 border-t text-xs text-gray-400">
                 Created {format(new Date(template.createdAt), "MMM d, yyyy")}
