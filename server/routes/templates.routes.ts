@@ -16,6 +16,13 @@ export function registerTemplateRoutes(app: Express) {
 
   // Get single template
   app.get("/api/templates/:id",requireAuth,
+  requirePermission(PERMISSIONS.TEMPLATES_VIEW), templatesController.getTemplate);
+
+
+  app.post("/api/getTemplateByUserId", requireAuth, templatesController.getTemplateByUserID)
+
+
+   app.get("/api/templatesByUserId",requireAuth,
   requirePermission(PERMISSIONS.TEMPLATES_VIEW), templatesController.getTemplatesByUser);
 
   // Create template

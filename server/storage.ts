@@ -49,6 +49,7 @@ export interface IStorage {
 
   // Campaigns
   getCampaigns(): Promise<Campaign[]>;
+  getCampaignByUserId(userId: string): Promise<Campaign[]>;
   getCampaignsByChannel(channelId: string): Promise<Campaign[]>;
   getCampaign(id: string): Promise<Campaign | undefined>;
   createCampaign(campaign: InsertCampaign): Promise<Campaign>;
@@ -155,6 +156,7 @@ export interface IStorage {
 
   getCampaignsByChannel(channelId: string): Promise<Campaign[]>;
 getTemplatesByChannel(channelId: string): Promise<Template[]>;
+getTemplatesByUserId(userId: string): Promise<Template[]>;
 getTemplatesByChannelAndUser(channelId: string, userId: string): Promise<Template[]>;
 getConversationsByChannel(channelId: string): Promise<Conversation[]>;
 deleteConversation(id: string): Promise<boolean>;
@@ -409,6 +411,11 @@ async searchContactsByChannel(channelId: string, query: string): Promise<Contact
     return this.campaigns.get(id);
   }
 
+
+  async getCampaignByUserId(userId: string): Promise<Campaign[]> {
+    return this.campaigns.get(userId);
+  }
+
   async createCampaign(insertCampaign: InsertCampaign): Promise<Campaign> {
     const id = randomUUID();
     const campaign: Campaign = {
@@ -516,6 +523,10 @@ async searchContactsByChannel(channelId: string, query: string): Promise<Contact
 
   async getTemplate(id: string): Promise<Template | undefined> {
     return this.templates.get(id);
+  }
+
+  async getTemplateByUserId(userId: string): Promise<Template | undefined>{
+    return  this.templates.get(userId)
   }
 
 

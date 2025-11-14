@@ -38,12 +38,24 @@ export const getTemplate = asyncHandler(async (req: Request, res: Response) => {
   res.json(template);
 });
 
+
+export const getTemplateByUserID = asyncHandler(async (req: Request, res: Response) => {
+  const { userId } = req.body;
+  const template = await storage.getTemplatesByUserId(userId);
+  if (!template) {
+    throw new AppError(404, 'Template not found');
+  }
+  res.json(template);
+});
+
 export const createTemplate = asyncHandler(async (req: RequestWithChannel, res: Response) => {
   console.log("Template creation request body:", JSON.stringify(req.body, null, 2));
+  
+  // 1️⃣ Validate request body
   const validatedTemplate = insertTemplateSchema.parse(req.body);
   console.log("Validated template buttons:", validatedTemplate.buttons);
-  
-  // Get active channel if channelId not provided
+
+  // 2️⃣ Get active channel if channelId not provided
   let channelId = validatedTemplate.channelId;
   if (!channelId) {
     const activeChannel = await storage.getActiveChannel();
@@ -52,25 +64,32 @@ export const createTemplate = asyncHandler(async (req: RequestWithChannel, res: 
     }
     channelId = activeChannel.id;
   }
-  
-  // Create template in storage first
+
+  // 3️⃣ Get logged-in user id (assume auth middleware sets req.user)
+  const createdBy = req.user?.id;
+  if (!createdBy) {
+    throw new AppError(401, "User not authenticated");
+  }
+
+  // 4️⃣ Create template in storage
   const template = await storage.createTemplate({
     ...validatedTemplate,
     channelId,
-    status: "pending"
+    status: "pending",
+    createdBy,
   });
-  
-  // Get channel details
+
+  // 5️⃣ Get channel details
   const channel = await storage.getChannel(channelId);
   if (!channel) {
     throw new AppError(400, 'Channel not found');
   }
-  
-  // Format and submit to WhatsApp API
+
+  // 6️⃣ Format and submit to WhatsApp API
   try {
     const whatsappApi = new WhatsAppApiService(channel);
     const result = await whatsappApi.createTemplate(validatedTemplate);
-    
+
     // Update template with WhatsApp ID
     if (result.id) {
       await storage.updateTemplate(template.id, {
@@ -78,10 +97,9 @@ export const createTemplate = asyncHandler(async (req: RequestWithChannel, res: 
         status: result.status || "pending"
       });
     }
-    
+
     res.json(template);
   } catch (error) {
-    // Still return the created template even if WhatsApp submission fails
     console.error("WhatsApp API error:", error);
     res.json({
       ...template,
@@ -91,65 +109,7 @@ export const createTemplate = asyncHandler(async (req: RequestWithChannel, res: 
 });
 
 
-// export const createTemplate = asyncHandler(async (req: RequestWithChannel, res: Response) => {
-//   console.log("Template creation request body:", JSON.stringify(req.body, null, 2));
-  
-//   // 🟩 Ensure user exists
-//   if (!req.user?.id) {
-//     throw new AppError(401, "Unauthorized - User not found");
-//   }
 
-//   const validatedTemplate = insertTemplateSchema.parse(req.body);
-//   console.log("Validated template buttons:", validatedTemplate.buttons);
-  
-//   // Get active channel if channelId not provided
-//   let channelId = validatedTemplate.channelId;
-//   if (!channelId) {
-//     const activeChannel = await storage.getActiveChannel();
-//     if (!activeChannel) {
-//       throw new AppError(400, 'No active channel found. Please configure a channel first.');
-//     }
-//     channelId = activeChannel.id;
-//   }
-  
-//   // 🟩 Create template in DB with createdBy
-//   const template = await storage.createTemplate({
-//     ...validatedTemplate,
-//     channelId,
-//     status: "pending",
-//     createdBy: req.user.id    // ✅ ADD THIS
-//   });
-  
-//   // Get channel details
-//   const channel = await storage.getChannel(channelId);
-//   if (!channel) {
-//     throw new AppError(400, 'Channel not found');
-//   }
-  
-//   // Format and submit to WhatsApp API
-//   try {
-//     const whatsappApi = new WhatsAppApiService(channel);
-//     const result = await whatsappApi.createTemplate(validatedTemplate);
-    
-//     // Update template with WhatsApp Template ID if returned
-//     if (result.id) {
-//       await storage.updateTemplate(template.id, {
-//         whatsappTemplateId: result.id,
-//         status: result.status || "pending"
-//       });
-//     }
-    
-//     res.json(template);
-//   } catch (error) {
-//     console.error("WhatsApp API error:", error);
-
-//     // Still return the created template even if WhatsApp API fails
-//     res.json({
-//       ...template,
-//       warning: "Template created locally but failed to submit to WhatsApp"
-//     });
-//   }
-// });
 
 
 export const updateTemplate = asyncHandler(async (req: Request, res: Response) => {
