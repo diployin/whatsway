@@ -1,7 +1,15 @@
 import { useState } from "react";
 import Header from "@/components/layout/header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Smartphone, Webhook, Key, User, SettingsIcon, Database, BotIcon } from "lucide-react";
+import {
+  Smartphone,
+  Webhook,
+  Key,
+  User,
+  SettingsIcon,
+  Database,
+  BotIcon,
+} from "lucide-react";
 import { ChannelSettings } from "@/components/settings/ChannelSettings";
 import { WebhookSettings } from "@/components/settings/WebhookSettings";
 // import { AccountSettings } from "@/components/settings/AccountSettings";
@@ -14,8 +22,8 @@ import FirebaseSettings from "@/components/settings/FirebaseSettings";
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState("general_setting");
-  const {user} = useAuth()
-  const isAdmin =  user?.role === "superadmin";
+  const { user } = useAuth();
+  const isAdmin = user?.role === "superadmin";
 
   return (
     <div className="flex-1 dots-bg min-h-screen">
@@ -31,32 +39,32 @@ export default function Settings() {
           className="space-y-7"
         >
           <TabsList className="grid w-full grid-cols-6">
-           {isAdmin ? (
-  <>
-    <TabsTrigger
-      value="general_setting"
-      className="flex items-center space-x-2"
-    >
-      <SettingsIcon className="w-4 h-4" />
-      <span>General Setting</span>
-    </TabsTrigger>
-    <TabsTrigger
-      value="firebase_setting"
-      className="flex items-center space-x-2"
-    >
-      <SettingsIcon className="w-4 h-4" />
-      <span>Firebase Setting</span>
-    </TabsTrigger>
+            {isAdmin ? (
+              <>
+                <TabsTrigger
+                  value="general_setting"
+                  className="flex items-center space-x-2"
+                >
+                  <SettingsIcon className="w-4 h-4" />
+                  <span>General Setting</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="firebase_setting"
+                  className="flex items-center space-x-2"
+                >
+                  <SettingsIcon className="w-4 h-4" />
+                  <span>Firebase Setting</span>
+                </TabsTrigger>
 
-    <TabsTrigger
-      value="storage_setting"
-      className="flex items-center space-x-2"
-    >
-      <Database className="w-4 h-4" />
-      <span>Storage Setting</span>
-    </TabsTrigger>
-  </>
-) : null}
+                <TabsTrigger
+                  value="storage_setting"
+                  className="flex items-center space-x-2"
+                >
+                  <Database className="w-4 h-4" />
+                  <span>Storage Setting</span>
+                </TabsTrigger>
+              </>
+            ) : null}
             <TabsTrigger
               value="ai_setting"
               className="flex items-center space-x-2"
@@ -77,14 +85,6 @@ export default function Settings() {
             >
               <Webhook className="w-4 h-4" />
               <span>Webhooks</span>
-            </TabsTrigger>
-            <TabsTrigger
-              disabled={true}
-              value="api"
-              className="flex items-center space-x-2"
-            >
-              <Key className="w-4 h-4" />
-              <span>API Keys (Coming soon) </span>
             </TabsTrigger>
           </TabsList>
 
