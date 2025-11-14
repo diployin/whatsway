@@ -38,6 +38,7 @@ interface BrandSettings {
   logo?: string;
   favicon?: string;
   updatedAt?: string;
+  firebase?:{}
 }
 
 export function GeneralSettings(): JSX.Element {
@@ -53,10 +54,11 @@ export function GeneralSettings(): JSX.Element {
     isFetching,
   } = useQuery<BrandSettings>({
     queryKey: ["/api/brand-settings"],
-    queryFn: () => fetch("/api/brand-settings").then(res => {
-      if (!res.ok) throw new Error("Failed to fetch");
-      return res.json();
-    }),
+    queryFn: () =>
+      fetch("/api/brand-settings").then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch");
+        return res.json();
+      }),
     retry: 2,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -69,7 +71,7 @@ export function GeneralSettings(): JSX.Element {
     favicon: "",
     updatedAt: new Date().toISOString(),
   };
-// console.log('BrandSettings render, error:', error , brandSettings );
+  // console.log('BrandSettings render, error:', error , brandSettings );
   // Use static data if API fails, otherwise use API data
   const displayData = error ? staticData : brandSettings || {};
 
@@ -81,7 +83,7 @@ export function GeneralSettings(): JSX.Element {
         title: displayData.title,
         favicon: displayData.favicon,
         description: displayData.tagline, // or a separate field
-        keywords: `${displayData.title} ${displayData?.tagline}`,   // optional
+        keywords: `${displayData.title} ${displayData?.tagline}`, // optional
       });
     }
   }, [brandSettings]);
@@ -134,19 +136,21 @@ export function GeneralSettings(): JSX.Element {
 
   const formatLastUpdated = (dateString?: string): string => {
     if (!dateString) return "Unknown";
-    
+
     try {
       const date = new Date(dateString);
       const now = new Date();
-      const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-      
+      const diffInMinutes = Math.floor(
+        (now.getTime() - date.getTime()) / (1000 * 60)
+      );
+
       if (diffInMinutes < 1) {
         return "Just now";
       } else if (diffInMinutes < 60) {
-        return `${diffInMinutes} minute${diffInMinutes !== 1 ? 's' : ''} ago`;
+        return `${diffInMinutes} minute${diffInMinutes !== 1 ? "s" : ""} ago`;
       } else if (diffInMinutes < 1440) {
         const hours = Math.floor(diffInMinutes / 60);
-        return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+        return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
       } else {
         return date.toLocaleDateString();
       }
@@ -166,7 +170,10 @@ export function GeneralSettings(): JSX.Element {
               General Configuration
             </CardTitle>
             <div className="flex items-center space-x-2">
-              <Badge variant={isUsingStaticData ? "destructive" : "default"} className="text-xs">
+              <Badge
+                variant={isUsingStaticData ? "destructive" : "default"}
+                className="text-xs"
+              >
                 {isUsingStaticData ? (
                   <>
                     <WifiOff className="w-3 h-3 mr-1" />
@@ -185,12 +192,14 @@ export function GeneralSettings(): JSX.Element {
                 onClick={handleRefresh}
                 disabled={isFetching}
               >
-                <RefreshCw className={`w-4 h-4 mr-1 ${isFetching ? 'animate-spin' : ''}`} />
-                {isFetching ? 'Refreshing...' : 'Refresh'}
+                <RefreshCw
+                  className={`w-4 h-4 mr-1 ${isFetching ? "animate-spin" : ""}`}
+                />
+                {isFetching ? "Refreshing..." : "Refresh"}
               </Button>
-              <Button 
+              <Button
                 onClick={handleEditClick}
-                disabled={ isUsingStaticData}
+                disabled={isUsingStaticData}
                 size="sm"
               >
                 <Edit className="w-4 h-4 mr-2" />
@@ -209,9 +218,12 @@ export function GeneralSettings(): JSX.Element {
               <div className="flex items-center">
                 <AlertCircle className="w-5 h-5 text-red-600 mr-3" />
                 <div>
-                  <h4 className="text-sm font-semibold text-red-800">Connection Error</h4>
+                  <h4 className="text-sm font-semibold text-red-800">
+                    Connection Error
+                  </h4>
                   <p className="text-sm text-red-700 mt-1">
-                    Unable to load settings from server. Showing sample data. Please check your connection and try refreshing.
+                    Unable to load settings from server. Showing sample data.
+                    Please check your connection and try refreshing.
                   </p>
                 </div>
               </div>
@@ -222,7 +234,10 @@ export function GeneralSettings(): JSX.Element {
             <div className="flex items-start justify-between mb-6">
               <div className="flex items-center space-x-3">
                 <h3 className="font-semibold text-lg">Brand Identity</h3>
-                <Badge variant={isUsingStaticData ? "secondary" : "default"} className="text-xs">
+                <Badge
+                  variant={isUsingStaticData ? "secondary" : "default"}
+                  className="text-xs"
+                >
                   <CheckCircle className="w-3 h-3 mr-1" />
                   {isUsingStaticData ? "Sample Data" : "Live Data"}
                 </Badge>
@@ -286,7 +301,7 @@ export function GeneralSettings(): JSX.Element {
                         alt="Logo"
                         className="w-12 h-12 object-contain rounded border bg-white"
                         onError={(e) => {
-                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.style.display = "none";
                         }}
                       />
                       <div>
@@ -324,7 +339,7 @@ export function GeneralSettings(): JSX.Element {
                         alt="Favicon"
                         className="w-8 h-8 object-contain rounded border bg-white"
                         onError={(e) => {
-                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.style.display = "none";
                         }}
                       />
                       <div>
@@ -339,7 +354,9 @@ export function GeneralSettings(): JSX.Element {
                   ) : (
                     <div className="text-center py-4">
                       <Globe className="w-8 h-8 mx-auto text-gray-400 mb-2" />
-                      <p className="text-sm text-gray-500">No favicon uploaded</p>
+                      <p className="text-sm text-gray-500">
+                        No favicon uploaded
+                      </p>
                       <p className="text-xs text-gray-400 mt-1">
                         Add a favicon for browser tab icon
                       </p>
@@ -353,20 +370,28 @@ export function GeneralSettings(): JSX.Element {
             <div className="mt-6 pt-4 border-t border-gray-100">
               <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center space-x-2">
-                  <div className={`w-2 h-2 rounded-full ${
-                    displayData.title && displayData.logo ? 'bg-green-500' : 
-                    displayData.title ? 'bg-yellow-500' : 'bg-red-500'
-                  }`} />
+                  <div
+                    className={`w-2 h-2 rounded-full ${
+                      displayData.title && displayData.logo
+                        ? "bg-green-500"
+                        : displayData.title
+                        ? "bg-yellow-500"
+                        : "bg-red-500"
+                    }`}
+                  />
                   <span className="text-gray-600">
-                    Configuration Status: {
-                      displayData.title && displayData.logo ? 'Complete' :
-                      displayData.title ? 'Partial' : 'Incomplete'
-                    }
+                    Configuration Status:{" "}
+                    {displayData.title && displayData.logo
+                      ? "Complete"
+                      : displayData.title
+                      ? "Partial"
+                      : "Incomplete"}
                   </span>
                 </div>
                 {displayData.updatedAt && !isUsingStaticData && (
                   <span className="text-gray-500">
-                    Last updated: {new Date(displayData.updatedAt).toLocaleDateString()}
+                    Last updated:{" "}
+                    {new Date(displayData.updatedAt).toLocaleDateString()}
                   </span>
                 )}
               </div>
@@ -395,7 +420,7 @@ export function GeneralSettings(): JSX.Element {
                   alt="Brand Logo"
                   className="w-16 h-16 object-contain"
                   onError={(e) => {
-                    e.currentTarget.style.display = 'none';
+                    e.currentTarget.style.display = "none";
                   }}
                 />
               )}
@@ -413,6 +438,120 @@ export function GeneralSettings(): JSX.Element {
           </CardContent>
         </Card>
       )}
+
+      {/* Firebase Configuration */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center">
+              <Settings className="w-5 h-5 mr-2" />
+              Firebase Configuration
+            </CardTitle>
+
+            <Button
+              onClick={() =>
+                toast({
+                  title: "Coming Soon",
+                  description: "Firebase settings edit modal will appear here.",
+                })
+              }
+              size="sm"
+            >
+              <Edit className="w-4 h-4 mr-2" />
+              Edit Firebase
+            </Button>
+          </div>
+
+          <CardDescription>
+            Manage Firebase API keys used for notifications & authentication
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent>
+          <div className="border border-gray-200 rounded-lg p-6 space-y-6">
+            {/* status + last updated */}
+            <div className="flex items-center justify-between mb-4">
+              <Badge variant="default" className="text-xs flex items-center">
+                <CheckCircle className="w-3 h-3 mr-1" />
+                Live
+              </Badge>
+
+              <div className="flex items-center text-sm text-gray-500">
+                <Clock className="w-4 h-4 mr-1" />
+                Just now
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* API Key */}
+              <div className="space-y-2">
+                <Label className="flex items-center space-x-2 font-medium">
+                  <span>API Key</span>
+                </Label>
+                <div className="p-3 bg-gray-50 border rounded text-sm break-all">
+                  {displayData?.firebase?.apiKey || "Not configured"}
+                </div>
+              </div>
+
+              {/* Auth Domain */}
+              <div className="space-y-2">
+                <Label className="flex items-center space-x-2 font-medium">
+                  <span>Auth Domain</span>
+                </Label>
+                <div className="p-3 bg-gray-50 border rounded text-sm break-all">
+                  {displayData?.firebase?.authDomain || "Not configured"}
+                </div>
+              </div>
+
+              {/* Project ID */}
+              <div className="space-y-2">
+                <Label className="flex items-center space-x-2 font-medium">
+                  <span>Project ID</span>
+                </Label>
+                <div className="p-3 bg-gray-50 border rounded text-sm break-all">
+                  {displayData?.firebase?.projectId || "Not configured"}
+                </div>
+              </div>
+
+              {/* Storage Bucket */}
+              <div className="space-y-2">
+                <Label className="flex items-center space-x-2 font-medium">
+                  <span>Storage Bucket</span>
+                </Label>
+                <div className="p-3 bg-gray-50 border rounded text-sm break-all">
+                  {displayData?.firebase?.storageBucket || "Not configured"}
+                </div>
+              </div>
+
+              {/* Sender ID */}
+              <div className="space-y-2">
+                <Label className="flex items-center space-x-2 font-medium">
+                  <span>Messaging Sender ID</span>
+                </Label>
+                <div className="p-3 bg-gray-50 border rounded text-sm break-all">
+                  {displayData?.firebase?.messagingSenderId || "Not configured"}
+                </div>
+              </div>
+
+              {/* App ID */}
+              <div className="space-y-2">
+                <Label className="flex items-center space-x-2 font-medium">
+                  <span>App ID</span>
+                </Label>
+                <div className="p-3 bg-gray-50 border rounded text-sm break-all">
+                  {displayData?.firebase?.appId || "Not configured"}
+                </div>
+              </div>
+            </div>
+
+            {/* Status message */}
+            <div className="mt-4 pt-4 border-t border-gray-200 text-sm text-gray-600 flex items-center space-x-2">
+              <div className="w-2 h-2 rounded-full bg-green-500"></div>
+              <span>Firebase configuration active</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* General Settings Modal */}
       <GeneralSettingsModal

@@ -21,6 +21,7 @@ export const panelConfigSchema = z.object({
   supportEmail: z.string().email().optional().or(z.literal("")),
   defaultLanguage: z.string().length(2).default("en"),
   supportedLanguages: z.array(z.string()).default(["en"]),
+  firebase: z.record(z.any()).optional(),
 });
 
 export const brandSettingsSchema = z.object({
@@ -117,6 +118,7 @@ export const create = async (req: Request, res: Response) => {
       ...parsed,
       logo: logoPath,
       favicon: faviconPath,
+      firebase: parsed.firebase || {},
     };
 
     const config = await createPanelConfig(data);
@@ -173,6 +175,7 @@ export const update = async (req: Request, res: Response) => {
       ...parsed,
       logo: logoPath,
       favicon: faviconPath,
+      firebase: parsed.firebase || {},
     };
 
     const config = await updatePanelConfig(req.params.id, data);

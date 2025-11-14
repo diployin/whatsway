@@ -10,6 +10,7 @@ import { GeneralSettings } from "@/components/settings/GeneralSettings";
 import StorageSettings from "@/components/settings/StorageSettings";
 import AISettings from "@/components/settings/AISettings";
 import { useAuth } from "@/contexts/auth-context";
+import FirebaseSettings from "@/components/settings/FirebaseSettings";
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState("general_setting");
@@ -27,7 +28,7 @@ export default function Settings() {
         <Tabs
           value={activeTab}
           onValueChange={setActiveTab}
-          className="space-y-6"
+          className="space-y-7"
         >
           <TabsList className="grid w-full grid-cols-6">
            {isAdmin ? (
@@ -38,6 +39,13 @@ export default function Settings() {
     >
       <SettingsIcon className="w-4 h-4" />
       <span>General Setting</span>
+    </TabsTrigger>
+    <TabsTrigger
+      value="firebase_setting"
+      className="flex items-center space-x-2"
+    >
+      <SettingsIcon className="w-4 h-4" />
+      <span>Firebase Setting</span>
     </TabsTrigger>
 
     <TabsTrigger
@@ -83,6 +91,10 @@ export default function Settings() {
           {/* General Setting Tab */}
           <TabsContent value="general_setting">
             <GeneralSettings />
+          </TabsContent>
+
+          <TabsContent value="firebase_setting">
+            <FirebaseSettings />
           </TabsContent>
 
           <TabsContent value="storage_setting">

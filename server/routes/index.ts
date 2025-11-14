@@ -30,6 +30,7 @@ import { registerStorageSettingsRoutes } from "./storage.settings.route";
 import { registerAISettingsRoutes } from "./ai.settings.routes";
 import { registerWidgetRoutes } from "./chatbot.routes";
 import { registerTicketsRoutes } from "./support.tickets.routes";
+import { registerNotificationsRoutes } from "./notifications.routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes (no authentication required)
@@ -38,6 +39,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register all route modules
   registerWidgetRoutes(app);
   registerPlansRoutes(app);
+  registerNotificationsRoutes(app);
   userRoutes(app);
   registerStorageSettingsRoutes(app);
   registerAISettingsRoutes(app);
