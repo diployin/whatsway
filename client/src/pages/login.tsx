@@ -77,25 +77,39 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (data: z.infer<typeof loginSchema>) => {
-    setError(null);
-  
+  setError(null);
+
+  let fcmToken: string | null = null; // optional
+
+  try {
     // Fetch firebase config
     const res = await fetch("/api/firebase");
     const firebaseConfig = await res.json();
-  
+
     console.log(firebaseConfig);
-  
-    // 1️⃣ Initialize Firebase one time
+
+    // Initialize Firebase one time
     initFirebase(firebaseConfig);
-  
-    // 2️⃣ Get FCM token after initialization
-    const fcmToken = await getFcmToken(firebaseConfig.vapidKey);
-  
-    console.log("Final token:", fcmToken);
-    console.log("Final data:", { ...data, fcmToken:fcmToken});
-  
-    loginMutation.mutate({ ...data, fcmToken:fcmToken});
+
+    // Try to get FCM token
+    fcmToken = await getFcmToken(firebaseConfig.vapidKey);
+    console.log("FCM Token received:", fcmToken);
+
+  } catch (err) {
+    console.warn("FCM token error (ignored):", err);
+    // Do not break login — fcmToken stays null
+  }
+
+  const finalPayload = { 
+    ...data, 
+    fcmToken: fcmToken ?? undefined  // optional
   };
+
+  console.log("Final payload:", finalPayload);
+
+  // Continue login
+  loginMutation.mutate(finalPayload);
+};
   
 
   const handleGoogleLogin = () => {
