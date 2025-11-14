@@ -97,7 +97,6 @@ export default function LoginPage() {
     loginMutation.mutate({ ...data, fcmToken:fcmToken});
   };
   
-  
 
   const handleGoogleLogin = () => {
     setIsLoading(true);

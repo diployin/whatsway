@@ -13,5 +13,11 @@
       };
   </script>
   <script src="http://localhost:5000/widget/widget.js"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/firebase-messaging-sw.js");
+    }
+  </script>
+  
   </body>
 </html>
