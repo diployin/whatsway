@@ -340,30 +340,63 @@ export default function Contacts() {
   });
 
   // Updated query to fetch contacts with proper server-side filtering
+  // const { data: contactsResponse, isLoading } = useQuery<ContactsResponse>({
+  //   queryKey: [
+  //     "/api/contacts",
+  //     activeChannel?.id,
+  //     currentPage,
+  //     limit,
+  //     selectedGroup,
+  //     selectedStatus,
+  //     searchQuery,
+  //   ],
+  //   queryFn: async () => {
+  //     const response = await api.getContacts(
+  //       searchQuery || undefined,
+  //       activeChannel?.id,
+  //       currentPage,
+  //       limit,
+  //       selectedGroup !== "all" && selectedGroup ? selectedGroup : undefined,
+  //       selectedStatus !== "all" && selectedStatus ? selectedStatus : undefined
+  //     );
+  //     return (await response.json()) as ContactsResponse;
+  //   },
+  //   placeholderData: (prev) => prev, 
+  //   enabled: !!activeChannel,
+  // });
+
   const { data: contactsResponse, isLoading } = useQuery<ContactsResponse>({
-    queryKey: [
-      "/api/contacts",
+  queryKey: [
+    "/api/contacts",
+    activeChannel?.id,
+    currentPage,
+    limit,
+    selectedGroup,
+    selectedStatus,
+    searchQuery,
+    user?.id,
+  ],
+
+  queryFn: async () => {
+    if (!user?.id) return { data: [], pagination: {} }; // fallback
+
+    const response = await api.getContacts(
+      searchQuery || undefined,
       activeChannel?.id,
       currentPage,
       limit,
-      selectedGroup,
-      selectedStatus,
-      searchQuery,
-    ],
-    queryFn: async () => {
-      const response = await api.getContacts(
-        searchQuery || undefined,
-        activeChannel?.id,
-        currentPage,
-        limit,
-        selectedGroup !== "all" && selectedGroup ? selectedGroup : undefined,
-        selectedStatus !== "all" && selectedStatus ? selectedStatus : undefined
-      );
-      return (await response.json()) as ContactsResponse;
-    },
-    placeholderData: (prev) => prev, 
-    enabled: !!activeChannel,
-  });
+      selectedGroup !== "all" && selectedGroup ? selectedGroup : undefined,
+      selectedStatus !== "all" && selectedStatus ? selectedStatus : undefined,
+      user.id // ✅ ALWAYS sent
+    );
+
+    return (await response.json()) as ContactsResponse;
+  },
+
+  placeholderData: (prev) => prev,
+  enabled: !!activeChannel?.id && !!user?.id, // both required
+});
+
   
 
   const contacts = contactsResponse?.data || [];
