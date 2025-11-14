@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Request, Response, Router } from "express";
 import { db } from "../db";
 import { users, userActivityLogs } from "@shared/schema";
 import { eq } from "drizzle-orm";
@@ -13,23 +13,23 @@ const router = Router();
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
   password: z.string().min(1, "Password is required"),
+  fcmToken: z.string().nullable().optional()
 });
-
-
-
 
 // Login endpoint
 router.post("/login", validateRequest(loginSchema), async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { username, password ,fcmToken } = req.body;
 
-    // console.log("Login request body:", req.body);
+    console.log("Login request body:", req.body);
 
     // Find user by username
     const results = await db
       .select()
       .from(users)
       .where(eq(users.username, username));
+
+      console.log(results)
 
     const user = results[0];
 
@@ -102,6 +102,15 @@ router.post("/login", validateRequest(loginSchema), async (req, res) => {
     // Remove password before sending back
     const { password: _, ...userData } = user;
 
+    try{
+    await db
+    .update(users)
+    .set({ fcmToken })
+    .where(eq(users.id, user?.id));
+    }catch(err){
+      console.error("FCM token not update")
+    }
+
     res.json({
       message: "Login successful",
       user: userData,
@@ -111,7 +120,6 @@ router.post("/login", validateRequest(loginSchema), async (req, res) => {
     res.status(500).json({ error: "Login failed", message: (error as Error).message });
   }
 });
-
 
 // Logout endpoint
 router.post("/logout", (req, res) => {
@@ -164,6 +172,42 @@ router.get("/me", async (req, res) => {
   // Remove password from response
   const { password, ...userData } = currentUser;
   res.json(userData);
+});
+
+router.post("/api/me/update-fcm-token", async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).session?.user;
+    const { fcmToken } = req.body;
+    // console.log("Session user:", user);
+      if (!user) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+    if (!fcmToken) {
+      return res.status(400).json({
+        success: false,
+        message: "fcmToken is required",
+      });
+    }
+
+    await db
+      .update(users)
+      .set({ fcmToken })
+      .where(eq(users.id, user?.id));
+
+    return res.json({
+      success: true,
+      message: "FCM token updated successfully",
+    });
+
+  } catch (error) {
+    console.error("FCM TOKEN UPDATE ERROR:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
 });
 
 // Check if authenticated (for frontend)

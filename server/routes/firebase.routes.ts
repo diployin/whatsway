@@ -14,6 +14,9 @@ export const firebaseSchema = z.object({
     messagingSenderId: z.string().optional(),
     appId: z.string().optional(),
     measurementId: z.string().optional(),
+    privateKey: z.string().optional(),
+    clientEmail: z.string().optional(),
+    vapidKey: z.string().optional(),
   });
   
   export type FirebasePayload = z.infer<typeof firebaseSchema>;
@@ -21,7 +24,7 @@ export const firebaseSchema = z.object({
 export function registerFirebaseRoutes(app: Express) {
   
   // Get firebase settings
-  app.get("/api/firebase", requireAuth, async (req: Request, res: Response) => {
+  app.get("/api/firebase", async (req: Request, res: Response) => {
     const config = await db.select().from(firebaseConfig).limit(1);
     res.json(config[0] || {});
   });

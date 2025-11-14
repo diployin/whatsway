@@ -34,6 +34,7 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   createdBy: varchar("created_by").default(''),
+  fcmToken: varchar("fcm_token", { length: 512 }),
 });
 
 // Conversation assignments to users
@@ -871,7 +872,6 @@ export const panelConfig = pgTable("panel_config", {
 
 export const firebaseConfig = pgTable("firebase_config", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-
   apiKey: text("api_key"),
   authDomain: text("auth_domain"),
   projectId: text("project_id"),
@@ -879,7 +879,9 @@ export const firebaseConfig = pgTable("firebase_config", {
   messagingSenderId: text("messaging_sender_id"),
   appId: text("app_id"),
   measurementId: text("measurement_id"),
-
+  privateKey: text("private_key"),
+  clientEmail: text("client_email"),
+  vapidKey: text("vapid_key"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

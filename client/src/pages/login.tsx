@@ -27,10 +27,12 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { getFcmToken, initFirebase } from "@/lib/firebase";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
   password: z.string().min(1, "Password is required"),
+  fcmToken :z.string().optional()
 });
 
 export default function LoginPage() {
@@ -55,6 +57,7 @@ export default function LoginPage() {
 
   const loginMutation = useMutation({
     mutationFn: async (data: z.infer<typeof loginSchema>) => {
+      console.log(data)
       const response = await apiRequest("POST", "/api/auth/login", data);
       return response;
     },
@@ -73,10 +76,28 @@ export default function LoginPage() {
     },
   });
 
-  const onSubmit = (data: z.infer<typeof loginSchema>) => {
+  const onSubmit = async (data: z.infer<typeof loginSchema>) => {
     setError(null);
-    loginMutation.mutate(data);
+  
+    // Fetch firebase config
+    const res = await fetch("/api/firebase");
+    const firebaseConfig = await res.json();
+  
+    console.log(firebaseConfig);
+  
+    // 1️⃣ Initialize Firebase one time
+    initFirebase(firebaseConfig);
+  
+    // 2️⃣ Get FCM token after initialization
+    const fcmToken = await getFcmToken(firebaseConfig.vapidKey);
+  
+    console.log("Final token:", fcmToken);
+    console.log("Final data:", { ...data, fcmToken:fcmToken});
+  
+    loginMutation.mutate({ ...data, fcmToken:fcmToken});
   };
+  
+  
 
   const handleGoogleLogin = () => {
     setIsLoading(true);
