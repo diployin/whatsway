@@ -88,7 +88,6 @@ export const contacts = pgTable(
     channelId: varchar("channel_id").references(() => channels.id, {
       onDelete: "cascade",
     }),
-    tenantId: varchar('tenant_id'),
     name: text("name").notNull(),
     phone: text("phone").notNull(),
     email: text("email"),
@@ -930,22 +929,11 @@ export const aiSettings = pgTable("ai_settings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Tenants (Customers)
-export const tenants = pgTable("tenants", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: text("name").notNull(),
-  email: text("email").notNull().unique(),
-  active: boolean("active").notNull().default(true),
-  settings: jsonb("settings").notNull().default(sql`'{}'::jsonb`), // brand colors, logo, etc.
-  stripeCustomerId: text("stripe_customer_id"),
-  stripeSubscriptionId: text("stripe_subscription_id"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
 
-// Sites (Websites/Apps managed by tenants)
+// Sites
 export const sites = pgTable("sites", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  tenantId: varchar("tenant_id"),
+  channelId: varchar("channel_id"),
   name: text("name").notNull(),
   domain: text("domain").notNull(),
   widgetCode: text("widget_code").notNull().unique(),
@@ -1138,7 +1126,7 @@ export const insertUserActivityLogSchema = createInsertSchema(
   userActivityLogs
 ).omit({ id: true, createdAt: true });
 
-export const insertTenantSchema = createInsertSchema(tenants).omit({ id: true, createdAt: true });
+
 export const insertSiteSchema = createInsertSchema(sites).omit({ id: true, createdAt: true, widgetCode: true });
 
 export const insertNotificationSchema = createInsertSchema(notifications).omit({ 
@@ -1198,8 +1186,6 @@ export type InsertUserActivityLog = z.infer<typeof insertUserActivityLogSchema>;
 export type PanelConfig = typeof panelConfig.$inferSelect;
 export type NewPanelConfig = typeof panelConfig.$inferInsert;
 
-export type Tenant = typeof tenants.$inferSelect;
-export type InsertTenant = z.infer<typeof insertTenantSchema>;
 
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type Notification = typeof notifications.$inferSelect;

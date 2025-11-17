@@ -543,6 +543,23 @@ app.post("/api/widget/chat", async (req, res) => {
   // Site management routes (authenticated)
 
 
+  app.get("/api/active-site", async (req, res) => {
+    try {
+      // Use authenticated user's tenantId
+      const { channelId } = req.query; 
+      // console.log(channelId)
+
+      if (!channelId) {
+        return res.status(400).json({ message: "No Channel fount" });
+      }
+
+      const site = await storage.getSitesByChannel(channelId);
+      res.json(site);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   app.get("/api/sites", async (req, res) => {
     try {
       // Use authenticated user's tenantId
