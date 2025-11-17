@@ -204,14 +204,22 @@ export default function Dashboard() {
 
   return (
     <div className="flex-1 dots-bg min-h-screen">
-      <Header
-        title={t("dashboard.title")}
-        subtitle={t("dashboard.subtitle")}
-        action={{
-          label: t("dashboard.newCampaign"),
-          onClick: () => setLocation("/campaigns"),
-        }}
-      />
+    {user?.role === "superadmin" ? (
+  <Header
+    title={t("dashboard.title")}
+    subtitle={t("dashboard.subtitle")}
+  />
+) : (
+  <Header
+    title={t("dashboard.title")}
+    subtitle={t("dashboard.subtitle")}
+    action={{
+      label: t("dashboard.newCampaign"),
+      onClick: () => setLocation("/campaigns"),
+    }}
+  />
+)}
+
 
       <main className="p-6 space-y-6">
         {/* KPI Cards */}

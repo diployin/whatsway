@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "@/components/layout/header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -25,46 +25,61 @@ export default function Settings() {
   const { user } = useAuth();
   const isAdmin = user?.role === "superadmin";
 
+
+  useEffect(() => {
+  if (user?.role !== "superadmin") {
+    setActiveTab("ai_setting");
+  }
+}, [user]);
+
+
   return (
     <div className="flex-1 dots-bg min-h-screen">
-      <Header
-        title="Settings"
-        subtitle="Manage your WhatsApp business configuration"
-      />
+  <Header
+    title="Settings"
+    subtitle="Manage your WhatsApp business configuration"
+  />
 
-      <main className="p-6">
-        <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          className="space-y-7"
-        >
-          <TabsList className="grid w-full grid-cols-6">
-            {isAdmin ? (
-              <>
-                <TabsTrigger
-                  value="general_setting"
-                  className="flex items-center space-x-2"
-                >
-                  <SettingsIcon className="w-4 h-4" />
-                  <span>General Setting</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="firebase_setting"
-                  className="flex items-center space-x-2"
-                >
-                  <SettingsIcon className="w-4 h-4" />
-                  <span>Firebase Setting</span>
-                </TabsTrigger>
+  <main className="p-6">
+    <Tabs
+      value={activeTab}
+      onValueChange={setActiveTab}
+      className="space-y-7"
+    >
+      <TabsList className="grid w-full grid-cols-6">
 
-                <TabsTrigger
-                  value="storage_setting"
-                  className="flex items-center space-x-2"
-                >
-                  <Database className="w-4 h-4" />
-                  <span>Storage Setting</span>
-                </TabsTrigger>
-              </>
-            ) : null}
+        {/* SUPERADMIN ONLY */}
+        {user?.role === "superadmin" && (
+          <>
+            <TabsTrigger
+              value="general_setting"
+              className="flex items-center space-x-2"
+            >
+              <SettingsIcon className="w-4 h-4" />
+              <span>General Setting</span>
+            </TabsTrigger>
+
+            <TabsTrigger
+              value="firebase_setting"
+              className="flex items-center space-x-2"
+            >
+              <SettingsIcon className="w-4 h-4" />
+              <span>Firebase Setting</span>
+            </TabsTrigger>
+
+            <TabsTrigger
+              value="storage_setting"
+              className="flex items-center space-x-2"
+            >
+              <Database className="w-4 h-4" />
+              <span>Storage Setting</span>
+            </TabsTrigger>
+          </>
+        )}
+
+        {/* NON-SUPERADMIN ONLY */}
+        {user?.role !== "superadmin" && (
+          <>
             <TabsTrigger
               value="ai_setting"
               className="flex items-center space-x-2"
@@ -72,6 +87,7 @@ export default function Settings() {
               <BotIcon className="w-4 h-4" />
               <span>AI Settings</span>
             </TabsTrigger>
+
             <TabsTrigger
               value="whatsapp"
               className="flex items-center space-x-2"
@@ -79,6 +95,7 @@ export default function Settings() {
               <Smartphone className="w-4 h-4" />
               <span>WhatsApp</span>
             </TabsTrigger>
+
             <TabsTrigger
               value="webhooks"
               className="flex items-center space-x-2"
@@ -86,9 +103,13 @@ export default function Settings() {
               <Webhook className="w-4 h-4" />
               <span>Webhooks</span>
             </TabsTrigger>
-          </TabsList>
+          </>
+        )}
+      </TabsList>
 
-          {/* General Setting Tab */}
+      {/* SUPERADMIN TAB CONTENT */}
+      {user?.role === "superadmin" && (
+        <>
           <TabsContent value="general_setting">
             <GeneralSettings />
           </TabsContent>
@@ -100,27 +121,33 @@ export default function Settings() {
           <TabsContent value="storage_setting">
             <StorageSettings />
           </TabsContent>
+        </>
+      )}
 
+      {/* NON-SUPERADMIN TAB CONTENT */}
+      {user?.role !== "superadmin" && (
+        <>
           <TabsContent value="ai_setting">
             <AISettings />
           </TabsContent>
 
-          {/* WhatsApp Numbers Tab */}
           <TabsContent value="whatsapp">
             <ChannelSettings />
           </TabsContent>
 
-          {/* Webhooks Tab */}
           <TabsContent value="webhooks">
             <WebhookSettings />
           </TabsContent>
+        </>
+      )}
 
-          {/* API Keys Tab */}
-          <TabsContent value="api">
-            <ApiKeySettings />
-          </TabsContent>
-        </Tabs>
-      </main>
-    </div>
+      {/* API Keys Tab (if needed for everyone) */}
+      <TabsContent value="api">
+        <ApiKeySettings />
+      </TabsContent>
+    </Tabs>
+  </main>
+</div>
+
   );
 }

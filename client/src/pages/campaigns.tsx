@@ -266,32 +266,23 @@ export default function Campaigns() {
   return (
     <div className="container mx-auto">
       {/* Header */}
-      {/* <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">{t('campaigns.title')}</h1>
-          <p className="text-muted-foreground">
-          {t('campaigns.subtitle')}
-          </p>
-        </div>
-        <Button
-          className="flex items-center gap-2"
-          onClick={() => setCreateDialogOpen(true)}
-          // disabled={user?.username === 'demouser'}
-        >
-          <Plus className="h-4 w-4" />
-          {t('campaigns.createCampaign')}
-        </Button>
-      </div> */}
+    
+{user?.role === 'superadmin' ? (
+  <Header
+    title={t('campaigns.title')}
+    subtitle={t('campaigns.subtitle')}
+  />
+) : (
+  <Header
+    title={t('campaigns.title')}
+    subtitle={t('campaigns.subtitle')}
+    action={{
+      label: t('campaigns.createCampaign'),
+      onClick: () => setCreateDialogOpen(true),
+    }}
+  />
+)}
 
-
-       <Header
-              title={t('campaigns.title')}
-              subtitle={t('campaigns.subtitle')}
-              action={{
-                label: `${t('campaigns.createCampaign')}`,
-                onClick: () =>{ setCreateDialogOpen(true)},
-              }}
-            />
 
       {/* Campaign Statistics */}
       <div className="px-4 py-4">
