@@ -46,19 +46,28 @@ export const getContacts = asyncHandler(
 
 export const getContactsByUser = asyncHandler(async (req: Request, res: Response) => {
   const { userId } = req.params;
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
 
   if (!userId) {
     throw new AppError(400, "User ID is required");
   }
 
-  // Storage method call
-  const contacts = await storage.getContactsByUser(userId);
+  // Storage method call with pagination
+  const result = await storage.getContactsByUser(userId, page, limit);
 
   res.json({
-    success: true,
-    data: contacts,
+    status: "success",
+    data: result.data,
+    pagination: {
+      page: result.page,
+      limit: result.limit,
+      total: result.total,
+      totalPages: result.totalPages,
+    },
   });
 });
+
 
 // export const getContactsWithPagination = asyncHandler(
 //   async (req: RequestWithChannel, res: Response) => {

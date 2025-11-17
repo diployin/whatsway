@@ -34,21 +34,27 @@ export const getChannels = asyncHandler(async (req: Request, res: Response) => {
 
 
 export const getChannelsByUserId = asyncHandler(async (req: Request, res: Response) => {
-  const { userId } = req.body;
+  const { userId, page = 1, limit = 10 } = req.body;
 
   if (!userId) {
     return res.status(400).json({ message: "userId is required" });
   }
 
-  // Fetch channels for this user
   try {
-    const channels = await storage.getChannelsByUser(userId);
-    return res.json(channels);
+    // Fetch paginated channels
+    const channels = await storage.getChannelsByUser(userId, Number(page), Number(limit));
+
+    return res.json({
+      status: "success",
+      data: channels.data,
+      pagination: channels.pagination,
+    });
   } catch (error) {
     console.error("Error fetching channels:", error);
     return res.status(500).json({ message: "Server error while fetching channels" });
   }
 });
+
 
 
 export const getActiveChannel = asyncHandler(async (req: Request, res: Response) => {

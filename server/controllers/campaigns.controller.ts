@@ -48,14 +48,18 @@ export const campaignsController = {
   }),
 
 
-  getCampaignByUserID: asyncHandler(async (req, res)=>{
-    const {userId} = req.body;
-    const campaign = await storage.getCampaignByUserId(userId);
-    if (!campaign) {
-      return res.status(404).json({ error: "Campaign not found" });
-    }
-    res.json(campaign);
-  }),
+ getCampaignByUserID: asyncHandler(async (req, res) => {
+  const { userId } = req.body;
+
+  const page = Number(req.body.page) || 1;
+  const limit = Number(req.body.limit) || 10;
+
+  const campaign = await storage.getCampaignByUserId(userId, page, limit);
+
+  res.json(campaign);
+}),
+
+
 
   // Create new campaign
   createCampaign: asyncHandler(async (req, res) => {

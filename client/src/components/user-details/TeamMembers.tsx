@@ -1,5 +1,6 @@
 import { Loader2, Shield } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
 
 interface TeamMember {
@@ -23,35 +24,38 @@ interface TeamMembersProps {
 }
 
 export default function TeamMembers({ userId }: TeamMembersProps) {
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+
   const {
-    data: teamMembers = [],
+    data,
     isLoading,
     isError,
     error,
-  } = useQuery<TeamMember[]>({
-    queryKey: ["/api/team/membersByUserId", userId],
+  } = useQuery<{
+    data: TeamMember[];
+    pagination: { page: number; limit: number; total: number; totalPages: number };
+  }>({
+    queryKey: ["/api/team/membersByUserId", userId, page],
     queryFn: async () => {
       const res = await apiRequest("POST", "/api/team/membersByUserId", {
         userId,
+        page,
+        limit,
       });
-
-      // 🔥 res is a Response object, so we must parse it
-      const json = await res.json();
-
-      console.log("🧩 Parsed API JSON:", json);
-
-      if (Array.isArray(json)) return json;
-      if (Array.isArray(json?.data)) return json.data;
-      return [];
+      return res.json();
     },
     enabled: !!userId,
+    keepPreviousData: true,
   });
+
+  const teamMembers = data?.data || [];
+  const totalPages = data?.pagination?.totalPages || 1;
 
   if (isLoading)
     return (
       <div className="flex items-center justify-center py-10 text-muted-foreground">
-        <Loader2 className="w-5 h-5 mr-2 animate-spin" /> Loading team
-        members...
+        <Loader2 className="w-5 h-5 mr-2 animate-spin" /> Loading team members...
       </div>
     );
 
@@ -66,53 +70,76 @@ export default function TeamMembers({ userId }: TeamMembersProps) {
     return <p className="text-muted-foreground">No team members found.</p>;
 
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full border border-gray-200 bg-white rounded-lg shadow-sm">
-        <thead className="bg-gray-100 text-left text-sm font-semibold text-gray-700">
-          <tr>
-            <th className="py-3 px-4 border-b">Name</th>
-            <th className="py-3 px-4 border-b">Email</th>
-            <th className="py-3 px-4 border-b">Role</th>
-            <th className="py-3 px-4 border-b">Status</th>
-            <th className="py-3 px-4 border-b">Created At</th>
-          </tr>
-        </thead>
-        <tbody>
-          {teamMembers.map((member) => (
-            <tr
-              key={member.id}
-              className="hover:bg-gray-50 transition-colors text-sm text-gray-700"
-            >
-              <td className="py-3 px-4 border-b flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-semibold">
-                  {member.firstName?.[0]}
-                  {member.lastName?.[0]}
-                </div>
-                {member.firstName} {member.lastName}
-              </td>
-              <td className="py-3 px-4 border-b">{member.email}</td>
-              <td className="py-3 px-4 border-b flex items-center gap-1">
-                <Shield className="w-3 h-3 text-gray-500" />
-                {member.role}
-              </td>
-              <td className="py-3 px-4 border-b">
-                <span
-                  className={`px-2 py-1 rounded text-xs font-medium ${
-                    member.status === "active"
-                      ? "bg-green-100 text-green-700"
-                      : "bg-gray-100 text-gray-600"
-                  }`}
-                >
-                  {member.status}
-                </span>
-              </td>
-              <td className="py-3 px-4 border-b text-gray-500 text-xs">
-                {new Date(member.createdAt).toLocaleDateString()}
-              </td>
+    <div>
+      <div className="overflow-x-auto">
+        <table className="min-w-full border border-gray-200 bg-white rounded-lg shadow-sm">
+          <thead className="bg-gray-100 text-left text-sm font-semibold text-gray-700">
+            <tr>
+              <th className="py-3 px-4 border-b">Name</th>
+              <th className="py-3 px-4 border-b">Email</th>
+              <th className="py-3 px-4 border-b">Role</th>
+              <th className="py-3 px-4 border-b">Status</th>
+              <th className="py-3 px-4 border-b">Created At</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {teamMembers.map((member) => (
+              <tr
+                key={member.id}
+                className="hover:bg-gray-50 transition-colors text-sm text-gray-700"
+              >
+                <td className="py-3 px-4 border-b flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-semibold">
+                    {member.firstName?.[0]}
+                    {member.lastName?.[0]}
+                  </div>
+                  {member.firstName} {member.lastName}
+                </td>
+                <td className="py-3 px-4 border-b">{member.email}</td>
+                <td className="py-3 px-4 border-b flex items-center gap-1">
+                  <Shield className="w-3 h-3 text-gray-500" />
+                  {member.role}
+                </td>
+                <td className="py-3 px-4 border-b">
+                  <span
+                    className={`px-2 py-1 rounded text-xs font-medium ${
+                      member.status === "active"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-gray-100 text-gray-600"
+                    }`}
+                  >
+                    {member.status}
+                  </span>
+                </td>
+                <td className="py-3 px-4 border-b text-gray-500 text-xs">
+                  {new Date(member.createdAt).toLocaleDateString()}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Pagination controls */}
+      <div className="flex justify-between items-center mt-4 text-sm text-gray-600">
+        <button
+          onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+          disabled={page === 1}
+          className="px-3 py-1 bg-gray-100 rounded disabled:opacity-50"
+        >
+          Previous
+        </button>
+        <span>
+          Page {page} of {totalPages}
+        </span>
+        <button
+          onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+          disabled={page === totalPages}
+          className="px-3 py-1 bg-gray-100 rounded disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 }

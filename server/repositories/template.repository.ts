@@ -1,5 +1,5 @@
 import { db } from "../db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { 
   templates, 
   type Template, 
@@ -11,9 +11,38 @@ export class TemplateRepository {
     return await db.select().from(templates).orderBy(desc(templates.createdAt));
   }
 
-  async getTemplateByUserID(userId: string): Promise<Template[]>{
-    return await db.select().from(templates).where(eq(templates.createdBy, userId)).orderBy(desc(templates.createdAt));
-  }
+  async getTemplateByUserID(
+  userId: string,
+  page: number = 1,
+  limit: number = 10
+): Promise<{ data: Template[]; total: number; page: number; limit: number }> {
+  const offset = (page - 1) * limit;
+
+  // Templates fetch with pagination
+  const templatesData = await db
+    .select()
+    .from(templates)
+    .where(eq(templates.createdBy, userId))
+    .orderBy(desc(templates.createdAt))
+    .limit(limit)
+    .offset(offset);
+
+  // Total count for pagination
+  const totalResult = await db
+    .select({ total: sql<number>`COUNT(*)` })
+    .from(templates)
+    .where(eq(templates.createdBy, userId));
+
+  const total = totalResult[0]?.total ?? 0;
+
+  return {
+    data: templatesData,
+    total,
+    page,
+    limit,
+  };
+}
+
 
   async getByChannel(channelId: string): Promise<Template[]> {
     return await db

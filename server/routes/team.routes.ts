@@ -129,43 +129,65 @@ router.get(
 
 
 
-router.post(
-  "/membersByUserId",
-  async (req, res) => {
-    try {
-      // Ensure req.user is available
-      const { userId } = req.body
-      if (!userId) {
-        return res.status(401).json({ error: "Unauthorized: User not found" });
-      }
+router.post("/membersByUserId", async (req, res) => {
+  try {
+    const { userId, page = 1, limit = 10 } = req.body;
 
-      const members = await db
-        .select({
-          id: users.id,
-          username: users.username,
-          email: users.email,
-          firstName: users.firstName,
-          lastName: users.lastName,
-          role: users.role,
-          status: users.status,
-          permissions: users.permissions,
-          avatar: users.avatar,
-          lastLogin: users.lastLogin,
-          createdAt: users.createdAt,
-          updatedAt: users.updatedAt,
-          createdBy: users.createdBy,
-        })
-        .from(users)
-        .where(eq(users.createdBy, userId))
-        .orderBy(desc(users.createdAt));
-
-      res.json(members);
-    } catch (error) {
-      console.error("Error fetching team members:", error);
-      res.status(500).json({ error: "Failed to fetch team members" });
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized: User not found" });
     }
+
+    // Calculate offset for pagination
+    const offset = (page - 1) * limit;
+
+    // Fetch total count first
+    const totalCountResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(users)
+      .where(eq(users.createdBy, userId))
+      .execute();
+
+    const total = totalCountResult[0]?.count || 0;
+    const totalPages = Math.ceil(total / limit);
+
+    // Fetch paginated members
+    const members = await db
+      .select({
+        id: users.id,
+        username: users.username,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        role: users.role,
+        status: users.status,
+        permissions: users.permissions,
+        avatar: users.avatar,
+        lastLogin: users.lastLogin,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt,
+        createdBy: users.createdBy,
+      })
+      .from(users)
+      .where(eq(users.createdBy, userId))
+      .orderBy(desc(users.createdAt))
+      .limit(limit)
+      .offset(offset);
+
+    res.json({
+      data: members,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching team members:", error);
+    res.status(500).json({ error: "Failed to fetch team members" });
   }
-);
+});
+
 
 
 // Get single team member

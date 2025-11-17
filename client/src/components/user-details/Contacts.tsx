@@ -1,5 +1,6 @@
 import { Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
 
 interface Contact {
@@ -24,25 +25,26 @@ interface ContactsProps {
 }
 
 export default function Contacts({ userId }: ContactsProps) {
-  const {
-    data: contacts = [],
-    isLoading,
-    isError,
-    error,
-  } = useQuery<Contact[]>({
-    queryKey: ["/api/user/contacts", userId],
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+
+  const { data, isLoading, isError, error } = useQuery<{
+    data: Contact[];
+    pagination: { page: number; limit: number; total: number; totalPages: number };
+  }>({
+    queryKey: ["contacts", userId, page, limit],
     queryFn: async () => {
-      const res: any = await apiRequest("GET", `/api/user/contacts/${userId}`);
+      const res = await apiRequest("GET", `/api/user/contacts/${userId}?page=${page}&limit=${limit}`);
       const json = await res.json();
-
       console.log("🧩 Parsed API JSON:", json);
-
-      if (Array.isArray(json)) return json;
-      if (Array.isArray(json?.data)) return json.data;
-      return [];
+      return json;
     },
     enabled: !!userId,
+    keepPreviousData: true,
   });
+
+  const contacts = data?.data || [];
+  const totalPages = data?.pagination?.totalPages || 1;
 
   if (isLoading)
     return (
@@ -62,52 +64,68 @@ export default function Contacts({ userId }: ContactsProps) {
     return <p className="text-muted-foreground">No contacts found.</p>;
 
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full border border-gray-200 bg-white rounded-lg shadow-sm">
-        <thead className="bg-gray-100 text-left text-sm font-semibold text-gray-700">
-          <tr>
-            <th className="py-3 px-4 border-b">Name</th>
-            <th className="py-3 px-4 border-b">Phone</th>
-            <th className="py-3 px-4 border-b">Email</th>
-            <th className="py-3 px-4 border-b">Status</th>
-            <th className="py-3 px-4 border-b">Groups</th>
-            <th className="py-3 px-4 border-b">Tags</th>
-            <th className="py-3 px-4 border-b">Created At</th>
-          </tr>
-        </thead>
-        <tbody>
-          {contacts.map((contact) => (
-            <tr
-              key={contact.id}
-              className="hover:bg-gray-50 transition-colors text-sm text-gray-700"
-            >
-              <td className="py-3 px-4 border-b">{contact.name}</td>
-              <td className="py-3 px-4 border-b">{contact.phone}</td>
-              <td className="py-3 px-4 border-b">{contact.email}</td>
-              <td className="py-3 px-4 border-b">
-                {contact.status === "active" ? (
-                  <span className="px-2 py-1 rounded text-xs bg-green-100 text-green-700">
-                    Active
-                  </span>
-                ) : (
-                  <span className="px-2 py-1 rounded text-xs bg-gray-100 text-gray-600">
-                    {contact.status}
-                  </span>
-                )}
-              </td>
-              <td className="py-3 px-4 border-b">
-                {contact.groups.join(", ") || "-"}
-              </td>
-              <td className="py-3 px-4 border-b">
-                {contact.tags.join(", ") || "-"}
-              </td>
-              <td className="py-3 px-4 border-b">
-                {new Date(contact.createdAt).toLocaleDateString()}
-              </td>
+    <div>
+      <div className="overflow-x-auto">
+        <table className="min-w-full border border-gray-200 bg-white rounded-lg shadow-sm">
+          <thead className="bg-gray-100 text-left text-sm font-semibold text-gray-700">
+            <tr>
+              <th className="py-3 px-4 border-b">Name</th>
+              <th className="py-3 px-4 border-b">Phone</th>
+              <th className="py-3 px-4 border-b">Email</th>
+              <th className="py-3 px-4 border-b">Status</th>
+              <th className="py-3 px-4 border-b">Groups</th>
+              <th className="py-3 px-4 border-b">Tags</th>
+              <th className="py-3 px-4 border-b">Created At</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {contacts.map((contact) => (
+              <tr key={contact.id} className="hover:bg-gray-50 transition-colors text-sm text-gray-700">
+                <td className="py-3 px-4 border-b">{contact.name}</td>
+                <td className="py-3 px-4 border-b">{contact.phone}</td>
+                <td className="py-3 px-4 border-b">{contact.email}</td>
+                <td className="py-3 px-4 border-b">
+                  {contact.status === "active" ? (
+                    <span className="px-2 py-1 rounded text-xs bg-green-100 text-green-700">
+                      Active
+                    </span>
+                  ) : (
+                    <span className="px-2 py-1 rounded text-xs bg-gray-100 text-gray-600">
+                      {contact.status}
+                    </span>
+                  )}
+                </td>
+                <td className="py-3 px-4 border-b">{contact.groups.join(", ") || "-"}</td>
+                <td className="py-3 px-4 border-b">{contact.tags.join(", ") || "-"}</td>
+                <td className="py-3 px-4 border-b">{new Date(contact.createdAt).toLocaleDateString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Pagination */}
+      <div className="flex justify-between items-center mt-4 text-sm text-gray-700">
+        <button
+          className="px-3 py-1 border rounded disabled:opacity-50"
+          onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+          disabled={page === 1}
+        >
+          Previous
+        </button>
+
+        <span>
+          Page {page} of {totalPages}
+        </span>
+
+        <button
+          className="px-3 py-1 border rounded disabled:opacity-50"
+          onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+          disabled={page === totalPages}
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 }

@@ -40,13 +40,26 @@ export const getTemplate = asyncHandler(async (req: Request, res: Response) => {
 
 
 export const getTemplateByUserID = asyncHandler(async (req: Request, res: Response) => {
-  const { userId } = req.body;
-  const template = await storage.getTemplatesByUserId(userId);
-  if (!template) {
-    throw new AppError(404, 'Template not found');
+  const { userId, page = 1, limit = 10 } = req.body;
+
+  const templates = await storage.getTemplatesByUserId(userId, Number(page), Number(limit));
+
+  if (!templates || templates.data.length === 0) {
+    return res.status(404).json({ status: 'error', message: 'Template not found' });
   }
-  res.json(template);
+
+  res.json({
+    status: 'success',
+    data: templates.data,
+    pagination: {
+      page: templates.page,
+      limit: templates.limit,
+      total: templates.total,
+      totalPages: Math.ceil(templates.total / templates.limit),
+    },
+  });
 });
+
 
 export const createTemplate = asyncHandler(async (req: RequestWithChannel, res: Response) => {
   console.log("Template creation request body:", JSON.stringify(req.body, null, 2));

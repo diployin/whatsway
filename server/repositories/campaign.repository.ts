@@ -1,5 +1,5 @@
 import { db } from "../db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { 
   campaigns, 
   type Campaign, 
@@ -25,10 +25,39 @@ export class CampaignRepository {
   }
 
 
-  async getCampaignByUserId(userId: string): Promise<Campaign | undefined>{
-    const [campaign] = await db.select().from(campaigns).where(eq(campaigns.createdBy, userId));
-    return campaign || []
-  }
+  // async getCampaignByUserId(userId: string): Promise<Campaign | undefined>{
+  //   const [campaign] = await db.select().from(campaigns).where(eq(campaigns.createdBy, userId));
+  //   return campaign || []
+  // }
+
+ async getCampaignByUserId(
+  userId: string,
+  page: number = 1,
+  limit: number = 10
+) {
+  const offset = (page - 1) * limit;
+
+  const campaignsList = await db
+    .select()
+    .from(campaigns)
+    .where(eq(campaigns.createdBy, userId))
+    .limit(Number(limit))
+    .offset(Number(offset));
+
+  const totalResult = await db
+    .select({ total: sql<number>`COUNT(*)` })
+    .from(campaigns)
+    .where(eq(campaigns.createdBy, userId));
+
+  return {
+    data: campaignsList,
+    total: totalResult[0]?.total ?? 0,
+    page,
+    limit
+  };
+}
+
+
 
   async create(insertCampaign: InsertCampaign & { createdBy: string }): Promise<Campaign> {
     const [campaign] = await db

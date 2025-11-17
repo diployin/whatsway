@@ -16,13 +16,40 @@ export class ContactRepository {
       .orderBy(desc(contacts.createdAt));
   }
 
-  async getContactsByUserId(userId: string): Promise<Contact[]> {
-      return await db
-        .select()
-        .from(contacts)
-        .where(eq(contacts.createdBy, userId))
-        .orderBy(desc(contacts.createdAt));
-    }
+  async getContactsByUserId(
+  userId: string,
+  page: number = 1,
+  limit: number = 10
+): Promise<{ data: Contact[]; total: number; totalPages: number; page: number; limit: number }> {
+  const offset = (page - 1) * limit;
+
+  // Get total count for pagination
+  const totalResult = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(contacts)
+    .where(eq(contacts.createdBy, userId));
+  const total = totalResult[0]?.count ?? 0;
+
+  // Fetch paginated data
+  const data = await db
+    .select()
+    .from(contacts)
+    .where(eq(contacts.createdBy, userId))
+    .orderBy(desc(contacts.createdAt))
+    .limit(limit)
+    .offset(offset);
+
+  const totalPages = Math.ceil(total / limit);
+
+  return {
+    data,
+    total,
+    totalPages,
+    page,
+    limit,
+  };
+}
+
 
     
   async getContactsByTenant(tenantId: string): Promise<Contact[]> {

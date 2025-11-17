@@ -186,9 +186,20 @@ async logApiRequest(log: InsertApiLog): Promise<ApiLog | null> {
   }
 
  
-async getContactsByUser(userId: string): Promise<Contact[]> {
-  return this.contactRepo.getContactsByUserId(userId); // ye repository ka method hai
+async getContactsByUser(
+  userId: string,
+  page: number = 1,
+  limit: number = 10
+): Promise<{
+  data: Contact[];
+  total: number;
+  totalPages: number;
+  page: number;
+  limit: number;
+}> {
+  return this.contactRepo.getContactsByUserId(userId, page, limit);
 }
+
 
 
   async getContactsByChannel(channelId: string): Promise<Contact[]> {
@@ -262,8 +273,8 @@ async getContactsByUser(userId: string): Promise<Contact[]> {
     return this.campaignRepo.getById(id);
   }
 
-  async getCampaignByUserId(userId: string): Promise<Campaign | undefined> {
-    return this.campaignRepo.getCampaignByUserId(userId);
+  async getCampaignByUserId(userId: string, page: number = 1, limit: number = 10): Promise<Campaign | undefined> {
+    return this.campaignRepo.getCampaignByUserId(userId, page, limit);
   }
 
   async createCampaign(insertCampaign: InsertCampaign & { createdBy: string }): Promise<Campaign> {
@@ -290,9 +301,17 @@ async getContactsByUser(userId: string): Promise<Contact[]> {
     return this.channelRepo.getById(id);
   }
 
-   async getChannelsByUser(userId: string): Promise<Channel[]> {
-    return this.channelRepo.getByUser(userId);
-  }
+   async getChannelsByUser(
+  userId: string,
+  page: number = 1,
+  limit: number = 10
+): Promise<{
+  data: Channel[];
+  pagination: { page: number; limit: number; total: number; totalPages: number };
+}> {
+  return this.channelRepo.getByUser(userId, page, limit);
+}
+
 
 
 
@@ -326,9 +345,14 @@ async getContactsByUser(userId: string): Promise<Contact[]> {
     return this.templateRepo.getAll();
   }
 
-  async getTemplatesByUserId(userId: string): Promise<Template[]>{
-    return this.templateRepo.getTemplateByUserID(userId)
-  }
+  async getTemplatesByUserId(
+  userId: string,
+  page: number = 1,
+  limit: number = 10
+): Promise<{ data: Template[]; total: number; page: number; limit: number }> {
+  return this.templateRepo.getTemplateByUserID(userId, page, limit);
+}
+
 
   
 async getTemplatesByChannelAndUser(channelId: string, userId: string): Promise<Template[]> {

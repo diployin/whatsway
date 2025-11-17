@@ -1,5 +1,6 @@
 import { Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
 
 interface Campaign {
@@ -36,26 +37,40 @@ interface CampaignsProps {
   userId: string;
 }
 
+interface CampaignsResponse {
+  data: Campaign[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 export default function Campaigns({ userId }: CampaignsProps) {
+  const [page, setPage] = useState<number>(1);
+  const limit = 10;
+
   const {
-    data: campaigns = [],
+    data,
     isLoading,
     isError,
     error,
-  } = useQuery<Campaign[]>({
-    queryKey: ["/api/getCampaignsByUserId", userId],
+  } = useQuery<CampaignsResponse, Error>({
+    queryKey: ["campaigns", userId, page],
     queryFn: async () => {
-      const res = await apiRequest("POST", "/api/getCampaignsByUserId", { userId });
-      const json = await res.json();
-      console.log("🧩 Parsed campaigns JSON:", json);
-      // API response might be object for a single campaign
-      if (Array.isArray(json)) return json;
-      if (Array.isArray(json?.data)) return json.data;
-      // If API returns single object, wrap in array
-      return json ? [json] : [];
+      const res = await apiRequest("POST", "/api/getCampaignsByUserId", {
+        userId,
+        page,
+        limit,
+      });
+      const json: CampaignsResponse = await res.json();
+      return json;
     },
     enabled: !!userId,
+    keepPreviousData: true,
   });
+
+  const campaigns = data?.data ?? [];
+  const total = data?.total ?? 0;
+  const totalPages = Math.ceil(total / limit);
 
   if (isLoading)
     return (
@@ -67,7 +82,7 @@ export default function Campaigns({ userId }: CampaignsProps) {
   if (isError)
     return (
       <p className="text-red-500 text-sm">
-        Error: {(error as Error)?.message || "Failed to load campaigns"}
+        Error: {error?.message || "Failed to load campaigns"}
       </p>
     );
 
@@ -75,52 +90,77 @@ export default function Campaigns({ userId }: CampaignsProps) {
     return <p className="text-muted-foreground">No campaigns found.</p>;
 
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full border border-gray-200 bg-white rounded-lg shadow-sm">
-        <thead className="bg-gray-100 text-left text-sm font-semibold text-gray-700">
-          <tr>
-            <th className="py-3 px-4 border-b">Name</th>
-            <th className="py-3 px-4 border-b">Type</th>
-            <th className="py-3 px-4 border-b">Status</th>
-            <th className="py-3 px-4 border-b">Scheduled At</th>
-            <th className="py-3 px-4 border-b">Created At</th>
-          </tr>
-        </thead>
-        <tbody>
-          {campaigns.map((campaign) => (
-            <tr
-              key={campaign.id}
-              className="hover:bg-gray-50 transition-colors text-sm text-gray-700"
-            >
-              <td className="py-3 px-4 border-b">{campaign.name}</td>
-              <td className="py-3 px-4 border-b">{campaign.type}</td>
-              <td className="py-3 px-4 border-b">
-                {campaign.status === "scheduled" ? (
-                  <span className="px-2 py-1 rounded text-xs bg-blue-100 text-blue-700">
-                    {campaign.status}
-                  </span>
-                ) : campaign.status === "completed" ? (
-                  <span className="px-2 py-1 rounded text-xs bg-green-100 text-green-700">
-                    {campaign.status}
-                  </span>
-                ) : (
-                  <span className="px-2 py-1 rounded text-xs bg-yellow-100 text-yellow-700">
-                    {campaign.status || "unknown"}
-                  </span>
-                )}
-              </td>
-              <td className="py-3 px-4 border-b">
-                {campaign.scheduledAt
-                  ? new Date(campaign.scheduledAt).toLocaleString()
-                  : "-"}
-              </td>
-              <td className="py-3 px-4 border-b">
-                {new Date(campaign.createdAt).toLocaleString()}
-              </td>
+    <div>
+      <div className="overflow-x-auto">
+        <table className="min-w-full border border-gray-200 bg-white rounded-lg shadow-sm">
+          <thead className="bg-gray-100 text-left text-sm font-semibold text-gray-700">
+            <tr>
+              <th className="py-3 px-4 border-b">Name</th>
+              <th className="py-3 px-4 border-b">Type</th>
+              <th className="py-3 px-4 border-b">Status</th>
+              <th className="py-3 px-4 border-b">Scheduled At</th>
+              <th className="py-3 px-4 border-b">Created At</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {campaigns.map((campaign) => (
+              <tr
+                key={campaign.id}
+                className="hover:bg-gray-50 transition-colors text-sm text-gray-700"
+              >
+                <td className="py-3 px-4 border-b">{campaign.name}</td>
+                <td className="py-3 px-4 border-b">{campaign.type}</td>
+                <td className="py-3 px-4 border-b">
+                  {campaign.status === "scheduled" ? (
+                    <span className="px-2 py-1 rounded text-xs bg-blue-100 text-blue-700">
+                      {campaign.status}
+                    </span>
+                  ) : campaign.status === "completed" ? (
+                    <span className="px-2 py-1 rounded text-xs bg-green-100 text-green-700">
+                      {campaign.status}
+                    </span>
+                  ) : (
+                    <span className="px-2 py-1 rounded text-xs bg-yellow-100 text-yellow-700">
+                      {campaign.status || "unknown"}
+                    </span>
+                  )}
+                </td>
+                <td className="py-3 px-4 border-b">
+                  {campaign.scheduledAt
+                    ? new Date(campaign.scheduledAt).toLocaleString()
+                    : "-"}
+                </td>
+                <td className="py-3 px-4 border-b">
+                  {new Date(campaign.createdAt).toLocaleString()}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="flex justify-between items-center mt-4 text-sm">
+        <button
+          className="px-3 py-1 border rounded disabled:opacity-50"
+          onClick={() => setPage((p) => Math.max(p - 1, 1))}
+          disabled={page === 1}
+        >
+          Previous
+        </button>
+
+        <span>
+          Page {page} of {totalPages}
+        </span>
+
+        <button
+          className="px-3 py-1 border rounded disabled:opacity-50"
+          onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+          disabled={page === totalPages}
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 }
