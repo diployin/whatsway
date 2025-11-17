@@ -1,4 +1,4 @@
-// UPDATED UI – MATCHES NEW BACKEND API
+// FULLY INTEGRATED WITH BACKEND API
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -71,6 +71,24 @@ export default function Notifications() {
     error,
   } = useQuery<Notification[]>({
     queryKey: ["/api/notifications"],
+    queryFn: async () => {
+      const response = await fetch("/api/notifications", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch notifications: ${response.statusText}`
+        );
+      }
+
+      return response.json();
+    },
+    staleTime: 30000, // Cache for 30 seconds
   });
 
   useEffect(() => {
@@ -90,17 +108,48 @@ export default function Notifications() {
       title: "",
       message: "",
       targetType: "all",
+      targetIds: [],
     },
   });
 
   // ---------------- Create Notification ----------------
   const createMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      return await apiRequest("POST", "/api/notifications", data);
+      const payload = {
+        title: data.title,
+        message: data.message,
+        targetType: data.targetType,
+        targetIds:
+          data.targetIds && data.targetIds.length > 0
+            ? data.targetIds
+            : undefined,
+      };
+
+      const response = await fetch("/api/notifications", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to send notification");
+      }
+
+      return response.json();
     },
     onSuccess: () => {
+      // Invalidate and refetch notifications
       queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
-      toast({ title: "Success", description: "Notification sent!" });
+
+      toast({
+        title: "Success",
+        description: "Notification sent successfully!",
+      });
+
       form.reset();
       setShowDialog(false);
     },
@@ -113,7 +162,18 @@ export default function Notifications() {
     },
   });
 
-  const onSubmit = (data: FormData) => createMutation.mutate(data);
+  const onSubmit = (data: FormData) => {
+    createMutation.mutate(data);
+  };
+
+  // ---------------- Manual Refresh ----------------
+  const handleRefresh = () => {
+    refetch();
+    toast({
+      title: "Refreshing",
+      description: "Loading latest notifications...",
+    });
+  };
 
   // ---------------- Simple Pagination ----------------
   const totalItems = notifications.length;
@@ -526,6 +586,11 @@ export default function Notifications() {
                     )
                   }
                 />
+                {form.formState.errors.targetIds && (
+                  <p className="text-sm text-destructive mt-1">
+                    {form.formState.errors.targetIds.message}
+                  </p>
+                )}
               </div>
             )}
 
