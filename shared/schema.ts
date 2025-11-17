@@ -11,6 +11,8 @@ import {
   unique,
   numeric,
   pgEnum,
+  serial,
+  uuid,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
@@ -329,18 +331,28 @@ export const messages = pgTable(
   })
 );
 
-// Notifications table
 export const notifications = pgTable("notifications", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: serial("id").primaryKey(),
 
   title: text("title").notNull(),
   message: text("message").notNull(),
 
-  targetType: text("target_type").notNull(), // "all", "users", "admins", "team", "specific"
+  // message, payment, follower, security, reminder, call, etc.
+  type: varchar("type").notNull().default("general"),
 
+  // Who created it? admin | system
+  createdBy: varchar("created_by").notNull().default("system"),
+
+  //------------------------
+  // Target system
+  //------------------------
+  // all, specific, single
+  targetType: varchar("target_type").notNull(),
+
+  // For specific users (array)
   targetIds: text("target_ids").array().default(sql`ARRAY[]::text[]`),
 
-  status: text("status").notNull().default("draft"), // "draft", "sent"
+  status: varchar("status").notNull().default("draft"), // draft | sent
   sentAt: timestamp("sent_at"),
 
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -348,14 +360,14 @@ export const notifications = pgTable("notifications", {
 
 
 export const sentNotifications = pgTable("sent_notifications", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: serial("id").primaryKey(),
 
-  notificationId: varchar("notification_id")
-    .references(() => notifications.id)
-    .notNull(),
+  notificationId: integer('notification_id')
+  .references(() => notifications.id, { onDelete: 'cascade' })
+  .notNull(),
 
-  userId: varchar("user_id")
-    .references(() => users.id)
+  userId: uuid("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
     .notNull(),
 
   isRead: boolean("is_read").default(false),
@@ -363,7 +375,6 @@ export const sentNotifications = pgTable("sent_notifications", {
 
   sentAt: timestamp("sent_at").defaultNow(),
 });
-
 
 
 export const chatbots = pgTable('chatbots', {

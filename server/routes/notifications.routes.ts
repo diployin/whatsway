@@ -1,28 +1,34 @@
 import { requireAuth } from "server/middlewares/auth.middleware";
 import type { Express } from "express";
 import {
-  getAllNotifications,
-  getMyNotifications,
-  sendNotification,
-  markAsRead, 
-  updateNotification,
+  adminCreateNotification,
+  adminGetNotifications,
+  adminSendNotification,
+  userGetNotifications,
+  userMarkAsRead,
+  userUnreadCount,
+  userMarkAllRead
 } from "../controllers/notification.controller";
 
 export function registerNotificationsRoutes(app: Express) {
+  app.post("/api/notifications", requireAuth, adminCreateNotification);
 
-// GET all notifications
-app.get("/api/notifications", requireAuth, getAllNotifications);
+  // Send
+  app.post("/api/notifications/:id/send", requireAuth, adminSendNotification);
 
-// GET logged-in user's notifications
-app.get("/api/notifications/my", requireAuth, getMyNotifications);
+  // List all
+  app.get("/api/notifications/", requireAuth,  adminGetNotifications);
 
-// CREATE + SEND notification
-app.post("/api/notifications", requireAuth, sendNotification);
+  // List all user notifications
+  app.get("/api/notifications/users/", requireAuth,  userGetNotifications);
 
-// MARK notification as read
-app.post("/api/notifications/:id/read", requireAuth, markAsRead);
+  // Mark as read
+  app.post("/api/notifications/:id/read", requireAuth, userMarkAsRead);
+ 
+  // Mark all read
+  app.post("/api/notifications/mark-all", requireAuth, userMarkAllRead);
 
-// UPDATE notification (draft)
-app.patch("/api/notifications/:id", requireAuth, updateNotification);
-
+  // Unread count
+  app.get("/api/notifications/unread-count", requireAuth, userUnreadCount);
+  
 }

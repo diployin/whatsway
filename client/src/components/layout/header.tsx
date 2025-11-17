@@ -26,7 +26,7 @@
 //         </div>
 //         <div className="flex items-center space-x-4">
 //           {action && (
-//             <Button 
+//             <Button
 //               onClick={action.onClick}
 //               className="bg-green-600 hover:bg-green-700 text-white"
 //             >
@@ -34,7 +34,7 @@
 //               {action.label}
 //             </Button>
 //           )}
-          
+
 //           {/* Notifications */}
 //           <div className="relative">
 //             <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-colors" onClick={()=> setLocation('/inbox')}>
@@ -50,10 +50,15 @@
 //   );
 // }
 
-
 import { Bell, Plus, LogOut, Settings, User, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useLocation } from "wouter";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/auth-context";
@@ -89,7 +94,12 @@ interface HeaderProps {
 let firebaseApp: FirebaseApp | null = null;
 let messaging: any = null;
 
-export default function Header({ title, subtitle, action, userPhotoUrl }: HeaderProps) {
+export default function Header({
+  title,
+  subtitle,
+  action,
+  userPhotoUrl,
+}: HeaderProps) {
   const [, setLocation] = useLocation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notifModal, setNotifModal] = useState(false);
@@ -111,65 +121,43 @@ export default function Header({ title, subtitle, action, userPhotoUrl }: Header
     staleTime: 3600000,
   });
 
-  // 🔥 Initialize Firebase only once + start Firestore listener
-  useEffect(() => {
-    if (!firebaseConfig) return;
-
-    try {
-      // Build firebase config object
-      const cfg = {
-        apiKey: firebaseConfig.apiKey,
-        authDomain: firebaseConfig.authDomain,
-        projectId: firebaseConfig.projectId,
-        storageBucket: firebaseConfig.storageBucket,
-        messagingSenderId: firebaseConfig.messagingSenderId,
-        appId: firebaseConfig.appId,
-        measurementId: firebaseConfig.measurementId,
-      };
-
-      // Initialize ONCE
-      if (!firebaseApp) {
-        firebaseApp = getApps().length ? getApps()[0] : initializeApp(cfg);
-        messaging = getMessaging(firebaseApp);
-      }
-
-      const db = getFirestore(firebaseApp);
-      const colRef = collection(db, "notifications");
-
-      const q = user?.id
-        ? query(colRef, where("userId", "==", user.id), orderBy("createdAt", "desc"))
-        : query(colRef, orderBy("createdAt", "desc"));
-
-      const unsubscribe = onSnapshot(q, (snapshot) => {
-        const list: any[] = [];
-        let unread = 0;
-
-        snapshot.forEach((d) => {
-          const data = d.data();
-          list.push({
-            id: d.id,
-            title: data.title,
-            body: data.body,
-            createdAt: data.createdAt,
-            read: data.read ?? false,
-          });
-          if (!data.read) unread++;
-        });
-
-        setNotifications(list);
-        setUnreadCount(unread);
+  const { data: notifData, refetch } = useQuery({
+    queryKey: ["/api/notifications/users"],
+    queryFn: async () => {
+      const res = await axios.get("/api/notifications/users", {
+        withCredentials: true,
       });
+      return res.data;
+    },
+    staleTime: 20000,
+  });
 
-      return () => unsubscribe();
-    } catch (err) {
-      console.error("Firebase init error:", err);
+  // console.log(notifData);
+
+  useEffect(() => {
+    if (notifData) {
+      setNotifications(
+        notifData.map((n: any) => ({
+          id: n.id,
+          title: n.notification?.title,
+          body: n.notification?.message,
+          createdAt: n.notification?.createdAt || n.sentAt,
+          read: n.isRead,
+        }))
+      );
+
+      const unread = notifData.filter((n: any) => !n.isRead).length;
+      setUnreadCount(unread);
     }
-  }, [firebaseConfig, user?.id]);
+  }, [notifData]);
 
   // Close dropdown on outside click
   useEffect(() => {
     const close = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
         setDropdownOpen(false);
       }
     };
@@ -178,23 +166,13 @@ export default function Header({ title, subtitle, action, userPhotoUrl }: Header
   }, []);
 
   // Mark single notification
-  const markAsRead = async (id: string) => {
-    if (!firebaseApp) return;
-
-    const db = getFirestore(firebaseApp);
-    await updateDoc(doc(db, "notifications", id), { read: true });
+  const markAsRead = async (id: any) => {
+    await axios.post(`/api/notifications/${id}/read`);
+    refetch();
   };
-
-  // Mark all notifications
   const markAllAsRead = async () => {
-    if (!firebaseApp) return;
-
-    const db = getFirestore(firebaseApp);
-    const tasks = notifications.map((n) =>
-      !n.read ? updateDoc(doc(db, "notifications", n.id), { read: true }) : null
-    );
-
-    await Promise.all(tasks);
+    await axios.post("/api/notifications/mark-all");
+    refetch();
   };
 
   // UI unchanged --------------------------------------
@@ -209,7 +187,10 @@ export default function Header({ title, subtitle, action, userPhotoUrl }: Header
 
           <div className="flex items-center space-x-4">
             {action && (
-              <Button onClick={action.onClick} className="bg-green-600 text-white">
+              <Button
+                onClick={action.onClick}
+                className="bg-green-600 text-white"
+              >
                 <Plus className="w-4 h-4 mr-2" /> {action.label}
               </Button>
             )}
@@ -236,7 +217,9 @@ export default function Header({ title, subtitle, action, userPhotoUrl }: Header
                 <img
                   src={
                     userPhotoUrl ||
-                    `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}`
+                    `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                      username
+                    )}`
                   }
                   className="w-full h-full object-cover"
                 />
@@ -268,7 +251,10 @@ export default function Header({ title, subtitle, action, userPhotoUrl }: Header
                     <User className="w-4 h-4 mr-2" /> Account
                   </button>
 
-                  <button className="flex items-center w-full px-4 py-2 hover:bg-gray-100" onClick={logout}>
+                  <button
+                    className="flex items-center w-full px-4 py-2 hover:bg-gray-100"
+                    onClick={logout}
+                  >
                     <LogOut className="w-4 h-4 mr-2" /> Logout
                   </button>
                 </div>
@@ -288,36 +274,53 @@ export default function Header({ title, subtitle, action, userPhotoUrl }: Header
 
           <div className="mt-3 flex items-center justify-between">
             <div className="text-sm text-gray-600">
-              {notifications.length} notification{notifications.length !== 1 && "s"}
+              {notifications.length} notification
+              {notifications.length !== 1 && "s"}
             </div>
-            <button onClick={markAllAsRead} className="text-sm text-blue-600 hover:underline">
+
+            <button
+              onClick={markAllAsRead}
+              className="text-sm text-blue-600 hover:underline"
+            >
               Mark all as read
             </button>
           </div>
 
           <div className="max-h-[420px] overflow-y-auto mt-3 space-y-3">
             {notifications.length === 0 ? (
-              <div className="text-center text-gray-500 py-8">No notifications</div>
+              <div className="text-center text-gray-500 py-8">
+                No notifications
+              </div>
             ) : (
               notifications.map((n) => {
-                let time = "";
-                if (n.createdAt?.toDate) time = n.createdAt.toDate().toLocaleString();
-                else if (typeof n.createdAt === "string") time = new Date(n.createdAt).toLocaleString();
+                const time = new Date(n.createdAt).toLocaleString();
 
                 return (
-                  <div key={n.id} className={`p-4 border rounded-lg ${n.read ? "bg-white" : "bg-green-50"}`}>
+                  <div
+                    key={n.id}
+                    className={`p-4 border rounded-lg ${
+                      n.read ? "bg-white" : "bg-green-50"
+                    }`}
+                  >
                     <div className="flex justify-between items-start">
                       <div>
                         <div className="flex items-center space-x-2">
                           <h4 className="font-medium">{n.title}</h4>
-                          {!n.read && <CheckCircle className="w-4 h-4 text-green-600" />}
+                          {!n.read && (
+                            <CheckCircle className="w-4 h-4 text-green-600" />
+                          )}
                         </div>
+
                         <p className="text-sm mt-1">{n.body}</p>
+
                         <p className="text-xs text-gray-400 mt-2">{time}</p>
                       </div>
 
                       {!n.read && (
-                        <button className="text-sm text-blue-600 hover:underline" onClick={() => markAsRead(n.id)}>
+                        <button
+                          className="text-sm text-blue-600 hover:underline"
+                          onClick={() => markAsRead(n.id)}
+                        >
                           Mark read
                         </button>
                       )}
