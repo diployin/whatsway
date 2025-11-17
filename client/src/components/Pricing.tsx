@@ -31,9 +31,11 @@ const Pricing = () => {
     useQuery<PaymentProvidersResponse>({
       queryKey: ["/api/payment-providers"],
       queryFn: async () => {
-        const res = await fetch("/api/payment-providers");
+        const res = await apiRequest( "GET","/api/payment-providers");
         if (!res.ok) throw new Error("Failed to fetch payment providers");
-        return res.json();
+        const data = await res.json();
+        console.log("PARSED JSON DATA:", data); // logs the actual JSON
+        return data;
       },
     });
 

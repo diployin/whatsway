@@ -38,7 +38,7 @@ const Header = () => {
   const {isAuthenticated,user, logout} = useAuth();
 
 
-  const username = user?.firstName +''+ user?.lastName || "User"
+   const username = (user?.firstName || "") + " " + (user?.lastName || "");
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -376,7 +376,9 @@ const Header = () => {
             >
               <img
                 src={
-                  `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=0D8ABC&color=fff`
+                  `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                      username
+                    )}`
                 }
                 alt="User Profile"
                 className="w-full h-full object-cover"

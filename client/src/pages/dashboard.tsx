@@ -402,7 +402,7 @@ export default function Dashboard() {
         </div>
 
         {/* Charts and Recent Activity */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div  className={`grid grid-cols-1 gap-6 lg:${user?.role === 'superadmin' ? 'grid-cols-3' : 'grid-cols-1'}`}>
           {/* Message Analytics Chart */}
           <Card className="lg:col-span-2 hover-lift fade-in">
             <CardHeader>
@@ -470,6 +470,7 @@ export default function Dashboard() {
           </Card>
 
           {/* Recent Activities */}
+          {user?.role === 'superadmin' && (
           <Card className="hover-lift fade-in">
             <CardHeader>
               <CardTitle className="flex items-center">
@@ -534,6 +535,7 @@ export default function Dashboard() {
               </Button>
             </CardContent>
           </Card>
+          )}
         </div>
 
         {/* Quick Actions and API Status */}

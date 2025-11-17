@@ -273,7 +273,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
       });
 
       const options = {
-        key: paymentData.orderId,
+        key: paymentData.keyId,
         amount: paymentData.amount,
         currency: paymentData.currency,
         name: "Your Company Name",
