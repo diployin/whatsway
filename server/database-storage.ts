@@ -40,12 +40,9 @@ import {
   type InsertMessageQueue,
   type ApiLog,
   type InsertApiLog,
-  type Tenant,
-  type InsertTenant,
   type Site,
   type InsertSite,
   sites,
-  tenants,
 } from "@shared/schema";
 import { db } from "./db";
 import { desc, eq } from "drizzle-orm";
@@ -67,25 +64,6 @@ export class DatabaseStorage implements IStorage {
 
 
   
-  // Tenants
-  async getTenant(id: string): Promise<Tenant | undefined> {
-    const [tenant] = await db.select().from(tenants).where(eq(tenants.id, id));
-    return tenant || undefined;
-  }
-
-  async getTenants(): Promise<Tenant[]> {
-    return await db.select().from(tenants).orderBy(desc(tenants.createdAt));
-  }
-
-  async createTenant(insertTenant: InsertTenant): Promise<Tenant> {
-    const [tenant] = await db.insert(tenants).values(insertTenant).returning();
-    return tenant;
-  }
-
-  async updateTenant(id: string, data: Partial<InsertTenant>): Promise<Tenant> {
-    const [tenant] = await db.update(tenants).set(data).where(eq(tenants.id, id)).returning();
-    return tenant;
-  }
 
   // Sites
   
@@ -102,8 +80,9 @@ export class DatabaseStorage implements IStorage {
   return site || [];
 }
 
-  async getSitesByTenant(tenantId: string): Promise<Site[]> {
-    return await db.select().from(sites).where(eq(sites.tenantId, tenantId));
+  async getSitesByChannel(channelId: string): Promise<Site[]> {
+    console.log(channelId)
+    return await db.select().from(sites).where(eq(sites.channelId, channelId));
   }
 
   async createSite(insertSite: InsertSite): Promise<Site> {

@@ -68,17 +68,28 @@ export default function WidgetBuilder() {
   const { toast } = useToast();
   const {t} = useTranslation();
 
-  const { data: sitesw, isLoading, error } = useQuery({
-    queryKey: ["/api/sites"],
+  
+  const { data: activeChannel } = useQuery({
+    queryKey: ["/api/channels/active"],
     queryFn: async () => {
-      const res = await fetch("/api/sites");
+      const response = await fetch("/api/channels/active");
+      if (!response.ok) return null;
+      return await response.json();
+    },
+  });
+  console.log(activeChannel)
+
+  const { data: sitesw, isLoading, error } = useQuery({
+    queryKey: ["/api/active-site"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", `/api/active-site?channelId=${activeChannel.id}`);
       if (!res.ok) throw new Error("Failed to fetch sites");
       return res.json();
     },
   });
   
-  console.log("sites", sitesw, "error", error);
   
+  console.log("sites", sitesw, "error", error);
   
   const [config, setConfig] = useState({
     // Basic Settings
@@ -224,10 +235,12 @@ const userList: Array<any> = useMemo(() => {
   const { data, isSuccess, isError } = useQuery({
   queryKey: ['siteConfig'],
   queryFn: async () => {
-    const res = await apiRequest("GET", "/api/get_sites");
+    const res = await apiRequest("GET", `/api/active-site?channelId=${activeChannel.id}`);
     return res.json();
   },
 });
+
+console.log("data" , data)
 
 useEffect(() => {
   if (isSuccess && data?.sites?.widgetConfig) {
@@ -290,11 +303,13 @@ useEffect(() => {
   const widgetDomain = domain.startsWith('http') ? domain : `https://${domain}`;
   
   const widgetCode = `<!-- AI Chat Widget -->
-<script>
-  window.aiChatConfig = {
-    siteId: "${selectedSiteId || 'your-site-id'}"
-  };
-</script>
+    <script>
+      window.aiChatConfig = {
+       siteId: "${selectedSiteId || 'your-site-id'}"
+        channelId:"${selectedSiteId || 'your-channel-id'}"
+        url: ${widgetDomain},
+      };
+    </script>
 <script src="${widgetDomain}/widget/widget.js" async></script>`;
 
   const copyCode = () => {
@@ -316,10 +331,10 @@ useEffect(() => {
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Customization Panel */}
         <div className="space-y-6">
-          <Tabs defaultValue="design" className="space-y-7">
+          <Tabs defaultValue="content" className="space-y-7">
             <TabsList className="grid w-full grid-cols-7">
-              <TabsTrigger value="design">Design</TabsTrigger>
               <TabsTrigger value="content">Content</TabsTrigger>
+              <TabsTrigger value="design">Design</TabsTrigger>
               <TabsTrigger value="layouts">Layouts</TabsTrigger>
               <TabsTrigger value="features">Features</TabsTrigger>
               <TabsTrigger value="team">Team</TabsTrigger>
