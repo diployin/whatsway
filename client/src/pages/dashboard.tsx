@@ -41,7 +41,7 @@ export default function Dashboard() {
     },
   });
 
-  const isAdmin = user?.role === 'superadmin'
+  const isAdmin = user?.role === "superadmin";
 
   const { data: activityLogs = [], isLoading } = useQuery({
     queryKey: ["/api/team/activity-logs"],
@@ -354,7 +354,6 @@ export default function Dashboard() {
                     {stats?.todayContacts || "0"}
                   </p>
 
-                  
                   <div className="flex items-center mt-2">
                     {(() => {
                       if (!stats) {
@@ -378,7 +377,7 @@ export default function Dashboard() {
                             {comparison.percentage}%
                           </span>
                           <span className="text-sm text-gray-500 ml-1">
-                          {t("dashboard.vsLastWeek")}
+                            {t("dashboard.vsLastWeek")}
                           </span>
                         </>
                       );
@@ -483,10 +482,14 @@ export default function Dashboard() {
                   </p>
                 ) : (
                   (activityLogs as ActivityLog[])
-                  .sort((a: ActivityLog, b: ActivityLog) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                  .slice(0, 5)
-                  .map((log: ActivityLog) => {
-                    const meta = getActivityMeta(log.action);
+                    .sort(
+                      (a: ActivityLog, b: ActivityLog) =>
+                        new Date(b.createdAt).getTime() -
+                        new Date(a.createdAt).getTime()
+                    )
+                    .slice(0, 5)
+                    .map((log: ActivityLog) => {
+                      const meta = getActivityMeta(log.action);
                       return (
                         <div
                           key={log.id}
@@ -639,21 +642,23 @@ export default function Dashboard() {
                         {t("dashboard.whatsAppCloudAPI")}
                       </h4>
                       <p className="text-sm text-gray-600">
-                        {user?.username ? (
-                          activeChannel ? (
-                            `${activeChannel.name
-                              .slice(0, -1)
-                              .replace(/./g, "*") + activeChannel.name.slice(-1)} (${activeChannel.phoneNumber
-                              .slice(0, -4)
-                              .replace(/\d/g, "*") + activeChannel.phoneNumber.slice(-4)})`
-                          ) : (
-                            t("dashboard.noChannelSelected")
-                          )
-                        ) : activeChannel ? (
-                          `${activeChannel.name} (${activeChannel.phoneNumber})`
-                        ) : (
-                          t("dashboard.noChannelSelected")
-                        )}
+                        {user?.username
+                          ? activeChannel
+                            ? `${
+                                activeChannel.name
+                                  .slice(0, -1)
+                                  .replace(/./g, "*") +
+                                activeChannel.name.slice(-1)
+                              } (${
+                                activeChannel.phoneNumber
+                                  .slice(0, -4)
+                                  .replace(/\d/g, "*") +
+                                activeChannel.phoneNumber.slice(-4)
+                              })`
+                            : t("dashboard.noChannelSelected")
+                          : activeChannel
+                          ? `${activeChannel.name} (${activeChannel.phoneNumber})`
+                          : t("dashboard.noChannelSelected")}
                       </p>
                     </div>
                   </div>

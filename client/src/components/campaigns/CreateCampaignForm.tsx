@@ -51,7 +51,7 @@ export function CreateCampaignForm({
     onSubmit(campaignData);
   };
 
-  const activeTemplates = templates.filter((t: any) => t.status === "APPROVED");
+  const activeTemplates = templates.filter((t: any) => t.status === "pending");
   const {user} = useAuth()
 
   return (
@@ -77,7 +77,7 @@ export function CreateCampaignForm({
             <SelectValue placeholder="Select a template" />
           </SelectTrigger>
           <SelectContent>
-            {activeTemplates.map((template: any) => (
+            {templates.map((template: any) => (
               <SelectItem key={template.id} value={template.id}>
                 {template.name} ({template.language})
               </SelectItem>

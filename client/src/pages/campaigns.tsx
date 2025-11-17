@@ -31,60 +31,93 @@ export default function Campaigns() {
   const queryClient = useQueryClient();
   const { selectedChannel } = useChannelContext();
   const { user } = useAuth();
-
+  const userId = user?.id;
+  const userRole = user?.role;
 
   // Log selected channel for debugging
   useEffect(() => {
     // console.log("Selected channel in campaigns:", selectedChannel);
   }, [selectedChannel]);
 
-  // Fetch campaigns
-  const { data: campaigns = [], isLoading: campaignsLoading } = useQuery({
-    queryKey: ["/api/campaigns"],
-    enabled: !!selectedChannel,
-    queryFn: async () => {
-      const res = await fetch("/api/campaigns", {
-        credentials: "include",
-        headers: {
-          "x-channel-id": selectedChannel?.id || "",
-        },
+  const { data: campaigns = [], isLoading: campaignsLoading, isError, error } = useQuery({
+  queryKey: ["campaigns", user?.id, userRole],
+  queryFn: async () => {
+    let res: Response;
+    if (userRole === "superadmin") {
+      res = await fetch("/api/campaigns", { credentials: "include" });
+    } else {
+      res = await fetch("/api/getCampaignsByUserId", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user?.id }),
       });
-      if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
-      return res.json();
-    },
-  });
+    }
+
+    if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
+    const json = await res.json();
+
+    // Make sure it's always an array
+    if (Array.isArray(json)) return json;
+    if (json) return [json];  // wrap single object into array
+    return [];
+  },
+  enabled: !!user?.id,
+});
+
+
+
+
+
 
   // Fetch templates for campaign creation
-  const { data: templates = [] } = useQuery({
-    queryKey: ["/api/templates", selectedChannel?.id],
-    enabled: createDialogOpen && !!selectedChannel,
-    queryFn: async () => {
-      const res = await fetch("/api/templates", {
-        credentials: "include",
-        headers: {
-          "x-channel-id": selectedChannel?.id || "",
-        },
-      });
-      if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
-      return res.json();
-    },
-  });
+  const {
+  data: templates = [],
+} = useQuery({
+  queryKey: ["/api/getTemplateByUserId", userId],
+  enabled: !!userId,
+  queryFn: async () => {
+    const res = await fetch("/api/getTemplateByUserId", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userId }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed: ${res.statusText}`);
+    }
+
+    const json = await res.json();
+
+    // console.log("🧩 Templates Response:", json);
+
+    if (Array.isArray(json)) return json;
+    if (Array.isArray(json?.data.data)) return json.data;
+    return [];
+  },
+});
+
 
   // Fetch contacts for contacts-based campaigns
   const { data: contactsResponse } = useQuery({
-    queryKey: ["/api/contacts"],
-    enabled: createDialogOpen && !!selectedChannel,
-    queryFn: async () => {
-      const res = await fetch("/api/contacts", {
-        credentials: "include",
-        headers: {
-          "x-channel-id": selectedChannel?.id || "",
-        },
-      });
-      if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
-      return res.json();
-    },
-  });
+  queryKey: ["/api/user/contacts", userId],
+  enabled: createDialogOpen && !!selectedChannel && !!userId,
+  queryFn: async () => {
+    if (!userId) return { success: false, data: [] };
+
+    const res = await fetch(`/api/user/contacts/${userId}`, {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        "x-channel-id": selectedChannel?.id || "",
+      },
+    });
+
+    if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
+    return res.json();
+  },
+});
 
   const contacts = contactsResponse?.data || [];
 

@@ -350,8 +350,7 @@ export default function ContactsManagements() {
   // Updated query to fetch contacts with proper server-side filtering
   const { data: contactsResponse, isLoading } = useQuery<ContactsResponse>({
     queryKey: [
-      "/api/contacts",
-      activeChannel?.id,
+      "/api/contacts-management",
       currentPage,
       limit,
       selectedGroup,
@@ -359,14 +358,12 @@ export default function ContactsManagements() {
       searchQuery,
     ],
     queryFn: async () => {
-      const response = await api.getContacts(
+      const response = await api.getAllContacts(
         searchQuery || undefined,
-        activeChannel?.id,
         currentPage,
-        limit,
-        selectedGroup !== "all" && selectedGroup ? selectedGroup : undefined,
-        selectedStatus !== "all" && selectedStatus ? selectedStatus : undefined
+        limit
       );
+     
       return (await response.json()) as ContactsResponse;
     },
     placeholderData: (prev) => prev,
@@ -884,9 +881,7 @@ export default function ContactsManagements() {
                       <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
                         {t("contacts.lastContact")}
                       </th>
-                      <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {t("contacts.actions")}
-                      </th>
+                      
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -992,69 +987,7 @@ export default function ContactsManagements() {
                             ? new Date(contact.lastContact).toLocaleDateString()
                             : "Never"}
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="flex space-x-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedContact(contact);
-                                setShowMessageDialog(true);
-                              }}
-                              disabled={!channels || channels.length === 0}
-                              title={
-                                !channels || channels.length === 0
-                                  ? `${t("contacts.noChannels")}`
-                                  : `${t("contacts.sendMessage.title")}`
-                              }
-                            >
-                              <MessageSquare className="w-4 h-4 text-blue-600" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedContact(contact);
-                                setShowEditDialog(true);
-                              }}
-                              // disabled={user?.username === 'demouser'}
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <div className="flex items-center gap-3">
-                              <div className="flex items-center space-x-3">
-                                <Switch
-                                  checked={contact.status === "active"}
-                                  onCheckedChange={() =>
-                                    handleToggleContactStatus(
-                                      contact.id,
-                                      contact.status
-                                    )
-                                  }
-                                  disabled={user?.username === "demouser"}
-                                  className={
-                                    contact.status === "active"
-                                      ? "data-[state=checked]:bg-red-600"
-                                      : "data-[state=unchecked]:bg-green-600"
-                                  }
-                                />
-
-                                <span
-                                  className={`text-sm font-medium ${
-                                    contact.status === "active"
-                                      ? "text-red-600"
-                                      : "text-green-600"
-                                  }`}
-                                >
-                                  {contact.status === "active"
-                                    ? t("contacts.blockContact")
-                                    : t("contacts.unblockContact")}
-                                </span>
-                              </div>
-                            </div>
-                            
-                          </div>
-                        </td>
+                      
                       </tr>
                     ))}
                   </tbody>

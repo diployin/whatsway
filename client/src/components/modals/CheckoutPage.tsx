@@ -560,73 +560,81 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
               Select Payment Method:
             </h3>
 
-            {isLoadingProviders ? (
-              <div className="flex items-center justify-center p-8">
-                <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-              </div>
-            ) : activeProviders.length === 0 ? (
-              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <div className="flex items-start gap-2">
-                  <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-yellow-800">
-                      No payment methods available
-                    </p>
-                    <p className="text-xs text-yellow-700 mt-1">
-                      Please contact support to enable payment gateways.
-                    </p>
+            {(() => {
+              if (isLoadingProviders) {
+                return (
+                  <div className="flex items-center justify-center p-8">
+                    <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
                   </div>
-                </div>
-              </div>
-            ) : (
-              <div
-                className={`grid gap-2 sm:gap-3 ${
-                  activeProviders.length === 1 ? "grid-cols-1" : "grid-cols-2"
-                }`}
-              >
-                {activeProviders.map((provider) => {
-                  const colors = getProviderColor(provider.providerKey);
-                  const isSelected = selectedProvider?.id === provider.id;
-
-                  return (
-                    <button
-                      key={provider.id}
-                      onClick={() => setSelectedProvider(provider)}
-                      className={`p-3 sm:p-4 border-2 rounded-lg sm:rounded-xl transition-all ${
-                        isSelected
-                          ? `${colors.border} ${colors.bg}`
-                          : "border-gray-200 hover:border-gray-300"
-                      }`}
-                    >
-                      <div className="flex flex-col items-center gap-1.5 sm:gap-2">
-                        {getProviderIcon(provider.providerKey)}
-                        <div className="text-center">
-                          <span className="text-[10px] sm:text-xs font-medium text-gray-900 block">
-                            {provider.name}
-                          </span>
-                          <div className="flex items-center gap-1 justify-center mt-0.5">
-                            {provider.config.isLive ? (
-                              <span className="text-[8px] sm:text-[10px] text-green-600 font-medium">
-                                Live Mode
-                              </span>
-                            ) : (
-                              <span className="text-[8px] sm:text-[10px] text-orange-600 font-medium">
-                                Test Mode
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        {isSelected && (
-                          <Check
-                            className={`w-3 h-3 sm:w-4 sm:h-4 ${colors.check}`}
-                          />
-                        )}
+                );
+              }
+              if (activeProviders.length === 0) {
+                return (
+                  <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium text-yellow-800">
+                          No payment methods available
+                        </p>
+                        <p className="text-xs text-yellow-700 mt-1">
+                          Please contact support to enable payment gateways.
+                        </p>
                       </div>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+                    </div>
+                  </div>
+                );
+              }
+              return (
+                <div
+                  className={`grid gap-2 sm:gap-3 ${
+                    activeProviders.length === 1 ? "grid-cols-1" : "grid-cols-2"
+                  }`}
+                >
+                  {activeProviders.map((provider) => {
+                    const colors = getProviderColor(provider.providerKey);
+                    const isSelected = selectedProvider?.id === provider.id;
+
+                    return (
+                      <button
+                        key={provider.id}
+                        onClick={() => setSelectedProvider(provider)}
+                        className={`p-3 sm:p-4 border-2 rounded-lg sm:rounded-xl transition-all ${
+                          isSelected
+                            ? `${colors.border} ${colors.bg}`
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
+                      >
+                        <div className="flex flex-col items-center gap-1.5 sm:gap-2">
+                          {getProviderIcon(provider.providerKey)}
+                          <div className="text-center">
+                            <span className="text-[10px] sm:text-xs font-medium text-gray-900 block">
+                              {provider.name}
+                            </span>
+                            <div className="flex items-center gap-1 justify-center mt-0.5">
+                              {provider.config.isLive ? (
+                                <span className="text-[8px] sm:text-[10px] text-green-600 font-medium">
+                                  Live Mode
+                                </span>
+                              ) : (
+                                <span className="text-[8px] sm:text-[10px] text-orange-600 font-medium">
+                                  Test Mode
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          {isSelected && (
+                            <Check
+                              className={`w-3 h-3 sm:w-4 sm:h-4 ${colors.check}`}
+                            />
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
 
           {/* Pay Button */}

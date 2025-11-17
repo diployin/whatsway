@@ -21,19 +21,54 @@ export default function Templates() {
   const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+  const userRole = user?.role;
 
   // Fetch active channel
   const { data: activeChannel } = useQuery({
     queryKey: ["/api/channels/active"],
   });
 
+  // // Fetch templates
+  // const { data: templates = [], isLoading: templatesLoading } = useQuery<
+  //   Template[]
+  // >({
+  //   queryKey: ["/api/templates"],
+  //   enabled: !!activeChannel,
+  // });
+
+
   // Fetch templates
-  const { data: templates = [], isLoading: templatesLoading } = useQuery<
-    Template[]
-  >({
-    queryKey: ["/api/templates"],
-    enabled: !!activeChannel,
-  });
+const { data: templates = [], isLoading: templatesLoading } = useQuery<Template[]>({
+  queryKey: ["templates", user?.id, userRole],
+  queryFn: async () => {
+    let res: Response;
+
+    if (userRole === "superadmin") {
+      // Superadmin ke liye: saare templates
+      res = await fetch("/api/templates", {
+        credentials: "include",
+      });
+    } else {
+      // Normal user ke liye: apne templates
+      res = await fetch("/api/getTemplateByUserId", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user?.id }),
+      });
+    }
+
+    if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
+    const json = await res.json();
+
+    // Hamesha array return karo
+    if (Array.isArray(json)) return json;
+    if (json?.data && Array.isArray(json.data)) return json.data;
+    if (json) return [json]; // wrap single object into array
+    return [];
+  },
+  enabled: !!user?.id && !!activeChannel,
+});
+
 
   // Create template mutation
   const createTemplateMutation = useMutation({
@@ -199,7 +234,7 @@ export default function Templates() {
       <div className="flex-1 dots-bg min-h-screen">
         <Header
           title="Templates"
-          subtitle="Create and manage WhatsApp message templates"
+          subtitle="manage WhatsApp message templates"
         />
         <main className="p-6">
           <Card>
@@ -232,47 +267,94 @@ export default function Templates() {
 
       <main className="p-6">
         <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center">
-                <FileText className="w-5 h-5 mr-2" />
-                Message Templates
-              </CardTitle>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSyncTemplates}
-                  disabled={syncTemplatesMutation.isPending}
+        <CardHeader>
+  <div className="flex items-center justify-between">
+    <CardTitle className="flex items-center">
+      <FileText className="w-5 h-5 mr-2" />
+      Message Templates
+    </CardTitle>
+
+    {/* Buttons sirf normal users ke liye */}
+    {userRole !== "superadmin" && (
+      <div className="flex items-center space-x-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleSyncTemplates}
+          disabled={syncTemplatesMutation.isPending}
+        >
+          <RefreshCw
+            className={`w-4 h-4 mr-2 ${
+              syncTemplatesMutation.isPending ? "animate-spin" : ""
+            }`}
+          />
+          Sync from WhatsApp
+        </Button>
+        <Button onClick={handleCreateTemplate}>
+          <Plus className="w-4 h-4 mr-2" />
+          Create Template
+        </Button>
+      </div>
+    )}
+  </div>
+</CardHeader>
+
+<CardContent>
+  {templatesLoading ? (
+    <Loading />
+  ) : userRole === "superadmin" ? (
+    <div className="overflow-x-auto">
+      <table className="min-w-full border border-gray-200 bg-white rounded-lg shadow-sm">
+        <thead className="bg-gray-100 text-left text-sm font-semibold text-gray-700">
+          <tr>
+            <th className="py-3 px-4 border-b">Name</th>
+            <th className="py-3 px-4 border-b">Category</th>
+            <th className="py-3 px-4 border-b">Status</th>
+            <th className="py-3 px-4 border-b">Body</th>
+            <th className="py-3 px-4 border-b">Created At</th>
+          </tr>
+        </thead>
+        <tbody>
+          {templates.map((template) => (
+            <tr
+              key={template.id}
+              className="hover:bg-gray-50 transition-colors text-sm text-gray-700"
+            >
+              <td className="py-3 px-4 border-b">{template.name}</td>
+              <td className="py-3 px-4 border-b">{template.category}</td>
+              <td className="py-3 px-4 border-b">
+                <span
+                  className={`px-2 py-1 rounded text-xs ${
+                    template.status === "approved"
+                      ? "bg-green-100 text-green-700"
+                      : template.status === "pending"
+                      ? "bg-yellow-100 text-yellow-700"
+                      : "bg-red-100 text-red-700"
+                  }`}
                 >
-                  <RefreshCw
-                    className={`w-4 h-4 mr-2 ${
-                      syncTemplatesMutation.isPending ? "animate-spin" : ""
-                    }`}
-                  />
-                  Sync from WhatsApp
-                </Button>
-                <Button onClick={handleCreateTemplate}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create Template
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {templatesLoading ? (
-              <Loading />
-            ) : (
-              <TemplatesTable
-                templates={templates}
-                onViewTemplate={setSelectedTemplate}
-                onEditTemplate={handleEditTemplate}
-                onDuplicateTemplate={handleDuplicateTemplate}
-                onDeleteTemplate={handleDeleteTemplate}
-              />
-            )}
-          </CardContent>
-        </Card>
+                  {template.status}
+                </span>
+              </td>
+              <td className="py-3 px-4 border-b">{template.body}</td>
+              <td className="py-3 px-4 border-b">
+                {new Date(template.createdAt).toLocaleString()}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  ) : (
+    <TemplatesTable
+      templates={templates}
+      onViewTemplate={setSelectedTemplate}
+      onEditTemplate={handleEditTemplate}
+      onDuplicateTemplate={handleDuplicateTemplate}
+      onDeleteTemplate={handleDeleteTemplate}
+    />
+  )}
+</CardContent>
+</Card>
       </main>
 
       {/* Template Preview */}

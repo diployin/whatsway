@@ -25,6 +25,11 @@ export function registerCampaignRoutes(app: Express) {
     campaignsController.createCampaign
   );
 
+
+  app.post("/api/getCampaignsByUserId", requireAuth, campaignsController.getCampaignByUserID);
+
+   
+
   // Update campaign status
   app.patch("/api/campaigns/:id/status", requireAuth,
   requirePermission(PERMISSIONS.CAMPAIGNS_EDIT),

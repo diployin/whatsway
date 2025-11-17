@@ -262,7 +262,11 @@ async getContactsByUser(userId: string): Promise<Contact[]> {
     return this.campaignRepo.getById(id);
   }
 
-  async createCampaign(insertCampaign: InsertCampaign): Promise<Campaign> {
+  async getCampaignByUserId(userId: string): Promise<Campaign | undefined> {
+    return this.campaignRepo.getCampaignByUserId(userId);
+  }
+
+  async createCampaign(insertCampaign: InsertCampaign & { createdBy: string }): Promise<Campaign> {
     return this.campaignRepo.create(insertCampaign);
   }
 
@@ -322,6 +326,26 @@ async getContactsByUser(userId: string): Promise<Contact[]> {
     return this.templateRepo.getAll();
   }
 
+  async getTemplatesByUserId(userId: string): Promise<Template[]>{
+    return this.templateRepo.getTemplateByUserID(userId)
+  }
+
+  
+async getTemplatesByChannelAndUser(channelId: string, userId: string): Promise<Template[]> {
+  const channel = await this.getChannel(channelId); 
+  if (!channel || channel.createdBy !== userId) {
+    return [];
+  }
+
+  const allTemplates = await this.templateRepo.getAll();
+  return allTemplates
+    .filter(template => template.channelId === channelId)
+    .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+}
+
+
+  
+
   async getTemplatesByChannel(channelId: string): Promise<Template[]> {
     return this.templateRepo.getByChannel(channelId);
   }
@@ -338,7 +362,7 @@ async getContactsByUser(userId: string): Promise<Contact[]> {
     return this.templateRepo.getById(id);
   }
 
-  async createTemplate(insertTemplate: InsertTemplate): Promise<Template> {
+  async createTemplate(insertTemplate: InsertTemplate & { createdBy: string }): Promise<Template> {
     return this.templateRepo.create(insertTemplate);
   }
 

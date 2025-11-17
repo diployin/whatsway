@@ -24,7 +24,13 @@ export class CampaignRepository {
     return campaign || undefined;
   }
 
-  async create(insertCampaign: InsertCampaign): Promise<Campaign> {
+
+  async getCampaignByUserId(userId: string): Promise<Campaign | undefined>{
+    const [campaign] = await db.select().from(campaigns).where(eq(campaigns.createdBy, userId));
+    return campaign || []
+  }
+
+  async create(insertCampaign: InsertCampaign & { createdBy: string }): Promise<Campaign> {
     const [campaign] = await db
       .insert(campaigns)
       .values({

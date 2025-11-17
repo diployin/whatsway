@@ -14,6 +14,21 @@ export const getTemplates = asyncHandler(async (req: RequestWithChannel, res: Re
   res.json(templates);
 });
 
+
+export const getTemplatesByUser = asyncHandler(async (req: RequestWithChannel, res: Response) => {
+  const channelId = req.query.channelId as string;
+  const userId = (req.session as any).user.id;
+console.log("🚀 Request Params - channelId:", channelId, "userId:", userId);
+  if (!channelId) {
+    return res.status(400).json({ message: "channelId is required" });
+  }
+
+  const templates = await storage.getTemplatesByChannelAndUser(channelId, userId);
+  res.json(templates);
+});
+
+
+
 export const getTemplate = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   const template = await storage.getTemplate(id);
@@ -23,12 +38,24 @@ export const getTemplate = asyncHandler(async (req: Request, res: Response) => {
   res.json(template);
 });
 
+
+export const getTemplateByUserID = asyncHandler(async (req: Request, res: Response) => {
+  const { userId } = req.body;
+  const template = await storage.getTemplatesByUserId(userId);
+  if (!template) {
+    throw new AppError(404, 'Template not found');
+  }
+  res.json(template);
+});
+
 export const createTemplate = asyncHandler(async (req: RequestWithChannel, res: Response) => {
   console.log("Template creation request body:", JSON.stringify(req.body, null, 2));
+  
+  // 1️⃣ Validate request body
   const validatedTemplate = insertTemplateSchema.parse(req.body);
   console.log("Validated template buttons:", validatedTemplate.buttons);
-  
-  // Get active channel if channelId not provided
+
+  // 2️⃣ Get active channel if channelId not provided
   let channelId = validatedTemplate.channelId;
   if (!channelId) {
     const activeChannel = await storage.getActiveChannel();
@@ -37,25 +64,32 @@ export const createTemplate = asyncHandler(async (req: RequestWithChannel, res: 
     }
     channelId = activeChannel.id;
   }
-  
-  // Create template in storage first
+
+  // 3️⃣ Get logged-in user id (assume auth middleware sets req.user)
+  const createdBy = req.user?.id;
+  if (!createdBy) {
+    throw new AppError(401, "User not authenticated");
+  }
+
+  // 4️⃣ Create template in storage
   const template = await storage.createTemplate({
     ...validatedTemplate,
     channelId,
-    status: "pending"
+    status: "pending",
+    createdBy,
   });
-  
-  // Get channel details
+
+  // 5️⃣ Get channel details
   const channel = await storage.getChannel(channelId);
   if (!channel) {
     throw new AppError(400, 'Channel not found');
   }
-  
-  // Format and submit to WhatsApp API
+
+  // 6️⃣ Format and submit to WhatsApp API
   try {
     const whatsappApi = new WhatsAppApiService(channel);
     const result = await whatsappApi.createTemplate(validatedTemplate);
-    
+
     // Update template with WhatsApp ID
     if (result.id) {
       await storage.updateTemplate(template.id, {
@@ -63,10 +97,9 @@ export const createTemplate = asyncHandler(async (req: RequestWithChannel, res: 
         status: result.status || "pending"
       });
     }
-    
+
     res.json(template);
   } catch (error) {
-    // Still return the created template even if WhatsApp submission fails
     console.error("WhatsApp API error:", error);
     res.json({
       ...template,
@@ -74,6 +107,10 @@ export const createTemplate = asyncHandler(async (req: RequestWithChannel, res: 
     });
   }
 });
+
+
+
+
 
 export const updateTemplate = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;

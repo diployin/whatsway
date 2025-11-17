@@ -68,8 +68,6 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from "@/contexts/auth-context";
 
-
-
 interface ContactsResponse {
   data: Contact[];
   pagination: {
@@ -81,7 +79,6 @@ interface ContactsResponse {
   };
 }
 
-
 // Edit Contact Form Component
 function EditContactForm({
   contact,
@@ -92,7 +89,7 @@ function EditContactForm({
   onSuccess: () => void;
   onCancel: () => void;
 }) {
-  const {user} = useAuth()
+  const { user } = useAuth();
   const { t } = useTranslation();
   const form = useForm<InsertContact>({
     resolver: zodResolver(insertContactSchema),
@@ -132,60 +129,65 @@ function EditContactForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-      <FormField
-        control={form.control}
-        name="name"
-        render={({ field }) => {
-          const isDemoUser = user?.username === 'demouser';
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => {
+            const isDemoUser = user?.username === "demouser";
 
-          // Mask name: replace all characters except the last one with '*'
-          const maskName = (name: string) => {
-            if (!name) return '';
-            return name.slice(0, -1).replace(/./g, '*') + name.slice(-1);
-          };
+            // Mask name: replace all characters except the last one with '*'
+            const maskName = (name: string) => {
+              if (!name) return "";
+              return name.slice(0, -1).replace(/./g, "*") + name.slice(-1);
+            };
 
-          const maskedValue = isDemoUser ? maskName(field.value) : field.value;
+            const maskedValue = isDemoUser
+              ? maskName(field.value)
+              : field.value;
 
-          return (
-            <FormItem>
-              <FormLabel>{t('contacts.addContact.name')}</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  value={maskedValue || ''}
-                  readOnly={isDemoUser} // Optional: make read-only if masked
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          );
-        }}
-      />
-
+            return (
+              <FormItem>
+                <FormLabel>{t("contacts.addContact.name")}</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    value={maskedValue || ""}
+                    readOnly={isDemoUser} // Optional: make read-only if masked
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
+        />
 
         <FormField
           control={form.control}
           name="email"
           render={({ field }) => {
-            const isDemoUser = user?.username === 'demouser';
+            const isDemoUser = user?.username === "demouser";
 
             // Mask email: show only the last 3 characters before @ and the domain
             const maskEmail = (email: string | null | undefined) => {
-              if (!email) return '';
-              const [localPart, domain] = email.split('@');
+              if (!email) return "";
+              const [localPart, domain] = email.split("@");
               if (!domain) return email;
               const visibleChars = 3;
-              const maskedLocal = localPart.length > visibleChars
-                ? '*'.repeat(localPart.length - visibleChars) + localPart.slice(-visibleChars)
-                : '*'.repeat(localPart.length);
+              const maskedLocal =
+                localPart.length > visibleChars
+                  ? "*".repeat(localPart.length - visibleChars) +
+                    localPart.slice(-visibleChars)
+                  : "*".repeat(localPart.length);
               return `${maskedLocal}@${domain}`;
             };
 
-            const maskedValue = isDemoUser ? maskEmail(field.value) : field.value;
+            const maskedValue = isDemoUser
+              ? maskEmail(field.value)
+              : field.value;
 
             return (
               <FormItem>
-                <FormLabel>{t('contacts.addContact.email')}</FormLabel>
+                <FormLabel>{t("contacts.addContact.email")}</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
@@ -200,43 +202,42 @@ function EditContactForm({
           }}
         />
 
+        <FormField
+          control={form.control}
+          name="phone"
+          render={({ field }) => {
+            const isDemoUser = user?.username === "demouser";
+            const maskedValue = isDemoUser
+              ? field.value?.slice(0, -4).replace(/\d/g, "*") +
+                field.value?.slice(-4)
+              : field.value;
 
-          <FormField
-            control={form.control}
-            name="phone"
-            render={({ field }) => {
-              const isDemoUser = user?.username === 'demouser';
-              const maskedValue = isDemoUser
-                ? field.value?.slice(0, -4).replace(/\d/g, "*") + field.value?.slice(-4)
-                : field.value;
-
-              return (
-                <FormItem>
-                  <FormLabel>{t('contacts.addContact.phone')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      value={maskedValue}
-                      readOnly={isDemoUser} // Optional: prevent editing if in demo
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              );
-            }}
-          />
-
+            return (
+              <FormItem>
+                <FormLabel>{t("contacts.addContact.phone")}</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    value={maskedValue}
+                    readOnly={isDemoUser} // Optional: prevent editing if in demo
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
+        />
 
         <FormField
           control={form.control}
           name="groups"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('contacts.groups')}</FormLabel>
+              <FormLabel>{t("contacts.groups")}</FormLabel>
               <FormControl>
                 <Input
                   {...field}
-                  placeholder={`${t('contacts.editContact.groupsPlaceholder')}`}
+                  placeholder={`${t("contacts.editContact.groupsPlaceholder")}`}
                   value={
                     Array.isArray(field.value) ? field.value.join(", ") : ""
                   }
@@ -256,14 +257,20 @@ function EditContactForm({
 
         <div className="flex justify-end space-x-2">
           <Button type="button" variant="outline" onClick={onCancel}>
-            {t('common.cancel')}
+            {t("common.cancel")}
           </Button>
           <Button
             type="submit"
-            disabled={user?.username === 'demouser'? true : updateContactMutation.isPending}
+            disabled={
+              user?.username === "demouser"
+                ? true
+                : updateContactMutation.isPending
+            }
             className="bg-green-600 hover:bg-green-700 text-white"
           >
-            {updateContactMutation.isPending ? `${t('contacts.editContact.updating')}` : t('contacts.editContact.successTitle')}
+            {updateContactMutation.isPending
+              ? `${t("contacts.editContact.updating")}`
+              : t("contacts.editContact.successTitle")}
           </Button>
         </div>
       </form>
@@ -340,6 +347,31 @@ export default function Contacts() {
   });
 
   // Updated query to fetch contacts with proper server-side filtering
+  // const { data: contactsResponse, isLoading } = useQuery<ContactsResponse>({
+  //   queryKey: [
+  //     "/api/contacts",
+  //     activeChannel?.id,
+  //     currentPage,
+  //     limit,
+  //     selectedGroup,
+  //     selectedStatus,
+  //     searchQuery,
+  //   ],
+  //   queryFn: async () => {
+  //     const response = await api.getContacts(
+  //       searchQuery || undefined,
+  //       activeChannel?.id,
+  //       currentPage,
+  //       limit,
+  //       selectedGroup !== "all" && selectedGroup ? selectedGroup : undefined,
+  //       selectedStatus !== "all" && selectedStatus ? selectedStatus : undefined
+  //     );
+  //     return (await response.json()) as ContactsResponse;
+  //   },
+  //   placeholderData: (prev) => prev,
+  //   enabled: !!activeChannel,
+  // });
+
   const { data: contactsResponse, isLoading } = useQuery<ContactsResponse>({
     queryKey: [
       "/api/contacts",
@@ -349,22 +381,28 @@ export default function Contacts() {
       selectedGroup,
       selectedStatus,
       searchQuery,
+      user?.id,
     ],
+
     queryFn: async () => {
+      if (!user?.id) return { data: [], pagination: {} }; // fallback
+
       const response = await api.getContacts(
         searchQuery || undefined,
         activeChannel?.id,
         currentPage,
         limit,
         selectedGroup !== "all" && selectedGroup ? selectedGroup : undefined,
-        selectedStatus !== "all" && selectedStatus ? selectedStatus : undefined
+        selectedStatus !== "all" && selectedStatus ? selectedStatus : undefined,
+        user.id // ✅ ALWAYS sent
       );
+
       return (await response.json()) as ContactsResponse;
     },
-    placeholderData: (prev) => prev, 
-    enabled: !!activeChannel,
+
+    placeholderData: (prev) => prev,
+    enabled: !!activeChannel?.id && !!user?.id, // both required
   });
-  
 
   const contacts = contactsResponse?.data || [];
   const pagination = contactsResponse?.pagination || {
@@ -550,7 +588,7 @@ export default function Contacts() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ids }),
       });
-  
+
       if (!response.ok) {
         throw new Error("Failed to delete contacts");
       }
@@ -571,7 +609,6 @@ export default function Contacts() {
       });
     },
   });
-  
 
   const sendMessageMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -773,8 +810,6 @@ export default function Contacts() {
     event.target.value = "";
   };
 
-
-
   type InsertContact = {
     name: string;
     phone: string;
@@ -782,84 +817,85 @@ export default function Contacts() {
     groups: string[];
     tags: string[];
   };
-  
+
   const handleExcelUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
   ): Promise<void> => {
     const file = event.target.files?.[0];
     if (!file) return;
-  
+
     try {
       const workbook = new ExcelJS.Workbook();
       const arrayBuffer = await file.arrayBuffer();
       await workbook.xlsx.load(arrayBuffer);
-  
+
       const worksheet = workbook.worksheets[0];
       if (!worksheet) {
         alert("No worksheet found in Excel file.");
         return;
       }
-  
+
       const rows: Record<string, string>[] = [];
-  
+
       // ✅ Get headers safely with null check
       const headerRow = worksheet.getRow(1);
       if (!headerRow || !headerRow.values) {
         alert("No header row found in Excel file.");
         return;
       }
-      
+
       const headerValues = Array.isArray(headerRow.values)
-      ? headerRow.values.slice(1).map((h: ExcelJS.CellValue | undefined) =>
-          typeof h === "string"
-            ? h.trim().toLowerCase()
-            : typeof h === "number"
-            ? String(h)
-            : ""
-        )
-      : [];
-    
-    
-  
+        ? headerRow.values
+            .slice(1)
+            .map((h: ExcelJS.CellValue | undefined) =>
+              typeof h === "string"
+                ? h.trim().toLowerCase()
+                : typeof h === "number"
+                ? String(h)
+                : ""
+            )
+        : [];
+
       // ✅ Extract data rows
       worksheet.eachRow((row, rowNumber) => {
         if (rowNumber === 1) return; // skip header
-      
+
         const rowData: Record<string, string> = {};
         if (row.values && Array.isArray(row.values)) {
-          row.values.slice(1).forEach((cell: ExcelJS.CellValue | undefined, idx: number) => {
-            const key = headerValues[idx];
-            if (key) {
-              if (typeof cell === "string") rowData[key] = cell.trim();
-              else if (typeof cell === "number") rowData[key] = String(cell);
-              else rowData[key] = "";
-            }
-          });
+          row.values
+            .slice(1)
+            .forEach((cell: ExcelJS.CellValue | undefined, idx: number) => {
+              const key = headerValues[idx];
+              if (key) {
+                if (typeof cell === "string") rowData[key] = cell.trim();
+                else if (typeof cell === "number") rowData[key] = String(cell);
+                else rowData[key] = "";
+              }
+            });
         }
-      
+
         rows.push(rowData); // <-- push outside the inner forEach but inside eachRow
       });
-      
-  
+
       // ✅ Map rows to InsertContact
       const parsedContacts: InsertContact[] = rows.map((row) => ({
         name: row["name"] || "",
         phone: row["phone"] || "",
         email: row["email"] || "",
-        groups: row["groups"] ? row["groups"].split(",").map((g) => g.trim()) : [],
+        groups: row["groups"]
+          ? row["groups"].split(",").map((g) => g.trim())
+          : [],
         tags: row["tags"] ? row["tags"].split(",").map((t) => t.trim()) : [],
       }));
-  
+
       importContactsMutation.mutate(parsedContacts);
     } catch (error) {
       console.error("Error reading Excel file:", error);
       alert("Failed to read Excel file. Please check the format.");
     }
-  
+
     event.target.value = "";
   };
-  
-  
 
   if (isLoading) {
     return (
@@ -872,266 +908,306 @@ export default function Contacts() {
     );
   }
 
-  // const allSelected =
-  //   filteredContacts.length > 0 &&
-  //   selectedContactIds.length === filteredContacts.length;
+  // ✅ Export Selected Contacts
+  const handleExportSelectedContacts = () => {
+    const selectedContacts = contacts.filter((contact) =>
+      selectedContactIds.includes(contact.id)
+    );
 
-  // const toggleSelectAll = () => {
-  //   if (allSelected) {
-  //     setSelectedContactIds([]);
-  //   } else {
-  //     setSelectedContactIds(filteredContacts.map((contact) => contact.id));
-  //   }
-  // };
-
-  // const toggleSelectOne = (id: string) => {
-  //   setSelectedContactIds((prev) =>
-  //     prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-  //   );
-  // };
-
-// ✅ Export Selected Contacts
-const handleExportSelectedContacts = () => {
-  const selectedContacts = contacts.filter((contact) =>
-    selectedContactIds.includes(contact.id)
-  );
-
-  if (selectedContacts.length === 0) {
-    alert("No contacts selected.");
-    return;
-  }
-
-  exportToExcel(selectedContacts, "selected_contacts.xlsx");
-};
-
-// ✅ Export All Contacts
-const handleExportAllContacts = async () => {
-  try {
-    const response = await fetch("/api/contacts-all");
-    if (!response.ok) {
-      throw new Error("Failed to fetch contacts");
-    }
-
-    const allContacts: Contact[] = await response.json();
-
-    if (!allContacts || allContacts.length === 0) {
-      alert("No contacts available.");
+    if (selectedContacts.length === 0) {
+      alert("No contacts selected.");
       return;
     }
 
-    exportToExcel(allContacts, "all_contacts.xlsx");
-  } catch (error) {
-    console.error("Error exporting contacts:", error);
-    alert("Failed to export contacts. Please try again.");
-  }
-};
+    exportToExcel(selectedContacts, "selected_contacts.xlsx");
+  };
 
-// ✅ Download Sample Template
-const handleExcelDownload = () => {
-  const sampleContacts = [
-    {
-      name: "Alice Smith",
-      phone: "1234567890",
-      email: "alice@example.com",
-      groups: "Friends, Work",
-      tags: "VIP, Newsletter",
-    },
-    {
-      name: "Bob Johnson",
-      phone: "9876543210",
-      email: "bob@example.com",
-      groups: "Family",
-      tags: "New",
-    },
-    {
-      name: "Charlie Brown",
-      phone: "5555555555",
-      email: "charlie@example.com",
-      groups: "Customers, Support",
-      tags: "Premium, Active",
-    },
-  ];
+  // ✅ Export All Contacts
+  const handleExportAllContacts = async () => {
+    try {
+      const response = await fetch("/api/contacts-all");
+      if (!response.ok) {
+        throw new Error("Failed to fetch contacts");
+      }
 
-  exportToExcel(sampleContacts, "sample_contacts.xlsx");
-};
+      const allContacts: Contact[] = await response.json();
 
-// ✅ Reusable Excel Export Function (using ExcelJS)
-const exportToExcel = async (data: any[], fileName: string) => {
-  const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet("Contacts");
+      if (!allContacts || allContacts.length === 0) {
+        alert("No contacts available.");
+        return;
+      }
 
-  if (data.length === 0) {
-    alert("No data to export.");
-    return;
-  }
+      exportToExcel(allContacts, "all_contacts.xlsx");
+    } catch (error) {
+      console.error("Error exporting contacts:", error);
+      alert("Failed to export contacts. Please try again.");
+    }
+  };
 
-  // Add header row based on keys of first object
-  worksheet.columns = Object.keys(data[0]).map((key) => ({
-    header: key.charAt(0).toUpperCase() + key.slice(1),
-    key,
-    width: 20,
-  }));
+  // ✅ Download Sample Template
+  const handleExcelDownload = () => {
+    const sampleContacts = [
+      {
+        name: "Alice Smith",
+        phone: "1234567890",
+        email: "alice@example.com",
+        groups: "Friends, Work",
+        tags: "VIP, Newsletter",
+      },
+      {
+        name: "Bob Johnson",
+        phone: "9876543210",
+        email: "bob@example.com",
+        groups: "Family",
+        tags: "New",
+      },
+      {
+        name: "Charlie Brown",
+        phone: "5555555555",
+        email: "charlie@example.com",
+        groups: "Customers, Support",
+        tags: "Premium, Active",
+      },
+    ];
 
-  // Add all rows
-  data.forEach((item) => {
-    worksheet.addRow(item);
-  });
+    exportToExcel(sampleContacts, "sample_contacts.xlsx");
+  };
 
-  // Style header row
-  worksheet.getRow(1).font = { bold: true };
+  // ✅ Reusable Excel Export Function (using ExcelJS)
+  const exportToExcel = async (data: any[], fileName: string) => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Contacts");
 
-  // Generate file and download
-  const buffer = await workbook.xlsx.writeBuffer();
-  saveAs(new Blob([buffer]), fileName);
-};
+    if (data.length === 0) {
+      alert("No data to export.");
+      return;
+    }
+
+    // Add header row based on keys of first object
+    worksheet.columns = Object.keys(data[0]).map((key) => ({
+      header: key.charAt(0).toUpperCase() + key.slice(1),
+      key,
+      width: 20,
+    }));
+
+    // Add all rows
+    data.forEach((item) => {
+      worksheet.addRow(item);
+    });
+
+    // Style header row
+    worksheet.getRow(1).font = { bold: true };
+
+    // Generate file and download
+    const buffer = await workbook.xlsx.writeBuffer();
+    saveAs(new Blob([buffer]), fileName);
+  };
 
   return (
     <div className="flex-1 dots-bg min-h-screen">
       <Header
-        title={t('contacts.title')}
-        subtitle={t('contacts.subtitle')}
+        title={t("contacts.title")}
+        subtitle={t("contacts.subtitle")}
         action={{
-          label: `${t('contacts.addContact.title')}`,
-          onClick: () =>{ setShowAddDialog(true)},
+          label: `${t("contacts.addContact.title")}`,
+          onClick: () => {
+            setShowAddDialog(true);
+          },
         }}
       />
 
-      <main className="p-6 space-y-6">
+      <main className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
         {/* Search and Filters */}
         <Card>
-          <CardContent className="p-6">
-            <div className="flex flex-wrap items-center gap-4">
-              <div className="flex-1 min-w-64 relative">
+          <CardContent className="p-3 sm:p-4 md:p-6">
+            <div className="flex flex-col gap-3 sm:gap-4">
+              {/* Search Bar - Full Width on Mobile */}
+              <div className="relative w-full">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input
-                  placeholder={`${t('contacts.searchContacts')}`}
+                  placeholder={`${t("contacts.searchContacts")}`}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 w-full"
                 />
               </div>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline">
-                    <Filter className="w-4 h-4 mr-2" />
-                    {selectedGroup || `${t('contacts.allGroups')}`}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    onClick={() => setSelectedGroup(null)}
-                    className={!selectedGroup ? "bg-gray-100" : ""}
-                  >
-                    {t('contacts.allGroups')}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => setShowGroupDialog(true)}
-                    className="text-green-600"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    {t('contacts.createNewGroup')}
-                  </DropdownMenuItem>
-                  {uniqueGroups.length > 0 && (
-                    <>
-                      <DropdownMenuItem disabled className="py-1">
-                        <span className="text-xs text-gray-500 uppercase">
-                          {t('contacts.availableGroups')}
-                        </span>
-                      </DropdownMenuItem>
-                      {uniqueGroups.map((group) => (
-                        <DropdownMenuItem
-                          key={group}
-                          onClick={() => setSelectedGroup(group)}
-                          className={
-                            selectedGroup === group ? "bg-gray-100" : ""
-                          }
-                        >
-                          {group}
+
+              {/* Filters Row - Wrap on Mobile */}
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                {/* Group Filter */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs sm:text-sm"
+                    >
+                      <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                      <span className="hidden sm:inline">
+                        {selectedGroup || `${t("contacts.allGroups")}`}
+                      </span>
+                      <span className="sm:hidden">
+                        {selectedGroup
+                          ? selectedGroup.substring(0, 8) + "..."
+                          : "Groups"}
+                      </span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem
+                      onClick={() => setSelectedGroup(null)}
+                      className={!selectedGroup ? "bg-gray-100" : ""}
+                    >
+                      {t("contacts.allGroups")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setShowGroupDialog(true)}
+                      className="text-green-600"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      {t("contacts.createNewGroup")}
+                    </DropdownMenuItem>
+                    {uniqueGroups.length > 0 && (
+                      <>
+                        <DropdownMenuItem disabled className="py-1">
+                          <span className="text-xs text-gray-500 uppercase">
+                            {t("contacts.availableGroups")}
+                          </span>
                         </DropdownMenuItem>
-                      ))}
-                    </>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline">
-                    <Filter className="w-4 h-4 mr-2" />
-                    {selectedStatus || `${t('contacts.allStatuses')}`}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    onClick={() => setSelectedStatus(null)}
-                    className={!selectedStatus ? "bg-gray-100" : ""}
-                  >
-                    {t('contacts.allStatuses')}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => setSelectedStatus("active")}
-                    className={selectedStatus === "active" ? "bg-gray-100" : ""}
-                  >
-                    {t('contacts.active')}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => setSelectedStatus("blocked")}
-                    className={
-                      selectedStatus === "blocked" ? "bg-gray-100" : ""
-                    }
-                  >
-                    {t('contacts.blocked')}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <Button
-                variant="outline"
-                onClick={handleExportAllContacts}
-                disabled={user?.username === 'demouser'}
-              >
-                <Upload className="w-4 h-4 mr-2" />
-               {t('contacts.exportAllContacts')}
-              </Button>
+                        {uniqueGroups.map((group) => (
+                          <DropdownMenuItem
+                            key={group}
+                            onClick={() => setSelectedGroup(group)}
+                            className={
+                              selectedGroup === group ? "bg-gray-100" : ""
+                            }
+                          >
+                            {group}
+                          </DropdownMenuItem>
+                        ))}
+                      </>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
 
-              {user?.username === 'demouser' ? 
-              <Button disabled={user?.username === 'demouser'} variant="outline" className="" asChild>
-              <span>
-                <Upload className="w-4 h-4 mr-2" />
-                {t('contacts.importContacts')}
-              </span>
-            </Button>
-            :
+                {/* Status Filter */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs sm:text-sm"
+                    >
+                      <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                      <span className="hidden sm:inline">
+                        {selectedStatus || `${t("contacts.allStatuses")}`}
+                      </span>
+                      <span className="sm:hidden">Status</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-40">
+                    <DropdownMenuItem
+                      onClick={() => setSelectedStatus(null)}
+                      className={!selectedStatus ? "bg-gray-100" : ""}
+                    >
+                      {t("contacts.allStatuses")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setSelectedStatus("active")}
+                      className={
+                        selectedStatus === "active" ? "bg-gray-100" : ""
+                      }
+                    >
+                      {t("contacts.active")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setSelectedStatus("blocked")}
+                      className={
+                        selectedStatus === "blocked" ? "bg-gray-100" : ""
+                      }
+                    >
+                      {t("contacts.blocked")}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
 
-              <label className="cursor-pointer" >
-                <input
-                  type="file"
-                  accept=".csv,.xlsx"
-                  className="hidden"
-                  onChange={(e) => {
-                    if (e.target.files?.[0]?.name.endsWith(".csv")) {
-                      handleCSVUpload(e);
-                    } else {
-                      handleExcelUpload(e);
-                    }
-                  }}
-                  readOnly={user?.username === 'demouser'}
-                />
-                <Button disabled={user?.username === 'demouser'} variant="outline" className="" asChild>
-                  <span>
-                    <Upload className="w-4 h-4 mr-2" />
-                    {t('contacts.importContacts')}
+                {/* Export Button */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExportAllContacts}
+                  disabled={user?.username === "demouser"}
+                  className="text-xs sm:text-sm"
+                >
+                  <Upload className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                  <span className="hidden sm:inline">
+                    {t("contacts.exportAllContacts")}
                   </span>
+                  <span className="sm:hidden">Export</span>
                 </Button>
-              </label>
-              }
 
-              <Button
-                variant="outline"
-                className="cursor-pointer"
-                onClick={handleExcelDownload}
-              >
-                <Download className="w-4 h-4 mr-2" />
-                {t('contacts.downloadSampleExcel')}
-              </Button>
+                {/* Import Button */}
+                {user?.username === "demouser" ? (
+                  <Button
+                    disabled={true}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs sm:text-sm"
+                    asChild
+                  >
+                    <span>
+                      <Upload className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                      <span className="hidden sm:inline">
+                        {t("contacts.importContacts")}
+                      </span>
+                      <span className="sm:hidden">Import</span>
+                    </span>
+                  </Button>
+                ) : (
+                  <label className="cursor-pointer">
+                    <input
+                      type="file"
+                      accept=".csv,.xlsx"
+                      className="hidden"
+                      onChange={(e) => {
+                        if (e.target.files?.[0]?.name.endsWith(".csv")) {
+                          handleCSVUpload(e);
+                        } else {
+                          handleExcelUpload(e);
+                        }
+                      }}
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs sm:text-sm"
+                      asChild
+                    >
+                      <span>
+                        <Upload className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                        <span className="hidden sm:inline">
+                          {t("contacts.importContacts")}
+                        </span>
+                        <span className="sm:hidden">Import</span>
+                      </span>
+                    </Button>
+                  </label>
+                )}
+
+                {/* Download Sample */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExcelDownload}
+                  className="text-xs sm:text-sm"
+                >
+                  <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                  <span className="hidden lg:inline">
+                    {t("contacts.downloadSampleExcel")}
+                  </span>
+                  <span className="lg:hidden">Sample</span>
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -1139,25 +1215,39 @@ const exportToExcel = async (data: any[], fileName: string) => {
         {/* Bulk Actions */}
         {selectedContactIds.length > 0 && (
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">
-                  {selectedContactIds.length} {t('contacts.contact')}
-                  {selectedContactIds.length > 1 ? "s" : ""} {t('contacts.selected')}
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <span className="text-xs sm:text-sm font-medium">
+                  {selectedContactIds.length} {t("contacts.contact")}
+                  {selectedContactIds.length > 1 ? "s" : ""}{" "}
+                  {t("contacts.selected")}
                 </span>
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={handleExportSelectedContacts}
-                    disabled={user?.username === 'demouser'}
+                    disabled={user?.username === "demouser"}
+                    className="flex-1 sm:flex-none text-xs sm:text-sm"
                   >
-                    <Download className="w-4 h-4 mr-2" />
-                    {t('contacts.exportSelected')}
+                    <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                    <span className="hidden sm:inline">
+                      {t("contacts.exportSelected")}
+                    </span>
+                    <span className="sm:hidden">Export</span>
                   </Button>
-                  <Button  disabled={user?.username === 'demouser'} variant="outline" size="sm" className="text-red-600" onClick={() => setShowBulkDeleteDialog(true)}>
-                    <Trash2 className="w-4 h-4 mr-2" />
-                   {t('contacts.deleteSelected')}
+                  <Button
+                    disabled={user?.username === "demouser"}
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 sm:flex-none text-red-600 text-xs sm:text-sm"
+                    onClick={() => setShowBulkDeleteDialog(true)}
+                  >
+                    <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                    <span className="hidden sm:inline">
+                      {t("contacts.deleteSelected")}
+                    </span>
+                    <span className="sm:hidden">Delete</span>
                   </Button>
                 </div>
               </div>
@@ -1165,274 +1255,479 @@ const exportToExcel = async (data: any[], fileName: string) => {
           </Card>
         )}
 
-        {/* Contacts Table */}
+        {/* Contacts Table/Cards */}
         <Card>
           <CardContent className="p-0">
             {!contacts.length ? (
               <EmptyState
                 icon={Users}
-                title={`${t('contacts.noContactsFound')}`}
+                title={`${t("contacts.noContactsFound")}`}
                 description={
                   searchQuery || selectedGroup || selectedStatus
-                    ? `${t('contacts.noFilters')}`
-                    : `${t('contacts.noContactsYet')}`
+                    ? `${t("contacts.noFilters")}`
+                    : `${t("contacts.noContactsYet")}`
                 }
                 action={
                   !(searchQuery || selectedGroup || selectedStatus)
                     ? {
-                        label: `${t('contacts.addYourFirstContact')}`,
+                        label: `${t("contacts.addYourFirstContact")}`,
                         onClick: () => setShowAddDialog(true),
                       }
                     : {
-                        label:` ${t('contacts.clearFilters')}`,
+                        label: ` ${t("contacts.clearFilters")}`,
                         onClick: clearAllFilters,
                       }
                 }
-                className="py-12"
+                className="py-8 sm:py-12"
               />
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <input
-                          type="checkbox"
-                          className="rounded border-gray-300"
-                          checked={allSelected}
-                          onChange={toggleSelectAll}
-                        />
-                      </th>
-                      <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                       {t('contacts.contact')}
-                      </th>
-                      <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {t('contacts.phone')}
-                      </th>
-                      <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {t('contacts.groups')}
-                      </th>
-                      <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {t('contacts.status')}
-                      </th>
-                      <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {t('contacts.lastContact')}
-                      </th>
-                      <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {t('contacts.actions')}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {contacts.map((contact: Contact) => (
-                      <tr
-                        key={contact.id}
-                        className="hover:bg-gray-50 transition-colors"
-                      >
-                        <td className="px-6 py-4">
+              <>
+                {/* Desktop/Tablet Table View */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="text-left px-3 lg:px-6 py-3 lg:py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
                           <input
                             type="checkbox"
                             className="rounded border-gray-300"
+                            checked={allSelected}
+                            onChange={toggleSelectAll}
+                          />
+                        </th>
+                        <th className="text-left px-3 lg:px-6 py-3 lg:py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {t("contacts.contact")}
+                        </th>
+                        <th className="text-left px-3 lg:px-6 py-3 lg:py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {t("contacts.phone")}
+                        </th>
+                        <th className="text-left px-3 lg:px-6 py-3 lg:py-4 text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
+                          {t("contacts.groups")}
+                        </th>
+                        <th className="text-left px-3 lg:px-6 py-3 lg:py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {t("contacts.status")}
+                        </th>
+                        <th className="text-left px-3 lg:px-6 py-3 lg:py-4 text-xs font-medium text-gray-500 uppercase tracking-wider hidden xl:table-cell">
+                          {t("contacts.lastContact")}
+                        </th>
+                        <th className="text-left px-3 lg:px-6 py-3 lg:py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {t("contacts.actions")}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {contacts.map((contact: Contact) => (
+                        <tr
+                          key={contact.id}
+                          className="hover:bg-gray-50 transition-colors"
+                        >
+                          <td className="px-3 lg:px-6 py-3 lg:py-4">
+                            <input
+                              type="checkbox"
+                              className="rounded border-gray-300"
+                              checked={selectedContactIds.includes(contact.id)}
+                              onChange={() => toggleSelectOne(contact.id)}
+                            />
+                          </td>
+                          <td className="px-3 lg:px-6 py-3 lg:py-4">
+                            <div className="flex items-center">
+                              <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span className="text-xs lg:text-sm font-medium text-white">
+                                  {contact.name.charAt(0).toUpperCase()}
+                                </span>
+                              </div>
+                              <div className="ml-2 lg:ml-4 min-w-0">
+                                <div className="text-xs lg:text-sm font-medium text-gray-900 truncate">
+                                  {user?.username === "demouser"
+                                    ? contact.name
+                                        .slice(0, -1)
+                                        .replace(/./g, "*") +
+                                      contact.name.slice(-1)
+                                    : contact.name}
+                                </div>
+                                {contact.email && (
+                                  <div className="text-xs text-gray-500 truncate">
+                                    {user?.username === "demouser"
+                                      ? contact.email
+                                          .split("@")[0]
+                                          .slice(0, -2)
+                                          .replace(/./g, "*") +
+                                        contact.email.slice(
+                                          contact.email.indexOf("@") - 2
+                                        )
+                                      : contact.email}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-3 lg:px-6 py-3 lg:py-4 text-xs lg:text-sm text-gray-900">
+                            {user?.username === "demouser"
+                              ? contact.phone.slice(0, -4).replace(/\d/g, "*") +
+                                contact.phone.slice(-4)
+                              : contact.phone}
+                          </td>
+                          <td className="px-3 lg:px-6 py-3 lg:py-4 hidden lg:table-cell">
+                            <div className="flex flex-wrap gap-1">
+                              {Array.isArray(contact.groups) &&
+                              contact.groups.length > 0 ? (
+                                contact.groups.map(
+                                  (group: string, index: number) => (
+                                    <Badge
+                                      key={index}
+                                      variant="secondary"
+                                      className="text-xs"
+                                    >
+                                      {group}
+                                    </Badge>
+                                  )
+                                )
+                              ) : (
+                                <span className="text-xs text-gray-400">
+                                  {t("contacts.noGroups")}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-3 lg:px-6 py-3 lg:py-4">
+                            <Badge
+                              variant={
+                                contact.status === "active"
+                                  ? "default"
+                                  : "secondary"
+                              }
+                              className={`text-xs ${
+                                contact.status === "active"
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-red-100 text-red-800"
+                              }`}
+                            >
+                              {contact.status?.toLocaleUpperCase() || "N/A"}
+                            </Badge>
+                          </td>
+                          <td className="px-3 lg:px-6 py-3 lg:py-4 text-xs lg:text-sm text-gray-900 hidden xl:table-cell">
+                            {contact.lastContact
+                              ? new Date(
+                                  contact.lastContact
+                                ).toLocaleDateString()
+                              : "Never"}
+                          </td>
+                          <td className="px-3 lg:px-6 py-3 lg:py-4">
+                            <div className="flex space-x-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedContact(contact);
+                                  setShowMessageDialog(true);
+                                }}
+                                disabled={!channels || channels.length === 0}
+                                className="h-8 w-8 p-0"
+                              >
+                                <MessageSquare className="w-4 h-4 text-blue-600" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedContact(contact);
+                                  setShowEditDialog(true);
+                                }}
+                                className="h-8 w-8 p-0 hidden lg:flex"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteContact(contact.id)}
+                                disabled={
+                                  user?.username === "demouser"
+                                    ? true
+                                    : deleteContactMutation.isPending
+                                }
+                                className="h-8 w-8 p-0 hidden lg:flex"
+                              >
+                                <Trash2 className="w-4 h-4 text-red-600" />
+                              </Button>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 w-8 p-0"
+                                  >
+                                    <MoreHorizontal className="w-4 h-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent
+                                  align="end"
+                                  className="w-48"
+                                >
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      setSelectedContact(contact);
+                                      setShowEditDialog(true);
+                                    }}
+                                  >
+                                    <Edit className="h-4 w-4 mr-2" />
+                                    {t("contacts.editContact.title")}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      setSelectedContact(contact);
+                                      setShowMessageDialog(true);
+                                    }}
+                                    disabled={
+                                      !channels || channels.length === 0
+                                    }
+                                  >
+                                    <MessageSquare className="h-4 w-4 mr-2" />
+                                    {t("contacts.sendMessage.title")}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleToggleContactStatus(
+                                        contact.id,
+                                        contact.status
+                                      )
+                                    }
+                                    className={
+                                      contact.status === "active"
+                                        ? "text-red-600"
+                                        : "text-green-600"
+                                    }
+                                    disabled={user?.username === "demouser"}
+                                  >
+                                    {contact.status === "active" ? (
+                                      <>
+                                        <Shield className="h-4 w-4 mr-2" />
+                                        {t("contacts.blockContact")}
+                                      </>
+                                    ) : (
+                                      <>
+                                        <CheckCircle className="h-4 w-4 mr-2" />
+                                        {t("contacts.unblockContact")}
+                                      </>
+                                    )}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleDeleteContact(contact.id)
+                                    }
+                                    className="text-red-600"
+                                    disabled={user?.username === "demouser"}
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    {t("contacts.deleteContact.title")}
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile Card View */}
+                <div className="md:hidden space-y-3 p-3">
+                  {contacts.map((contact: Contact) => (
+                    <div
+                      key={contact.id}
+                      className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      {/* Card Header */}
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center space-x-3 flex-1 min-w-0">
+                          <input
+                            type="checkbox"
+                            className="rounded border-gray-300 mt-1 flex-shrink-0"
                             checked={selectedContactIds.includes(contact.id)}
                             onChange={() => toggleSelectOne(contact.id)}
                           />
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center">
-                            <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                              <span className="text-sm font-medium text-gray-600">
-                                {contact.name.charAt(0).toUpperCase()}
-                              </span>
-                            </div>
-                            <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">
-                                {user?.username === 'demouser' ? (
-                                  <span className=" px-2 py-1 rounded">
-                                    {contact.name.slice(0, -1).replace(/./g, "*") + contact.name.slice(-1)}
-                                  </span>
-                                ) : (
-                                  contact.name
-                                )}
-                              </div>
-                              {contact.email && (
-                                <div className="text-sm text-gray-500">
-                                  {user?.username === 'demouser' ? (
-                                    <span className=" px-2 py-1 rounded">
-                                      {(contact.email).split("@")[0].slice(0, -2).replace(/./g, "*") + contact.email.slice(contact.email.indexOf("@") -2)}
-                                    </span>
-                                  ) : (
-                                  contact.email
-                                  )}
-
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          {user?.username === 'demouser' ? (
-                            <span className=" px-2 py-1 rounded">
-                              {(contact.phone).slice(0, -4).replace(/\d/g, "*") + contact.phone.slice(-4)}
+                          <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
+                            <span className="text-lg font-medium text-white">
+                              {contact.name.charAt(0).toUpperCase()}
                             </span>
-                          ) : (
-                            contact.phone
-                          )}
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex space-x-1">
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-semibold text-gray-900 truncate">
+                              {user?.username === "demouser"
+                                ? contact.name.slice(0, -1).replace(/./g, "*") +
+                                  contact.name.slice(-1)
+                                : contact.name}
+                            </div>
+                            {contact.email && (
+                              <div className="text-xs text-gray-500 truncate">
+                                {user?.username === "demouser"
+                                  ? contact.email
+                                      .split("@")[0]
+                                      .slice(0, -2)
+                                      .replace(/./g, "*") +
+                                    contact.email.slice(
+                                      contact.email.indexOf("@") - 2
+                                    )
+                                  : contact.email}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <Badge
+                          variant={
+                            contact.status === "active"
+                              ? "default"
+                              : "secondary"
+                          }
+                          className={`text-xs whitespace-nowrap ${
+                            contact.status === "active"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {contact.status?.toLocaleUpperCase() || "N/A"}
+                        </Badge>
+                      </div>
+
+                      {/* Card Details */}
+                      <div className="space-y-2 text-sm border-t border-gray-100 pt-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500 font-medium text-xs">
+                            Phone:
+                          </span>
+                          <span className="text-gray-700 text-xs">
+                            {user?.username === "demouser"
+                              ? contact.phone.slice(0, -4).replace(/\d/g, "*") +
+                                contact.phone.slice(-4)
+                              : contact.phone}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-start">
+                          <span className="text-gray-500 font-medium text-xs">
+                            Groups:
+                          </span>
+                          <div className="flex flex-wrap gap-1 justify-end max-w-[60%]">
                             {Array.isArray(contact.groups) &&
                             contact.groups.length > 0 ? (
                               contact.groups.map(
                                 (group: string, index: number) => (
-                                  <Badge key={index} variant="secondary">
+                                  <Badge
+                                    key={index}
+                                    variant="secondary"
+                                    className="text-xs"
+                                  >
                                     {group}
                                   </Badge>
                                 )
                               )
                             ) : (
-                              <span className="text-sm text-gray-400">
-                                {t('contacts.noGroups')}
+                              <span className="text-xs text-gray-400">
+                                {t("contacts.noGroups")}
                               </span>
                             )}
                           </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <Badge
-                            variant={
-                              contact.status === "active"
-                                ? "default"
-                                : "secondary"
-                            }
-                            className={
-                              contact.status === "active"
-                                ? "bg-green-100 text-green-800"
-                                : "bg-red-100 text-red-800"
-                            }
-                          >
-                            {contact.status?.toLocaleUpperCase() || "N/A"}
-                          </Badge>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          {contact.lastContact
-                            ? new Date(contact.lastContact).toLocaleDateString()
-                            : "Never"}
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex space-x-2">
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500 font-medium text-xs">
+                            Last Contact:
+                          </span>
+                          <span className="text-gray-700 text-xs">
+                            {contact.lastContact
+                              ? new Date(
+                                  contact.lastContact
+                                ).toLocaleDateString()
+                              : "Never"}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Card Actions */}
+                      <div className="flex justify-between gap-2 mt-4 pt-3 border-t border-gray-100">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedContact(contact);
+                            setShowMessageDialog(true);
+                          }}
+                          disabled={!channels || channels.length === 0}
+                          className="flex-1 text-xs"
+                        >
+                          <MessageSquare className="w-3.5 h-3.5 mr-1.5" />
+                          Message
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedContact(contact);
+                            setShowEditDialog(true);
+                          }}
+                          className="flex-1 text-xs"
+                        >
+                          <Edit className="w-3.5 h-3.5 mr-1.5" />
+                          Edit
+                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
                             <Button
-                              variant="ghost"
+                              variant="outline"
                               size="sm"
-                              onClick={() => {
-                                setSelectedContact(contact);
-                                setShowMessageDialog(true);
-                              }}
-                              disabled={ !channels || channels.length === 0}
-                              title={
-                                !channels || channels.length === 0
-                                  ?  `${t('contacts.noChannels')}`
-                                  : `${t('contacts.sendMessage.title')}`
+                              className="px-2"
+                            >
+                              <MoreHorizontal className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleToggleContactStatus(
+                                  contact.id,
+                                  contact.status
+                                )
                               }
+                              className={
+                                contact.status === "active"
+                                  ? "text-red-600"
+                                  : "text-green-600"
+                              }
+                              disabled={user?.username === "demouser"}
                             >
-                              <MessageSquare className="w-4 h-4 text-blue-600" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedContact(contact);
-                                setShowEditDialog(true);
-                              }}
-                              // disabled={user?.username === 'demouser'}
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
+                              {contact.status === "active" ? (
+                                <>
+                                  <Shield className="h-4 w-4 mr-2" />
+                                  {t("contacts.blockContact")}
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle className="h-4 w-4 mr-2" />
+                                  {t("contacts.unblockContact")}
+                                </>
+                              )}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
                               onClick={() => handleDeleteContact(contact.id)}
-                              disabled={user?.username === 'demouser'? true : deleteContactMutation.isPending}
+                              className="text-red-600"
+                              disabled={user?.username === "demouser"}
                             >
-                              <Trash2 className="w-4 h-4 text-red-600" />
-                            </Button>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm">
-                                  <MoreHorizontal className="w-4 h-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem
-                                  onClick={() => {
-                                    setSelectedContact(contact);
-                                    setShowEditDialog(true);
-                                  }}
-                                  // disabled={user?.username === 'demouser'}
-                                >
-                                  <Edit className="h-4 w-4 mr-2" />
-                                  {t('contacts.editContact.title')}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => {
-                                    setSelectedContact(contact);
-                                    setShowMessageDialog(true);
-                                  }}
-                                  disabled={ !channels || channels.length === 0}
-                                >
-                                  <MessageSquare className="h-4 w-4 mr-2" />
-                                  {t('contacts.sendMessage.title')}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    handleToggleContactStatus(
-                                      contact.id,
-                                      contact.status
-                                    )
-                                  }
-                                  className={
-                                    contact.status === "active"
-                                      ? "text-red-600 focus:text-red-600"
-                                      : "text-green-600 focus:text-green-600"
-                                  }
-                                  disabled={user?.username === 'demouser'}
-                                >
-                                  {contact.status === "active" ? (
-                                    <>
-                                      <Shield className="h-4 w-4 mr-2" />
-                                     {t('contacts.blockContact')}
-                                    </>
-                                  ) : (
-                                    <>
-                                      <CheckCircle className="h-4 w-4 mr-2" />
-                                      {t('contacts.unblockContact')}
-                                    </>
-                                  )}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    handleDeleteContact(contact.id)
-                                  }
-                                  className="text-red-600"
-                                  disabled={user?.username === 'demouser'}
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                {t('contacts.deleteContact.title')}
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              {t("contacts.deleteContact.title")}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
 
             {/* Enhanced Pagination */}
             {contacts.length > 0 && (
-              <div className="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
-                <div className="flex items-center gap-4">
-                  <div className="text-sm text-gray-700">
+              <div className="bg-gray-50 px-3 sm:px-4 md:px-6 py-3 flex flex-col sm:flex-row items-center justify-between border-t border-gray-200 gap-3">
+                <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 w-full sm:w-auto">
+                  <div className="text-xs sm:text-sm text-gray-700 text-center sm:text-left">
                     Showing{" "}
                     <span className="font-medium">
                       {(page - 1) * limit + 1}
@@ -1449,10 +1744,10 @@ const exportToExcel = async (data: any[], fileName: string) => {
                     value={limit.toString()}
                     onValueChange={(value) => {
                       setLimit(Number(value));
-                      setCurrentPage(1); // reset page when limit changes
+                      setCurrentPage(1);
                     }}
                   >
-                    <SelectTrigger className="w-20 h-8">
+                    <SelectTrigger className="w-20 h-8 text-xs">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -1464,39 +1759,46 @@ const exportToExcel = async (data: any[], fileName: string) => {
                   </Select>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 sm:gap-2 w-full sm:w-auto justify-center">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={goToPreviousPage}
                     disabled={page === 1}
+                    className="text-xs px-2 sm:px-3"
                   >
-                    {t('contacts.previous')}
+                    <span className="hidden sm:inline">
+                      {t("contacts.previous")}
+                    </span>
+                    <span className="sm:hidden">Prev</span>
                   </Button>
 
-                  {getPageNumbers().map((pageNum) => (
-                    <Button
-                      key={pageNum}
-                      variant={page === pageNum ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => goToPage(pageNum)}
-                      className={
-                        page === pageNum
-                          ? "bg-green-600 text-white hover:bg-green-700"
-                          : ""
-                      }
-                    >
-                      {pageNum}
-                    </Button>
-                  ))}
+                  <div className="flex gap-1 overflow-x-auto max-w-[150px] sm:max-w-none">
+                    {getPageNumbers().map((pageNum) => (
+                      <Button
+                        key={pageNum}
+                        variant={page === pageNum ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => goToPage(pageNum)}
+                        className={`text-xs px-2 sm:px-3 min-w-[32px] ${
+                          page === pageNum
+                            ? "bg-green-600 text-white hover:bg-green-700"
+                            : ""
+                        }`}
+                      >
+                        {pageNum}
+                      </Button>
+                    ))}
+                  </div>
 
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={goToNextPage}
                     disabled={page === totalPages}
+                    className="text-xs px-2 sm:px-3"
                   >
-                    {t('contacts.next')}
+                    {t("contacts.next")}
                   </Button>
                 </div>
               </div>
@@ -1509,9 +1811,9 @@ const exportToExcel = async (data: any[], fileName: string) => {
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t('contacts.addContact.title')}</DialogTitle>
+            <DialogTitle>{t("contacts.addContact.title")}</DialogTitle>
             <DialogDescription>
-              {t('contacts.addContact.description')}
+              {t("contacts.addContact.description")}
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
@@ -1526,11 +1828,13 @@ const exportToExcel = async (data: any[], fileName: string) => {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('contacts.addContact.name')}</FormLabel>
+                    <FormLabel>{t("contacts.addContact.name")}</FormLabel>
                     <FormControl>
                       <Input placeholder="John Doe" {...field} />
                     </FormControl>
-                    <FormDescription>{t('contacts.addContact.description')} </FormDescription>
+                    <FormDescription>
+                      {t("contacts.addContact.description")}{" "}
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -1540,12 +1844,12 @@ const exportToExcel = async (data: any[], fileName: string) => {
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('contacts.addContact.phone')}</FormLabel>
+                    <FormLabel>{t("contacts.addContact.phone")}</FormLabel>
                     <FormControl>
                       <Input placeholder="+1234567890" {...field} />
                     </FormControl>
                     <FormDescription>
-                      {t('contacts.addContact.phoneDesc')}
+                      {t("contacts.addContact.phoneDesc")}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -1556,7 +1860,7 @@ const exportToExcel = async (data: any[], fileName: string) => {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('contacts.addContact.email')}</FormLabel>
+                    <FormLabel>{t("contacts.addContact.email")}</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="john@example.com"
@@ -1574,15 +1878,19 @@ const exportToExcel = async (data: any[], fileName: string) => {
                   variant="outline"
                   onClick={() => setShowAddDialog(false)}
                 >
-                  {t('contacts.addContact.cancel')}
+                  {t("contacts.addContact.cancel")}
                 </Button>
                 <Button
                   type="submit"
-                  disabled={user?.username === 'demouser' ? true : createContactMutation.isPending}
+                  disabled={
+                    user?.username === "demouser"
+                      ? true
+                      : createContactMutation.isPending
+                  }
                 >
                   {createContactMutation.isPending
-                    ? `${t('contacts.addContact.submitting')}`
-                    : `${t('contacts.addContact.submit')}`}
+                    ? `${t("contacts.addContact.submitting")}`
+                    : `${t("contacts.addContact.submit")}`}
                 </Button>
               </div>
             </form>
@@ -1594,9 +1902,9 @@ const exportToExcel = async (data: any[], fileName: string) => {
       <Dialog open={showMessageDialog} onOpenChange={setShowMessageDialog}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>{t('contacts.sendMessage.title')}</DialogTitle>
+            <DialogTitle>{t("contacts.sendMessage.title")}</DialogTitle>
             <DialogDescription>
-              {t('contacts.sendMessage.description')} {selectedContact?.name} (
+              {t("contacts.sendMessage.description")} {selectedContact?.name} (
               {selectedContact?.phone})
             </DialogDescription>
           </DialogHeader>
@@ -1606,7 +1914,9 @@ const exportToExcel = async (data: any[], fileName: string) => {
                 <div className="flex items-center gap-2">
                   <Phone className="w-4 h-4 text-gray-600" />
                   <div className="text-sm">
-                    <span className="font-medium">{t('contacts.sendMessage.activeChannel')}</span>{" "}
+                    <span className="font-medium">
+                      {t("contacts.sendMessage.activeChannel")}
+                    </span>{" "}
                     <span className="text-gray-700">{activeChannel.name}</span>
                   </div>
                 </div>
@@ -1616,13 +1926,15 @@ const exportToExcel = async (data: any[], fileName: string) => {
             {!activeChannel && (
               <div className="p-3 bg-yellow-50 rounded-md border border-yellow-200">
                 <p className="text-sm text-yellow-800">
-                  {t('contacts.sendMessage.noChannel')}
+                  {t("contacts.sendMessage.noChannel")}
                 </p>
               </div>
             )}
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">{t('contacts.sendMessage.messageType')}</label>
+              <label className="text-sm font-medium">
+                {t("contacts.sendMessage.messageType")}
+              </label>
               <select
                 className="w-full p-2 border rounded-md"
                 value={messageType}
@@ -1632,15 +1944,21 @@ const exportToExcel = async (data: any[], fileName: string) => {
                   setTemplateVariables({});
                 }}
               >
-                <option value="text">{t('contacts.sendMessage.textMessage')}</option>
-                <option value="template">{t('contacts.sendMessage.templateMessage')}</option>
+                <option value="text">
+                  {t("contacts.sendMessage.textMessage")}
+                </option>
+                <option value="template">
+                  {t("contacts.sendMessage.templateMessage")}
+                </option>
               </select>
             </div>
 
             {messageType === "template" ? (
               <>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">{t('contacts.sendMessage.textMessage')}</label>
+                  <label className="text-sm font-medium">
+                    {t("contacts.sendMessage.textMessage")}
+                  </label>
                   <select
                     className="w-full p-2 border rounded-md"
                     value={selectedTemplateId}
@@ -1658,7 +1976,9 @@ const exportToExcel = async (data: any[], fileName: string) => {
                       }
                     }}
                   >
-                    <option value="">{t('contacts.sendMessage.selectTemplate')}</option>
+                    <option value="">
+                      {t("contacts.sendMessage.selectTemplate")}
+                    </option>
                     {availableTemplates
                       ?.filter(
                         (t: any) => t.status?.toLowerCase() === "approved"
@@ -1674,7 +1994,7 @@ const exportToExcel = async (data: any[], fileName: string) => {
                 {selectedTemplateId && (
                   <div className="space-y-2">
                     <label className="text-sm font-medium">
-                    {t('contacts.sendMessage.templateVariables')}
+                      {t("contacts.sendMessage.templateVariables")}
                     </label>
                     {Object.keys(templateVariables).map((key) => {
                       const template = availableTemplates?.find(
@@ -1704,11 +2024,15 @@ const exportToExcel = async (data: any[], fileName: string) => {
               </>
             ) : (
               <div className="space-y-2">
-                <label className="text-sm font-medium">{t('contacts.sendMessage.message')}</label>
+                <label className="text-sm font-medium">
+                  {t("contacts.sendMessage.message")}
+                </label>
                 <textarea
                   className="w-full p-3 border rounded-md resize-none"
                   rows={4}
-                  placeholder={`${t('contacts.sendMessage.messagePlaceholder')}`}
+                  placeholder={`${t(
+                    "contacts.sendMessage.messagePlaceholder"
+                  )}`}
                   value={messageText}
                   onChange={(e) => setMessageText(e.target.value)}
                 />
@@ -1727,16 +2051,18 @@ const exportToExcel = async (data: any[], fileName: string) => {
                   setTemplateVariables({});
                 }}
               >
-                {t('contacts.addContact.cancel')}
+                {t("contacts.addContact.cancel")}
               </Button>
               <Button
-                disabled={ user?.username === 'demouser'? true :
-                  !activeChannel ||
-                  sendMessageMutation.isPending ||
-                  (messageType === "text" && !messageText) ||
-                  (messageType === "template" &&
-                    (!selectedTemplateId ||
-                      Object.values(templateVariables).some((v) => !v)))
+                disabled={
+                  user?.username === "demouser"
+                    ? true
+                    : !activeChannel ||
+                      sendMessageMutation.isPending ||
+                      (messageType === "text" && !messageText) ||
+                      (messageType === "template" &&
+                        (!selectedTemplateId ||
+                          Object.values(templateVariables).some((v) => !v)))
                 }
                 onClick={() => {
                   if (selectedContact && activeChannel) {
@@ -1763,7 +2089,9 @@ const exportToExcel = async (data: any[], fileName: string) => {
                   }
                 }}
               >
-                {sendMessageMutation.isPending ? `${t('contacts.sendMessage.sending')}` : `${t('contacts.sendMessage.send')}`}
+                {sendMessageMutation.isPending
+                  ? `${t("contacts.sendMessage.sending")}`
+                  : `${t("contacts.sendMessage.send")}`}
               </Button>
             </div>
           </div>
@@ -1774,9 +2102,9 @@ const exportToExcel = async (data: any[], fileName: string) => {
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t('contacts.deleteContact.title')}</DialogTitle>
+            <DialogTitle>{t("contacts.deleteContact.title")}</DialogTitle>
             <DialogDescription>
-            {t('contacts.deleteContact.title')}
+              {t("contacts.deleteContact.title")}
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end space-x-2 mt-4">
@@ -1787,7 +2115,7 @@ const exportToExcel = async (data: any[], fileName: string) => {
                 setContactToDelete(null);
               }}
             >
-              {t('contacts.addContact.cancel')}
+              {t("contacts.addContact.cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -1805,13 +2133,20 @@ const exportToExcel = async (data: any[], fileName: string) => {
       </Dialog>
 
       {/* Bulk Delete Confirmation Dialog */}
-      <Dialog open={showBulkDeleteDialog} onOpenChange={setShowBulkDeleteDialog}>
+      <Dialog
+        open={showBulkDeleteDialog}
+        onOpenChange={setShowBulkDeleteDialog}
+      >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t('contacts.deleteContacts.title')}</DialogTitle>
+            <DialogTitle>{t("contacts.deleteContacts.title")}</DialogTitle>
             <DialogDescription>
-            {t('contacts.deleteContacts.description')} <strong>{selectedContactIds.length}</strong>{" "}
-              {selectedContactIds.length > 1 ? `${t('contacts.contacts')}` : `${t('contacts.contact')}`}. {t('contacts.deleteContacts.confirmation')}
+              {t("contacts.deleteContacts.description")}{" "}
+              <strong>{selectedContactIds.length}</strong>{" "}
+              {selectedContactIds.length > 1
+                ? `${t("contacts.contacts")}`
+                : `${t("contacts.contact")}`}
+              . {t("contacts.deleteContacts.confirmation")}
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end space-x-2 mt-4">
@@ -1821,7 +2156,7 @@ const exportToExcel = async (data: any[], fileName: string) => {
                 setShowBulkDeleteDialog(false);
               }}
             >
-              {t('contacts.addContact.cancel')}
+              {t("contacts.addContact.cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -1831,19 +2166,22 @@ const exportToExcel = async (data: any[], fileName: string) => {
               }}
               disabled={deleteBulkContactsMutation.isPending}
             >
-              {deleteBulkContactsMutation.isPending ? `${t('contacts.deleteContacts.deleting')}` : `${t('contacts.deleteContacts.title')}`}
+              {deleteBulkContactsMutation.isPending
+                ? `${t("contacts.deleteContacts.deleting")}`
+                : `${t("contacts.deleteContacts.title")}`}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-
       {/* Edit Contact Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t('contacts.editContact.title')}</DialogTitle>
-            <DialogDescription>{t('contacts.editContact.description')}</DialogDescription>
+            <DialogTitle>{t("contacts.editContact.title")}</DialogTitle>
+            <DialogDescription>
+              {t("contacts.editContact.description")}
+            </DialogDescription>
           </DialogHeader>
           {selectedContact && (
             <EditContactForm
@@ -1853,8 +2191,8 @@ const exportToExcel = async (data: any[], fileName: string) => {
                 setShowEditDialog(false);
                 setSelectedContact(null);
                 toast({
-                  title: `${t('contacts.editContact.successTitle')}`,
-                  description:  `${t('contacts.editContact.successDesc')}`,
+                  title: `${t("contacts.editContact.successTitle")}`,
+                  description: `${t("contacts.editContact.successDesc")}`,
                 });
               }}
               onCancel={() => {
@@ -1870,16 +2208,20 @@ const exportToExcel = async (data: any[], fileName: string) => {
       <Dialog open={showGroupDialog} onOpenChange={setShowGroupDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t('contacts.createGroup.title')}</DialogTitle>
+            <DialogTitle>{t("contacts.createGroup.title")}</DialogTitle>
             <DialogDescription>
-              {t('contacts.createGroup.description')}
+              {t("contacts.createGroup.description")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 mt-4">
             <div>
-              <label className="text-sm font-medium">{t('contacts.createGroup.name')}</label>
+              <label className="text-sm font-medium">
+                {t("contacts.createGroup.name")}
+              </label>
               <Input
-                placeholder= {`${t('contacts.createGroup.groupNamePlaceholder')}`}
+                placeholder={`${t(
+                  "contacts.createGroup.groupNamePlaceholder"
+                )}`}
                 className="mt-1"
                 value={groupName}
                 onChange={(e) => setGroupName(e.target.value)}
@@ -1887,10 +2229,12 @@ const exportToExcel = async (data: any[], fileName: string) => {
             </div>
             <div>
               <label className="text-sm font-medium">
-              {t('contacts.createGroup.groupDescription')}
+                {t("contacts.createGroup.groupDescription")}
               </label>
               <Textarea
-                placeholder={ `${t('contacts.createGroup.groupDescriptionPlaceholder')}`}
+                placeholder={`${t(
+                  "contacts.createGroup.groupDescriptionPlaceholder"
+                )}`}
                 className="mt-1"
                 rows={3}
                 value={groupDescription}
@@ -1906,15 +2250,17 @@ const exportToExcel = async (data: any[], fileName: string) => {
                   setGroupDescription("");
                 }}
               >
-                {t('contacts.addContact.cancel')}
+                {t("contacts.addContact.cancel")}
               </Button>
               <Button
                 className="bg-green-600 hover:bg-green-700 text-white"
                 onClick={() => {
                   if (groupName.trim()) {
                     toast({
-                      title:  `${t('contacts.createGroup.successTitle')}`,
-                      description: `${t('contacts.createGroup.successDesc')} ${groupName}`,
+                      title: `${t("contacts.createGroup.successTitle")}`,
+                      description: `${t(
+                        "contacts.createGroup.successDesc"
+                      )} ${groupName}`,
                     });
                     setShowGroupDialog(false);
                     setGroupName("");
@@ -1928,7 +2274,7 @@ const exportToExcel = async (data: any[], fileName: string) => {
                   }
                 }}
               >
-              {t('contacts.createGroup.create')}
+                {t("contacts.createGroup.create")}
               </Button>
             </div>
           </div>

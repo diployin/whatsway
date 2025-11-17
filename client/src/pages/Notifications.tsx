@@ -8,14 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { TablePagination } from "@/components/table-pagination";
 import {
   Plus,
   Send,
   Users,
   Loader2,
   AlertCircle,
-  RefreshCw,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import {
   Dialog,
@@ -45,9 +45,9 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Notification } from "@shared/schema";
 import { z } from "zod";
+import Header from "@/components/layout/header";
 
-// ---------------- Schema (updated to match backend) ----------------
-
+// ---------------- Schema ----------------
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
   message: z.string().min(1, "Message is required"),
@@ -61,15 +61,14 @@ export default function Notifications() {
   const { toast } = useToast();
   const [showDialog, setShowDialog] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(25);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  // ----------- Fetch All Notifications (GET /api/notifications) ------------
+  // ----------- Fetch Notifications ------------
   const {
     data: notifications = [],
     isLoading,
     isError,
     error,
-    refetch,
   } = useQuery<Notification[]>({
     queryKey: ["/api/notifications"],
     queryFn: async () => {
@@ -102,7 +101,7 @@ export default function Notifications() {
     }
   }, [isError, error, toast]);
 
-  // ---------------- Form (updated) ----------------
+  // ---------------- Form ----------------
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -113,7 +112,7 @@ export default function Notifications() {
     },
   });
 
-  // ---------------- Create & Send Notification (POST /api/notifications) ----------------
+  // ---------------- Create Notification ----------------
   const createMutation = useMutation({
     mutationFn: async (data: FormData) => {
       const payload = {
@@ -176,270 +175,390 @@ export default function Notifications() {
     });
   };
 
-  // ---------------- Pagination ----------------
+  // ---------------- Simple Pagination ----------------
   const totalItems = notifications.length;
-  const start = (currentPage - 1) * itemsPerPage;
-  const paginatedNotifications = notifications.slice(
-    start,
-    start + itemsPerPage
-  );
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedNotifications = notifications.slice(startIndex, endIndex);
 
-  // ---------------- Stats ----------------
-  const stats = {
-    total: notifications.length,
-    users: notifications.filter((n) => n.targetType === "users").length,
-    adminTeam: notifications.filter(
-      (n) => n.targetType === "admins" || n.targetType === "team"
-    ).length,
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
   };
 
-  const sendMutation = useMutation({
-    mutationFn: async (id: string | number) => {
-      const response = await fetch(`/api/notifications/${id}/send`, {
-        method: "POST",
-        credentials: "include",
-      });
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to send");
-      }
+  const goToPage = (page: number) => {
+    setCurrentPage(page);
+  };
 
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
-      toast({ title: "Success", description: "Notification sent!" });
-    },
-    onError: (err: Error) => {
-      toast({
-        title: "Error",
-        description: err.message,
-        variant: "destructive",
-      });
-    },
-  });
+  // Reset to page 1 when items per page changes
+  const handleItemsPerPageChange = (value: string) => {
+    setItemsPerPage(Number(value));
+    setCurrentPage(1);
+  };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Notifications</h1>
-          <p className="text-muted-foreground mt-1">
-            Send notifications to users, admins, or your team.
-          </p>
-        </div>
-
-        <div className="flex gap-3">
-          <Button
-            variant="outline"
-            onClick={handleRefresh}
-            disabled={isLoading}
-          >
-            <RefreshCw
-              className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
-            />
-            Refresh
-          </Button>
-
-          <Button onClick={() => setShowDialog(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Create Notification
-          </Button>
-        </div>
-      </div>
+      <Header
+        title="Notifications"
+        subtitle="Send notifications to users, admins, or your team."
+        action={{
+          label: "Create Notification",
+          onClick: () => setShowDialog(true),
+        }}
+      />
 
       {/* Stats */}
-      <div className="grid gap-6 md:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Total Sent</CardTitle>
+      <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        <Card className="hover:shadow-lg transition-shadow">
+          <CardHeader className="pb-2 sm:pb-3 px-4 sm:px-6 pt-4 sm:pt-6">
+            <CardTitle className="text-sm sm:text-base flex items-center gap-2">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Send className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+              </div>
+              Total Sent
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{stats.total}</div>
+          <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+            <div className="text-2xl sm:text-3xl font-bold text-gray-900">
+              {notifications.length}
+            </div>
+            <p className="text-xs sm:text-sm text-gray-500 mt-1">
+              All notifications
+            </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>User Target</CardTitle>
+        <Card className="hover:shadow-lg transition-shadow">
+          <CardHeader className="pb-2 sm:pb-3 px-4 sm:px-6 pt-4 sm:pt-6">
+            <CardTitle className="text-sm sm:text-base flex items-center gap-2">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                <Users className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
+              </div>
+              User Target
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{stats.users}</div>
+          <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+            <div className="text-2xl sm:text-3xl font-bold text-gray-900">
+              {notifications.filter((n) => n.targetType === "users").length}
+            </div>
+            <p className="text-xs sm:text-sm text-gray-500 mt-1">Users only</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Admin / Team</CardTitle>
+        <Card className="hover:shadow-lg transition-shadow sm:col-span-2 lg:col-span-1">
+          <CardHeader className="pb-2 sm:pb-3 px-4 sm:px-6 pt-4 sm:pt-6">
+            <CardTitle className="text-sm sm:text-base flex items-center gap-2">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
+              </div>
+              Admin / Team
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{stats.adminTeam}</div>
+          <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+            <div className="text-2xl sm:text-3xl font-bold text-gray-900">
+              {
+                notifications.filter(
+                  (n) => n.targetType === "admins" || n.targetType === "team"
+                ).length
+              }
+            </div>
+            <p className="text-xs sm:text-sm text-gray-500 mt-1">
+              Staff notifications
+            </p>
           </CardContent>
         </Card>
       </div>
 
       {/* Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>All Notifications</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex flex-col items-center justify-center h-32">
-              <Loader2 className="animate-spin h-8 w-8" />
-              <p className="text-muted-foreground mt-2">
-                Loading notifications...
-              </p>
+      <Card className="shadow-sm">
+        <CardHeader className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-b border-gray-200">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <CardTitle className="text-base sm:text-lg">
+              All Notifications
+            </CardTitle>
+            <div className="text-xs sm:text-sm text-gray-500">
+              {totalItems} total
             </div>
-          ) : isError ? (
-            <div className="flex flex-col items-center justify-center h-32">
-              <AlertCircle className="h-8 w-8 text-destructive" />
-              <p className="text-destructive mt-2">
-                Failed to load notifications
-              </p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRefresh}
-                className="mt-3"
-              >
-                Try Again
-              </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center h-48 sm:h-64 px-4">
+              <Loader2 className="animate-spin w-8 h-8 sm:w-10 sm:h-10 text-green-600 mb-4" />
+              <p className="text-sm text-gray-500">Loading notifications...</p>
             </div>
           ) : paginatedNotifications.length === 0 ? (
-            <div className="text-center text-muted-foreground py-8">
-              No notifications found
+            <div className="flex flex-col items-center justify-center py-12 sm:py-16 px-4">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <AlertCircle className="w-8 h-8 sm:w-10 sm:h-10 text-gray-400" />
+              </div>
+              <p className="text-sm sm:text-base font-medium text-gray-900 mb-2">
+                No notifications found
+              </p>
+              <p className="text-xs sm:text-sm text-gray-500 mb-4">
+                Create your first notification to get started
+              </p>
+              <Button
+                onClick={() => setShowDialog(true)}
+                className="bg-green-600 hover:bg-green-700 text-sm"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Create Notification
+              </Button>
             </div>
           ) : (
-            <div className="border rounded-md">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>ID</TableHead>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Message</TableHead>
-                    <TableHead>Target</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Sent At</TableHead>
-                    <TableHead>Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-
-                <TableBody>
-                  {paginatedNotifications.map((n) => (
-                    <TableRow key={n.id}>
-                      <TableCell className="font-mono text-xs">
-                        {String(n.id).slice(0, 8)}
-                      </TableCell>
-                      <TableCell className="font-medium">{n.title}</TableCell>
-                      <TableCell className="max-w-xs truncate text-sm text-muted-foreground">
-                        {n.message}
-                      </TableCell>
-                      <TableCell>
-                        <StatusBadge status={n.targetType} variant="info" />
-                      </TableCell>
-                      <TableCell>
-                        <StatusBadge
-                          status={n.status || "sent"}
-                          variant={n.status === "sent" ? "success" : "warning"}
-                        />
-                      </TableCell>
-                      <TableCell className="text-sm">
-                        {n.sentAt
-                          ? new Date(n.sentAt).toLocaleString()
-                          : n.createdAt
-                          ? new Date(n.createdAt).toLocaleString()
-                          : "-"}
-                      </TableCell>
-                      <TableCell>
-                        {n.status !== "sent" ? (
-                          <Button
-                            size="sm"
-                            onClick={() => sendMutation.mutate(n.id)}
-                            disabled={sendMutation.isPending}
-                          >
-                            {sendMutation.isPending ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              "Send"
-                            )}
-                          </Button>
-                        ) : (
-                          <span className="text-green-600 text-sm">Sent</span>
-                        )}
-                      </TableCell>
+            <>
+              {/* Desktop & Tablet Table */}
+              <div className="hidden sm:block overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50">
+                      <TableHead className="w-[100px] px-3 lg:px-6 py-3 text-xs font-semibold text-gray-600 uppercase">
+                        ID
+                      </TableHead>
+                      <TableHead className="min-w-[200px] px-3 lg:px-6 py-3 text-xs font-semibold text-gray-600 uppercase">
+                        Title
+                      </TableHead>
+                      <TableHead className="w-[130px] px-3 lg:px-6 py-3 text-xs font-semibold text-gray-600 uppercase">
+                        Target
+                      </TableHead>
+                      <TableHead className="w-[180px] px-3 lg:px-6 py-3 text-xs font-semibold text-gray-600 uppercase">
+                        Sent At
+                      </TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedNotifications.map((n) => (
+                      <TableRow key={n.id} className="hover:bg-gray-50">
+                        <TableCell className="px-3 lg:px-6 py-3 font-mono text-xs text-gray-600">
+                          {n.id.slice(0, 8)}
+                        </TableCell>
+                        <TableCell className="px-3 lg:px-6 py-3 text-sm font-medium text-gray-900">
+                          {n.title}
+                        </TableCell>
+                        <TableCell className="px-3 lg:px-6 py-3">
+                          <StatusBadge status={n.targetType} variant="info" />
+                        </TableCell>
+                        <TableCell className="px-3 lg:px-6 py-3 text-sm text-gray-600 whitespace-nowrap">
+                          {n.sentAt
+                            ? new Date(n.sentAt).toLocaleString([], {
+                                dateStyle: "short",
+                                timeStyle: "short",
+                              })
+                            : "-"}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="sm:hidden space-y-3 p-3">
+                {paginatedNotifications.map((n) => (
+                  <div
+                    key={n.id}
+                    className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
+                  >
+                    <div className="flex items-start justify-between mb-3 gap-2">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-sm font-semibold text-gray-900 mb-1 line-clamp-2">
+                          {n.title}
+                        </h3>
+                        <p className="text-xs font-mono text-gray-500">
+                          {n.id.slice(0, 8)}
+                        </p>
+                      </div>
+                      <StatusBadge status={n.targetType} variant="info" />
+                    </div>
+                    <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                      <span className="text-xs text-gray-500">Sent At:</span>
+                      <div className="text-right">
+                        {n.sentAt ? (
+                          <>
+                            <div className="text-xs text-gray-900 font-medium">
+                              {new Date(n.sentAt).toLocaleDateString()}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {new Date(n.sentAt).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </div>
+                          </>
+                        ) : (
+                          "-"
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
 
-          {totalItems > 0 && (
-            <TablePagination
-              currentPage={currentPage}
-              totalItems={totalItems}
-              itemsPerPage={itemsPerPage}
-              onPageChange={setCurrentPage}
-              onItemsPerPageChange={setItemsPerPage}
-            />
+          {/* Simple Pagination */}
+          {paginatedNotifications.length > 0 && (
+            <div className="border-t border-gray-200 px-3 sm:px-6 py-3 sm:py-4 bg-gray-50">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                {/* Items per page & Info */}
+                <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 w-full sm:w-auto">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs sm:text-sm text-gray-700 whitespace-nowrap">
+                      Rows per page:
+                    </span>
+                    <Select
+                      value={itemsPerPage.toString()}
+                      onValueChange={handleItemsPerPageChange}
+                    >
+                      <SelectTrigger className="w-16 h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="5">5</SelectItem>
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="25">25</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <span className="text-xs sm:text-sm text-gray-700">
+                    {startIndex + 1}-{Math.min(endIndex, totalItems)} of{" "}
+                    {totalItems}
+                  </span>
+                </div>
+
+                {/* Page Navigation */}
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={goToPreviousPage}
+                    disabled={currentPage === 1}
+                    className="h-8 px-2 sm:px-3"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    <span className="hidden sm:inline ml-1">Previous</span>
+                  </Button>
+
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter((page) => {
+                        // Show first page, last page, current page, and adjacent pages
+                        return (
+                          page === 1 ||
+                          page === totalPages ||
+                          Math.abs(page - currentPage) <= 1
+                        );
+                      })
+                      .map((page, index, array) => {
+                        // Add ellipsis
+                        const prevPage = array[index - 1];
+                        const showEllipsis = prevPage && page - prevPage > 1;
+
+                        return (
+                          <div key={page} className="flex items-center">
+                            {showEllipsis && (
+                              <span className="px-2 text-gray-400">...</span>
+                            )}
+                            <Button
+                              variant={
+                                currentPage === page ? "default" : "outline"
+                              }
+                              size="sm"
+                              onClick={() => goToPage(page)}
+                              className={`h-8 w-8 p-0 text-xs ${
+                                currentPage === page
+                                  ? "bg-green-600 hover:bg-green-700"
+                                  : ""
+                              }`}
+                            >
+                              {page}
+                            </Button>
+                          </div>
+                        );
+                      })}
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={goToNextPage}
+                    disabled={currentPage === totalPages}
+                    className="h-8 px-2 sm:px-3"
+                  >
+                    <span className="hidden sm:inline mr-1">Next</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>
 
       {/* Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Create & Send Notification</DialogTitle>
-            <DialogDescription>
-              Notification will be sent immediately to selected recipients.
+        <DialogContent className="w-[95vw] sm:w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="space-y-2">
+            <DialogTitle className="text-lg sm:text-xl">
+              Create Notification
+            </DialogTitle>
+            <DialogDescription className="text-sm">
+              Send instant notification to recipients.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid gap-6 py-4">
-            <div>
-              <Label htmlFor="title">
-                Title <span className="text-destructive">*</span>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">
+                Title <span className="text-red-500">*</span>
               </Label>
               <Input
-                id="title"
                 {...form.register("title")}
                 placeholder="Enter notification title"
+                className="text-sm"
               />
               {form.formState.errors.title && (
-                <p className="text-sm text-destructive mt-1">
+                <p className="text-xs text-red-600">
                   {form.formState.errors.title.message}
                 </p>
               )}
             </div>
 
-            <div>
-              <Label htmlFor="message">
-                Message <span className="text-destructive">*</span>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">
+                Message <span className="text-red-500">*</span>
               </Label>
               <Textarea
-                id="message"
-                rows={5}
+                rows={4}
                 {...form.register("message")}
-                placeholder="Enter notification message"
+                placeholder="Enter your notification message"
+                className="text-sm resize-none"
               />
               {form.formState.errors.message && (
-                <p className="text-sm text-destructive mt-1">
+                <p className="text-xs text-red-600">
                   {form.formState.errors.message.message}
                 </p>
               )}
             </div>
 
-            <div>
-              <Label>Target Audience</Label>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Target Audience</Label>
               <Select
                 value={form.watch("targetType")}
                 onValueChange={(v) => form.setValue("targetType", v as any)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -453,21 +572,17 @@ export default function Notifications() {
             </div>
 
             {form.watch("targetType") === "specific" && (
-              <div>
-                <Label htmlFor="targetIds">
-                  User IDs (comma separated){" "}
-                  <span className="text-destructive">*</span>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">
+                  User IDs (comma separated)
                 </Label>
                 <Input
-                  id="targetIds"
-                  placeholder="user1,user2,user3"
+                  placeholder="user1, user2, user3"
+                  className="text-sm"
                   onChange={(e) =>
                     form.setValue(
                       "targetIds",
-                      e.target.value
-                        .split(",")
-                        .map((s) => s.trim())
-                        .filter(Boolean)
+                      e.target.value.split(",").map((s) => s.trim())
                     )
                   }
                 />
@@ -478,36 +593,35 @@ export default function Notifications() {
                 )}
               </div>
             )}
-          </div>
 
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowDialog(false);
-                form.reset();
-              }}
-              disabled={createMutation.isPending}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={form.handleSubmit(onSubmit)}
-              disabled={createMutation.isPending}
-            >
-              {createMutation.isPending ? (
-                <>
-                  <Loader2 className="animate-spin h-4 w-4 mr-2" />
-                  Sending...
-                </>
-              ) : (
-                <>
-                  <Send className="h-4 w-4 mr-2" />
-                  Send Now
-                </>
-              )}
-            </Button>
-          </DialogFooter>
+            <DialogFooter className="flex-col-reverse sm:flex-row gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowDialog(false)}
+                className="w-full sm:w-auto"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={createMutation.isPending}
+                className="w-full sm:w-auto bg-green-600 hover:bg-green-700"
+              >
+                {createMutation.isPending ? (
+                  <>
+                    <Loader2 className="animate-spin h-4 w-4 mr-2" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4 mr-2" />
+                    Send Now
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

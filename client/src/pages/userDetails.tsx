@@ -1,11 +1,13 @@
 import { useState } from "react";
 import Header from "@/components/layout/header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Smartphone, BotIcon, Key, SettingsIcon, Database } from "lucide-react";
+import { User, Smartphone, BotIcon, Key, SettingsIcon, Database, LayoutTemplate } from "lucide-react";
 import TeamMembers from "@/components/user-details/TeamMembers";
 import Channels from "@/components/user-details/Channel";
 import Contacts from "@/components/user-details/Contacts";
 import {useRoute} from "wouter";
+import Templates from "@/components/user-details/Templates";
+import Campaigns from "@/components/user-details/Campaigns";
 
 interface UserType {
   id: string;
@@ -41,7 +43,7 @@ export default function UserDetails() {
           onValueChange={setActiveTab}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger
               value="channels"
               className="flex items-center space-x-2"
@@ -64,6 +66,14 @@ export default function UserDetails() {
             >
               <BotIcon className="w-4 h-4" />
               <span>Contacts</span>
+            </TabsTrigger>
+
+            <TabsTrigger
+              value="templates"
+              className="flex items-center space-x-2"
+            >
+              <LayoutTemplate className="w-4 h-4" />
+              <span>Templates</span>
             </TabsTrigger>
 
             <TabsTrigger
@@ -91,10 +101,14 @@ export default function UserDetails() {
            <Contacts userId={userId}/>
           </TabsContent>
 
+
+           <TabsContent value="templates">
+           <Templates userId={userId}/>
+          </TabsContent>
+
           {/* Settings Tab */}
           <TabsContent value="campaigns">
-            <h2 className="text-lg font-semibold mb-2">campaigns</h2>
-            <p>User-specific campaigns can be managed here.</p>
+            <Campaigns userId={userId}/>
           </TabsContent>
         </Tabs>
       </main>

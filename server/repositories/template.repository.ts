@@ -11,6 +11,10 @@ export class TemplateRepository {
     return await db.select().from(templates).orderBy(desc(templates.createdAt));
   }
 
+  async getTemplateByUserID(userId: string): Promise<Template[]>{
+    return await db.select().from(templates).where(eq(templates.createdBy, userId)).orderBy(desc(templates.createdAt));
+  }
+
   async getByChannel(channelId: string): Promise<Template[]> {
     return await db
       .select()
@@ -29,7 +33,7 @@ export class TemplateRepository {
     return template || undefined;
   }
 
-  async create(insertTemplate: InsertTemplate): Promise<Template> {
+  async create(insertTemplate: InsertTemplate  & { createdBy: string }): Promise<Template> {
     const [template] = await db
       .insert(templates)
       .values(insertTemplate)
@@ -51,3 +55,5 @@ export class TemplateRepository {
     return result.length > 0;
   }
 }
+
+

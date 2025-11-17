@@ -49,6 +49,7 @@ export interface IStorage {
 
   // Campaigns
   getCampaigns(): Promise<Campaign[]>;
+  getCampaignByUserId(userId: string): Promise<Campaign[]>;
   getCampaignsByChannel(channelId: string): Promise<Campaign[]>;
   getCampaign(id: string): Promise<Campaign | undefined>;
   createCampaign(campaign: InsertCampaign): Promise<Campaign>;
@@ -155,6 +156,8 @@ export interface IStorage {
 
   getCampaignsByChannel(channelId: string): Promise<Campaign[]>;
 getTemplatesByChannel(channelId: string): Promise<Template[]>;
+getTemplatesByUserId(userId: string): Promise<Template[]>;
+getTemplatesByChannelAndUser(channelId: string, userId: string): Promise<Template[]>;
 getConversationsByChannel(channelId: string): Promise<Conversation[]>;
 deleteConversation(id: string): Promise<boolean>;
 getAutomationByChannel(channelId: string): Promise<Automation[]>;
@@ -408,6 +411,11 @@ async searchContactsByChannel(channelId: string, query: string): Promise<Contact
     return this.campaigns.get(id);
   }
 
+
+  async getCampaignByUserId(userId: string): Promise<Campaign[]> {
+    return this.campaigns.get(userId);
+  }
+
   async createCampaign(insertCampaign: InsertCampaign): Promise<Campaign> {
     const id = randomUUID();
     const campaign: Campaign = {
@@ -517,6 +525,24 @@ async searchContactsByChannel(channelId: string, query: string): Promise<Contact
     return this.templates.get(id);
   }
 
+  async getTemplateByUserId(userId: string): Promise<Template | undefined>{
+    return  this.templates.get(userId)
+  }
+
+
+  async getTemplatesByChannelAndUser(channelId: string, userId: string): Promise<Template[]> {
+  const channel = this.channels.get(channelId);
+  if (!channel) return [];
+  
+  if (channel.createdBy !== userId) return [];
+
+  return Array.from(this.templates.values())
+    .filter(t => t.channelId === channelId)
+    .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+}
+
+
+
   async createTemplate(insertTemplate: InsertTemplate): Promise<Template> {
     const id = randomUUID();
     const template: Template = {
@@ -542,6 +568,37 @@ async searchContactsByChannel(channelId: string, query: string): Promise<Contact
     this.templates.set(id, template);
     return template;
   }
+
+
+//   async createTemplate(insertTemplate: InsertTemplate): Promise<Template> {
+//   const id = randomUUID();
+
+//   const template: Template = {
+//     ...insertTemplate,
+//     id,
+//     createdAt: new Date(),
+//     updatedAt: new Date(),
+//     createdBy: insertTemplate.createdBy,  // ✅ ADD THIS
+//     status: insertTemplate.status || "draft",
+//     channelId: insertTemplate.channelId || null,
+//     language: insertTemplate.language || "en_US",
+//     header: insertTemplate.header || null,
+//     footer: insertTemplate.footer || null,
+//     buttons: insertTemplate.buttons || [],
+//     variables: insertTemplate.variables || [],
+//     rejectionReason: insertTemplate.rejectionReason || null,
+//     whatsappTemplateId: insertTemplate.whatsappTemplateId || null,
+//     mediaType: insertTemplate.mediaType || "text",
+//     mediaUrl: insertTemplate.mediaUrl || null,
+//     mediaHandle: insertTemplate.mediaHandle || null,
+//     carouselCards: insertTemplate.carouselCards || [],
+//     usage_count: insertTemplate.usage_count ?? 0,
+//   };
+
+//   this.templates.set(id, template);
+//   return template;
+// }
+
 
   async updateTemplate(id: string, updates: Partial<Template>): Promise<Template | undefined> {
     const template = this.templates.get(id);
