@@ -68,6 +68,33 @@ export const api = {
   );
 },
 
+
+getAllContacts: (
+  search?: string,
+  page?: number,
+  limit?: number,
+  groupFilter?: string,
+  statusFilter?: string,
+) => {
+  const params = new URLSearchParams();
+
+  if (search?.trim()) params.append("search", search.trim());
+  if (page) params.append("page", String(page));
+  if (limit) params.append("limit", String(limit));
+  if (groupFilter) params.append("group", groupFilter);
+  if (statusFilter) params.append("status", statusFilter);
+
+  // 🟦 SUPERADMIN → DO NOT SEND createdBy or channelId (ever)
+
+  const query = params.toString();
+
+  return apiRequest(
+    "GET",
+    `/api/contacts${query ? `?${query}` : ""}`
+  );
+},
+
+
   getContact: (id: string) => apiRequest("GET", `/api/contacts/${id}`),
   createContact: (data: any, channelId?: string) => apiRequest("POST", `/api/contacts${channelId ? `?channelId=${channelId}` : ""}`, data),
   updateContact: (id: string, data: any) => apiRequest("PUT", `/api/contacts/${id}`, data),

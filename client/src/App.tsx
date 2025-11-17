@@ -294,9 +294,9 @@ function ProtectedRoutes() {
               requiredPermission="analytics:view"
             />
           </Route> */}
-          <Route path="/logs">
+          {/* <Route path="/logs">
             <PermissionRoute component={Logs} requiredPermission="logs:view" />
-          </Route>
+          </Route> */}
           <Route path="/settings">
             <PermissionRoute
               component={Settings}
@@ -356,7 +356,7 @@ function ProtectedRoutes() {
           </Route>
 
           <Route path="/message-logs">
-            <PermissionRoute component={MessageLogs} />
+            <PermissionRoute component={Logs} />
           </Route>
 
           <Route path="/health-monitor">
