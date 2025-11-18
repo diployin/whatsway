@@ -86,10 +86,9 @@ export default function WidgetBuilder() {
       if (!res.ok) throw new Error("Failed to fetch sites");
       return res.json();
     },
-  });
+  });  
   
-  
-  console.log("sites", sitesw, "error", error);
+  // console.log("sites", sitesw, "error", error);
   
   const [config, setConfig] = useState({
     // Basic Settings

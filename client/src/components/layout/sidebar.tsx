@@ -26,15 +26,11 @@ import { useAuth } from "@/contexts/auth-context";
 import logo from "../../images/logo1924.jpg";
 import { GiUpgrade } from "react-icons/gi";
 import { TbInvoice } from "react-icons/tb";
+import { RiSecurePaymentFill } from "react-icons/ri";
+import { AiOutlineTransaction } from "react-icons/ai";
+import { MdOutlineSupportAgent } from "react-icons/md";
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
 import { AdminCreditBox } from "../AdminCreditBox";
 
 type Role = "superadmin" | "admin" | "user";
@@ -66,6 +62,14 @@ const navItems: NavItem[] = [
     color: "text-blue-600",
     requiredPrefix: "contacts.",
     allowedRoles: ["superadmin", "admin"],
+  },
+  {
+    href: "/groups",
+    icon: Users,
+    labelKey: "navigation.groups",
+    color: "text-blue-600",
+    requiredPrefix: "groups.",
+    allowedRoles: ["superadmin", "admin", "user"],
   },
   {
     href: "/campaigns",
@@ -246,17 +250,23 @@ const sidebarItemsCategories = [
     color: "text-blue-400",
   },
   {
+    name: "Transactions logs",
+    icon: AiOutlineTransaction,
+    path: "/transactions-logs",
+    color: "text-[#00a63e]",
+  },
+  {
     name: "Payment Gateway",
-    icon: MdOutlinePayment,
+    icon: RiSecurePaymentFill,
     path: "/gateway",
-    color: "text-blue-400",
+    color: "text-[#ffb900]",
   },
   {
     name: "Support Tickets",
-    icon: MdOutlinePayment,
+    icon: MdOutlineSupportAgent,
     path: "/support-tickets",
-    color: "text-blue-400",
-  },
+    color: "text-black-400",
+  },
   {
     name: "Settings",
     icon: Settings,

@@ -211,6 +211,20 @@
       "when": 1763383798472,
       "tag": "0029_slim_riptide",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1763467553823,
+      "tag": "0030_hard_paper_doll",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1763467716879,
+      "tag": "0031_cooing_sinister_six",
+      "breakpoints": true
     }
   ]
 }

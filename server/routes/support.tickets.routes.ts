@@ -21,9 +21,12 @@ export function registerTicketsRoutes(app: Express) {
       const offset = (pageNum - 1) * limitNum;
 
       let conditions: any[] = [];
+      console.log(
+        userId , userType 
+      )
 
       // Non-admins can only see their own tickets
-      if (userType !== "admin" && userType !== "superadmin") {
+      if (userType !== "superadmin") {
         console.log("check", userType);
         conditions.push(
           and(
@@ -230,13 +233,15 @@ export function registerTicketsRoutes(app: Express) {
           return res.status(404).json({ error: "Ticket not found" });
         }
 
+        console.log(user.role ,ticket.creatorId , user.id , ticket.creatorType )
+
         // Check permissions
-        if (
-          user.role !== "admin" &&
-          (ticket.creatorId !== user.id || ticket.creatorType !== user.role)
-        ) {
-          return res.status(403).json({ error: "Access denied" });
-        }
+        // if (
+        //   user.role !== "admin" &&
+        //   (ticket.creatorId !== user.id || ticket.creatorType !== user.role)
+        // ) {
+        //   return res.status(403).json({ error: "Access denied" });
+        // }
 
         // Only admins can create internal messages
         const messageIsInternal = user.role === "admin" && isInternal;

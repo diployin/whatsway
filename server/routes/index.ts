@@ -32,6 +32,7 @@ import { registerWidgetRoutes } from "./chatbot.routes";
 import { registerTicketsRoutes } from "./support.tickets.routes";
 import { registerNotificationsRoutes } from "./notifications.routes";
 import { registerFirebaseRoutes } from "./firebase.routes";
+import { registerGroupRoutes } from "./group.routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes (no authentication required)
@@ -39,6 +40,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register all route modules
   registerWidgetRoutes(app);
+  registerGroupRoutes(app);
   registerPlansRoutes(app);
   registerNotificationsRoutes(app);
   registerFirebaseRoutes(app);

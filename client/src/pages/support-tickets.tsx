@@ -383,7 +383,7 @@ export default function SupportTicketsNew() {
       case "user":
         return "bg-blue-100 text-blue-800";
       case "listener":
-        return "bg-purple-100 text-purple-800";
+        return "bg-green-100 text-green-800";
       case "admin":
         return "bg-orange-100 text-orange-800";
       default:
@@ -408,8 +408,8 @@ export default function SupportTicketsNew() {
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 py-3 sm:py-4">
             <div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0">
-              <div className="bg-purple-100 p-2 sm:p-2.5 rounded-lg shrink-0">
-                <Headphones className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
+              <div className="bg-green-100 p-2 sm:p-2.5 rounded-lg shrink-0">
+                <Headphones className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
               </div>
               <div className="min-w-0">
                 <h1 className="text-lg sm:text-2xl font-bold text-gray-900 truncate">
@@ -426,7 +426,7 @@ export default function SupportTicketsNew() {
             <div className="w-full sm:w-auto">
               <button
                 onClick={() => setShowCreateDialog(true)}
-                className="w-full sm:w-auto inline-flex items-center justify-center bg-purple-500 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 text-sm sm:text-base"
+                className="w-full sm:w-auto inline-flex items-center justify-center bg-green-500 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-green-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2 text-sm sm:text-base"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Create Ticket
@@ -457,7 +457,7 @@ export default function SupportTicketsNew() {
               value: tickets
                 .filter((t) => t.status === "in_progress")
                 .length.toString(),
-              color: "purple",
+              color: "green",
             },
             {
               title: "Resolved",
@@ -500,14 +500,14 @@ export default function SupportTicketsNew() {
                   placeholder="Search tickets..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
               </div>
               <div className="flex space-x-2 mt-3">
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
                 >
                   <option value="all">All Status</option>
                   <option value="open">Open</option>
@@ -518,7 +518,7 @@ export default function SupportTicketsNew() {
                 <select
                   value={priorityFilter}
                   onChange={(e) => setPriorityFilter(e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
                 >
                   <option value="all">All Priority</option>
                   <option value="low">Low</option>
@@ -542,9 +542,9 @@ export default function SupportTicketsNew() {
                     onClick={() => setSelectedTicketId(ticket.id)}
                     className={`bg-white p-4 rounded-xl shadow-sm border ${
                       selectedTicketId === ticket.id
-                        ? "border-purple-500 ring-2 ring-purple-200"
+                        ? "border-green-500 ring-2 ring-green-200"
                         : "border-gray-200"
-                    } hover:border-purple-500 transition-all cursor-pointer`}
+                    } hover:border-green-500 transition-all cursor-pointer`}
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center space-x-2 flex-wrap">
@@ -574,7 +574,7 @@ export default function SupportTicketsNew() {
                     </h3>
 
                     <div className="flex items-center space-x-2 mb-3">
-                      <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 text-xs font-semibold">
+                      <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xs font-semibold">
                         {ticket.creatorName.charAt(0).toUpperCase()}
                       </div>
                       <span className="text-sm text-gray-600">
@@ -597,7 +597,7 @@ export default function SupportTicketsNew() {
                         {new Date(ticket.updatedAt).toLocaleTimeString()}
                       </span>
                       {isAdmin && ticket.assignedToName && (
-                        <span className="text-purple-600 font-medium">
+                        <span className="text-green-600 font-medium">
                           → {ticket.assignedToName}
                         </span>
                       )}
@@ -688,7 +688,7 @@ export default function SupportTicketsNew() {
                     <div>
                       <span className="text-gray-500">Creator:</span>
                       <div className="flex items-center mt-1">
-                        <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 text-xs font-semibold mr-2">
+                        <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xs font-semibold mr-2">
                           {selectedTicket.creatorName.charAt(0).toUpperCase()}
                         </div>
                         <span className="font-medium text-gray-900">
@@ -746,7 +746,7 @@ export default function SupportTicketsNew() {
                             selectedTicket.status
                           }
                           onChange={(e) => handleUpdateStatus(e.target.value)}
-                          className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
                         >
                           <option value="open">Open</option>
                           <option value="in_progress">In Progress</option>
@@ -764,7 +764,7 @@ export default function SupportTicketsNew() {
                             selectedTicket.priority
                           }
                           onChange={(e) => handleUpdatePriority(e.target.value)}
-                          className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
                         >
                           <option value="low">Low</option>
                           <option value="medium">Medium</option>
@@ -781,7 +781,7 @@ export default function SupportTicketsNew() {
                             ticketDetails?.ticket?.assignedToId || "unassigned"
                           }
                           onChange={(e) => handleAssignTicket(e.target.value)}
-                          className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
                         >
                           <option value="unassigned">Unassigned</option>
                           {adminUsers.map((admin) => (
@@ -829,7 +829,7 @@ export default function SupportTicketsNew() {
                               msg.isInternal
                                 ? "bg-amber-50 border border-amber-200"
                                 : msg.senderType === user?.role
-                                ? "bg-purple-500 text-white"
+                                ? "bg-green-500 text-white"
                                 : "bg-white border border-gray-200"
                             } px-4 py-3 rounded-lg shadow-sm`}
                           >
@@ -838,7 +838,7 @@ export default function SupportTicketsNew() {
                                 className={`text-xs font-semibold ${
                                   msg.senderType === user?.role &&
                                   !msg.isInternal
-                                    ? "text-purple-100"
+                                    ? "text-green-100"
                                     : "text-gray-700"
                                 }`}
                               >
@@ -848,7 +848,7 @@ export default function SupportTicketsNew() {
                                 className={`text-xs px-2 py-0.5 rounded ${
                                   msg.senderType === user?.role &&
                                   !msg.isInternal
-                                    ? "bg-purple-600 text-purple-100"
+                                    ? "bg-green-600 text-green-100"
                                     : "bg-gray-100 text-gray-600"
                                 }`}
                               >
@@ -872,7 +872,7 @@ export default function SupportTicketsNew() {
                             <div
                               className={`text-xs mt-1 ${
                                 msg.senderType === user?.role && !msg.isInternal
-                                  ? "text-purple-100"
+                                  ? "text-green-100"
                                   : "text-gray-500"
                               }`}
                             >
@@ -892,7 +892,7 @@ export default function SupportTicketsNew() {
                       placeholder="Type your reply..."
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
                       rows={3}
                     />
                     <button
@@ -900,7 +900,7 @@ export default function SupportTicketsNew() {
                       disabled={
                         !newMessage.trim() || addMessageMutation.isPending
                       }
-                      className="bg-purple-500 text-white p-3 rounded-lg hover:bg-purple-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="bg-green-500 text-white p-3 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <ArrowRight className="w-5 h-5" />
                     </button>
@@ -914,7 +914,7 @@ export default function SupportTicketsNew() {
                           id="internal"
                           checked={isInternalNote}
                           onChange={(e) => setIsInternalNote(e.target.checked)}
-                          className="rounded border-gray-300 text-purple-500 focus:ring-purple-500"
+                          className="rounded border-gray-300 text-green-500 focus:ring-green-500"
                         />
                         <label
                           htmlFor="internal"
@@ -996,7 +996,7 @@ export default function SupportTicketsNew() {
                 }
                 placeholder="Detailed description of the issue"
                 rows={5}
-                className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
               />
             </div>
             <div>
@@ -1012,7 +1012,7 @@ export default function SupportTicketsNew() {
                     priority: e.target.value as any,
                   })
                 }
-                className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
               >
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
@@ -1031,7 +1031,7 @@ export default function SupportTicketsNew() {
             <button
               onClick={handleCreateTicket}
               disabled={createTicketMutation.isPending}
-              className="px-4 py-2 text-sm text-white bg-purple-500 rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-sm text-white bg-green-500 rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {createTicketMutation.isPending ? "Creating..." : "Create Ticket"}
             </button>

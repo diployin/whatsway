@@ -58,6 +58,7 @@ import SupportTicketsNew from "./pages/support-tickets";
 import userDetails from "./pages/userDetails";
 import UserSupportTicketsNew from "./pages/user-support-tickets";
 import BillingSubscriptionPage from "./components/billing-subscription-page";
+import GroupsUI from "./pages/group-list";
 // Define route permissions mapping
 const ROUTE_PERMISSIONS: Record<string, string> = {
   "/contacts": "contacts.view",
@@ -376,6 +377,10 @@ function ProtectedRoutes() {
 
           <Route path="/support-tickets">
             <PermissionRoute component={SupportTicketsNew} />
+          </Route>
+
+          <Route path="/groups">
+            <PermissionRoute component={GroupsUI} />
           </Route>
           <Route path="/user-support-tickets">
             <PermissionRoute component={UserSupportTicketsNew} />
