@@ -9,8 +9,20 @@ export const getAllSubscriptions = async (req: Request, res: Response) => {
     const allSubscriptions = await db
       .select({
         subscription: subscriptions,
-        user: users,
-        plan: plans
+        user: {
+          id: users.id,
+          username: users.username, // only username
+        },
+        plan: {
+          id: plans.id,
+          name: plans.name,
+          description: plans.description,
+          icon: plans.icon,
+          monthlyPrice: plans.monthlyPrice,
+          annualPrice: plans.annualPrice,
+          features: plans.features,
+          permissions: plans.permissions
+        }
       })
       .from(subscriptions)
       .leftJoin(users, eq(subscriptions.userId, users.id))
@@ -22,6 +34,7 @@ export const getAllSubscriptions = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: 'Error fetching subscriptions', error });
   }
 };
+
 
 // Get subscription by ID
 export const getSubscriptionById = async (req: Request, res: Response) => {
@@ -52,13 +65,17 @@ export const getSubscriptionById = async (req: Request, res: Response) => {
 export const getSubscriptionsByUserId = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
+
     const userSubscriptions = await db
       .select({
         subscription: subscriptions,
-        plan: plans
+        user: {
+          id: users.id,
+          username: users.username, // select username
+        }
       })
       .from(subscriptions)
-      .leftJoin(plans, eq(subscriptions.planId, plans.id))
+      .leftJoin(users, eq(subscriptions.userId, users.id))
       .where(eq(subscriptions.userId, userId))
       .orderBy(desc(subscriptions.createdAt));
 
@@ -67,6 +84,9 @@ export const getSubscriptionsByUserId = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: 'Error fetching user subscriptions', error });
   }
 };
+
+
+
 
 // Get active subscription by user ID
 export const getActiveSubscriptionByUserId = async (req: Request, res: Response) => {

@@ -920,6 +920,101 @@ async function initializeStripePayment(
 // ==================== VERIFY PAYMENT ====================
 
 // Verify Razorpay payment
+// export const verifyRazorpayPayment = async (req: Request, res: Response) => {
+//   try {
+//     const {
+//       razorpay_order_id,
+//       razorpay_payment_id,
+//       razorpay_signature,
+//       transactionId,
+//     } = req.body;
+
+//     // Get provider details
+//     const providerData = await db
+//       .select()
+//       .from(paymentProviders)
+//       .where(eq(paymentProviders.providerKey, "razorpay"))
+//       .limit(1);
+
+//     if (providerData.length === 0) {
+//       return res
+//         .status(404)
+//         .json({ success: false, message: "Razorpay provider not found" });
+//     }
+
+//     const provider = providerData[0];
+//     const secret = provider.config.apiSecret || process.env.RAZORPAY_KEY_SECRET;
+
+//     const generated_signature = crypto
+//       .createHmac("sha256", secret)
+//       .update(razorpay_order_id + "|" + razorpay_payment_id)
+//       .digest("hex");
+
+//     if (generated_signature !== razorpay_signature) {
+//       // Update transaction as failed
+//       await db
+//         .update(transactions)
+//         .set({
+//           status: "failed",
+//           metadata: { error: "Invalid signature" },
+//           updatedAt: new Date(),
+//         })
+//         .where(eq(transactions.id, transactionId));
+
+//       return res.status(400).json({
+//         success: false,
+//         message: "Payment verification failed - Invalid signature",
+//       });
+//     }
+
+//     // Payment verified - Update transaction
+//     await db
+//       .update(transactions)
+//       .set({
+//         status: "completed",
+//         providerOrderId: razorpay_order_id,
+//         providerPaymentId: razorpay_payment_id,
+//         paidAt: new Date(),
+//         metadata: { verified: true },
+//         updatedAt: new Date(),
+//       })
+//       .where(eq(transactions.id, transactionId));
+
+
+//       // Create subscription
+//     const newSubscription = await db
+//       .insert(subscriptions)
+//       .values({
+//         userId: transaction.userId,
+//         planId: transaction.planId,
+//         status: "active",
+//         billingCycle: transaction.billingCycle,
+//         startDate,
+//         endDate,
+//         autoRenew: true,
+//       })
+//       .returning();
+
+//     res.status(200).json({
+//       success: true,
+//       message: "Payment verified successfully",
+//       data: {
+//         transactionId,
+//         orderId: razorpay_order_id,
+//         paymentId: razorpay_payment_id,
+//       },
+//     });
+
+//     // Note: Subscription creation will be handled by webhook
+//   } catch (error) {
+//     console.error("Error verifying Razorpay payment:", error);
+//     res
+//       .status(500)
+//       .json({ success: false, message: "Error verifying payment", error });
+//   }
+// };
+
+
 export const verifyRazorpayPayment = async (req: Request, res: Response) => {
   try {
     const {
@@ -945,13 +1040,30 @@ export const verifyRazorpayPayment = async (req: Request, res: Response) => {
     const provider = providerData[0];
     const secret = provider.config.apiSecret || process.env.RAZORPAY_KEY_SECRET;
 
+    // Generate signature
     const generated_signature = crypto
       .createHmac("sha256", secret)
       .update(razorpay_order_id + "|" + razorpay_payment_id)
       .digest("hex");
 
+    // Fetch transaction details
+    const transactionData = await db
+      .select()
+      .from(transactions)
+      .where(eq(transactions.id, transactionId))
+      .limit(1);
+
+    if (transactionData.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Transaction not found",
+      });
+    }
+
+    const transaction = transactionData[0];
+
+    // Signature mismatch -> fail transaction
     if (generated_signature !== razorpay_signature) {
-      // Update transaction as failed
       await db
         .update(transactions)
         .set({
@@ -967,7 +1079,7 @@ export const verifyRazorpayPayment = async (req: Request, res: Response) => {
       });
     }
 
-    // Payment verified - Update transaction
+    // Payment verified -> update transaction
     await db
       .update(transactions)
       .set({
@@ -980,17 +1092,85 @@ export const verifyRazorpayPayment = async (req: Request, res: Response) => {
       })
       .where(eq(transactions.id, transactionId));
 
+    // Fetch full plan details using planId
+    const planData = await db
+      .select()
+      .from(plans)
+      .where(eq(plans.id, transaction.planId))
+      .limit(1);
+
+    if (planData.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Plan not found",
+      });
+    }
+
+    const plan = planData[0];
+
+    // Log the plan data for debugging
+    console.log("Fetched plan data:", plan);
+
+    // Ensure valid plan data, falling back to defaults if necessary
+    const planDataObject = {
+      name: plan.name || "Unknown Plan",
+      description: plan.description || "No description available",
+      icon: plan.icon || "default-icon",
+      monthlyPrice: plan.monthlyPrice || 0,
+      annualPrice: plan.annualPrice || 0,
+      permissions: plan.permissions || {},
+      features: plan.features || [],
+    };
+
+    // Log plan data object to check before insertion
+    console.log("Plan data object for subscription:", planDataObject);
+
+    // Calculate subscription dates
+    const startDate = new Date();
+    const endDate = new Date();
+
+    if (transaction.billingCycle === "monthly") {
+      endDate.setMonth(endDate.getMonth() + 1);
+    } else if (transaction.billingCycle === "yearly") {
+      endDate.setFullYear(endDate.getFullYear() + 1);
+    }
+
+    // Create subscription with full plan details in the plan_data JSON field
+    const newSubscription = await db
+  .insert(subscriptions)
+  .values({
+    userId: transaction.userId,
+    planId: transaction.planId,
+    planData: {  // Change `plan_data` to `planData`
+      name: plan.name,          // Store plan name
+      description: plan.description, // Store plan description
+      monthlyPrice: plan.monthlyPrice, // Store monthly price
+      annualPrice: plan.annualPrice,   // Store annual price
+      permissions: plan.permissions, // Store plan permissions
+      features: plan.features,   // Store plan features
+    },
+    status: "active",
+    billingCycle: transaction.billingCycle,
+    startDate,
+    endDate,
+    autoRenew: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  })
+  .returning();
+
+
     res.status(200).json({
       success: true,
-      message: "Payment verified successfully",
+      message: "Payment verified & subscription created successfully",
       data: {
         transactionId,
+        subscription: newSubscription[0],
         orderId: razorpay_order_id,
         paymentId: razorpay_payment_id,
       },
     });
 
-    // Note: Subscription creation will be handled by webhook
   } catch (error) {
     console.error("Error verifying Razorpay payment:", error);
     res
