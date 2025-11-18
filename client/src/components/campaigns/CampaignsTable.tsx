@@ -35,6 +35,15 @@ export function CampaignsTable({ campaigns, onViewCampaign, onUpdateStatus, onDe
   const { t } = useTranslation();
   const { user } = useAuth();
 
+
+  const safeFormat = (dateString?: string) => {
+  if (!dateString) return "-";
+  const d = new Date(dateString);
+  if (isNaN(d.getTime())) return "-";
+  return format(d, "MMM d, h:mm a");
+};
+
+
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<string, { variant: "default" | "secondary" | "secondary" | "destructive" | "outline"; label: string }> = {
       completed: { variant: "default", label: "Completed" },
@@ -136,7 +145,7 @@ export function CampaignsTable({ campaigns, onViewCampaign, onUpdateStatus, onDe
                 </div>
               </TableCell>
               <TableCell>
-                {format(new Date(campaign.createdAt), "MMM d, h:mm a")}
+                {safeFormat(campaign.createdAt)}
               </TableCell>
               <TableCell className="text-right">
                 <DropdownMenu>
