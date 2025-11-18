@@ -15,6 +15,7 @@ import {
   UsersRound,
   Menu,
   LogOut,
+  CheckCircle,
   X,
   Bell,
 } from "lucide-react";
@@ -225,6 +226,15 @@ const sidebarItemsCategories = [
     badge: "",
     color: "text-yellow-600",
   },
+
+   {
+  name: "Master Subscriptions",
+  icon: CheckCircle,
+  path: "/master-subscriptions",
+  badge: "",
+  color: "text-green-600",
+},
+
   {
     name: "Analytics",
     icon: BarChart3,

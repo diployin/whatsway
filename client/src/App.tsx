@@ -59,6 +59,7 @@ import userDetails from "./pages/userDetails";
 import UserSupportTicketsNew from "./pages/user-support-tickets";
 import BillingSubscriptionPage from "./components/billing-subscription-page";
 import GroupsUI from "./pages/group-list";
+import AllSubscriptionsPage from "./pages/masterSubscriptions";
 // Define route permissions mapping
 const ROUTE_PERMISSIONS: Record<string, string> = {
   "/contacts": "contacts.view",
@@ -394,6 +395,11 @@ function ProtectedRoutes() {
 
           <Route path="/notifications">
             <PermissionRoute component={Notifications} />
+          </Route>
+
+
+          <Route path="master-subscriptions">
+            <PermissionRoute component={AllSubscriptionsPage}/>
           </Route>
 
           <Route path="/chat-hub">
