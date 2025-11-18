@@ -35,7 +35,7 @@ export const users = pgTable("users", {
   lastLogin: timestamp("last_login"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-  createdBy: varchar("created_by").default(''),
+  createdBy: varchar("created_by").default(""),
   fcmToken: varchar("fcm_token", { length: 512 }),
 });
 
@@ -94,11 +94,11 @@ export const contacts = pgTable(
     groups: jsonb("groups").$type<string[]>().default([]),
     tags: jsonb("tags").default([]),
     status: text("status").default("active"), // active, blocked, unsubscribed
-    source: varchar('source', { length: 100 }), // manual, import, api, chatbot
+    source: varchar("source", { length: 100 }), // manual, import, api, chatbot
     lastContact: timestamp("last_contact"),
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
-    createdBy: varchar("created_by").default(''),
+    createdBy: varchar("created_by").default(""),
   },
   (table) => ({
     contactChannelIdx: index("contacts_channel_idx").on(table.channelId),
@@ -120,7 +120,7 @@ export const campaigns = pgTable(
     channelId: varchar("channel_id").references(() => channels.id, {
       onDelete: "cascade",
     }),
-    createdBy :varchar("created_by"),
+    createdBy: varchar("created_by"),
     name: text("name").notNull(),
     description: text("description"),
     campaignType: text("campaign_type").notNull(), // contacts, csv, api
@@ -129,7 +129,9 @@ export const campaigns = pgTable(
     templateId: varchar("template_id").references(() => templates.id),
     templateName: text("template_name"),
     templateLanguage: text("template_language"),
-    variableMapping: jsonb("variable_mapping").$type<Record<string, string>>().default({}), // Maps template variables to contact/csv fields
+    variableMapping: jsonb("variable_mapping")
+      .$type<Record<string, string>>()
+      .default({}), // Maps template variables to contact/csv fields
     contactGroups: jsonb("contact_groups").$type<string[]>().default([]), // For contacts campaign
     csvData: jsonb("csv_data").default([]), // For CSV campaign
     apiKey: varchar("api_key"), // For API campaign
@@ -208,7 +210,7 @@ export const channels = pgTable("channels", {
   healthDetails: jsonb("health_details").default({}), // Detailed health information
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-  createdBy: varchar("created_by").default(''),
+  createdBy: varchar("created_by").default(""),
 });
 
 export const templates = pgTable("templates", {
@@ -216,7 +218,7 @@ export const templates = pgTable("templates", {
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   channelId: varchar("channel_id").references(() => channels.id),
-  createdBy :varchar("created_by"),
+  createdBy: varchar("created_by"),
   name: text("name").notNull(),
   category: text("category").notNull(), // marketing, transactional, authentication, utility
   language: text("language").default("en_US"),
@@ -256,8 +258,8 @@ export const conversations = pgTable(
     status: text("status").default("open"), // open, closed, assigned, pending
     priority: text("priority").default("normal"), // low, normal, high, urgent
     type: text("type").default("whatsapp"), // whatsapp, chatbot, sms, email
-    chatbotId: integer('chatbot_id'),
-    sessionId: text('session_id'),
+    chatbotId: integer("chatbot_id"),
+    sessionId: text("session_id"),
     tags: jsonb("tags").default([]),
     unreadCount: integer("unread_count").default(0), // Track unread messages
     lastMessageAt: timestamp("last_message_at"),
@@ -349,7 +351,9 @@ export const notifications = pgTable("notifications", {
   targetType: varchar("target_type").notNull(),
 
   // For specific users (array)
-  targetIds: text("target_ids").array().default(sql`ARRAY[]::text[]`),
+  targetIds: text("target_ids")
+    .array()
+    .default(sql`ARRAY[]::text[]`),
 
   status: varchar("status").notNull().default("draft"), // draft | sent
   sentAt: timestamp("sent_at"),
@@ -357,13 +361,12 @@ export const notifications = pgTable("notifications", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-
 export const sentNotifications = pgTable("sent_notifications", {
   id: serial("id").primaryKey(),
 
-  notificationId: integer('notification_id')
-  .references(() => notifications.id, { onDelete: 'cascade' })
-  .notNull(),
+  notificationId: integer("notification_id")
+    .references(() => notifications.id, { onDelete: "cascade" })
+    .notNull(),
 
   userId: uuid("user_id")
     .references(() => users.id, { onDelete: "cascade" })
@@ -375,80 +378,93 @@ export const sentNotifications = pgTable("sent_notifications", {
   sentAt: timestamp("sent_at").defaultNow(),
 });
 
-
-export const chatbots = pgTable('chatbots', {
+export const chatbots = pgTable("chatbots", {
   id: varchar("id")
-  .primaryKey()
-  .default(sql`gen_random_uuid()`),
-  uuid: text('uuid').notNull().unique(),
-  title: text('title').notNull(),
-  bubbleMessage: text('bubble_message'),
-  welcomeMessage: text('welcome_message'),
-  instructions: text('instructions'),
-  connectMessage: text('connect_message'),
-  language: text('language').default('en'),
-  interactionType: text('interaction_type').default('ai-only'),
-  avatarId: integer('avatar_id'),
-  avatarEmoji: text('avatar_emoji'),
-  avatarColor: text('avatar_color'),
-  primaryColor: text('primary_color').default('#3B82F6'),
-  logoUrl: text('logo_url'),
-  embedWidth: integer('embed_width').default(420),
-  embedHeight: integer('embed_height').default(745),
-  isActive: boolean('is_active').default(true),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  uuid: text("uuid").notNull().unique(),
+  title: text("title").notNull(),
+  bubbleMessage: text("bubble_message"),
+  welcomeMessage: text("welcome_message"),
+  instructions: text("instructions"),
+  connectMessage: text("connect_message"),
+  language: text("language").default("en"),
+  interactionType: text("interaction_type").default("ai-only"),
+  avatarId: integer("avatar_id"),
+  avatarEmoji: text("avatar_emoji"),
+  avatarColor: text("avatar_color"),
+  primaryColor: text("primary_color").default("#3B82F6"),
+  logoUrl: text("logo_url"),
+  embedWidth: integer("embed_width").default(420),
+  embedHeight: integer("embed_height").default(745),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const trainingData = pgTable('training_data', {
+export const trainingData = pgTable("training_data", {
   id: varchar("id")
-  .primaryKey()
-  .default(sql`gen_random_uuid()`),
-  chatbotId: integer('chatbot_id').references(() => chatbots.id),
-  type: text('type').notNull(), // 'text', 'pdf', 'website', 'qa'
-  title: text('title'),
-  content: text('content'),
-  metadata: jsonb('metadata'),
-  createdAt: timestamp('created_at').defaultNow(),
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  chatbotId: integer("chatbot_id").references(() => chatbots.id),
+  type: text("type").notNull(), // 'text', 'pdf', 'website', 'qa'
+  title: text("title"),
+  content: text("content"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Knowledge Base Categories
-export const knowledgeCategories = pgTable('knowledge_categories', {
-  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
-  siteId: varchar('site_id').notNull(),
-  parentId: varchar('parent_id'),
-  name: varchar('name', { length: 255 }).notNull(),
-  icon: varchar('icon', { length: 50 }),
-  description: text('description'),
-  order: integer('order').default(0),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
-}, (table) => ({
-  categorySiteIdx: index('categories_site_idx').on(table.siteId),
-  categoryParentIdx: index('categories_parent_idx').on(table.parentId),
-}));
+export const knowledgeCategories = pgTable(
+  "knowledge_categories",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    siteId: varchar("site_id").notNull(),
+    parentId: varchar("parent_id"),
+    name: varchar("name", { length: 255 }).notNull(),
+    icon: varchar("icon", { length: 50 }),
+    description: text("description"),
+    order: integer("order").default(0),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => ({
+    categorySiteIdx: index("categories_site_idx").on(table.siteId),
+    categoryParentIdx: index("categories_parent_idx").on(table.parentId),
+  })
+);
 
 // Knowledge Base Articles
-export const knowledgeArticles = pgTable('knowledge_articles', {
-  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
-  categoryId: varchar('category_id').notNull(),
-  title: varchar('title', { length: 500 }).notNull(),
-  content: text('content').notNull(),
-  order: integer('order').default(0),
-  published: boolean('published').default(true),
-  views: integer('views').default(0),
-  helpful: integer('helpful').default(0),
-  notHelpful: integer('not_helpful').default(0),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
-}, (table) => ({
-  articleCategoryIdx: index('articles_category_idx').on(table.categoryId),
-  articlePublishedIdx: index('articles_published_idx').on(table.published),
-}));
+export const knowledgeArticles = pgTable(
+  "knowledge_articles",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    categoryId: varchar("category_id").notNull(),
+    title: varchar("title", { length: 500 }).notNull(),
+    content: text("content").notNull(),
+    order: integer("order").default(0),
+    published: boolean("published").default(true),
+    views: integer("views").default(0),
+    helpful: integer("helpful").default(0),
+    notHelpful: integer("not_helpful").default(0),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => ({
+    articleCategoryIdx: index("articles_category_idx").on(table.categoryId),
+    articlePublishedIdx: index("articles_published_idx").on(table.published),
+  })
+);
 
 //plans
 export const plans = pgTable("plans", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: varchar("name").notNull(),
   description: text("description"),
   icon: varchar("icon"), // optional: store icon name like 'Zap', 'Crown'
@@ -458,8 +474,12 @@ export const plans = pgTable("plans", {
   buttonColor: varchar("button_color"),
 
   // Pricing
-  monthlyPrice: numeric("monthly_price", { precision: 10, scale: 2 }).default("0"),
-  annualPrice: numeric("annual_price", { precision: 10, scale: 2 }).default("0"),
+  monthlyPrice: numeric("monthly_price", { precision: 10, scale: 2 }).default(
+    "0"
+  ),
+  annualPrice: numeric("annual_price", { precision: 10, scale: 2 }).default(
+    "0"
+  ),
 
   // Permissions (JSON for flexibility)
   permissions: jsonb("permissions").$type<{
@@ -469,9 +489,7 @@ export const plans = pgTable("plans", {
   }>(),
 
   // Features (Array of objects)
-  features: jsonb("features").$type<
-    { name: string; included: boolean }[]
-  >(),
+  features: jsonb("features").$type<{ name: string; included: boolean }[]>(),
 
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -479,7 +497,9 @@ export const plans = pgTable("plans", {
 
 // Payment Providers table
 export const paymentProviders = pgTable("payment_providers", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: varchar("name").notNull(), // e.g., "Razorpay", "Stripe", "PayPal"
   providerKey: varchar("provider_key").notNull().unique(), // e.g., "razorpay", "stripe"
   description: text("description"),
@@ -503,9 +523,15 @@ export const paymentProviders = pgTable("payment_providers", {
 
 // User Subscriptions table
 export const subscriptions = pgTable("subscriptions", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id),
-  planId: varchar("plan_id").notNull().references(() => plans.id),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.id),
+  planId: varchar("plan_id")
+    .notNull()
+    .references(() => plans.id),
   status: varchar("status").notNull(), // "active", "expired", "cancelled", "pending"
   billingCycle: varchar("billing_cycle").notNull(), // "monthly" or "annual"
   startDate: timestamp("start_date").notNull(),
@@ -517,26 +543,34 @@ export const subscriptions = pgTable("subscriptions", {
 
 // Transactions table
 export const transactions = pgTable("transactions", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id),
-  planId: varchar("plan_id").notNull().references(() => plans.id),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.id),
+  planId: varchar("plan_id")
+    .notNull()
+    .references(() => plans.id),
   subscriptionId: varchar("subscription_id").references(() => subscriptions.id),
-  paymentProviderId: varchar("payment_provider_id").notNull().references(() => paymentProviders.id),
-  
+  paymentProviderId: varchar("payment_provider_id")
+    .notNull()
+    .references(() => paymentProviders.id),
+
   // Transaction details
   amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
   currency: varchar("currency").default("USD"),
   billingCycle: varchar("billing_cycle").notNull(), // "monthly" or "annual"
-  
+
   // Payment provider details
   providerTransactionId: varchar("provider_transaction_id"), // Transaction ID from payment provider
   providerOrderId: varchar("provider_order_id"), // Order ID from payment provider
   providerPaymentId: varchar("provider_payment_id"), // Payment ID from payment provider
-  
+
   // Transaction status
   status: varchar("status").notNull(), // "pending", "completed", "failed", "refunded", "cancelled"
   paymentMethod: varchar("payment_method"), // "card", "upi", "wallet", "netbanking"
-  
+
   // Additional details
   metadata: jsonb("metadata").$type<{
     cardLast4?: string;
@@ -546,7 +580,7 @@ export const transactions = pgTable("transactions", {
     refundReason?: string;
     [key: string]: any;
   }>(),
-  
+
   // Timestamps
   paidAt: timestamp("paid_at"),
   refundedAt: timestamp("refunded_at"),
@@ -554,57 +588,78 @@ export const transactions = pgTable("transactions", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-
-
-
-export const ticketStatusEnum = pgEnum('ticket_status', ['open', 'in_progress', 'resolved', 'closed']);
-export const ticketPriorityEnum = pgEnum('ticket_priority', ['low', 'medium', 'high', 'urgent']);
-export const userTypeEnum = pgEnum('user_type', ['user', 'team', 'admin' , "superadmin"]);
+export const ticketStatusEnum = pgEnum("ticket_status", [
+  "open",
+  "in_progress",
+  "resolved",
+  "closed",
+]);
+export const ticketPriorityEnum = pgEnum("ticket_priority", [
+  "low",
+  "medium",
+  "high",
+  "urgent",
+]);
+export const userTypeEnum = pgEnum("user_type", [
+  "user",
+  "team",
+  "admin",
+  "superadmin",
+]);
 
 // Support Tickets table
-export const supportTickets = pgTable('support_tickets', {
-  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
-  title: text('title').notNull(),
-  description: text('description').notNull(),
-  status: ticketStatusEnum('status').notNull().default('open'),
-  priority: ticketPriorityEnum('priority').notNull().default('medium'),
-  
+export const supportTickets = pgTable("support_tickets", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  status: ticketStatusEnum("status").notNull().default("open"),
+  priority: ticketPriorityEnum("priority").notNull().default("medium"),
+
   // Creator info (can be user or listener)
-  creatorId: varchar('creator_id').notNull(), // ID from users or listeners table
-  creatorType: userTypeEnum('creator_type').notNull(), // 'user' or 'team'
-  creatorName: text('creator_name').notNull(), // Cached for display
-  creatorEmail: text('creator_email').notNull(), // Cached for display
-  
+  creatorId: varchar("creator_id").notNull(), // ID from users or listeners table
+  creatorType: userTypeEnum("creator_type").notNull(), // 'user' or 'team'
+  creatorName: text("creator_name").notNull(), // Cached for display
+  creatorEmail: text("creator_email").notNull(), // Cached for display
+
   // Assignment (admin only)
-  assignedToId: varchar('assigned_to_id'), // ID from admin_users table
-  assignedToName: text('assigned_to_name'), // Cached for display
-  
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-  resolvedAt: timestamp('resolved_at'),
-  closedAt: timestamp('closed_at'),
+  assignedToId: varchar("assigned_to_id"), // ID from admin_users table
+  assignedToName: text("assigned_to_name"), // Cached for display
+
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  resolvedAt: timestamp("resolved_at"),
+  closedAt: timestamp("closed_at"),
 });
 
 // Ticket Messages table
-export const ticketMessages = pgTable('ticket_messages', {
-  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
-  ticketId: varchar('ticket_id').notNull().references(() => supportTickets.id, { onDelete: 'cascade' }),
-  
+export const ticketMessages = pgTable("ticket_messages", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  ticketId: varchar("ticket_id")
+    .notNull()
+    .references(() => supportTickets.id, { onDelete: "cascade" }),
+
   // Sender info (can be user, listener, or admin)
-  senderId: varchar('sender_id').notNull(),
-  senderType: userTypeEnum('sender_type').notNull(), // 'user', 'listener', or 'admin'
-  senderName: text('sender_name').notNull(), // Cached for display
-  
-  message: text('message').notNull(),
-  isInternal: boolean('is_internal').notNull().default(false), // Admin notes only
-  
-  createdAt: timestamp('created_at').notNull().defaultNow(),
+  senderId: varchar("sender_id").notNull(),
+  senderType: userTypeEnum("sender_type").notNull(), // 'user', 'listener', or 'admin'
+  senderName: text("sender_name").notNull(), // Cached for display
+
+  message: text("message").notNull(),
+  isInternal: boolean("is_internal").notNull().default(false), // Admin notes only
+
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 // Relations
-export const supportTicketsRelations = relations(supportTickets, ({ many }) => ({
-  messages: many(ticketMessages),
-}));
+export const supportTicketsRelations = relations(
+  supportTickets,
+  ({ many }) => ({
+    messages: many(ticketMessages),
+  })
+);
 
 export const ticketMessagesRelations = relations(ticketMessages, ({ one }) => ({
   ticket: one(supportTickets, {
@@ -612,8 +667,6 @@ export const ticketMessagesRelations = relations(ticketMessages, ({ one }) => ({
     references: [supportTickets.id],
   }),
 }));
-
-
 
 // Automation workflows table
 export const automations = pgTable(
@@ -864,7 +917,9 @@ export const apiLogs = pgTable("api_logs", {
 // Panel configuration table for branding and settings
 
 export const panelConfig = pgTable("panel_config", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: varchar("name").notNull(),
   tagline: varchar("tagline"),
   description: text("description"),
@@ -879,9 +934,10 @@ export const panelConfig = pgTable("panel_config", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-
 export const firebaseConfig = pgTable("firebase_config", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   apiKey: text("api_key"),
   authDomain: text("auth_domain"),
   projectId: text("project_id"),
@@ -896,9 +952,10 @@ export const firebaseConfig = pgTable("firebase_config", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-
 export const storageSettings = pgTable("storage_settings", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   provider: text("provider").default("digitalocean"), // can extend later
   spaceName: text("space_name").notNull(),
   endpoint: text("endpoint").notNull(),
@@ -910,9 +967,10 @@ export const storageSettings = pgTable("storage_settings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-
 export const aiSettings = pgTable("ai_settings", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
 
   provider: text("provider").notNull().default("openai"),
   apiKey: text("api_key").notNull(),
@@ -923,24 +981,33 @@ export const aiSettings = pgTable("ai_settings", {
   isActive: boolean("is_active").default(false),
 
   // NEW COLUMN
-  words: text("words").array().default(sql`ARRAY[]::text[]`), // trigger words or phrases
+  words: text("words")
+    .array()
+    .default(sql`ARRAY[]::text[]`), // trigger words or phrases
 
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-
 // Sites
 export const sites = pgTable("sites", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   channelId: varchar("channel_id"),
   name: text("name").notNull(),
   domain: text("domain").notNull(),
   widgetCode: text("widget_code").notNull().unique(),
   widgetEnabled: boolean("widget_enabled").notNull().default(true),
-  widgetConfig: jsonb("widget_config").notNull().default(sql`'{}'::jsonb`), // colors, position, greeting, etc.
-  aiTrainingConfig: jsonb("ai_training_config").notNull().default(sql`'{"trainFromKB": false, "trainFromDocuments": true}'::jsonb`), // AI training settings
-  autoAssignmentConfig: jsonb("auto_assignment_config").notNull().default(sql`'{"enabled": false, "strategy": "round_robin"}'::jsonb`), // Auto-assignment settings
+  widgetConfig: jsonb("widget_config")
+    .notNull()
+    .default(sql`'{}'::jsonb`), // colors, position, greeting, etc.
+  aiTrainingConfig: jsonb("ai_training_config")
+    .notNull()
+    .default(sql`'{"trainFromKB": false, "trainFromDocuments": true}'::jsonb`), // AI training settings
+  autoAssignmentConfig: jsonb("auto_assignment_config")
+    .notNull()
+    .default(sql`'{"enabled": false, "strategy": "round_robin"}'::jsonb`), // Auto-assignment settings
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -1126,12 +1193,15 @@ export const insertUserActivityLogSchema = createInsertSchema(
   userActivityLogs
 ).omit({ id: true, createdAt: true });
 
+export const insertSiteSchema = createInsertSchema(sites).omit({
+  id: true,
+  createdAt: true,
+  widgetCode: true,
+});
 
-export const insertSiteSchema = createInsertSchema(sites).omit({ id: true, createdAt: true, widgetCode: true });
-
-export const insertNotificationSchema = createInsertSchema(notifications).omit({ 
-  id: true, 
-  createdAt: true 
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  createdAt: true,
 });
 
 // Types
@@ -1185,7 +1255,6 @@ export type UserActivityLog = typeof userActivityLogs.$inferSelect;
 export type InsertUserActivityLog = z.infer<typeof insertUserActivityLogSchema>;
 export type PanelConfig = typeof panelConfig.$inferSelect;
 export type NewPanelConfig = typeof panelConfig.$inferInsert;
-
 
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type Notification = typeof notifications.$inferSelect;
