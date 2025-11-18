@@ -68,7 +68,7 @@ interface TeamMemberFormData {
   email: string;
   username: string;
   password?: string;
-  role: "admin" | "manager" | "agent";
+  role: "team";
   permissions: string[];
 }
 
@@ -79,7 +79,7 @@ type TeamMemberFormState = {
   email: string;
   username: string;
   password?: string;
-  role: "admin" | "manager" | "agent";
+  role: "team";
   permissions: Record<string, boolean>; // ✅ form uses boolean map
 };
 
@@ -758,7 +758,7 @@ function TeamMemberDialog({
     email: member?.email || "",
     username: member?.username || "",
     password: "",
-    role: (member?.role as "admin" | "manager" | "agent") || "agent",
+    role: (member?.role as "team") || "team",
     permissions: member?.permissions
       ? mapApiPermissionsToForm(member.permissions as string[]) // ✅ convert API → form
       : {},
@@ -780,7 +780,7 @@ function TeamMemberDialog({
       email: member?.email || "",
       username: member?.username || "",
       password: "",
-      role: (member?.role as "admin" | "manager" | "agent") || "agent",
+      role: (member?.role as "team") || "team",
       permissions: member?.permissions
         ? mapApiPermissionsToForm(member.permissions as string[]) // ✅ safe conversion
         : {},
@@ -1021,7 +1021,7 @@ function TeamMemberDialog({
                   />
                 </div>
               )}
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <Label htmlFor="role">Role</Label>
                 <Select
                   value={formData.role}
@@ -1041,7 +1041,7 @@ function TeamMemberDialog({
                     <SelectItem value="agent">Agent</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
+              </div> */}
             </div>
 
             {/* Dynamic Permissions Section */}

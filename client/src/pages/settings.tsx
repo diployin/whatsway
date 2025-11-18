@@ -28,7 +28,7 @@ export default function Settings() {
 
   useEffect(() => {
   if (user?.role !== "superadmin") {
-    setActiveTab("ai_setting");
+    setActiveTab("whatsapp");
   }
 }, [user]);
 
@@ -81,19 +81,19 @@ export default function Settings() {
         {user?.role !== "superadmin" && (
           <>
             <TabsTrigger
-              value="ai_setting"
-              className="flex items-center space-x-2"
-            >
-              <BotIcon className="w-4 h-4" />
-              <span>AI Settings</span>
-            </TabsTrigger>
-
-            <TabsTrigger
               value="whatsapp"
               className="flex items-center space-x-2"
             >
               <Smartphone className="w-4 h-4" />
               <span>WhatsApp</span>
+            </TabsTrigger>
+
+             <TabsTrigger
+              value="ai_setting"
+              className="flex items-center space-x-2"
+            >
+              <BotIcon className="w-4 h-4" />
+              <span>AI Settings</span>
             </TabsTrigger>
 
             <TabsTrigger

@@ -50,7 +50,7 @@ const createUserSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().optional(),
-  role: z.enum(["admin", "manager", "agent"]),
+  role: z.enum(["team"]),
   permissions: z
     .union([z.array(z.string()), z.record(z.boolean())])
     .optional()
@@ -142,9 +142,6 @@ router.get(
     }
   }
 );
-
-
-
 
 
 
@@ -505,8 +502,46 @@ router.delete("/members/:id",requireAuth, async (req, res) => {
 });
 
 // Get team activity logs
+// router.get("/activity-logs", async (req, res) => {
+//   try {
+//     const logs = await db
+//       .select({
+//         id: userActivityLogs.id,
+//         userId: userActivityLogs.userId,
+//         userName: users.username,
+//         userEmail: users.email,
+//         action: userActivityLogs.action,
+//         entityType: userActivityLogs.entityType,
+//         entityId: userActivityLogs.entityId,
+//         details: userActivityLogs.details,
+//         ipAddress: userActivityLogs.ipAddress,
+//         userAgent: userActivityLogs.userAgent,
+//         createdAt: userActivityLogs.createdAt,
+//       })
+//       .from(userActivityLogs)
+//       .leftJoin(users, eq(userActivityLogs.userId, users.id))
+//       .orderBy(desc(userActivityLogs.createdAt))
+//       .limit(100);
+
+//     res.json(logs);
+//   } catch (error) {
+//     console.error("Error fetching activity logs:", error);
+//     res.status(500).json({ error: "Failed to fetch activity logs" });
+//   }
+// });
+
+
+
 router.get("/activity-logs", async (req, res) => {
   try {
+    // Get the logged-in user's ID from the session or JWT (adjust this according to your authentication method)
+    const loggedInUserId = req?.session?.user?.id;  // Example using `req.user` for the authenticated user.
+
+    if (!loggedInUserId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    // Fetch activity logs where the 'created_by' field matches the logged-in user's ID
     const logs = await db
       .select({
         id: userActivityLogs.id,
@@ -523,6 +558,7 @@ router.get("/activity-logs", async (req, res) => {
       })
       .from(userActivityLogs)
       .leftJoin(users, eq(userActivityLogs.userId, users.id))
+      .where(eq(users.createdBy, loggedInUserId)) // Add this line to filter logs by the user who created the team member
       .orderBy(desc(userActivityLogs.createdAt))
       .limit(100);
 
@@ -532,6 +568,7 @@ router.get("/activity-logs", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch activity logs" });
   }
 });
+
 
 // Update member permissions
 router.patch("/members/:id/permissions",requireAuth,
