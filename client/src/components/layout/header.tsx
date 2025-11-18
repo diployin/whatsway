@@ -195,6 +195,8 @@ export default function Header({
               </Button>
             )}
 
+            {user?.role != 'superadmin' &&(
+
             <div className="relative">
               <button
                 onClick={() => setNotifModal(true)}
@@ -208,6 +210,8 @@ export default function Header({
                 )}
               </button>
             </div>
+
+            )}
 
             <div className="relative" ref={dropdownRef}>
               <button

@@ -44,11 +44,15 @@ export function ChannelSettings() {
   const { toast } = useToast();
   const { user } = useAuth();
   // Fetch WhatsApp channels 
-  const { data: channels = [], isLoading: channelsLoading } = useQuery<
-    Channel[]
-  >({
-    queryKey: ["/api/channels"],
-  });
+ const { data: channels = [], isLoading: channelsLoading } = useQuery({
+  queryKey: ["/api/channels"],
+  queryFn: async () => {
+    const response = await apiRequest("GET", "/api/channels");
+    const json = await response.json();
+    return json.data ?? [];
+  }
+});
+
 
   // Delete channel mutation
   const deleteChannelMutation = useMutation({

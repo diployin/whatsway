@@ -240,13 +240,27 @@ async getContactsByUser(
   }
 
   // Campaigns
-  async getCampaigns(): Promise<Campaign[]> {
-    return this.campaignRepo.getAll();
-  }
+  async getCampaigns(
+  page: number = 1,
+  limit: number = 10
+): Promise<{
+  data: Campaign[];
+  total: number;
+  page: number;
+  limit: number;
+}> {
+  return this.campaignRepo.getAll(page, limit);
+}
 
-  async getCampaignsByChannel(channelId: string): Promise<Campaign[]> {
-    return this.campaignRepo.getByChannel(channelId);
-  }
+
+ async getCampaignsByChannel(
+  channelId: string,
+  page: number = 1,
+  limit: number = 10
+) {
+  return this.campaignRepo.getByChannel(channelId, page, limit);
+}
+
 
   async getCampaign(id: string): Promise<Campaign | undefined> {
     return this.campaignRepo.getById(id);

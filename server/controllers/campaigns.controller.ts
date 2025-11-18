@@ -32,9 +32,11 @@ export const campaignsController = {
   // Get all campaigns
   getCampaigns: asyncHandler(async (req, res) => {
     const channelId = req.headers["x-channel-id"] as string;
+    const page = Number(req.query.page || 1);
+    const limit = Number(req.query.limit || 10);
     const campaigns = channelId
-      ? await storage.getCampaignsByChannel(channelId)
-      : await storage.getCampaigns();
+      ? await storage.getCampaignsByChannel(channelId, page, limit)
+      : await storage.getCampaigns(page, limit);
     res.json(campaigns);
   }),
 

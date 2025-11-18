@@ -7,17 +7,75 @@ import {
 } from "@shared/schema";
 
 export class CampaignRepository {
-  async getAll(): Promise<Campaign[]> {
-    return await db.select().from(campaigns).orderBy(desc(campaigns.createdAt));
-  }
+  async getAll(page: number = 1, limit: number = 10): Promise<{
+  data: Campaign[];
+  total: number;
+  page: number;
+  limit: number;
+}> {
+  const offset = (page - 1) * limit;
 
-  async getByChannel(channelId: string): Promise<Campaign[]> {
-    return await db
-      .select()
-      .from(campaigns)
-      .where(eq(campaigns.channelId, channelId))
-      .orderBy(desc(campaigns.createdAt));
-  }
+  // Fetch paginated campaign list
+  const campaignsList = await db
+    .select()
+    .from(campaigns)
+    .orderBy(desc(campaigns.createdAt))
+    .limit(limit)
+    .offset(offset);
+
+  // Fetch total count
+  const totalResult = await db
+    .select({ total: sql<number>`COUNT(*)` })
+    .from(campaigns);
+
+  return {
+    data: campaignsList,
+    total: totalResult[0]?.total ?? 0,
+    page,
+    limit,
+  };
+}
+
+
+  // async getByChannel(channelId: string): Promise<Campaign[]> {
+  //   return await db
+  //     .select()
+  //     .from(campaigns)
+  //     .where(eq(campaigns.channelId, channelId))
+  //     .orderBy(desc(campaigns.createdAt));
+  // }
+
+
+  async getByChannel(
+  channelId: string,
+  page: number = 1,
+  limit: number = 10
+): Promise<{ data: Campaign[]; total: number; page: number; limit: number }> {
+  const offset = (page - 1) * limit;
+
+  // Fetch paginated campaigns
+  const data = await db
+    .select()
+    .from(campaigns)
+    .where(eq(campaigns.channelId, channelId))
+    .orderBy(desc(campaigns.createdAt))
+    .limit(limit)
+    .offset(offset);
+
+  // Fetch total count
+  const [{ count }] = await db
+    .select({ count: sql<number>`COUNT(*)` })
+    .from(campaigns)
+    .where(eq(campaigns.channelId, channelId));
+
+  return {
+    data,
+    total: Number(count),
+    page,
+    limit,
+  };
+}
+
 
   async getById(id: string): Promise<Campaign | undefined> {
     const [campaign] = await db.select().from(campaigns).where(eq(campaigns.id, id));

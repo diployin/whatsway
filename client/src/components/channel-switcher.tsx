@@ -9,23 +9,49 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Plus, Phone, Check, Settings } from "lucide-react";
+import { Plus, Phone, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useChannelContext } from "@/contexts/channel-context";
 import type { Channel } from "@shared/schema";
+import { useAuth } from "@/contexts/auth-context";
+
+interface ChannelsResponse {
+  data: Channel[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
 
 export function ChannelSwitcher() {
   const [selectedChannelId, setSelectedChannelId] = useState<string | null>(null);
+  const [page, setPage] = useState<number>(1);
+  const limit = 10;
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { setSelectedChannel } = useChannelContext();
+  const {user} = useAuth()
 
-  // Fetch channels
-  const { data: channels = [], isLoading } = useQuery<Channel[]>({
-    queryKey: ["/api/channels"],
+  const userId = user?.id;
+
+  // Fetch channels with pagination
+  const { data: response, isLoading } = useQuery<ChannelsResponse>({
+    queryKey: ["/api/channels", page],
+    queryFn: async () => {
+      const res = await apiRequest("POST", "/api/channels/userid", {
+        userId:userId,
+        page,
+        limit,
+      });
+      return res.json();
+    },
+    keepPreviousData: true,
   });
+
+  const channels: Channel[] = Array.isArray(response?.data) ? response.data : [];
+  const totalPages = response?.totalPages || 1;
 
   // Fetch active channel
   const { data: activeChannel } = useQuery<Channel>({
@@ -33,7 +59,7 @@ export function ChannelSwitcher() {
     retry: false,
   });
 
-  // Set selected channel on mount and update context
+  // Set selected channel on mount
   useEffect(() => {
     if (activeChannel && !selectedChannelId) {
       setSelectedChannelId(activeChannel.id);
@@ -41,7 +67,7 @@ export function ChannelSwitcher() {
     }
   }, [activeChannel, selectedChannelId, setSelectedChannel]);
 
-  // Update context when channel changes
+  // Update context when selectedChannelId changes
   useEffect(() => {
     const channel = channels.find(c => c.id === selectedChannelId);
     if (channel) {
@@ -49,76 +75,41 @@ export function ChannelSwitcher() {
     }
   }, [selectedChannelId, channels, setSelectedChannel]);
 
-  // Update channel mutation
+  // Mutation to activate a channel
   const updateChannelMutation = useMutation({
     mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
-      // First, set all channels to inactive
+      // Deactivate all channels first if activating
       if (isActive) {
         await Promise.all(
           channels.map(async (channel) => {
-            const response = await fetch(`/api/channels/${channel.id}`, {
+            await fetch(`/api/channels/${channel.id}`, {
               method: "PUT",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ isActive: false }),
             });
-            if (!response.ok) throw new Error("Failed to update channel");
-            return response.json();
           })
         );
       }
-      
-      // Then set the selected channel as active
-      const response = await fetch(`/api/channels/${id}`, {
+
+      // Activate the selected channel
+      const res = await fetch(`/api/channels/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isActive }),
       });
-      if (!response.ok) throw new Error("Failed to update channel");
-      return response.json();
+
+      if (!res.ok) throw new Error("Failed to update channel");
+      return res.json();
     },
     onSuccess: async () => {
-      // Invalidate and refetch all queries to refresh data for the new channel
       await queryClient.invalidateQueries({ queryKey: ["/api/channels"] });
       await queryClient.invalidateQueries({ queryKey: ["/api/channels/active"] });
-      
-      // Force refetch all data-related queries
-      queryClient.refetchQueries({ queryKey: ["/api/contacts"] });
-      queryClient.refetchQueries({ queryKey: ["/api/campaigns"] });
-      queryClient.refetchQueries({ queryKey: ["/api/templates"] });
-      queryClient.refetchQueries({ queryKey: ["/api/conversations"] });
-      queryClient.refetchQueries({ queryKey: ["/api/automations"] });
-      queryClient.refetchQueries({ queryKey: ["/api/dashboard/stats"] });
-      queryClient.refetchQueries({ queryKey: ["/api/analytics"] });
-      queryClient.refetchQueries({ queryKey: ["/api/templates"] });
-      queryClient.refetchQueries({ queryKey: ["/api/conversations"] });
-      queryClient.refetchQueries({ queryKey: ["/api/analytics"] });
-      queryClient.refetchQueries({ queryKey: ["/api/dashboard/stats"] });
-      queryClient.refetchQueries({ queryKey: ["/api/automations"] });
-      queryClient.refetchQueries({ queryKey: ["/api/messages"] });
-      
-      // Also invalidate any queries with these prefixes
-      queryClient.invalidateQueries({ predicate: (query) => {
-        const key = query.queryKey[0] as string;
-        return !!(key && (
-          key.startsWith('/api/contacts') ||
-          key.startsWith('/api/campaigns') ||
-          key.startsWith('/api/templates') ||
-          key.startsWith('/api/conversations') ||
-          key.startsWith('/api/analytics') ||
-          key.startsWith('/api/dashboard') ||
-          key.startsWith('/api/automations') ||
-          key.startsWith('/api/messages')
-        ));
-      }});
-      
       toast({
         title: "Channel switched",
         description: "Active channel has been updated successfully.",
       });
     },
   });
-
-
 
   const handleChannelChange = (channelId: string) => {
     setSelectedChannelId(channelId);
@@ -130,7 +121,7 @@ export function ChannelSwitcher() {
   }
 
   return (
-    <>
+    <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
         <Select value={selectedChannelId || ""} onValueChange={handleChannelChange}>
           <SelectTrigger className="w-48">
@@ -159,7 +150,7 @@ export function ChannelSwitcher() {
             ))}
           </SelectContent>
         </Select>
-        
+
         <Button
           size="sm"
           variant="outline"
@@ -170,7 +161,30 @@ export function ChannelSwitcher() {
         </Button>
       </div>
 
-
-    </>
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center gap-2 mt-2">
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={page <= 1}
+            onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+          >
+            Previous
+          </Button>
+          <span>
+            Page {page} of {totalPages}
+          </span>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={page >= totalPages}
+            onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+          >
+            Next
+          </Button>
+        </div>
+      )}
+    </div>
   );
 }

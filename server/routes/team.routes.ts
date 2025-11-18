@@ -91,11 +91,14 @@ router.get(
   requirePermission(PERMISSIONS.TEAM_VIEW),
   async (req, res) => {
     try {
-      // Ensure req.user is available
       const userId = req.user?.id;
       if (!userId) {
         return res.status(401).json({ error: "Unauthorized: User not found" });
       }
+
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const offset = (page - 1) * limit;
 
       const members = await db
         .select({
@@ -114,16 +117,33 @@ router.get(
           createdBy: users.createdBy,
         })
         .from(users)
-        .where(eq(users.createdBy, userId)) // 🔥 Filter only team created by logged-in user
-        .orderBy(desc(users.createdAt));
+        .where(eq(users.createdBy, userId))
+        .orderBy(desc(users.createdAt))
+        .limit(limit)
+        .offset(offset);
 
-      res.json(members);
+      const countResult = await db
+        .select({ count: sql<number>`COUNT(*)` })
+        .from(users)
+        .where(eq(users.createdBy, userId));
+
+      const total = countResult[0]?.count ?? 0;
+
+      res.json({
+        data: members,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      });
     } catch (error) {
       console.error("Error fetching team members:", error);
       res.status(500).json({ error: "Failed to fetch team members" });
     }
   }
 );
+
+
 
 
 
