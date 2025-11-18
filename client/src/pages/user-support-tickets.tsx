@@ -97,7 +97,7 @@ interface TicketDetailsResponse {
   messages: Message[];
 }
 
-export default function SupportTicketsNew() {
+export default function UserSupportTicketsNew() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
@@ -438,55 +438,6 @@ export default function SupportTicketsNew() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          {[
-            {
-              title: "Total Tickets",
-              value: tickets.length.toString(),
-              color: "blue",
-            },
-            {
-              title: "Open Tickets",
-              value: tickets
-                .filter((t) => t.status === "open")
-                .length.toString(),
-              color: "yellow",
-            },
-            {
-              title: "In Progress",
-              value: tickets
-                .filter((t) => t.status === "in_progress")
-                .length.toString(),
-              color: "purple",
-            },
-            {
-              title: "Resolved",
-              value: tickets
-                .filter((t) => t.status === "resolved")
-                .length.toString(),
-              color: "green",
-            },
-          ].map((stat, index) => (
-            <div
-              key={index}
-              className="bg-white p-6 rounded-xl shadow-sm border border-gray-200"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    {stat.title}
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900 mt-2">
-                    {stat.value}
-                  </p>
-                </div>
-                <div className={`p-3 rounded-lg bg-${stat.color}-100`}>
-                  <Headphones className={`w-6 h-6 text-${stat.color}-600`} />
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Tickets List */}

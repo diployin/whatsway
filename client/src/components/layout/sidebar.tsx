@@ -394,7 +394,7 @@ import { ChannelSwitcher } from "@/components/channel-switcher";
 import { useTranslation } from "@/lib/i18n";
 import { LanguageSelector } from "@/components/language-selector";
 import { useAuth } from "@/contexts/auth-context";
-import logo from '../../images/logo1924.jpg'
+import logo from "../../images/logo1924.jpg";
 
 import {
   DropdownMenu,
@@ -530,81 +530,158 @@ const navItems: NavItem[] = [
     // requiredPrefix: "notifications.",
     allowedRoles: ["superadmin"],
   },
+  {
+    href: "/user-support-tickets",
+    icon: Bell,
+    labelKey: "tickets-support",
+    color: "text-blue-400",
+    allowedRoles: ["superadmin"],
+  },
+  {
+    href: "/user-support-tickets",
+    icon: Bell,
+    labelKey: "Tickets Support",
+    color: "text-blue-400",
+    allowedRoles: ["admin"],
+  },
 ];
 
-
-
 const sidebarItemsCategories = [
-      { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard", color: "text-green-600" },
-      { name: "Users", icon: Users, path: "/users", color: "text-green-600" },
-      { name: "Master Campaigns", icon: Megaphone, path: "/campaigns", badge: "", color: "text-blue-600" },
-      { name: "Master Templates", icon: FileText, path: "/templates", badge: "", color: "text-purple-600" },
-      { name: "Master Contacts", icon: Users, path: "/contacts-management", badge: "", color: "text-yellow-600" },
-       {
-        name: "Analytics",
-        icon: BarChart3,
-        path: "/analytics",
-        color: "text-teal-500",
-      },
-      {
-        name: "Notifications",
-        icon: Bell,
-        path: "/notifications",
-        color: "text-pink-400",
-      },
-      {
-        name: "Subscription Plans",
-        icon: MdOutlinePayment,
-        path: "/plans",
-        color: "text-blue-400",
-      },
-      {
-        name: "Transactions logs",
-        icon: MdOutlinePayment,
-        path: "/transactions-logs",
-        color: "text-blue-400",
-      },
-      {
-        name: "Payment Gateway",
-        icon: MdOutlinePayment,
-        path: "/gateway",
-        color: "text-blue-400",
-      },
-      {
-        name: "Support Tickets",
-        icon: MdOutlinePayment,
-        path: "/support-tickets",
-        color: "text-blue-400",
-      },
-       {
-        name: "Settings",
-        icon: Settings,
-        path: "/settings",
-        color: "text-purple-400",
-      },
-      
-    ]
+  {
+    name: "Dashboard",
+    icon: LayoutDashboard,
+    path: "/dashboard",
+    color: "text-green-600",
+  },
+  { name: "Users", icon: Users, path: "/users", color: "text-green-600" },
+  {
+    name: "Master Campaigns",
+    icon: Megaphone,
+    path: "/campaigns",
+    badge: "",
+    color: "text-blue-600",
+  },
+  {
+    name: "Master Templates",
+    icon: FileText,
+    path: "/templates",
+    badge: "",
+    color: "text-purple-600",
+  },
+  {
+    name: "Master Contacts",
+    icon: Users,
+    path: "/contacts-management",
+    badge: "",
+    color: "text-yellow-600",
+  },
+  {
+    name: "Analytics",
+    icon: BarChart3,
+    path: "/analytics",
+    color: "text-teal-500",
+  },
+  {
+    name: "Notifications",
+    icon: Bell,
+    path: "/notifications",
+    color: "text-pink-400",
+  },
+  {
+    name: "Subscription Plans",
+    icon: MdOutlinePayment,
+    path: "/plans",
+    color: "text-blue-400",
+  },
+  {
+    name: "Transactions logs",
+    icon: MdOutlinePayment,
+    path: "/transactions-logs",
+    color: "text-blue-400",
+  },
+  {
+    name: "Payment Gateway",
+    icon: MdOutlinePayment,
+    path: "/gateway",
+    color: "text-blue-400",
+  },
+  {
+    name: "Support Tickets",
+    icon: MdOutlinePayment,
+    path: "/support-tickets",
+    color: "text-blue-400",
+  },
+  {
+    name: "Settings",
+    icon: Settings,
+    path: "/settings",
+    color: "text-purple-400",
+  },
+];
 
 // Category-based structure for superadmin
 const sidebarItemsCategoriesOld = [
   {
     category: "Core Features",
     items: [
-      { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard", color: "text-green-600" },
-      { name: "Campaigns", icon: Megaphone, path: "/campaigns", badge: "", color: "text-blue-600" },
-      { name: "Templates", icon: FileText, path: "/templates", badge: "", color: "text-purple-600" },
-      { name: "Contacts", icon: Users, path: "/contacts", badge: "", color: "text-yellow-600" },
+      {
+        name: "Dashboard",
+        icon: LayoutDashboard,
+        path: "/dashboard",
+        color: "text-green-600",
+      },
+      {
+        name: "Campaigns",
+        icon: Megaphone,
+        path: "/campaigns",
+        badge: "",
+        color: "text-blue-600",
+      },
+      {
+        name: "Templates",
+        icon: FileText,
+        path: "/templates",
+        badge: "",
+        color: "text-purple-600",
+      },
+      {
+        name: "Contacts",
+        icon: Users,
+        path: "/contacts",
+        badge: "",
+        color: "text-yellow-600",
+      },
       // { name: "Chat Hub", icon: MessageSquare, path: "/chat-hub", badge: "5", color: "text-pink-600" },
-       
     ],
   },
   {
     category: "Automation & AI",
     items: [
-      { name: "Bot Flow Builder", icon: Bot, path: "/bot-builder", badge: "", color: "text-indigo-600" },
-      { name: "Workflows", icon: Zap, path: "/workflows", color: "text-teal-600" },
-      { name: "AI Assistant", icon: Bot, path: "/ai-assistant", color: "text-red-600" },
-      { name: "Auto Responses", icon: ScrollText, path: "/auto-responses", color: "text-orange-600" },
+      {
+        name: "Bot Flow Builder",
+        icon: Bot,
+        path: "/bot-builder",
+        badge: "",
+        color: "text-indigo-600",
+      },
+      {
+        name: "Workflows",
+        icon: Zap,
+        path: "/workflows",
+        color: "text-teal-600",
+      },
+      {
+        name: "AI Assistant",
+        icon: Bot,
+        path: "/ai-assistant",
+        color: "text-red-600",
+      },
+      {
+        name: "Auto Responses",
+        icon: ScrollText,
+        path: "/auto-responses",
+        color: "text-orange-600",
+      },
     ],
   },
   {
@@ -837,12 +914,11 @@ export default function Sidebar() {
       >
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-            <div onClick={()=> setLocation('/')} className="flex items-center space-x-3">
-              <img
-                src={logo}
-                alt="Logo"
-                className="w-8 h-8 object-contain"
-              />
+            <div
+              onClick={() => setLocation("/")}
+              className="flex items-center space-x-3"
+            >
+              <img src={logo} alt="Logo" className="w-8 h-8 object-contain" />
               <h1 className="text-xl font-bold text-gray-900">Whatsway</h1>
             </div>
             <button
@@ -867,16 +943,15 @@ export default function Sidebar() {
 
           <nav className="flex-1 px-4 py-4 space-y-4 overflow-y-auto">
             {isSuper
-              ? sidebarItemsCategories.map((item) => 
-                        renderLink(
-                          item.name,
-                          item.icon,
-                          item.path,
-                          item.badge,
-                          item.color
-                        )
-                  
-                      )
+              ? sidebarItemsCategories.map((item) =>
+                  renderLink(
+                    item.name,
+                    item.icon,
+                    item.path,
+                    item.badge,
+                    item.color
+                  )
+                )
               : navItems
                   .filter(canView)
                   .map((item) =>
@@ -890,50 +965,55 @@ export default function Sidebar() {
                   )}
           </nav>
 
-          {isAdmin ? 
-          <div className="px-6 py-3 border-t border-gray-100">
-            <LanguageSelector />
-          </div>
-           : ''}
+          {isAdmin ? (
+            <div className="px-6 py-3 border-t border-gray-100">
+              <LanguageSelector />
+            </div>
+          ) : (
+            ""
+          )}
 
           {/* Smaller Toggle Button with Green Color */}
-          {isAdmin ? 
-          <div className="p-4 border-t border-gray-100">
-            <div className="flex items-center space-x-3 p-3 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg">
-              <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-                <Bot className="w-4 h-4 text-white" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900">
-                  {t("common.aiAssistant")}
-                </p>
-                <div className="flex items-center space-x-2">
-                  <div
-                    className={`w-2 h-2 rounded-full transition-colors ${
-                      isAIActive ? "bg-green-500 pulse-gentle" : "bg-gray-400"
-                    }`}
-                  ></div>
-                  <span className="text-xs text-gray-600">
-                    {/* {isAIActive ? t("common.active") : t("Inactive")} */}
-                    {t("campaigns.comingSoon")}
-                  </span>
+          {isAdmin ? (
+            <div className="p-4 border-t border-gray-100">
+              <div className="flex items-center space-x-3 p-3 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg">
+                <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+                  <Bot className="w-4 h-4 text-white" />
                 </div>
-              </div>
-              {/* Smaller Toggle Button with Green Color */}
-              <button
-                onClick={handleToggleAI}
-                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${
-                  isAIActive ? "bg-green-600" : "bg-gray-200"
-                }`}
-              >
-                <span
-                  className={`inline-block h-3 w-3 transform rounded-full bg-white transition ${
-                    isAIActive ? "translate-x-5" : "translate-x-1"
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900">
+                    {t("common.aiAssistant")}
+                  </p>
+                  <div className="flex items-center space-x-2">
+                    <div
+                      className={`w-2 h-2 rounded-full transition-colors ${
+                        isAIActive ? "bg-green-500 pulse-gentle" : "bg-gray-400"
+                      }`}
+                    ></div>
+                    <span className="text-xs text-gray-600">
+                      {/* {isAIActive ? t("common.active") : t("Inactive")} */}
+                      {t("campaigns.comingSoon")}
+                    </span>
+                  </div>
+                </div>
+                {/* Smaller Toggle Button with Green Color */}
+                <button
+                  onClick={handleToggleAI}
+                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${
+                    isAIActive ? "bg-green-600" : "bg-gray-200"
                   }`}
-                />
-              </button>
+                >
+                  <span
+                    className={`inline-block h-3 w-3 transform rounded-full bg-white transition ${
+                      isAIActive ? "translate-x-5" : "translate-x-1"
+                    }`}
+                  />
+                </button>
+              </div>
             </div>
-          </div> : ''}
+          ) : (
+            ""
+          )}
 
           {/* <div className="p-4 border-t border-gray-100">
             <DropdownMenu>
