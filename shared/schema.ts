@@ -532,6 +532,7 @@ export const subscriptions = pgTable("subscriptions", {
   planId: varchar("plan_id")
     .notNull()
     .references(() => plans.id),
+    planData: jsonb("plan_data").notNull(), 
   status: varchar("status").notNull(), // "active", "expired", "cancelled", "pending"
   billingCycle: varchar("billing_cycle").notNull(), // "monthly" or "annual"
   startDate: timestamp("start_date").notNull(),
@@ -932,6 +933,18 @@ export const panelConfig = pgTable("panel_config", {
   supportEmail: varchar("support_email"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const groups = pgTable("groups", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  channelId: uuid("channelId"), 
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  createdBy: varchar("created_by").references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { withTimezone: false })
+    .defaultNow()
 });
 
 export const firebaseConfig = pgTable("firebase_config", {
