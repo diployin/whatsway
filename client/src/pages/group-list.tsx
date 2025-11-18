@@ -8,11 +8,24 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Trash, Edit, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function GroupsUI() {
     const { toast } = useToast();
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
+
+
+  const { data: activeChannel } = useQuery({
+    queryKey: ["/api/channels/active"],
+    queryFn: async () => {
+      const response = await fetch("/api/channels/active");
+      if (!response.ok) return null;
+      return await response.json();
+    },
+  });
+
 
   const [openDialog, setOpenDialog] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -24,7 +37,7 @@ export default function GroupsUI() {
   // Fetch groups
   const fetchGroups = async () => {
     try {
-      const res = await fetch("/api/groups");
+      const res = await apiRequest("GET",`/api/groups?channelId=${activeChannel?.id}`);
       const data = await res.json();
       setGroups(data.groups || []);
     } catch (err) {
@@ -51,7 +64,7 @@ export default function GroupsUI() {
     const payload = {
       name: groupName,
       description: groupDescription,
-      created_by: 1,
+      channelId: activeChannel?.id
     };
 
     try {
