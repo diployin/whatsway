@@ -22,6 +22,7 @@ import { Loading } from "@/components/ui/loading";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Feature, Plan, PlanPermissions, PlansDataTypes } from "@/types/types";
+import { useAuth } from "@/contexts/auth-context";
 
 // Interfaces
 
@@ -46,6 +47,10 @@ export default function Plans() {
   const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const { toast } = useToast();
+
+  const { user } = useAuth();
+
+  const isSuper = user?.role === "superadmin";
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -348,25 +353,27 @@ export default function Plans() {
                   </div>
 
                   {/* Right: Create/Cancel button */}
-                  <div className="flex-shrink-0 w-full sm:w-auto">
-                    <Button
-                      onClick={() => setShowForm(!showForm)}
-                      className="w-full sm:w-auto flex items-center justify-center"
-                      aria-expanded={showForm}
-                    >
-                      {showForm ? (
-                        <>
-                          <XCircle className="w-4 h-4 mr-2" />
-                          Cancel
-                        </>
-                      ) : (
-                        <>
-                          <Plus className="w-4 h-4 mr-2" />
-                          Create Plan
-                        </>
-                      )}
-                    </Button>
-                  </div>
+                  {isSuper && (
+                    <div className="flex-shrink-0 w-full sm:w-auto">
+                      <Button
+                        onClick={() => setShowForm(!showForm)}
+                        className="w-full sm:w-auto flex items-center justify-center"
+                        aria-expanded={showForm}
+                      >
+                        {showForm ? (
+                          <>
+                            <XCircle className="w-4 h-4 mr-2" />
+                            Cancel
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="w-4 h-4 mr-2" />
+                            Create Plan
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -737,17 +744,14 @@ export default function Plans() {
                           <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg mb-4">
                             <IconComponent className="w-6 h-6 text-blue-600" />
                           </div>
-
                           {/* Plan Name */}
                           <h3 className="text-xl font-bold text-gray-900 mb-2">
                             {plan.name}
                           </h3>
-
                           {/* Description */}
                           <p className="text-sm text-gray-600 mb-4 min-h-[40px] line-clamp-2">
                             {plan.description}
                           </p>
-
                           {/* Price */}
                           <div className="mb-4">
                             <div className="flex items-baseline gap-1">
@@ -772,7 +776,6 @@ export default function Plans() {
                               </div>
                             )}
                           </div>
-
                           {/* Features */}
                           <ul className="space-y-2 mb-6">
                             {plan.features &&
@@ -798,36 +801,39 @@ export default function Plans() {
                                 </li>
                               ))}
                           </ul>
-
                           {/* CTA Button */}
-                          <button
-                            className={`w-full py-2.5 rounded-lg font-semibold text-white transition-all mb-3 ${plan.buttonColor}`}
-                          >
-                            {parseFloat(plan.monthlyPrice) === 0
-                              ? "Get Started Free"
-                              : "Start Free Trial"}
-                          </button>
-
+                          {!isSuper && (
+                            <button
+                              className={`w-full py-2.5 rounded-lg font-semibold text-white transition-all mb-3 ${plan.buttonColor}`}
+                            >
+                              {parseFloat(plan.monthlyPrice) === 0
+                                ? "Get Started Free"
+                                : "Start Free Trial"}
+                            </button>
+                          )}
                           {/* Admin Actions */}
-                          <div className="grid grid-cols-2 gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEdit(plan)}
-                            >
-                              <Edit className="w-3 h-3 mr-1" />
-                              Edit
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleDelete(plan.id)}
-                              className="text-red-600 hover:bg-red-50"
-                            >
-                              <Trash2 className="w-3 h-3 mr-1" />
-                              Delete
-                            </Button>
-                          </div>
+                          {}{" "}
+                          {isSuper && (
+                            <div className="grid grid-cols-2 gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEdit(plan)}
+                              >
+                                <Edit className="w-3 h-3 mr-1" />
+                                Edit
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDelete(plan.id)}
+                                className="text-red-600 hover:bg-red-50"
+                              >
+                                <Trash2 className="w-3 h-3 mr-1" />
+                                Delete
+                              </Button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     );

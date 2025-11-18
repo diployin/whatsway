@@ -57,6 +57,7 @@ import ContactsManagements from "./pages/contacts-managements";
 import SupportTicketsNew from "./pages/support-tickets";
 import userDetails from "./pages/userDetails";
 import UserSupportTicketsNew from "./pages/user-support-tickets";
+import BillingSubscriptionPage from "./components/billing-subscription-page";
 // Define route permissions mapping
 const ROUTE_PERMISSIONS: Record<string, string> = {
   "/contacts": "contacts.view",
@@ -254,10 +255,7 @@ function ProtectedRoutes() {
             />
           </Route>
           <Route path="/plans">
-            <PermissionRoute
-              component={Plans}
-              // requiredPermission="plans:view"
-            />
+            <PermissionRoute component={Plans} />
           </Route>
           <Route path="/gateway">
             <PermissionRoute
@@ -381,6 +379,12 @@ function ProtectedRoutes() {
           </Route>
           <Route path="/user-support-tickets">
             <PermissionRoute component={UserSupportTicketsNew} />
+          </Route>
+          <Route path="/plan-upgrade">
+            <PermissionRoute component={Plans} />
+          </Route>
+          <Route path="/billing">
+            <PermissionRoute component={BillingSubscriptionPage} />
           </Route>
 
           <Route path="/notifications">
