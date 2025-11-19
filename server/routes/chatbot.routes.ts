@@ -546,14 +546,16 @@ app.post("/api/widget/chat", async (req, res) => {
   app.get("/api/active-site", async (req, res) => {
     try {
       // Use authenticated user's tenantId
+      console.log("active-site-channelId" , req)
       const { channelId } = req.query; 
-      // console.log(channelId)
+      console.log("active-site-channelId" , channelId)
 
       if (!channelId) {
         return res.status(400).json({ message: "No Channel fount" });
       }
 
-      const site = await storage.getSitesByChannel(channelId);
+      const [site] = await storage.getSitesByChannel(channelId);
+      console.log("site" , site)
       res.json(site);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -629,16 +631,15 @@ app.post("/api/widget/chat", async (req, res) => {
 app.post('/api/sites/create_or_update', requireAuth, async (req, res) => {
   try {
     const validated = insertSiteSchema.parse(req.body);
-    const userTenantId = req.user?.tenantId;
     const userRole     = req.user?.role;
-    console.log("userTenantId", req.user)
-    console.log("userRoleee", userRole)
+    // console.log("userRoleee", userRole)
+    // console.log("body-site", req.body)
 
     // if (validated.tenantId !== userTenantId && userRole !== 'super_admin') {
     //   return res.status(403).json({ message: 'Access denied: invalid tenant' });
     // }
 
-    const existingSite: any | undefined = await storage.getSites();
+    const [existingSite]: any | undefined = await storage.getSitesByChannel(req.body.channelId);
 
     let site: any;
 

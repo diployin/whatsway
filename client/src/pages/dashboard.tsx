@@ -411,9 +411,9 @@ export default function Dashboard() {
           {/* Message Analytics Chart */}
           <Card className="lg:col-span-2 hover-lift fade-in">
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                 <CardTitle>{t("dashboard.messageAnalytics")}</CardTitle>
-                <div className="flex space-x-2">
+                <div className="flex flex-wrap sm:flex-nowrap space-x-0 sm:space-x-2 gap-2 mt-2 sm:mt-0">
                   {[
                     { value: 1, label: t("dashboard.today") },
                     { value: 7, label: t("dashboard.7Days") },
@@ -437,6 +437,7 @@ export default function Dashboard() {
                 </div>
               </div>
             </CardHeader>
+
             <CardContent>
               {analyticsLoading ? (
                 <Loading text="Loading chart data..." />
@@ -445,7 +446,7 @@ export default function Dashboard() {
               )}
 
               {/* Chart Legend */}
-              <div className="flex items-center justify-center space-x-6 mt-4">
+              <div className="flex items-center justify-center space-x-6 mt-4 flex-wrap">
                 <div className="flex items-center">
                   <div className="w-3 h-3 bg-blue-600 rounded mr-2" />
                   <span className="text-sm text-gray-600">
@@ -551,20 +552,20 @@ export default function Dashboard() {
               <CardTitle>{t("dashboard.quickActions")}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 ">
                 <Button
                   variant="outline"
-                  className="p-4 h-auto text-left flex flex-col items-start space-y-2 hover:bg-blue-50"
+                  className="p-4 h-auto text-left flex flex-col items-center md:items-start space-y-2 hover:bg-blue-50"
                   onClick={() => setLocation("/contacts")}
                 >
                   <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                     <Upload className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-gray-900">
+                    <h4 className=" text-gray-900 text-xs md:text-sm">
                       {t("dashboard.importContacts")}
                     </h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 hidden sm:block ">
                       {t("dashboard.uploadCSV")}
                     </p>
                   </div>
@@ -579,10 +580,10 @@ export default function Dashboard() {
                     <FileText className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-gray-900">
+                    <h4 className=" text-gray-900 text-xs md:text-sm">
                       {t("dashboard.newTemplate")}
                     </h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 text-nowrap hidden sm:block ">
                       {t("dashboard.createMessageTemplate")}
                     </p>
                   </div>
@@ -597,10 +598,10 @@ export default function Dashboard() {
                     <Zap className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-gray-900">
+                    <h4 className=" text-gray-900 text-xs md:text-sm">
                       {t("dashboard.buildFlow")}
                     </h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 text-nowrap hidden sm:block">
                       {t("dashboard.createAutomation")}
                     </p>
                   </div>
@@ -615,10 +616,10 @@ export default function Dashboard() {
                     <BarChart3 className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-gray-900">
+                    <h4 className=" text-gray-900 text-xs md:text-sm">
                       {t("dashboard.viewReports")}
                     </h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 text-nowrap hidden sm:block">
                       {t("dashboard.detailedAnalytics")}
                     </p>
                   </div>

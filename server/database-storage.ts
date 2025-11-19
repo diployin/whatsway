@@ -82,7 +82,6 @@ export class DatabaseStorage implements IStorage {
 }
 
   async getSitesByChannel(channelId: string): Promise<Site[]> {
-    console.log(channelId)
     return await db.select().from(sites).where(eq(sites.channelId, channelId));
   }
 
