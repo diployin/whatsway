@@ -46,7 +46,8 @@ interface CampaignsResponse {
 
 export default function Campaigns({ userId }: CampaignsProps) {
   const [page, setPage] = useState<number>(1);
-  const limit = 10;
+  const [limit, setLimit] = useState(10);
+
 
   const {
     data,
@@ -54,7 +55,7 @@ export default function Campaigns({ userId }: CampaignsProps) {
     isError,
     error,
   } = useQuery<CampaignsResponse, Error>({
-    queryKey: ["campaigns", userId, page],
+    queryKey: ["campaigns", userId, page, limit],
     queryFn: async () => {
       const res = await apiRequest("POST", "/api/getCampaignsByUserId", {
         userId,
@@ -139,28 +140,62 @@ export default function Campaigns({ userId }: CampaignsProps) {
         </table>
       </div>
 
-      {/* Pagination Controls */}
-      <div className="flex justify-between items-center mt-4 text-sm">
-        <button
-          className="px-3 py-1 border rounded disabled:opacity-50"
-          onClick={() => setPage((p) => Math.max(p - 1, 1))}
-          disabled={page === 1}
-        >
-          Previous
-        </button>
+      
+  {/* Pagination (Fully Responsive) */}
+<div className="w-full mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 
-        <span>
-          Page {page} of {totalPages}
-        </span>
+  {/* LEFT SIDE → Showing Results + Per Page */}
+  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
 
-        <button
-          className="px-3 py-1 border rounded disabled:opacity-50"
-          onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-          disabled={page === totalPages}
-        >
-          Next
-        </button>
-      </div>
+    <span className="text-sm text-gray-700">
+      Showing {(page - 1) * limit + 1} to{" "}
+      {Math.min(page * limit, total)} of {total} campaigns
+    </span>
+
+    {/* Per Page Dropdown */}
+    <select
+      value={limit}
+      onChange={(e) => {
+  setLimit(Number(e.target.value));
+  setPage(1);
+}}
+
+      className="border px-3 py-2 rounded-md text-sm w-24"
+    >
+      <option value={5}>5</option>
+      <option value={10}>10</option>
+      <option value={20}>20</option>
+      <option value={50}>50</option>
+    </select>
+  </div>
+
+  {/* RIGHT SIDE → Pagination Buttons */}
+  <div className="flex items-center justify-center sm:justify-end gap-2">
+
+    <button
+      className="px-3 py-1 border rounded disabled:opacity-50"
+      onClick={() => setPage((p) => Math.max(p - 1, 1))}
+      disabled={page === 1}
+    >
+      Previous
+    </button>
+
+    <span className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium">
+      {page}
+    </span>
+
+    <button
+      className="px-3 py-1 border rounded disabled:opacity-50"
+      onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+      disabled={page === totalPages}
+    >
+      Next
+    </button>
+
+  </div>
+
+</div>
+
     </div>
   );
 }

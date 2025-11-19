@@ -29,7 +29,8 @@ interface ChannelsProps {
 
 export default function Channels({ userId }: ChannelsProps) {
   const [page, setPage] = useState(1);
-  const [limit] = useState(10); // default 10 per page
+  const [limit, setLimit] = useState(10);
+
 
   const {
     data: response,
@@ -128,34 +129,66 @@ export default function Channels({ userId }: ChannelsProps) {
         </table>
       </div>
 
-      {/* Pagination Controls */}
-      {pagination && (
-        <div className="flex justify-between items-center mt-4">
-          <button
-            className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
-            disabled={page <= 1}
-            onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-          >
-            Previous
-          </button>
+     {/* Pagination (Fully Responsive) */}
+{pagination && (
+  <div className="w-full mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 
-          <span>
-            Page {page} of {pagination.totalPages}
-          </span>
+    {/* LEFT SIDE → Showing + Per Page */}
+    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
 
-          <button
-            className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
-            disabled={page >= pagination.totalPages}
-            onClick={() =>
-              setPage((prev) =>
-                Math.min(prev + 1, pagination.totalPages)
-              )
-            }
-          >
-            Next
-          </button>
-        </div>
-      )}
+      <span className="text-sm text-gray-700">
+        Showing {(page - 1) * limit + 1} to{" "}
+        {Math.min(page * limit, pagination.total)} of{" "}
+        {pagination.total} channels
+      </span>
+
+      {/* Per Page Selector (optional) */}
+      <select
+  value={limit}
+  onChange={(e) => {
+    setLimit(Number(e.target.value));
+    setPage(1);
+  }}
+  className="border px-3 py-2 rounded-md text-sm w-24"
+>
+  <option value={5}>5</option>
+  <option value={10}>10</option>
+  <option value={20}>20</option>
+  <option value={50}>50</option>
+</select>
+
+    </div>
+
+    {/* RIGHT SIDE → Pagination Buttons */}
+    <div className="flex items-center justify-center sm:justify-end gap-2">
+
+      <button
+        className="px-3 py-1 border rounded disabled:opacity-50"
+        disabled={page <= 1}
+        onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+      >
+        Previous
+      </button>
+
+      <span className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium">
+        {page}
+      </span>
+
+      <button
+        className="px-3 py-1 border rounded disabled:opacity-50"
+        disabled={page >= pagination.totalPages}
+        onClick={() =>
+          setPage((prev) => Math.min(prev + 1, pagination.totalPages))
+        }
+      >
+        Next
+      </button>
+
+    </div>
+
+  </div>
+)}
+
     </div>
   );
 }

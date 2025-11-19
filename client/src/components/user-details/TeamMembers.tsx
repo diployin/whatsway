@@ -25,7 +25,7 @@ interface TeamMembersProps {
 
 export default function TeamMembers({ userId }: TeamMembersProps) {
   const [page, setPage] = useState(1);
-  const [limit] = useState(10);
+  const [limit, setLimit] = useState(10);
 
   const {
     data,
@@ -121,25 +121,64 @@ export default function TeamMembers({ userId }: TeamMembersProps) {
       </div>
 
       {/* Pagination controls */}
-      <div className="flex justify-between items-center mt-4 text-sm text-gray-600">
-        <button
-          onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-          disabled={page === 1}
-          className="px-3 py-1 bg-gray-100 rounded disabled:opacity-50"
-        >
-          Previous
-        </button>
-        <span>
-          Page {page} of {totalPages}
-        </span>
-        <button
-          onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-          disabled={page === totalPages}
-          className="px-3 py-1 bg-gray-100 rounded disabled:opacity-50"
-        >
-          Next
-        </button>
-      </div>
+      {/* Pagination (Responsive & Unified) */}
+{data?.pagination && (
+  <div className="w-full mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+
+    {/* LEFT SIDE → Showing X to Y of Total */}
+    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+      <span className="text-sm text-gray-700">
+        Showing {(page - 1) * limit + 1} to{" "}
+        {Math.min(page * limit, data.pagination.total)} of{" "}
+        {data.pagination.total} team members
+      </span>
+
+      {/* Optional: Per Page Selector */}
+      <select
+  value={limit}
+  onChange={(e) => {
+    setLimit(Number(e.target.value));
+    setPage(1); // Reset page when limit changes
+  }}
+  className="border px-3 py-2 rounded-md text-sm w-24"
+>
+  <option value={5}>5</option>
+  <option value={10}>10</option>
+  <option value={20}>20</option>
+  <option value={50}>50</option>
+</select>
+
+    </div>
+
+    {/* RIGHT SIDE → Pagination Buttons */}
+    <div className="flex items-center justify-center sm:justify-end gap-2">
+
+      <button
+        className="px-3 py-1 border rounded disabled:opacity-50"
+        disabled={page <= 1}
+        onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+      >
+        Previous
+      </button>
+
+      <span className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium">
+        {page}
+      </span>
+
+      <button
+        className="px-3 py-1 border rounded disabled:opacity-50"
+        disabled={page >= data.pagination.totalPages}
+        onClick={() =>
+          setPage((prev) => Math.min(prev + 1, data.pagination.totalPages))
+        }
+      >
+        Next
+      </button>
+
+    </div>
+  </div>
+)}
+
     </div>
   );
 }

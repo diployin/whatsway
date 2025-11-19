@@ -43,7 +43,7 @@ interface TemplatesResponse {
 
 export default function Templates({ userId }: TemplatesProps) {
   const [currentPage, setCurrentPage] = useState(1);
-  const limit = 10; // items per page
+  const [limit, setLimit] = useState(10); // items per page
 
   const { data, isLoading, isError, error } = useQuery<TemplatesResponse>({
     queryKey: ["templates", userId, currentPage],
@@ -73,11 +73,8 @@ export default function Templates({ userId }: TemplatesProps) {
     );
 
   if (isError)
-    return (
-      <p className="text-red-500 text-sm">
-        Error: {(error as Error)?.message || "Failed to load templates"}
-      </p>
-    );
+    return <p className="text-muted-foreground">No templates found.</p>;
+  
 
   if (templates.length === 0)
     return <p className="text-muted-foreground">No templates found.</p>;
@@ -129,25 +126,58 @@ export default function Templates({ userId }: TemplatesProps) {
       </div>
 
       {/* Pagination */}
-      <div className="flex justify-between items-center mt-4">
-        <button
-          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-          disabled={page <= 1}
-          className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
-        >
-          Previous
-        </button>
-        <span>
-          Page {page} of {totalPages}
-        </span>
-        <button
-          onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-          disabled={page >= totalPages}
-          className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
-        >
-          Next
-        </button>
-      </div>
+      {data?.pagination && (
+  <div className="w-full mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+
+    {/* LEFT SIDE → Showing X to Y of Total */}
+    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+      <span className="text-sm text-gray-700">
+        Showing {(page - 1) * limit + 1} to{" "}
+        {Math.min(page * limit, Number(data.pagination.total))} of{" "}
+        {data.pagination.total} templates
+      </span>
+
+      {/* Optional: Per Page Selector */}
+      <select
+  value={limit}
+  onChange={(e) => {
+    setLimit(Number(e.target.value));
+    setCurrentPage(1); // reset page
+  }}
+  className="border px-3 py-2 rounded-md text-sm w-24"
+>
+  <option value={5}>5</option>
+  <option value={10}>10</option>
+  <option value={20}>20</option>
+  <option value={50}>50</option>
+</select>
+    </div>
+
+    {/* RIGHT SIDE → Pagination Buttons */}
+    <div className="flex items-center justify-center sm:justify-end gap-2">
+      <button
+        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+        disabled={page <= 1}
+        className="px-3 py-1 border rounded disabled:opacity-50"
+      >
+        Previous
+      </button>
+
+      <span className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium">
+        {page}
+      </span>
+
+      <button
+        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+        disabled={page >= totalPages}
+        className="px-3 py-1 border rounded disabled:opacity-50"
+      >
+        Next
+      </button>
+    </div>
+  </div>
+)}
+
     </div>
   );
 }
