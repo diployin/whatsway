@@ -67,6 +67,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/contexts/auth-context";
+import { apiRequest } from "@/lib/queryClient";
 
 interface ContactsResponse {
   data: Contact[];
@@ -84,6 +85,7 @@ function EditContactForm({
   contact,
   onSuccess,
   onCancel,
+  groupsData
 }: {
   contact: Contact;
   onSuccess: () => void;
@@ -228,32 +230,32 @@ function EditContactForm({
           }}
         />
 
-        <FormField
-          control={form.control}
-          name="groups"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t("contacts.groups")}</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  placeholder={`${t("contacts.editContact.groupsPlaceholder")}`}
-                  value={
-                    Array.isArray(field.value) ? field.value.join(", ") : ""
-                  }
-                  onChange={(e) => {
-                    const groups = e.target.value
-                      .split(",")
-                      .map((g) => g.trim())
-                      .filter((g) => g.length > 0);
-                    field.onChange(groups);
-                  }}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+<FormField
+  control={form.control}
+  name="groups"
+  render={({ field }) => (
+    <FormItem>
+      {/* ... */}
+      <FormControl>
+        <Input
+          {...field}
+          placeholder={`${t("contacts.editContact.groupsPlaceholder")}`}
+          value={
+            Array.isArray(field.value) ? field.value.join(", ") : ""
+          }
+          onChange={(e) => {
+            const groups = e.target.value
+              .split(",")
+              .map((g) => g.trim())
+              .filter((g) => g.length > 0);
+            field.onChange(groups); // Updates form value with array of strings
+          }}
         />
+      </FormControl>
+      {/* ... */}
+    </FormItem>
+  )}
+/>
 
         <div className="flex justify-end space-x-2">
           <Button type="button" variant="outline" onClick={onCancel}>
@@ -345,6 +347,30 @@ export default function Contacts() {
       return await response.json();
     },
   });
+
+  console.log(activeChannel?.id)
+
+  // First, get the active channel
+  // const { data: groupsData } = useQuery({
+  //   queryKey: ["/api/groups"],
+  //   queryFn: async () => {
+  //     const response =  await apiRequest("GET",`/api/groups?channelId=${activeChannel?.id}`);
+  //     if (!response.ok) return null;
+  //     return await response.json();
+  //   },
+  // });
+
+  const { data: groupsFormateData } = useQuery({
+    queryKey: ["/api/groups", activeChannel?.id],
+    queryFn: async () => {
+      const response = await fetch("/api/groups");
+      return await response.json();
+    },
+    enabled: !!activeChannel,
+  });
+
+  const groupsData = groupsFormateData?.groups
+  console.log(groupsData)
 
   // Updated query to fetch contacts with proper server-side filtering
   // const { data: contactsResponse, isLoading } = useQuery<ContactsResponse>({
@@ -1067,22 +1093,22 @@ export default function Contacts() {
                       <Plus className="h-4 w-4 mr-2" />
                       {t("contacts.createNewGroup")}
                     </DropdownMenuItem>
-                    {uniqueGroups.length > 0 && (
+                    {groupsData?.length > 0 && (
                       <>
                         <DropdownMenuItem disabled className="py-1">
                           <span className="text-xs text-gray-500 uppercase">
                             {t("contacts.availableGroups")}
                           </span>
                         </DropdownMenuItem>
-                        {uniqueGroups.map((group) => (
+                        {groupsData?.map((group) => (
                           <DropdownMenuItem
                             key={group}
                             onClick={() => setSelectedGroup(group)}
                             className={
-                              selectedGroup === group ? "bg-gray-100" : ""
+                              selectedGroup === group.name ? "bg-gray-100" : ""
                             }
                           >
-                            {group}
+                            {group?.name}
                           </DropdownMenuItem>
                         ))}
                       </>
@@ -2186,6 +2212,7 @@ export default function Contacts() {
           {selectedContact && (
             <EditContactForm
               contact={selectedContact}
+              groupsData={groupsData}
               onSuccess={() => {
                 queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
                 setShowEditDialog(false);

@@ -6,11 +6,12 @@ import { Response } from "express";
 
 export const createGroup = async (req:Request, res:Response) => {
   try {
-    const { name, description, created_by } = req.body;
+    const user = (req as any).session?.user;
+    const { name, description, channelId } = req.body;
 
     const [group] = await db
       .insert(groups)
-      .values({ name, description, created_by })
+      .values({ name, description, createdBy:user?.id ,channelId  })
       .returning();
 
     res.json({ success: true, group });
@@ -19,14 +20,28 @@ export const createGroup = async (req:Request, res:Response) => {
   }
 };
 
-export const getGroups = async (req:Request, res:Response) => {
-  try {
-    const data = await db.select().from(groups);
-    res.json({ success: true, groups: data });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-};
+export const getGroups = async (req: Request, res: Response) => {
+    try {
+      const { channelId } = req.query;
+  
+      // If channelId exists → filter by channelId
+      if (channelId) {
+        const data = await db
+          .select()
+          .from(groups)
+          .where(eq(groups.channelId, String(channelId)));
+  
+        return res.json({ success: true, groups: data });
+      }
+  
+      // If no channelId → return all groups
+      const allData = await db.select().from(groups);
+      res.json({ success: true, groups: allData });
+  
+    } catch (e: any) {
+      res.status(500).json({ success: false, error: e.message });
+    }
+  };  
 
 export const getGroupById = async (req:Request, res:Response)  => {
   try {
