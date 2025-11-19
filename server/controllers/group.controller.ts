@@ -15,14 +15,16 @@ export const createGroup = async (req:Request, res:Response) => {
       .returning();
 
     res.json({ success: true, group });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
+  } catch (e: unknown) {
+    const errorMsg = e instanceof Error ? e.message : "Something went wrong";
+    res.status(500).json({ error: errorMsg });
   }
 };
 
 export const getGroups = async (req: Request, res: Response) => {
     try {
       const { channelId } = req.query;
+      console.log("getGroups" ,channelId )
   
       // If channelId exists → filter by channelId
       if (channelId) {
@@ -55,8 +57,9 @@ export const getGroupById = async (req:Request, res:Response)  => {
     if (!group) return res.status(404).json({ error: "Group not found" });
 
     res.json({ success: true, group });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
+  } catch (e: unknown) {
+    const errorMsg = e instanceof Error ? e.message : "Something went wrong";
+    res.status(500).json({ error: errorMsg });
   }
 };
 
@@ -72,8 +75,9 @@ export const updateGroup = async (req:Request, res:Response)  => {
       .returning();
 
     res.json({ success: true, updated });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
+  } catch (e: unknown) {
+    const errorMsg = e instanceof Error ? e.message : "Something went wrong";
+    res.status(500).json({ error: errorMsg });
   }
 };
 
@@ -87,7 +91,8 @@ export const deleteGroup = async (req:Request, res:Response)  => {
       .returning();
 
     res.json({ success: true, deleted });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
+  } catch (e: unknown) {
+    const errorMsg = e instanceof Error ? e.message : "Something went wrong";
+    res.status(500).json({ error: errorMsg });
   }
 };
