@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { MdOutlinePayment } from "react-icons/md";
 import {
@@ -18,6 +18,7 @@ import {
   X,
   Bell,
   CheckCircle,
+  Star,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ChannelSwitcher } from "@/components/channel-switcher";
@@ -29,7 +30,7 @@ import { GiUpgrade } from "react-icons/gi";
 import { TbInvoice } from "react-icons/tb";
 import { RiSecurePaymentFill } from "react-icons/ri";
 import { AiOutlineTransaction } from "react-icons/ai";
-import { MdOutlineSupportAgent } from "react-icons/md";
+import { MdOutlineSupportAgent, MdGroups } from "react-icons/md";
 import { useSidebar } from "@/contexts/sidebar-context";
 
 import { AdminCreditBox } from "../AdminCreditBox";
@@ -64,14 +65,7 @@ const navItems: NavItem[] = [
     requiredPrefix: "contacts.",
     allowedRoles: ["superadmin", "admin"],
   },
-  {
-    href: "/groups",
-    icon: Users,
-    labelKey: "navigation.groups",
-    color: "text-blue-600",
-    requiredPrefix: "groups.",
-    allowedRoles: ["superadmin", "admin", "user"],
-  },
+
   {
     href: "/campaigns",
     icon: Megaphone,
@@ -176,7 +170,7 @@ const navItems: NavItem[] = [
   },
   {
     href: "/user-support-tickets",
-    icon: Bell,
+    icon: MdOutlineSupportAgent,
     labelKey: "Tickets Support",
     color: "text-blue-400",
     allowedRoles: ["admin"],
@@ -197,9 +191,16 @@ const navItems: NavItem[] = [
   },
   {
     href: "/groups",
-    icon: TbInvoice,
+    icon: MdGroups,
     labelKey: "Groups",
     color: "text-blue-400",
+    allowedRoles: ["admin"],
+  },
+  {
+    href: "/stats",
+    icon: Star,
+    labelKey: "Stats",
+    color: "text-yellow-600",
     allowedRoles: ["admin"],
   },
 ];
@@ -285,199 +286,6 @@ const sidebarItemsCategories = [
 ];
 
 // Category-based structure for superadmin
-const sidebarItemsCategoriesOld = [
-  {
-    category: "Core Features",
-    items: [
-      {
-        name: "Dashboard",
-        icon: LayoutDashboard,
-        path: "/dashboard",
-        color: "text-green-600",
-      },
-      {
-        name: "Campaigns",
-        icon: Megaphone,
-        path: "/campaigns",
-        badge: "",
-        color: "text-blue-600",
-      },
-      {
-        name: "Templates",
-        icon: FileText,
-        path: "/templates",
-        badge: "",
-        color: "text-purple-600",
-      },
-      {
-        name: "Contacts",
-        icon: Users,
-        path: "/contacts",
-        badge: "",
-        color: "text-yellow-600",
-      },
-      // { name: "Chat Hub", icon: MessageSquare, path: "/chat-hub", badge: "5", color: "text-pink-600" },
-    ],
-  },
-  {
-    category: "Automation & AI",
-    items: [
-      {
-        name: "Bot Flow Builder",
-        icon: Bot,
-        path: "/bot-builder",
-        badge: "",
-        color: "text-indigo-600",
-      },
-      {
-        name: "Workflows",
-        icon: Zap,
-        path: "/workflows",
-        color: "text-teal-600",
-      },
-      {
-        name: "AI Assistant",
-        icon: Bot,
-        path: "/ai-assistant",
-        color: "text-red-600",
-      },
-      {
-        name: "Auto Responses",
-        icon: ScrollText,
-        path: "/auto-responses",
-        color: "text-orange-600",
-      },
-    ],
-  },
-  {
-    category: "WhatsApp Management",
-    items: [
-      {
-        name: "WABA Connection",
-        icon: Menu,
-        path: "/waba-connection",
-        color: "text-green-700",
-      },
-      {
-        name: "Multi-Number",
-        icon: UsersRound,
-        path: "/multi-number",
-        color: "text-blue-700",
-      },
-      {
-        name: "Webhooks",
-        icon: Settings,
-        path: "/webhooks",
-        color: "text-purple-700",
-      },
-      {
-        name: "QR Codes",
-        icon: Menu,
-        path: "/qr-codes",
-        color: "text-yellow-700",
-      },
-    ],
-  },
-  {
-    category: "CRM & Leads",
-    items: [
-      {
-        name: "CRM Systems",
-        icon: Users,
-        path: "/crm-systems",
-        color: "text-green-500",
-      },
-      {
-        name: "Lead Management",
-        icon: Megaphone,
-        path: "/leads",
-        color: "text-blue-500",
-      },
-      {
-        name: "Bulk Import",
-        icon: FileText,
-        path: "/bulk-import",
-        color: "text-purple-500",
-      },
-      {
-        name: "Segmentation",
-        icon: BarChart3,
-        path: "/segmentation",
-        color: "text-pink-500",
-      },
-    ],
-  },
-  {
-    category: "Analytics & Report",
-    items: [
-      {
-        name: "Analytics",
-        icon: BarChart3,
-        path: "/analytics",
-        color: "text-teal-500",
-      },
-      {
-        name: "Message Logs",
-        icon: ScrollText,
-        path: "/message-logs",
-        color: "text-orange-500",
-      },
-      {
-        name: "Health Monitor",
-        icon: Settings,
-        path: "/health-monitor",
-        color: "text-red-500",
-      },
-      {
-        name: "Reports",
-        icon: FileText,
-        path: "/reports",
-        color: "text-indigo-500",
-      },
-    ],
-  },
-  {
-    category: "Team & Support",
-    items: [
-      {
-        name: "Team",
-        icon: UsersRound,
-        path: "/team",
-        color: "text-green-400",
-      },
-      {
-        name: "Support Tickets",
-        icon: MessageSquare,
-        path: "/support-tickets",
-        color: "text-blue-400",
-      },
-      {
-        name: "Settings",
-        icon: Settings,
-        path: "/settings",
-        color: "text-purple-400",
-      },
-      {
-        name: "Notifications",
-        icon: Bell,
-        path: "/notifications",
-        color: "text-pink-400",
-      },
-      {
-        name: "Plans Management",
-        icon: MdOutlinePayment,
-        path: "/plans",
-        color: "text-blue-400",
-      },
-      {
-        name: "Payment Gateway Management",
-        icon: MdOutlinePayment,
-        path: "/gateway",
-        color: "text-blue-400",
-      },
-    ],
-  },
-];
 
 export default function Sidebar() {
   const [location, setLocation] = useLocation();
@@ -488,12 +296,33 @@ export default function Sidebar() {
   const isSuper = user?.role === "superadmin";
   const isAdmin = user?.role === "admin";
 
-  const { isOpen, toggle } = useSidebar();
+  const {
+    isOpen,
+    toggle,
+    close,
+    open,
+    isCollapsed,
+    selectedMenu,
+    setCollapsed,
+    setSelectedMenu,
+  } = useSidebar();
+
+  console.log("isOpen", isOpen);
 
   const handleToggleAI = (): void => {
     setIsAIActive(!isAIActive);
   };
 
+  useEffect(() => {
+    function handleResize() {
+      if (window.innerWidth >= 1024) {
+        open();
+      }
+    }
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [open, close]);
   const canView = (item: NavItem): boolean => {
     if (!user) return false;
     if (item.allowedRoles && !item.allowedRoles.includes(user.role as Role)) {
@@ -680,55 +509,6 @@ export default function Sidebar() {
           ) : (
             ""
           )}
-
-          {/* <div className="p-4 border-t border-gray-100">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="w-full flex items-center space-x-3 hover:bg-gray-50 rounded-lg p-2 transition-colors">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-green-600 to-green-500 flex items-center justify-center">
-                    <span className="text-sm font-medium text-white">
-                      {(
-                        user?.firstName?.[0] ||
-                        user?.username?.[0] ||
-                        "U"
-                      ).toUpperCase()}
-                    </span>
-                  </div>
-                  <div className="flex-1 min-w-0 text-left">
-                    <p className="text-sm font-medium text-gray-900 truncate">
-                      {user
-                        ? user.firstName && user.lastName
-                          ? `${user.firstName} ${user.lastName}`
-                          : user.username
-                        : "User"}
-                    </p>
-                    <p className="text-xs text-gray-500 truncate capitalize">
-                      {user?.role || "User"}
-                    </p>
-                  </div>
-                  <Settings className="w-4 h-4 text-gray-400" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>{t("common.myAccount")}</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/settings" className="cursor-pointer">
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>{t("navigation.settings")}</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={logout}
-                  className="cursor-pointer text-red-600"
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>{t("common.logout")}</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div> */}
         </div>
       </div>
     </>

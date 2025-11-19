@@ -135,20 +135,21 @@ export function WebhookSettings() {
 
   return (
     <>
-      <div className="space-y-6">
+      <div className="space-y-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+              <CardTitle className="flex items-center mb-2 sm:mb-0 text-lg sm:text-xl">
                 <Webhook className="w-5 h-5 mr-2" />
                 Webhook Configuration
               </CardTitle>
-              <div className="flex items-center space-x-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => refetchWebhookConfigs()}
                   disabled={user?.username === "demouser"}
+                  className="flex items-center text-xs h-7 rounded-sm px-2 sm:h-9 sm:rounded-md sm:px-3"
                 >
                   <RefreshCw className="w-4 h-4 mr-1" />
                   Refresh
@@ -158,28 +159,37 @@ export function WebhookSettings() {
                     setEditingWebhook(null);
                     setShowWebhookDialog(true);
                   }}
-                  // disabled={user?.username === "demouser"}
+                  className="flex items-center text-xs h-7 rounded-sm px-2 sm:h-9 sm:rounded-md sm:px-3"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Configure Webhook
                 </Button>
               </div>
             </div>
-            <CardDescription>
+            <CardDescription className="text-sm sm:text-base">
               Configure webhooks to receive real-time WhatsApp events
             </CardDescription>
           </CardHeader>
+
           <CardContent>
             {webhooksLoading ? (
               <Loading />
             ) : webhookConfigs.length === 0 ? (
               <div className="text-center py-12">
                 <Webhook className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-500 mb-4">No webhooks configured yet</p>
-                <Button onClick={() => setShowWebhookDialog(true)}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Configure Your First Webhook
-                </Button>
+                <p className="text-gray-500 mb-4 text-sm sm:text-base">
+                  No webhooks configured yet
+                </p>
+                <div className=" w-full text-center flex justify-center ">
+                  <Button
+                    size="sm"
+                    onClick={() => setShowWebhookDialog(true)}
+                    className="flex items-center text-xs h-7 rounded-sm px-2 sm:h-9 sm:rounded-md sm:px-3"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Configure Your First Webhook
+                  </Button>
+                </div>
               </div>
             ) : (
               <div className="space-y-4">
@@ -188,89 +198,104 @@ export function WebhookSettings() {
                   return (
                     <div
                       key={webhook.id}
-                      className="border border-gray-200 rounded-lg p-4"
+                      className="border border-gray-200 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between"
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <h3 className="font-semibold">
-                              {webhook.channelId
-                                ? `Channel Webhook`
-                                : "Global Webhook"}
-                            </h3>
-                            <Badge variant="secondary" className="text-xs">
-                              {status.icon}
-                              <span className="ml-1">{status.text}</span>
-                            </Badge>
-                          </div>
-                          <div className="space-y-2">
-                            <div className="flex items-center space-x-2">
-                              <Label className="text-sm">Webhook URL:</Label>
-                              <code className="text-xs bg-gray-100 px-2 py-1 rounded">
-                                {user?.username === "demouser" ? "https://your-domain.com/webhook/xxxx-xxxx-xxxx" : webhook.webhookUrl}
-                              </code>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                disabled={user?.username === "demouser"}
-                                onClick={() =>
-                                  copyToClipboard(webhook.webhookUrl)
-                                }
-                              >
-                                <Copy className="w-3 h-3" />
-                              </Button>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <Label className="text-sm">Events:</Label>
-                              <div className="flex flex-wrap gap-1">
-                                {webhook.events.map((event) => (
-                                  <Badge
-                                    key={event}
-                                    variant="outline"
-                                    className="text-xs"
-                                  >
-                                    {event}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </div>
-                            {webhook.lastPingAt && (
-                              <div className="text-sm text-gray-500">
-                                Last event:{" "}
-                                {new Date(webhook.lastPingAt).toLocaleString()}
-                              </div>
-                            )}
-                          </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 mb-2">
+                          <h3 className="font-semibold truncate">
+                            {webhook.channelId
+                              ? "Channel Webhook"
+                              : "Global Webhook"}
+                          </h3>
+                          <Badge
+                            variant="secondary"
+                            className="text-xs flex items-center whitespace-nowrap"
+                          >
+                            {status.icon}
+                            <span className="ml-1">{status.text}</span>
+                          </Badge>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              testWebhookMutation.mutate(webhook.id)
-                            }
-                            disabled={user?.username === "demouser" ? true : testWebhookMutation.isPending}
-                          >
-                            Test
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEditWebhook(webhook)}
-                            disabled={user?.username === "demouser"}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeleteWebhook(webhook.id)}
-                            disabled={user?.username === "demouser" ? true : deleteWebhookMutation.isPending}
 
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                        <div className="space-y-2">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2">
+                            <Label className="text-sm shrink-0">
+                              Webhook URL:
+                            </Label>
+                            <code className="text-xs bg-gray-100 px-2 py-1 rounded break-all flex-1">
+                              {user?.username === "demouser"
+                                ? "https://your-domain.com/webhook/xxxx-xxxx-xxxx"
+                                : webhook.webhookUrl}
+                            </code>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              disabled={user?.username === "demouser"}
+                              onClick={() =>
+                                copyToClipboard(webhook.webhookUrl)
+                              }
+                              className="mt-1 sm:mt-0 flex items-center"
+                            >
+                              <Copy className="w-3 h-3" />
+                            </Button>
+                          </div>
+
+                          <div className="flex flex-wrap items-center space-x-2">
+                            <Label className="text-sm shrink-0">Events:</Label>
+                            <div className="flex flex-wrap gap-1">
+                              {webhook.events.map((event) => (
+                                <Badge
+                                  key={event}
+                                  variant="outline"
+                                  className="text-xs"
+                                >
+                                  {event}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+
+                          {webhook.lastPingAt && (
+                            <div className="text-sm text-gray-500 truncate">
+                              Last event:{" "}
+                              {new Date(webhook.lastPingAt).toLocaleString()}
+                            </div>
+                          )}
                         </div>
+                      </div>
+
+                      <div className="mt-4 sm:mt-0 flex flex-wrap gap-2 sm:space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => testWebhookMutation.mutate(webhook.id)}
+                          disabled={
+                            user?.username === "demouser"
+                              ? true
+                              : testWebhookMutation.isPending
+                          }
+                        >
+                          Test
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditWebhook(webhook)}
+                          disabled={user?.username === "demouser"}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteWebhook(webhook.id)}
+                          disabled={
+                            user?.username === "demouser"
+                              ? true
+                              : deleteWebhookMutation.isPending
+                          }
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
                     </div>
                   );
@@ -283,11 +308,11 @@ export function WebhookSettings() {
         {/* Webhook Flow Diagram */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center">
+            <CardTitle className="flex items-center text-lg sm:text-xl">
               <HelpCircle className="w-5 h-5 mr-2" />
               How Webhooks Work
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-sm sm:text-base">
               Understanding the webhook flow for WhatsApp Business API
             </CardDescription>
           </CardHeader>
@@ -299,34 +324,35 @@ export function WebhookSettings() {
         {/* Webhook Setup Instructions */}
         <Card>
           <CardHeader>
-            <CardTitle>Setup Instructions</CardTitle>
+            <CardTitle className="text-lg sm:text-xl">
+              Setup Instructions
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 text-sm sm:text-base">
+            {/* List steps here */}
             <div>
               <h4 className="font-medium mb-2">
                 1. Configure Webhook in Meta App
               </h4>
-              <p className="text-sm text-gray-600">
+              <p>
                 Go to your Meta App Dashboard → WhatsApp → Configuration →
                 Webhook
               </p>
             </div>
             <div>
               <h4 className="font-medium mb-2">2. Set Webhook URL</h4>
-              <p className="text-sm text-gray-600">
+              <p>
                 Copy the webhook URL from above and paste it in the Meta App
                 webhook URL field
               </p>
             </div>
             <div>
               <h4 className="font-medium mb-2">3. Enter Verify Token</h4>
-              <p className="text-sm text-gray-600">
-                Use the verify token shown in your webhook configuration
-              </p>
+              <p>Use the verify token shown in your webhook configuration</p>
             </div>
             <div>
               <h4 className="font-medium mb-2">4. Subscribe to Events</h4>
-              <p className="text-sm text-gray-600">
+              <p>
                 Subscribe to messages, message_status, and other required
                 webhook fields
               </p>
@@ -335,7 +361,6 @@ export function WebhookSettings() {
         </Card>
       </div>
 
-      {/* Webhook Dialog */}
       <WebhookDialog
         open={showWebhookDialog}
         onOpenChange={setShowWebhookDialog}

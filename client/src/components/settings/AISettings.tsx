@@ -83,38 +83,52 @@ export default function AISettings(): JSX.Element {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center">
-              <Brain className="w-5 h-5 mr-2 text-indigo-600" />
-              AI Configuration
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            {/* Title */}
+            <CardTitle className="flex items-center text-base sm:text-lg min-w-0">
+              <Brain className="w-5 h-5 mr-2 text-indigo-600 flex-shrink-0" />
+              <span className="truncate">AI Configuration</span>
             </CardTitle>
-            <div className="flex items-center space-x-2">
+
+            {/* Controls */}
+            <div
+              className="flex items-center flex-wrap gap-2 justify-start sm:justify-end
+                 w-full sm:w-auto"
+            >
               <Badge
                 variant={aiConfig?.isActive ? "outline" : "secondary"}
-                className={`text-xs ${
+                className={`text-xs inline-flex items-center whitespace-nowrap ${
                   aiConfig?.isActive ? "text-green-600" : "text-gray-500"
                 }`}
               >
                 {aiConfig?.isActive ? "Active" : "Inactive"}
               </Badge>
+
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => refetch()}
                 disabled={isFetching}
+                className="whitespace-nowrap"
               >
                 <RefreshCw
                   className={`w-4 h-4 mr-1 ${isFetching ? "animate-spin" : ""}`}
                 />
-                Refresh
+                {isFetching ? "Refreshing..." : "Refresh"}
               </Button>
-              <Button onClick={handleEditClick} size="sm">
+
+              <Button
+                onClick={handleEditClick}
+                size="sm"
+                className="whitespace-nowrap"
+              >
                 <Edit className="w-4 h-4 mr-2" />
                 Edit
               </Button>
             </div>
           </div>
-          <CardDescription>
+
+          <CardDescription className="mt-2 text-sm sm:text-base">
             Manage your AI model provider, credentials, and runtime parameters.
           </CardDescription>
         </CardHeader>

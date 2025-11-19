@@ -145,48 +145,65 @@ export default function StorageSettings(): JSX.Element {
       {/* Main Storage Configuration */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center">
-              <Server className="w-5 h-5 mr-2" />
-              Storage Configuration
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            {/* Left: Title */}
+            <CardTitle className="flex items-center min-w-0">
+              <Server className="w-5 h-5 mr-2 flex-shrink-0" />
+              <span className=" text-xl sm:text-2xl">
+                Storage Configuration
+              </span>
             </CardTitle>
-            <div className="flex items-center space-x-2">
+
+            {/* Right: Controls */}
+            <div
+              className="flex items-center flex-wrap gap-2 justify-start
+                 w-full sm:w-auto overflow-x-auto sm:overflow-visible"
+              aria-label="Storage controls"
+            >
               <Badge
                 variant={isUsingStaticData ? "destructive" : "default"}
-                className="text-xs"
+                className="text-xs inline-flex items-center"
               >
                 {isUsingStaticData ? (
                   <>
-                    <WifiOff className="w-3 h-3 mr-1" /> Offline
+                    <WifiOff className="w-3 h-3 mr-1 flex-shrink-0" />
+                    Offline
                   </>
                 ) : (
                   <>
-                    <Wifi className="w-3 h-3 mr-1" /> Online
+                    <Wifi className="w-3 h-3 mr-1 flex-shrink-0" />
+                    Online
                   </>
                 )}
               </Badge>
+
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleRefresh}
                 disabled={isFetching}
+                className="flex items-center text-xs h-7 rounded-sm px-2 sm:h-9 sm:rounded-md sm:px-3"
+                aria-live="polite"
               >
                 <RefreshCw
                   className={`w-4 h-4 mr-1 ${isFetching ? "animate-spin" : ""}`}
                 />
                 {isFetching ? "Refreshing..." : "Refresh"}
               </Button>
+
               <Button
                 onClick={handleEditClick}
                 disabled={isUsingStaticData}
                 size="sm"
+                className="flex items-center text-xs h-7 rounded-sm px-2 sm:h-9 sm:rounded-md sm:px-3"
               >
                 <Edit className="w-4 h-4 mr-2" />
                 Edit Storage
               </Button>
             </div>
           </div>
-          <CardDescription>
+
+          <CardDescription className="mt-2 text-sm sm:text-base">
             Manage your file storage integration and credentials
           </CardDescription>
         </CardHeader>
@@ -211,25 +228,34 @@ export default function StorageSettings(): JSX.Element {
 
           {/* Storage Info Section */}
           <div className="border border-gray-200 rounded-lg p-6">
-            <div className="flex items-start justify-between mb-6">
-              <div className="flex items-center space-x-3">
-                <h3 className="font-semibold text-lg">Storage Details</h3>
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-6 gap-2">
+              {/* Left: title + badge */}
+              <div className="flex items-center space-x-3 min-w-0">
+                <h3 className="font-semibold text-base sm:text-lg truncate">
+                  Storage Details
+                </h3>
+
                 <Badge
-                   variant={displayData.isActive ? "outline" : "secondary"}
-                  className={`text-xs ${
+                  variant={displayData.isActive ? "outline" : "secondary"}
+                  className={`text-xs inline-flex items-center whitespace-nowrap ${
                     displayData.isActive ? "text-green-600" : "text-gray-500"
                   }`}
+                  aria-label={displayData.isActive ? "Active" : "Inactive"}
                 >
                   {displayData.isActive && (
-                    <CheckCircle className="w-3 h-3 mr-1" />
+                    <CheckCircle className="w-3 h-3 mr-1 flex-shrink-0" />
                   )}
-                  {displayData.isActive ? "Active" : "Inactive"}
+                  <span>{displayData.isActive ? "Active" : "Inactive"}</span>
                 </Badge>
               </div>
+
+              {/* Right: timestamp (moves under on small screens) */}
               {displayData.updatedAt && (
-                <div className="flex items-center text-sm text-gray-500">
-                  <Clock className="w-4 h-4 mr-1" />
-                  {formatLastUpdated(displayData.updatedAt)}
+                <div className="mt-1 sm:mt-0 flex items-center text-sm text-gray-500">
+                  <Clock className="w-4 h-4 mr-1 flex-shrink-0" />
+                  <span className="whitespace-nowrap">
+                    {formatLastUpdated(displayData.updatedAt)}
+                  </span>
                 </div>
               )}
             </div>

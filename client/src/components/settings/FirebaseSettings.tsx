@@ -15,7 +15,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 import { Settings, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -60,7 +66,8 @@ export default function FirebaseSettings() {
     } catch (err: any) {
       toast({
         title: "Error",
-        description: err?.response?.data?.message || "Failed to save firebase settings",
+        description:
+          err?.response?.data?.message || "Failed to save firebase settings",
         variant: "destructive",
       });
     }
@@ -70,32 +77,34 @@ export default function FirebaseSettings() {
 
   return (
     <div className="p-6">
-
       {/* CARD */}
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle className="flex items-center">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <CardTitle className="flex items-center text-base sm:text-lg">
               <Settings className="w-5 h-5 mr-2" />
               Firebase Settings
             </CardTitle>
 
-            <Button onClick={() => setOpenModal(true)}>
-              <Edit className="w-4 h-4 mr-2" />
+            <Button
+              onClick={() => setOpenModal(true)}
+              className="flex items-center text-xs h-7 rounded-sm px-2 sm:h-9 sm:rounded-md sm:px-3"
+              size="sm"
+            >
+              <Edit className="w-4 h-4" />
               Edit
             </Button>
           </div>
 
-          <CardDescription>
-            Manage Firebase configuration used for authentication & push notifications.
+          <CardDescription className="mt-2 text-sm sm:text-base">
+            Manage Firebase configuration used for authentication & push
+            notifications.
           </CardDescription>
         </CardHeader>
 
         <CardContent>
-
           <div className="border border-gray-200 rounded-lg p-6 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
               {[
                 { label: "API Key", key: "apiKey" },
                 { label: "Auth Domain", key: "authDomain" },
@@ -115,7 +124,6 @@ export default function FirebaseSettings() {
                   </div>
                 </div>
               ))}
-
             </div>
 
             <div className="pt-4 border-t flex items-center space-x-2 text-sm text-gray-600">
@@ -125,11 +133,12 @@ export default function FirebaseSettings() {
                 }`}
               ></div>
               <span>
-                {firebaseData ? "Firebase Config Active" : "No Firebase Settings Found"}
+                {firebaseData
+                  ? "Firebase Config Active"
+                  : "No Firebase Settings Found"}
               </span>
             </div>
           </div>
-
         </CardContent>
       </Card>
 
@@ -143,7 +152,6 @@ export default function FirebaseSettings() {
     </div>
   );
 }
-
 
 // ============================================================
 // 🔥 Modal Component
@@ -173,7 +181,6 @@ const FirebaseModal = ({ open, onClose, onSave, firebase }: any) => {
         </DialogHeader>
 
         <div className="grid grid-cols-1 gap-4 max-h-[70vh] overflow-y-auto p-1">
-
           {[
             { key: "apiKey", label: "API Key" },
             { key: "authDomain", label: "Auth Domain" },
@@ -195,7 +202,6 @@ const FirebaseModal = ({ open, onClose, onSave, firebase }: any) => {
               />
             </div>
           ))}
-
         </div>
 
         <DialogFooter className="mt-4">

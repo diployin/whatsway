@@ -16,7 +16,7 @@ import { CampaignStatistics } from "@/components/campaigns/CampaignStatistics";
 import { CampaignsTable } from "@/components/campaigns/CampaignsTable";
 import { CampaignDetailsDialog } from "@/components/campaigns/CampaignDetailsDialog";
 import { CreateCampaignDialog } from "@/components/campaigns/CreateCampaignDialog";
-import { useTranslation } from "@/lib/i18n"; 
+import { useTranslation } from "@/lib/i18n";
 import { useAuth } from "@/contexts/auth-context";
 
 export default function Campaigns() {
@@ -31,21 +31,20 @@ export default function Campaigns() {
   const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [campaignType, setCampaignType] = useState<string>("");
-  
+
   // Pagination state
   const [page, setPage] = useState(1);
   const limit = 10;
 
   // Fetch campaigns
-  const {
-    data: campaignResponse,
-    isLoading: campaignsLoading,
-  } = useQuery({
+  const { data: campaignResponse, isLoading: campaignsLoading } = useQuery({
     queryKey: ["campaigns", userId, userRole, page],
     queryFn: async () => {
       let res;
       if (userRole === "superadmin") {
-        res = await fetch(`/api/campaigns?page=${page}&limit=${limit}`, { credentials: "include" });
+        res = await fetch(`/api/campaigns?page=${page}&limit=${limit}`, {
+          credentials: "include",
+        });
       } else {
         res = await fetch("/api/getCampaignsByUserId", {
           method: "POST",
@@ -98,14 +97,22 @@ export default function Campaigns() {
 
   // Create campaign mutation
   const createCampaignMutation = useMutation({
-    mutationFn: async (campaignData: any) => apiRequest("POST", "/api/campaigns", campaignData),
+    mutationFn: async (campaignData: any) =>
+      apiRequest("POST", "/api/campaigns", campaignData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["campaigns"] });
       setCreateDialogOpen(false);
-      toast({ title: "Campaign created", description: "Your campaign has been created successfully" });
+      toast({
+        title: "Campaign created",
+        description: "Your campaign has been created successfully",
+      });
     },
     onError: (error: any) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 
@@ -115,31 +122,60 @@ export default function Campaigns() {
       apiRequest("PATCH", `/api/campaigns/${id}/status`, { status }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["campaigns"] });
-      toast({ title: "Status updated", description: "Campaign status has been updated" });
+      toast({
+        title: "Status updated",
+        description: "Campaign status has been updated",
+      });
     },
   });
 
   // Delete campaign
   const deleteCampaignMutation = useMutation({
-    mutationFn: async (id: string) => apiRequest("DELETE", `/api/campaigns/${id}`),
+    mutationFn: async (id: string) =>
+      apiRequest("DELETE", `/api/campaigns/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["campaigns"] });
-      toast({ title: "Campaign deleted", description: "Campaign has been deleted successfully" });
+      toast({
+        title: "Campaign deleted",
+        description: "Campaign has been deleted successfully",
+      });
     },
   });
 
   // Handle create campaign
   const handleCreateCampaign = async (campaignData: any) => {
-    const { selectedTemplate, selectedContacts, csvData, campaignType, scheduledTime, autoRetry } = campaignData;
+    const {
+      selectedTemplate,
+      selectedContacts,
+      csvData,
+      campaignType,
+      scheduledTime,
+      autoRetry,
+    } = campaignData;
 
-    if (!selectedTemplate) return toast({ title: "Error", description: "Please select a template", variant: "destructive" });
-    if (!selectedChannel?.id) return toast({ title: "Error", description: "Please select a channel", variant: "destructive" });
+    if (!selectedTemplate)
+      return toast({
+        title: "Error",
+        description: "Please select a template",
+        variant: "destructive",
+      });
+    if (!selectedChannel?.id)
+      return toast({
+        title: "Error",
+        description: "Please select a channel",
+        variant: "destructive",
+      });
 
     let recipientCount = 0;
     if (campaignType === "contacts") recipientCount = selectedContacts.length;
     if (campaignType === "csv") recipientCount = csvData.length;
 
-    if (recipientCount === 0) return toast({ title: "Error", description: "No recipients selected", variant: "destructive" });
+    if (recipientCount === 0)
+      return toast({
+        title: "Error",
+        description: "No recipients selected",
+        variant: "destructive",
+      });
 
     createCampaignMutation.mutate({
       ...campaignData,
@@ -161,19 +197,33 @@ export default function Campaigns() {
   };
 
   // Update status & delete handlers
-  const handleUpdateStatus = (id: string, status: string) => updateStatusMutation.mutate({ id, status });
+  const handleUpdateStatus = (id: string, status: string) =>
+    updateStatusMutation.mutate({ id, status });
   const handleDeleteCampaign = (id: string) => {
-    if (confirm("Are you sure you want to delete this campaign?")) deleteCampaignMutation.mutate(id);
+    if (confirm("Are you sure you want to delete this campaign?"))
+      deleteCampaignMutation.mutate(id);
   };
 
-  if (campaignsLoading) return <div className="flex items-center justify-center h-96">Loading campaigns...</div>;
+  if (campaignsLoading)
+    return (
+      <div className="flex items-center justify-center h-96">
+        Loading campaigns...
+      </div>
+    );
 
   return (
     <div className="container mx-auto">
       <Header
-        title={t('campaigns.title')}
-        subtitle={t('campaigns.subtitle')}
-        action={userRole !== 'superadmin' ? { label: t('campaigns.createCampaign'), onClick: () => setCreateDialogOpen(true) } : undefined}
+        title={t("campaigns.title")}
+        subtitle={t("campaigns.subtitle")}
+        action={
+          userRole !== "superadmin"
+            ? {
+                label: t("campaigns.createCampaign"),
+                onClick: () => setCreateDialogOpen(true),
+              }
+            : undefined
+        }
       />
 
       <div className="px-4 py-4">
@@ -183,8 +233,8 @@ export default function Campaigns() {
       <div className="px-4 py-4">
         <Card>
           <CardHeader>
-            <CardTitle>{t('campaigns.allCampaigns')}</CardTitle>
-            <CardDescription>{t('campaigns.listDescription')}</CardDescription>
+            <CardTitle>{t("campaigns.allCampaigns")}</CardTitle>
+            <CardDescription>{t("campaigns.listDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
             <CampaignsTable
@@ -196,9 +246,23 @@ export default function Campaigns() {
 
             {/* Pagination */}
             <div className="flex justify-between items-center mt-4">
-              <Button variant="outline" disabled={page === 1} onClick={() => setPage(page - 1)}>Previous</Button>
-              <span className="text-sm text-muted-foreground">Page {page} of {totalPages}</span>
-              <Button variant="outline" disabled={page === totalPages} onClick={() => setPage(page + 1)}>Next</Button>
+              <Button
+                variant="outline"
+                disabled={page === 1}
+                onClick={() => setPage(page - 1)}
+              >
+                Previous
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                Page {page} of {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                disabled={page === totalPages}
+                onClick={() => setPage(page + 1)}
+              >
+                Next
+              </Button>
             </div>
           </CardContent>
         </Card>
