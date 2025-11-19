@@ -36,6 +36,17 @@ export const getAllSubscriptions = async (req: Request, res: Response) => {
 };
 
 
+export const getActivePaidUsersCount = async () => {
+  const activeSubs = await db
+    .select({ userId: subscriptions.userId })
+    .from(subscriptions)
+    .where(eq(subscriptions.status, "active"));
+
+  return new Set(activeSubs.map(s => s.userId)).size;
+};
+
+
+
 // Get subscription by ID
 export const getSubscriptionById = async (req: Request, res: Response) => {
   try {

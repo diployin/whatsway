@@ -12,6 +12,9 @@ export function registerDashboardRoutes(app: Express) {
     dashboardController.getDashboardStats
   );
 
+
+  app.get("/api/dashboard/admin/stats", dashboardController.getDashboardStatsForAdmin)
+
   // Get analytics data
   app.get("/api/analytics",
     extractChannelId,requireAuth,

@@ -12,6 +12,7 @@ import { WebhookConfigRepository } from "./repositories/webhook-config.repositor
 import { MessageQueueRepository } from "./repositories/message-queue.repository";
 import { ApiLogRepository } from "./repositories/api-log.repository";
 import { WhatsappChannelRepository } from "./repositories/whatsapp-channel.repository";
+import {getActivePaidUsersCount} from "./controllers/subscriptions.controller";
 
 import {
   type User,
@@ -651,12 +652,36 @@ async getTemplatesByChannelAndUser(channelId: string, userId: string): Promise<T
     const { totalCount, todayCount, weekCount, lastWeekCount } =
       await this.contactRepo.getContactStats();
     const totalCampaigns = await this.campaignRepo
-      .getAll()
-      .then((c) => c.length);
+      .getAllCampaignCount()
     const totalTemplates = await this.templateRepo
       .getAll()
       .then((t) => t.length);
     const messageStats = await this.messageQueueRepo.getMessageStats();
+
+    const totalUsers = await this.userRepo.getAll().then(users => users.filter(user => user.role === "admin").length);
+
+
+    const totalActiveUsers = ((await this.userRepo.getAll().then(users => users.filter(user => user.role === "admin" && user.status === 'active'))).length)
+
+    const totalBlockedUsers = ((await this.userRepo.getAll().then(users => users.filter(user => user.role === "admin" && user.status === 'blocked'))).length)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); 
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1); 
+
+    const users = await this.userRepo.getAll();
+    const todaySignups = users.filter(user =>
+  user.role === "admin" &&
+  new Date(user.createdAt) >= today &&
+  new Date(user.createdAt) < tomorrow
+).length;
+
+const totalChannels = await this.channelRepo.getAll()
+      .then((c) => c.length);
+
+    const totalPaidUsers = await getActivePaidUsersCount()
+
+
 
     return {
       totalContacts: totalCount,
@@ -665,6 +690,12 @@ async getTemplatesByChannelAndUser(channelId: string, userId: string): Promise<T
       lastWeekContacts: lastWeekCount,
       totalCampaigns,
       totalTemplates,
+      totalUsers,
+      totalActiveUsers,
+      totalBlockedUsers,
+      todaySignups,
+      totalChannels,
+      totalPaidUsers,
       ...messageStats,
     };
   }

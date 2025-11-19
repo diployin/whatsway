@@ -142,4 +142,10 @@ export class CampaignRepository {
     const result = await db.delete(campaigns).where(eq(campaigns.id, id)).returning();
     return result.length > 0;
   }
+
+
+   async getAllCampaignCount(): Promise<number> {
+    const campaignsList = await db.select().from(campaigns);
+    return campaignsList.length;
+  }
 }
