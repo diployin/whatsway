@@ -21,8 +21,16 @@ import { Button } from "@/components/ui/button";
 import { Loading } from "@/components/ui/loading";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Feature, Plan, PlanPermissions, PlansDataTypes } from "@/types/types";
+import {
+  Feature,
+  PaymentProvidersResponse,
+  Plan,
+  PlanPermissions,
+  PlansDataTypes,
+} from "@/types/types";
 import { useAuth } from "@/contexts/auth-context";
+import CheckoutModal from "@/components/modals/CheckoutPage";
+import { useQuery } from "@tanstack/react-query";
 
 // Interfaces
 
@@ -48,9 +56,23 @@ export default function Plans() {
   const [loading, setLoading] = useState<boolean>(false);
   const { toast } = useToast();
 
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+
   const { user } = useAuth();
 
   const isSuper = user?.role === "superadmin";
+
+  const { data: paymentProviders, isLoading: isLoadingProviders } =
+    useQuery<PaymentProvidersResponse>({
+      queryKey: ["/api/payment-providers"],
+      queryFn: async () => {
+        const res = await apiRequest("GET", "/api/payment-providers");
+        if (!res.ok) throw new Error("Failed to fetch payment providers");
+        const data = await res.json();
+        return data;
+      },
+    });
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -80,6 +102,18 @@ export default function Plans() {
   useEffect(() => {
     fetchPlans();
   }, []);
+
+  const handleSelectPlan = (plan: Plan) => {
+    if (!user) {
+      return toast({
+        title: "Authentication Required",
+        description: "Please login before purchasing a plan",
+        variant: "destructive",
+      });
+    }
+    setSelectedPlan(plan);
+    setCheckoutOpen(true);
+  };
 
   const fetchPlans = async (): Promise<void> => {
     try {
@@ -804,9 +838,10 @@ export default function Plans() {
                           {/* CTA Button */}
                           {!isSuper && (
                             <button
-                              className={`w-full py-2.5 rounded-lg font-semibold text-white transition-all mb-3 ${plan.buttonColor}`}
+                              onClick={() => handleSelectPlan(plan)}
+                              className={`w-full py-3 rounded-xl font-semibold transition-all transform hover:scale-105 ${plan.buttonColor} text-white`}
                             >
-                              {parseFloat(plan.monthlyPrice) === 0
+                              {Number.parseFloat(plan.monthlyPrice) === 0
                                 ? "Get Started Free"
                                 : "Start Free Trial"}
                             </button>
@@ -844,6 +879,17 @@ export default function Plans() {
           </CardContent>
         </Card>
       </main>
+      {selectedPlan && (
+        <CheckoutModal
+          plan={selectedPlan}
+          isAnnual={isAnnual}
+          open={checkoutOpen}
+          onOpenChange={setCheckoutOpen}
+          userId={user?.id}
+          paymentProviders={paymentProviders?.data}
+          isLoadingProviders={isLoadingProviders}
+        />
+      )}
     </div>
   );
 }

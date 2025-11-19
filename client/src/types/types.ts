@@ -77,3 +77,60 @@ export interface PaymentInitiationResponse {
   message: string;
   data: PaymentInitiationData;
 }
+
+// *******************************
+export interface SubscriptionResponse {
+  success: boolean;
+  data: SubscriptionData[];
+}
+
+export interface SubscriptionData {
+  subscription: Subscription;
+  user: SubscriptionUser;
+}
+
+export interface Subscription {
+  id: string;
+  userId: string;
+  planId: string;
+  planData: PlanData;
+  status: SubscriptionStatus;
+  billingCycle: BillingCycle;
+  startDate: string; // ISO string
+  endDate: string | null; // if free trials or cancelled
+  autoRenew: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type SubscriptionStatus =
+  | "active"
+  | "inactive"
+  | "expired"
+  | "cancelled";
+export type BillingCycle = "monthly" | "yearly" | "annual";
+
+export interface PlanData {
+  name: string;
+  features: PlanFeature[];
+  annualPrice: string;
+  description: string;
+  permissions: PlanPermissions;
+  monthlyPrice: string;
+}
+
+export interface PlanFeature {
+  name: string;
+  included: boolean;
+}
+
+export interface PlanPermissions {
+  channel: string;
+  contacts: string;
+  automation: string;
+}
+
+export interface SubscriptionUser {
+  id: string;
+  username: string;
+}

@@ -19,10 +19,10 @@ import { useQuery } from "@tanstack/react-query";
 
 const Pricing = () => {
   const [plans, setPlans] = useState<Plan[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [isAnnual, setIsAnnual] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [isAnnual, setIsAnnual] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -31,10 +31,9 @@ const Pricing = () => {
     useQuery<PaymentProvidersResponse>({
       queryKey: ["/api/payment-providers"],
       queryFn: async () => {
-        const res = await apiRequest( "GET","/api/payment-providers");
+        const res = await apiRequest("GET", "/api/payment-providers");
         if (!res.ok) throw new Error("Failed to fetch payment providers");
         const data = await res.json();
-        console.log("PARSED JSON DATA:", data); // logs the actual JSON
         return data;
       },
     });

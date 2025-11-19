@@ -164,15 +164,17 @@ export function GeneralSettings(): JSX.Element {
       {/* Main Configuration Card */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+            <CardTitle className="flex items-center mb-2 sm:mb-0">
               <Settings className="w-5 h-5 mr-2" />
-              General Configuration
+              <span className="text-base sm:text-lg">
+                General Configuration
+              </span>
             </CardTitle>
-            <div className="flex items-center space-x-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Badge
                 variant={isUsingStaticData ? "destructive" : "default"}
-                className="text-xs"
+                className="text-xs flex items-center"
               >
                 {isUsingStaticData ? (
                   <>
@@ -188,9 +190,9 @@ export function GeneralSettings(): JSX.Element {
               </Badge>
               <Button
                 variant="outline"
-                size="sm"
                 onClick={handleRefresh}
                 disabled={isFetching}
+                className="flex items-center text-xs h-7 rounded-sm px-2 sm:h-9 sm:rounded-md sm:px-3"
               >
                 <RefreshCw
                   className={`w-4 h-4 mr-1 ${isFetching ? "animate-spin" : ""}`}
@@ -200,17 +202,18 @@ export function GeneralSettings(): JSX.Element {
               <Button
                 onClick={handleEditClick}
                 disabled={isUsingStaticData}
-                size="sm"
+                className="flex items-center text-xs h-7 rounded-sm px-2 sm:h-9 sm:rounded-md sm:px-3"
               >
                 <Edit className="w-4 h-4 mr-2" />
                 Edit Settings
               </Button>
             </div>
           </div>
-          <CardDescription>
+          <CardDescription className="mt-2 sm:mt-0 text-xs sm:text-sm">
             Manage your application's brand identity and appearance
           </CardDescription>
         </CardHeader>
+
         <CardContent>
           {/* Show error message if API failed */}
           {isUsingStaticData && (
@@ -231,21 +234,35 @@ export function GeneralSettings(): JSX.Element {
           )}
 
           <div className="border border-gray-200 rounded-lg p-6">
-            <div className="flex items-start justify-between mb-6">
-              <div className="flex items-center space-x-3">
-                <h3 className="font-semibold text-lg">Brand Identity</h3>
-                <Badge
-                  variant={isUsingStaticData ? "secondary" : "default"}
-                  className="text-xs"
-                >
-                  <CheckCircle className="w-3 h-3 mr-1" />
-                  {isUsingStaticData ? "Sample Data" : "Live Data"}
-                </Badge>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6">
+              {/* Left block: title + badge */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3">
+                <div className="flex items-center gap-3">
+                  <h3 className="font-semibold text-base md:text-lg">
+                    Brand Identity
+                  </h3>
+
+                  <Badge
+                    variant={isUsingStaticData ? "secondary" : "default"}
+                    className="text-xs px-2 py-0.5 inline-flex items-center"
+                  >
+                    <CheckCircle className="w-3 h-3 mr-1" aria-hidden="true" />
+                    <span className="sr-only">Data type: </span>
+                    {isUsingStaticData ? "Sample Data" : "Live Data"}
+                  </Badge>
+                </div>
               </div>
+
+              {/* Timestamp: below on small screens, right-aligned on sm+ */}
               {displayData.updatedAt && (
-                <div className="flex items-center text-sm text-gray-500">
-                  <Clock className="w-4 h-4 mr-1" />
-                  {formatLastUpdated(displayData.updatedAt)}
+                <div
+                  className="mt-2 sm:mt-0 flex items-center text-sm text-gray-500"
+                  aria-label={`Last updated ${formatLastUpdated(
+                    displayData.updatedAt
+                  )}`}
+                >
+                  <Clock className="w-4 h-4 mr-1" aria-hidden="true" />
+                  <span>{formatLastUpdated(displayData.updatedAt)}</span>
                 </div>
               )}
             </div>
@@ -442,12 +459,14 @@ export function GeneralSettings(): JSX.Element {
       {/* Firebase Configuration */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center">
-              <Settings className="w-5 h-5 mr-2" />
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            {/* Title */}
+            <CardTitle className="flex items-center text-base sm:text-lg">
+              <Settings className="w-5 h-5 mr-2 shrink-0" />
               Firebase Configuration
             </CardTitle>
 
+            {/* Button */}
             <Button
               onClick={() =>
                 toast({
@@ -456,13 +475,14 @@ export function GeneralSettings(): JSX.Element {
                 })
               }
               size="sm"
+              className="self-start sm:self-auto"
             >
-              <Edit className="w-4 h-4 mr-2" />
+              <Edit className="w-4 h-4 mr-2 shrink-0" />
               Edit Firebase
             </Button>
           </div>
 
-          <CardDescription>
+          <CardDescription className="mt-2">
             Manage Firebase API keys used for notifications & authentication
           </CardDescription>
         </CardHeader>

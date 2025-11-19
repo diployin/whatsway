@@ -38,11 +38,11 @@ export default function Settings() {
         subtitle="Manage your WhatsApp business configuration"
       />
 
-      <main className="p-6">
+      <main className="p-6 my-4">
         <Tabs
           value={activeTab}
           onValueChange={setActiveTab}
-          className="space-y-7"
+          className="space-y-12 md:space-y-7"
         >
           <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4">
             {/* SUPERADMIN ONLY */}
@@ -50,26 +50,26 @@ export default function Settings() {
               <>
                 <TabsTrigger
                   value="general_setting"
-                  className="flex items-center space-x-2 whitespace-nowrap justify-center sm:justify-start"
+                  className="flex items-center space-x-2 whitespace-nowrap justify-center sm:justify-start text-xs h-7 rounded-sm px-2 sm:h-9 sm:rounded-md sm:px-3"
                 >
-                  <SettingsIcon className="w-4 h-4" />
-                  <span className="text-sm sm:text-base">General Setting</span>
+                  <SettingsIcon className=" w-3 h-3 md:w-4 md:h-4" />
+                  <span className="text-xs sm:text-base">General Setting</span>
                 </TabsTrigger>
 
                 <TabsTrigger
                   value="firebase_setting"
-                  className="flex items-center space-x-2 whitespace-nowrap justify-center sm:justify-start"
+                  className="flex items-center space-x-2 whitespace-nowrap justify-center sm:justify-start text-xs h-7 rounded-sm px-2 sm:h-9 sm:rounded-md sm:px-3"
                 >
-                  <SettingsIcon className="w-4 h-4" />
-                  <span className="text-sm sm:text-base">Firebase Setting</span>
+                  <SettingsIcon className=" w-3 h-3 md:w-4 md:h-4" />
+                  <span className="text-xs sm:text-base">Firebase Setting</span>
                 </TabsTrigger>
 
                 <TabsTrigger
                   value="storage_setting"
-                  className="flex items-center space-x-2 whitespace-nowrap justify-center sm:justify-start"
+                  className="flex items-center space-x-2 whitespace-nowrap justify-center sm:justify-start text-xs h-7 rounded-sm px-2 sm:h-9 sm:rounded-md sm:px-3"
                 >
-                  <Database className="w-4 h-4" />
-                  <span className="text-sm sm:text-base">Storage Setting</span>
+                  <Database className=" w-3 h-3 md:w-4 md:h-4" />
+                  <span className="text-xs sm:text-base">Storage Setting</span>
                 </TabsTrigger>
               </>
             )}
@@ -79,26 +79,26 @@ export default function Settings() {
               <>
                 <TabsTrigger
                   value="whatsapp"
-                  className="flex items-center space-x-2 whitespace-nowrap justify-center sm:justify-start"
+                  className="flex items-center space-x-2 whitespace-nowrap justify-center sm:justify-start text-xs h-7 rounded-sm px-2 sm:h-9 sm:rounded-md sm:px-3"
                 >
-                  <Smartphone className="w-4 h-4" />
-                  <span className="text-sm sm:text-base">WhatsApp</span>
+                  <Smartphone className=" w-3 h-3 md:w-4 md:h-4" />
+                  <span className="text-xs sm:text-base">WhatsApp</span>
                 </TabsTrigger>
 
                 <TabsTrigger
                   value="ai_setting"
-                  className="flex items-center space-x-2 whitespace-nowrap justify-center sm:justify-start"
+                  className="flex items-center space-x-2 whitespace-nowrap justify-center sm:justify-start text-xs h-7 rounded-sm px-2 sm:h-9 sm:rounded-md sm:px-3"
                 >
-                  <BotIcon className="w-4 h-4" />
-                  <span className="text-sm sm:text-base">AI Settings</span>
+                  <BotIcon className=" w-3 h-3 md:w-4 md:h-4" />
+                  <span className="text-xs sm:text-base">AI Settings</span>
                 </TabsTrigger>
 
                 <TabsTrigger
                   value="webhooks"
-                  className="flex items-center space-x-2 whitespace-nowrap justify-center sm:justify-start"
+                  className="flex items-center space-x-2 whitespace-nowrap justify-center sm:justify-start text-xs h-7 rounded-sm px-2 sm:h-9 sm:rounded-md sm:px-3"
                 >
-                  <Webhook className="w-4 h-4" />
-                  <span className="text-sm sm:text-base">Webhooks</span>
+                  <Webhook className=" w-3 h-3 md:w-4 md:h-4" />
+                  <span className="text-xs sm:text-base">Webhooks</span>
                 </TabsTrigger>
               </>
             )}

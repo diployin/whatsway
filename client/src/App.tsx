@@ -59,6 +59,7 @@ import UserSupportTicketsNew from "./pages/user-support-tickets";
 import BillingSubscriptionPage from "./components/billing-subscription-page";
 import GroupsUI from "./pages/group-list";
 import AllSubscriptionsPage from "./pages/masterSubscriptions";
+import AdminStats from "./components/admin-stats";
 // Define route permissions mapping
 const ROUTE_PERMISSIONS: Record<string, string> = {
   "/contacts": "contacts.view",
@@ -288,15 +289,7 @@ function ProtectedRoutes() {
           <Route path="/chatbot-builder">
             <PermissionRoute component={ChatbotBuilder} />
           </Route>
-          {/* <Route path="/analytics/campaign/:campaignId">
-            <PermissionRoute
-              component={CampaignAnalytics}
-              requiredPermission="analytics:view"
-            />
-          </Route> */}
-          {/* <Route path="/logs">
-            <PermissionRoute component={Logs} requiredPermission="logs:view" />
-          </Route> */}
+
           <Route path="/settings">
             <PermissionRoute
               component={Settings}
@@ -402,6 +395,9 @@ function ProtectedRoutes() {
 
           <Route path="master-subscriptions">
             <PermissionRoute component={AllSubscriptionsPage} />
+          </Route>
+          <Route path="/stats">
+            <PermissionRoute component={AdminStats} />
           </Route>
 
           <Route component={NotFound} />
