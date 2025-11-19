@@ -8,7 +8,7 @@ import {
   users,
   paymentProviders,
 } from "@shared/schema";
-import { eq, and, desc, gte, lte, or, like, sql } from "drizzle-orm";
+import { eq, and, desc, gte, lte, or, like, sql, ne } from "drizzle-orm";
 import Stripe from "stripe";
 import Razorpay from "razorpay";
 import crypto from "crypto";
@@ -24,6 +24,147 @@ const stripe = new Stripe(
 );
 
 // Get all transactions
+// export const getAllTransactions = async (req: Request, res: Response) => {
+//   try {
+//     const {
+//       search,
+//       status,
+//       paymentMethod,
+//       billingCycle,
+//       providerId,
+//       startDate,
+//       endDate,
+//       minAmount,
+//       maxAmount,
+//       page = "1",
+//       limit = "20",
+//     } = req.query;
+
+//     // Build filter conditions
+//     const conditions = [];
+
+//     // Search by user email, provider transaction ID, or order ID
+//     if (search && typeof search === "string") {
+//       conditions.push(
+//         or(
+//           like(users.email, `%${search}%`),
+//           like(transactions.providerTransactionId, `%${search}%`),
+//           like(transactions.providerOrderId, `%${search}%`)
+//         )
+//       );
+//     }
+
+//     // Filter by status
+//     if (status && typeof status === "string") {
+//       conditions.push(eq(transactions.status, status));
+//     }
+
+//     // Filter by payment method
+//     if (paymentMethod && typeof paymentMethod === "string") {
+//       conditions.push(eq(transactions.paymentMethod, paymentMethod));
+//     }
+
+//     // Filter by billing cycle
+//     if (billingCycle && typeof billingCycle === "string") {
+//       conditions.push(eq(transactions.billingCycle, billingCycle));
+//     }
+
+//     // Filter by payment provider
+//     if (providerId && typeof providerId === "string") {
+//       conditions.push(eq(transactions.paymentProviderId, providerId));
+//     }
+
+//     // Filter by date range
+//     if (startDate && typeof startDate === "string") {
+//       conditions.push(gte(transactions.createdAt, new Date(startDate)));
+//     }
+//     if (endDate && typeof endDate === "string") {
+//       conditions.push(lte(transactions.createdAt, new Date(endDate)));
+//     }
+
+//     // Filter by amount range
+//     if (minAmount && typeof minAmount === "string") {
+//       conditions.push(gte(transactions.amount, minAmount));
+//     }
+//     if (maxAmount && typeof maxAmount === "string") {
+//       conditions.push(lte(transactions.amount, maxAmount));
+//     }
+
+//     // Calculate pagination
+//     const pageNum = parseInt(page as string);
+//     const limitNum = parseInt(limit as string);
+//     const offset = (pageNum - 1) * limitNum;
+
+//     // Build query with conditions
+//     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+//     // Get transactions with pagination
+//     const allTransactions = await db
+//     .select({
+//       transaction: transactions, // full transaction details
+//       user: {
+//         id: users.id,
+//         firstName: users.firstName,
+//         lastName: users.lastName,
+//         email: users.email,
+//       },
+//       plan: {
+//         id: plans.id,
+//         name: plans.name,
+//         price: plans.annualPrice,
+//         monthlyPrice: plans.monthlyPrice,
+//         permissions: plans.permissions,
+//         features: plans.features
+//       },
+//       provider: {
+//         id: paymentProviders.id,
+//         name: paymentProviders.name,
+//         providerKey: paymentProviders.providerKey,
+//       },
+//     })
+//       .from(transactions)
+//       .leftJoin(users, eq(transactions.userId, users.id))
+//       .leftJoin(plans, eq(transactions.planId, plans.id))
+//       .leftJoin(
+//         paymentProviders,
+//         eq(transactions.paymentProviderId, paymentProviders.id)
+//       )
+//       .where(whereClause)
+//       .orderBy(desc(transactions.createdAt))
+//       .limit(limitNum)
+//       .offset(offset);
+
+//     // Get total count for pagination
+//     const totalCountResult = await db
+//       .select({ count: sql<number>`count(*)` })
+//       .from(transactions)
+//       .leftJoin(users, eq(transactions.userId, users.id))
+//       .where(whereClause);
+
+//     const totalCount = Number(totalCountResult[0]?.count || 0);
+//     const totalPages = Math.ceil(totalCount / limitNum);
+
+//     res.status(200).json({
+//       success: true,
+//       data: allTransactions,
+//       pagination: {
+//         page: pageNum,
+//         limit: limitNum,
+//         totalCount,
+//         totalPages,
+//       },
+//     });
+//   } catch (error) {
+//     console.error("Error fetching transactions:", error);
+//     res.status(500).json({
+//       success: false,
+//       message: "Error fetching transactions",
+//       error,
+//     });
+//   }
+// };
+
+
 export const getAllTransactions = async (req: Request, res: Response) => {
   try {
     const {
@@ -40,10 +181,9 @@ export const getAllTransactions = async (req: Request, res: Response) => {
       limit = "20",
     } = req.query;
 
-    // Build filter conditions
     const conditions = [];
 
-    // Search by user email, provider transaction ID, or order ID
+    // Search by email / provider IDs / order ID
     if (search && typeof search === "string") {
       conditions.push(
         or(
@@ -54,27 +194,29 @@ export const getAllTransactions = async (req: Request, res: Response) => {
       );
     }
 
-    // Filter by status
+    // Status filter OR auto-exclude pending
     if (status && typeof status === "string") {
       conditions.push(eq(transactions.status, status));
+    } else {
+      conditions.push(ne(transactions.status, "pending"));
     }
 
-    // Filter by payment method
+    // Payment method
     if (paymentMethod && typeof paymentMethod === "string") {
       conditions.push(eq(transactions.paymentMethod, paymentMethod));
     }
 
-    // Filter by billing cycle
+    // Billing cycle
     if (billingCycle && typeof billingCycle === "string") {
       conditions.push(eq(transactions.billingCycle, billingCycle));
     }
 
-    // Filter by payment provider
+    // Payment provider
     if (providerId && typeof providerId === "string") {
       conditions.push(eq(transactions.paymentProviderId, providerId));
     }
 
-    // Filter by date range
+    // Date range
     if (startDate && typeof startDate === "string") {
       conditions.push(gte(transactions.createdAt, new Date(startDate)));
     }
@@ -82,7 +224,7 @@ export const getAllTransactions = async (req: Request, res: Response) => {
       conditions.push(lte(transactions.createdAt, new Date(endDate)));
     }
 
-    // Filter by amount range
+    // Amount range
     if (minAmount && typeof minAmount === "string") {
       conditions.push(gte(transactions.amount, minAmount));
     }
@@ -90,51 +232,47 @@ export const getAllTransactions = async (req: Request, res: Response) => {
       conditions.push(lte(transactions.amount, maxAmount));
     }
 
-    // Calculate pagination
+    // Pagination
     const pageNum = parseInt(page as string);
     const limitNum = parseInt(limit as string);
     const offset = (pageNum - 1) * limitNum;
 
-    // Build query with conditions
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-    // Get transactions with pagination
+    // Fetch transactions
     const allTransactions = await db
-    .select({
-      transaction: transactions, // full transaction details
-      user: {
-        id: users.id,
-        firstName: users.firstName,
-        lastName: users.lastName,
-        email: users.email,
-      },
-      plan: {
-        id: plans.id,
-        name: plans.name,
-        price: plans.annualPrice,
-        monthlyPrice: plans.monthlyPrice,
-        permissions: plans.permissions,
-        features: plans.features
-      },
-      provider: {
-        id: paymentProviders.id,
-        name: paymentProviders.name,
-        providerKey: paymentProviders.providerKey,
-      },
-    })
+      .select({
+        transaction: transactions,
+        user: {
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+        },
+        plan: {
+          id: plans.id,
+          name: plans.name,
+          price: plans.annualPrice,
+          monthlyPrice: plans.monthlyPrice,
+          permissions: plans.permissions,
+          features: plans.features
+        },
+        provider: {
+          id: paymentProviders.id,
+          name: paymentProviders.name,
+          providerKey: paymentProviders.providerKey,
+        },
+      })
       .from(transactions)
       .leftJoin(users, eq(transactions.userId, users.id))
       .leftJoin(plans, eq(transactions.planId, plans.id))
-      .leftJoin(
-        paymentProviders,
-        eq(transactions.paymentProviderId, paymentProviders.id)
-      )
+      .leftJoin(paymentProviders, eq(transactions.paymentProviderId, paymentProviders.id))
       .where(whereClause)
       .orderBy(desc(transactions.createdAt))
       .limit(limitNum)
       .offset(offset);
 
-    // Get total count for pagination
+    // Count total
     const totalCountResult = await db
       .select({ count: sql<number>`count(*)` })
       .from(transactions)
@@ -142,7 +280,6 @@ export const getAllTransactions = async (req: Request, res: Response) => {
       .where(whereClause);
 
     const totalCount = Number(totalCountResult[0]?.count || 0);
-    const totalPages = Math.ceil(totalCount / limitNum);
 
     res.status(200).json({
       success: true,
@@ -151,9 +288,10 @@ export const getAllTransactions = async (req: Request, res: Response) => {
         page: pageNum,
         limit: limitNum,
         totalCount,
-        totalPages,
+        totalPages: Math.ceil(totalCount / limitNum),
       },
     });
+
   } catch (error) {
     console.error("Error fetching transactions:", error);
     res.status(500).json({
@@ -163,6 +301,7 @@ export const getAllTransactions = async (req: Request, res: Response) => {
     });
   }
 };
+
 
 // Get transaction statistics
 export const getTransactionStats = async (req: Request, res: Response) => {
