@@ -28,6 +28,7 @@ import {
   Activity,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function Analytics() {
   const [timeRange, setTimeRange] = useState<number>(30);
@@ -36,7 +37,7 @@ export default function Analytics() {
   const { data: activeChannel } = useQuery({
     queryKey: ["/api/channels/active"],
     queryFn: async () => {
-      const response = await fetch("/api/channels/active");
+      const response = await apiRequest("GET" , "/api/channels/active");
       if (!response.ok) return null;
       return await response.json();
     },

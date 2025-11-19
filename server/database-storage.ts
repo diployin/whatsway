@@ -295,6 +295,16 @@ async getContactsByUser(
     return this.channelRepo.getById(id);
   }
 
+  
+async getChannelsByUserId(userId: string): Promise<Channel[]> {
+  return this.channelRepo.getAllByUserId(userId);
+}
+
+
+async getActiveChannelByUserId(userId: string): Promise<Channel | undefined> {
+  return this.channelRepo.getActiveByUserId(userId);
+}
+
    async getChannelsByUser(
   userId: string,
   page: number = 1,
