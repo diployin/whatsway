@@ -58,7 +58,13 @@ export const getChannelsByUserId = asyncHandler(async (req: Request, res: Respon
 
 
 export const getActiveChannel = asyncHandler(async (req: Request, res: Response) => {
-  const channel = await storage.getActiveChannel();
+  const userId =  req.user.id ; 
+
+  if(!userId){
+    throw new AppError(404, 'No active channel found');
+  }
+  
+  const channel = await storage.getActiveChannelByUserId(userId);
   if (!channel) {
     throw new AppError(404, 'No active channel found');
   }
@@ -148,10 +154,15 @@ export const createChannel = asyncHandler(async (req: Request, res: Response) =>
 
 export const updateChannel = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
+  const userId =  req.user.id ; 
+
+  if(!userId){
+    throw new AppError(404, 'No active channel found');
+  }
   
   // If setting this channel as active, deactivate all others
   if (req.body.isActive === true) {
-    const channels = await storage.getChannels();
+    const channels = await storage.getChannelsByUserId(userId);
     for (const channel of channels) {
       if (channel.id !== id && channel.isActive) {
         await storage.updateChannel(channel.id, { isActive: false });

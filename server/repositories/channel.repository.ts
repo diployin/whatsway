@@ -1,5 +1,5 @@
 import { db } from "../db";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, sql, and } from "drizzle-orm";
 import { 
   channels, 
   type Channel, 
@@ -9,6 +9,14 @@ import {
 export class ChannelRepository {
   async getAll(): Promise<Channel[]> {
     return await db.select().from(channels).orderBy(desc(channels.createdAt));
+  }
+
+  async getAllByUserId(userId: string): Promise<Channel[]> {
+    return await db
+      .select()
+      .from(channels)
+      .where(eq(channels.createdBy, userId))
+      .orderBy(desc(channels.createdAt));
   }
 
   async getByUser(
@@ -89,6 +97,21 @@ export class ChannelRepository {
       .from(channels)
       .where(eq(channels.isActive, true))
       .orderBy(desc(channels.createdAt));
+    return channel || undefined;
+  }
+
+  async getActiveByUserId(userId: string): Promise<Channel | undefined> {
+    const [channel] = await db
+      .select()
+      .from(channels)
+      .where(
+        and(
+          eq(channels.isActive, true),
+          eq(channels.createdBy, userId)
+        )
+      )
+      .orderBy(desc(channels.createdAt));
+  
     return channel || undefined;
   }
 }

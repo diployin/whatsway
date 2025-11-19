@@ -58,6 +58,11 @@ export default function Account() {
   // Get active channel
   const { data: activeChannel } = useQuery({
     queryKey: ["/api/channels/active"],
+    queryFn: async () => {
+      const response = await apiRequest("GET" , "/api/channels/active");
+      if (!response.ok) return null;
+      return await response.json();
+    },
   });
 
   // Fetch message logs

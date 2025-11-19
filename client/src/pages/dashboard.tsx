@@ -27,15 +27,17 @@ import { formatDistanceToNow } from "date-fns";
 import { useLocation } from "wouter";
 import { DashboardStarApiDataType } from "./types/type";
 import { useAuth } from "@/contexts/auth-context";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function Dashboard() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const [, setLocation] = useLocation();
+
   const { data: activeChannel } = useQuery({
     queryKey: ["/api/channels/active"],
     queryFn: async () => {
-      const response = await fetch("/api/channels/active");
+      const response = await apiRequest("GET" , "/api/channels/active");
       if (!response.ok) return null;
       return await response.json();
     },

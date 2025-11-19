@@ -27,7 +27,7 @@ interface ChannelsResponse {
 export function ChannelSwitcher() {
   const [selectedChannelId, setSelectedChannelId] = useState<string | null>(null);
   const [page, setPage] = useState<number>(1);
-  const limit = 10;
+  const limit = 100;
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -53,10 +53,14 @@ export function ChannelSwitcher() {
   const channels: Channel[] = Array.isArray(response?.data) ? response.data : [];
   const totalPages = response?.totalPages || 1;
 
-  // Fetch active channel
-  const { data: activeChannel } = useQuery<Channel>({
+  // First, get the active channel
+  const { data: activeChannel } = useQuery({
     queryKey: ["/api/channels/active"],
-    retry: false,
+    queryFn: async () => {
+      const response = await apiRequest("GET" , "/api/channels/active");
+      if (!response.ok) return null;
+      return await response.json();
+    },
   });
 
   // Set selected channel on mount
@@ -82,22 +86,11 @@ export function ChannelSwitcher() {
       if (isActive) {
         await Promise.all(
           channels.map(async (channel) => {
-            await fetch(`/api/channels/${channel.id}`, {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ isActive: false }),
-            });
-          })
-        );
-      }
+            await apiRequest("PUT",`/api/channels/${channel.id}`, { isActive: false })
+            }))}
 
       // Activate the selected channel
-      const res = await fetch(`/api/channels/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isActive }),
-      });
-
+      const res = await apiRequest("PUT",`/api/channels/${id}`,{ isActive });
       if (!res.ok) throw new Error("Failed to update channel");
       return res.json();
     },

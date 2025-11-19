@@ -366,7 +366,7 @@ export default function Contacts() {
   const { data: activeChannel } = useQuery({
     queryKey: ["/api/channels/active"],
     queryFn: async () => {
-      const response = await fetch("/api/channels/active");
+      const response = await apiRequest("GET" , "/api/channels/active");
       if (!response.ok) return null;
       return await response.json();
     },
@@ -1120,7 +1120,6 @@ export default function Contacts() {
                       <Plus className="h-4 w-4 mr-2" />
                       {t("contacts.createNewGroup")}
                     </DropdownMenuItem>
-
                     {/* Available Groups */}
                     {groupsData?.length > 0 && (
                       <>

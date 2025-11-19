@@ -2,6 +2,7 @@ import type { Express } from "express";
 import * as channelsController from "../controllers/channels.controller";
 import { validateRequest } from "../middlewares/validation.middleware";
 import { insertChannelSchema } from "@shared/schema";
+import { requireAuth } from "server/middlewares/auth.middleware";
 
 export function registerChannelRoutes(app: Express) {
   // Get all channels
@@ -10,7 +11,7 @@ export function registerChannelRoutes(app: Express) {
   app.post("/api/channels/userid", channelsController.getChannelsByUserId)
 
   // Get active channel
-  app.get("/api/channels/active", channelsController.getActiveChannel);
+  app.get("/api/channels/active",requireAuth, channelsController.getActiveChannel);
 
   // Create channel
   app.post("/api/channels", 
@@ -19,7 +20,7 @@ export function registerChannelRoutes(app: Express) {
   );
 
   // Update channel
-  app.put("/api/channels/:id", channelsController.updateChannel);
+  app.put("/api/channels/:id",requireAuth,  channelsController.updateChannel);
 
   // Delete channel
   app.delete("/api/channels/:id", channelsController.deleteChannel);
