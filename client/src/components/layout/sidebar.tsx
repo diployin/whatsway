@@ -15,9 +15,9 @@ import {
   UsersRound,
   Menu,
   LogOut,
-  CheckCircle,
   X,
   Bell,
+  CheckCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ChannelSwitcher } from "@/components/channel-switcher";
@@ -30,7 +30,7 @@ import { TbInvoice } from "react-icons/tb";
 import { RiSecurePaymentFill } from "react-icons/ri";
 import { AiOutlineTransaction } from "react-icons/ai";
 import { MdOutlineSupportAgent } from "react-icons/md";
-
+import { useSidebar } from "@/contexts/sidebar-context";
 
 import { AdminCreditBox } from "../AdminCreditBox";
 
@@ -195,6 +195,13 @@ const navItems: NavItem[] = [
     color: "text-blue-400",
     allowedRoles: ["admin"],
   },
+  {
+    href: "/groups",
+    icon: TbInvoice,
+    labelKey: "Groups",
+    color: "text-blue-400",
+    allowedRoles: ["admin"],
+  },
 ];
 
 const sidebarItemsCategories = [
@@ -226,15 +233,6 @@ const sidebarItemsCategories = [
     badge: "",
     color: "text-yellow-600",
   },
-
-   {
-  name: "Master Subscriptions",
-  icon: CheckCircle,
-  path: "/master-subscriptions",
-  badge: "",
-  color: "text-green-600",
-},
-
   {
     name: "Analytics",
     icon: BarChart3,
@@ -255,12 +253,6 @@ const sidebarItemsCategories = [
   },
   {
     name: "Transactions logs",
-    icon: MdOutlinePayment,
-    path: "/transactions-logs",
-    color: "text-blue-400",
-  },
-  {
-    name: "Transactions logs",
     icon: AiOutlineTransaction,
     path: "/transactions-logs",
     color: "text-[#00a63e]",
@@ -276,12 +268,19 @@ const sidebarItemsCategories = [
     icon: MdOutlineSupportAgent,
     path: "/support-tickets",
     color: "text-black-400",
-  },
+  },
   {
     name: "Settings",
     icon: Settings,
     path: "/settings",
     color: "text-purple-400",
+  },
+  {
+    name: "Master Subscriptions",
+    icon: CheckCircle,
+    path: "/master-subscriptions",
+    badge: "",
+    color: "text-green-600",
   },
 ];
 
@@ -489,6 +488,8 @@ export default function Sidebar() {
   const isSuper = user?.role === "superadmin";
   const isAdmin = user?.role === "admin";
 
+  const { isOpen, toggle } = useSidebar();
+
   const handleToggleAI = (): void => {
     setIsAIActive(!isAIActive);
   };
@@ -537,7 +538,7 @@ export default function Sidebar() {
             ? "bg-green-50 text-green-700 border-l-4 border-green-600"
             : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
         )}
-        onClick={() => setIsMobileOpen(false)}
+        onClick={toggle}
       >
         <Icon
           className={cn(
@@ -558,24 +559,17 @@ export default function Sidebar() {
 
   return (
     <>
-      <button
-        onClick={() => setIsMobileOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-md hover:bg-gray-50"
-      >
-        <Menu className="w-6 h-6" />
-      </button>
-
-      {isMobileOpen && (
+      {isOpen && (
         <div
           className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
-          onClick={() => setIsMobileOpen(false)}
+          onClick={toggle}
         />
       )}
 
       <div
         className={cn(
           "fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg border-r border-gray-100 transform transition-transform duration-300",
-          isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
         <div className="flex flex-col h-full">
@@ -588,7 +582,7 @@ export default function Sidebar() {
               <h1 className="text-xl font-bold text-gray-900">Whatsway</h1>
             </div>
             <button
-              onClick={() => setIsMobileOpen(false)}
+              onClick={toggle}
               className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
             >
               <X className="w-5 h-5" />
@@ -641,7 +635,7 @@ export default function Sidebar() {
 
           {isAdmin && (
             <div className="px-6 py-3">
-              <AdminCreditBox name="sarvesh" credits={595} />
+              <AdminCreditBox credits={595} />
             </div>
           )}
 

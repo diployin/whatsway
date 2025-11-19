@@ -1,56 +1,13 @@
-// import { Bell, Plus } from "lucide-react";
-// import { Button } from "@/components/ui/button";
-// import { useUnreadCount } from "@/contexts/UnreadCountContext";
-// import { useLocation } from "wouter";
 
-// interface HeaderProps {
-//   title: string;
-//   subtitle?: string;
-//   action?: {
-//     label: string;
-//     onClick: () => void;
-//   };
-// }
-
-// export default function Header({ title, subtitle, action }: HeaderProps) {
-//   const unreadCount = useUnreadCount();
-//   const [,setLocation] = useLocation();
-//   return (
-//     <header className="bg-white shadow-sm border-b border-gray-100 px-6 py-4">
-//       <div className="flex items-center justify-between">
-//         <div>
-//           <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
-//           {subtitle && (
-//             <p className="text-sm text-gray-600">{subtitle}</p>
-//           )}
-//         </div>
-//         <div className="flex items-center space-x-4">
-//           {action && (
-//             <Button
-//               onClick={action.onClick}
-//               className="bg-green-600 hover:bg-green-700 text-white"
-//             >
-//               <Plus className="w-4 h-4 mr-2" />
-//               {action.label}
-//             </Button>
-//           )}
-
-//           {/* Notifications */}
-//           <div className="relative">
-//             <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-colors" onClick={()=> setLocation('/inbox')}>
-//               <Bell className="w-5 h-5" />
-//               <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-//                {unreadCount}
-//               </span>
-//             </button>
-//           </div>
-//         </div>
-//       </div>
-//     </header>
-//   );
-// }
-
-import { Bell, Plus, LogOut, Settings, User, CheckCircle } from "lucide-react";
+import {
+  Bell,
+  Plus,
+  LogOut,
+  Settings,
+  User,
+  CheckCircle,
+  Menu,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -79,6 +36,7 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import { getMessaging, getToken } from "firebase/messaging";
+import { useSidebar } from "@/contexts/sidebar-context";
 
 interface HeaderProps {
   title: string;
@@ -174,43 +132,59 @@ export default function Header({
     await axios.post("/api/notifications/mark-all");
     refetch();
   };
+  const { isOpen, toggle } = useSidebar();
 
   // UI unchanged --------------------------------------
   return (
     <>
       <header className="bg-white shadow-sm border-b border-gray-100 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
-            {subtitle && <p className="text-sm text-gray-600">{subtitle}</p>}
+        <div className="flex items-center justify-between flex-wrap">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={toggle}
+              className="lg:hidden   p-2 bg-white rounded-lg shadow-md hover:bg-gray-50"
+            >
+              <Menu className="w-4 h-4" />
+            </button>
+            <div>
+              <h1 className="  text-base sm:text-lg lg:text-2xl font-bold text-gray-900">
+                {title}
+              </h1>
+              {subtitle && (
+                <p className="text-sm text-gray-600 hidden lg:block  ">
+                  {subtitle}
+                </p>
+              )}
+            </div>
           </div>
 
-          <div className="flex items-center space-x-4">
-            {action && (
-              <Button
-                onClick={action.onClick}
-                className="bg-green-600 text-white"
-              >
-                <Plus className="w-4 h-4 mr-2" /> {action.label}
-              </Button>
-            )}
-
-            {user?.role != 'superadmin' &&(
-
-            <div className="relative">
-              <button
-                onClick={() => setNotifModal(true)}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg"
-              >
-                <Bell className="w-5 h-5" />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                    {unreadCount}
-                  </span>
-                )}
-              </button>
+          <div className="flex items-center space-x-4 ">
+            <div className=" w-fit hidden sm:block ">
+              {action && (
+                <Button
+                  onClick={action.onClick}
+                  className="bg-green-600 text-white "
+                >
+                  <Plus className="w-4 h-4 " />{" "}
+                  <span className="hidden lg:block  ">{action.label}</span>
+                </Button>
+              )}
             </div>
 
+            {user?.role != "superadmin" && (
+              <div className="relative">
+                <button
+                  onClick={() => setNotifModal(true)}
+                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg"
+                >
+                  <Bell className="w-5 h-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
+              </div>
             )}
 
             <div className="relative" ref={dropdownRef}>

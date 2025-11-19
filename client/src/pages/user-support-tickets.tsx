@@ -56,6 +56,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/auth-context";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import Header from "@/components/layout/header";
 
 interface AdminUser {
   id: string;
@@ -404,7 +405,7 @@ export default function UserSupportTicketsNew() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
+      {/* <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 py-3 sm:py-4">
             <div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0">
@@ -434,7 +435,20 @@ export default function UserSupportTicketsNew() {
             </div>
           </div>
         </div>
-      </header>
+      </header> */}
+
+      <Header
+        title={"Support Tickets"}
+        subtitle={
+          isAdmin
+            ? "Manage all support tickets from users and listeners"
+            : "View and manage your support tickets"
+        }
+        action={{
+          label: "Create Ticket",
+          onClick: () => setShowCreateDialog(true),
+        }}
+      />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats */}

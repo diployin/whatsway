@@ -22,11 +22,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import AutomationFlowBuilderXYFlow from "@/components/automation-flow-builder";
 import { TestAutomationModal } from "@/components/TestAutomationModal";
 import { useAuth } from "@/contexts/auth-context";
-import  AutomationFlowBuilder  from "@/components/automation-flow-builder/AutomationFlowBuilder";
-
+import AutomationFlowBuilder from "@/components/automation-flow-builder/AutomationFlowBuilder";
+import Header from "@/components/layout/header";
 
 type Automation = {
   id: string;
@@ -38,14 +37,15 @@ type Automation = {
   lastExecutedAt?: string | null;
 };
 
-
 export default function Automations() {
   const [showFlowBuilder, setShowFlowBuilder] = useState(false);
   const [selectedAutomation, setSelectedAutomation] = useState<any>(null);
   const { toast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedAutomationId, setSelectedAutomationId] = useState<string | null>(null);
-  const {user} = useAuth();
+  const [selectedAutomationId, setSelectedAutomationId] = useState<
+    string | null
+  >(null);
+  const { user } = useAuth();
   const openModal = (id: string) => {
     setSelectedAutomationId(id);
     setIsModalOpen(true);
@@ -59,7 +59,6 @@ export default function Automations() {
       return res.json() as Promise<Automation[]>;
     },
   });
-  
 
   const { data: activeChannel } = useQuery({
     queryKey: ["/api/channels/active"],
@@ -168,8 +167,8 @@ export default function Automations() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className=" space-y-6">
+      {/* <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Automations</h1>
           <p className="text-sm text-muted-foreground mt-1">
@@ -184,7 +183,16 @@ export default function Automations() {
           <Plus className="h-4 w-4 mr-2" />
           Create Automation
         </Button>
-      </div>
+      </div> */}
+
+      <Header
+        title={"Automations"}
+        subtitle={"Create automated workflows to engage with your customers"}
+        action={{
+          label: " Create Automation",
+          onClick: handleCreateNew,
+        }}
+      />
 
       {automations.length === 0 ? (
         <Card className="p-12 text-center">
@@ -262,7 +270,7 @@ export default function Automations() {
                     onClick={() => openModal(automation.id)}
                     data-testid={`button-test-${automation.id}`}
                     aria-label="Test automation"
-                    disabled={user?.username === 'demouser'}
+                    disabled={user?.username === "demouser"}
                   >
                     <LucideTestTube className="h-4 w-4" />
                   </Button>
@@ -272,7 +280,7 @@ export default function Automations() {
                     size="sm"
                     onClick={() => handleEdit(automation)}
                     data-testid={`button-edit-${automation.id}`}
-                    disabled={user?.username === 'demouser'}
+                    disabled={user?.username === "demouser"}
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
@@ -281,7 +289,11 @@ export default function Automations() {
                     size="sm"
                     onClick={() => toggleMutation.mutate(automation.id)}
                     data-testid={`button-toggle-${automation.id}`}
-                    disabled={user?.username === 'demouser' ? true : toggleMutation.isPending}
+                    disabled={
+                      user?.username === "demouser"
+                        ? true
+                        : toggleMutation.isPending
+                    }
                   >
                     {automation.status === "active" ? (
                       <Pause className="h-4 w-4" />
@@ -301,7 +313,11 @@ export default function Automations() {
                         deleteMutation.mutate(automation.id);
                       }
                     }}
-                    disabled={user?.username === 'demouser' ? true : deleteMutation.isPending}
+                    disabled={
+                      user?.username === "demouser"
+                        ? true
+                        : deleteMutation.isPending
+                    }
                     data-testid={`button-delete-${automation.id}`}
                   >
                     <Trash2 className="h-4 w-4" />

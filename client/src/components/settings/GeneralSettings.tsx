@@ -38,7 +38,7 @@ interface BrandSettings {
   logo?: string;
   favicon?: string;
   updatedAt?: string;
-  firebase?:{}
+  firebase?: {};
 }
 
 export function GeneralSettings(): JSX.Element {

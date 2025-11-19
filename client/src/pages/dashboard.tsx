@@ -204,22 +204,21 @@ export default function Dashboard() {
 
   return (
     <div className="flex-1 dots-bg min-h-screen">
-    {user?.role === "superadmin" ? (
-  <Header
-    title={t("dashboard.title")}
-    subtitle={t("dashboard.subtitle")}
-  />
-) : (
-  <Header
-    title={t("dashboard.title")}
-    subtitle={t("dashboard.subtitle")}
-    action={{
-      label: t("dashboard.newCampaign"),
-      onClick: () => setLocation("/campaigns"),
-    }}
-  />
-)}
-
+      {user?.role === "superadmin" ? (
+        <Header
+          title={t("dashboard.title")}
+          subtitle={t("dashboard.subtitle")}
+        />
+      ) : (
+        <Header
+          title={t("dashboard.title")}
+          subtitle={t("dashboard.subtitle")}
+          action={{
+            label: t("dashboard.newCampaign"),
+            onClick: () => setLocation("/campaigns"),
+          }}
+        />
+      )}
 
       <main className="p-6 space-y-6">
         {/* KPI Cards */}
@@ -402,7 +401,11 @@ export default function Dashboard() {
         </div>
 
         {/* Charts and Recent Activity */}
-        <div  className={`grid grid-cols-1 gap-6 lg:${user?.role === 'superadmin' ? 'grid-cols-3' : 'grid-cols-1'}`}>
+        <div
+          className={`grid grid-cols-1 gap-6 lg:${
+            user?.role === "superadmin" ? "grid-cols-3" : "grid-cols-1"
+          }`}
+        >
           {/* Message Analytics Chart */}
           <Card className="lg:col-span-2 hover-lift fade-in">
             <CardHeader>
@@ -470,71 +473,71 @@ export default function Dashboard() {
           </Card>
 
           {/* Recent Activities */}
-          {user?.role === 'superadmin' && (
-          <Card className="hover-lift fade-in">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Activity className="w-5 h-5 mr-2" />
-                {t("dashboard.recentActivities")}
-              </CardTitle>
-            </CardHeader>
+          {user?.role === "superadmin" && (
+            <Card className="hover-lift fade-in">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Activity className="w-5 h-5 mr-2" />
+                  {t("dashboard.recentActivities")}
+                </CardTitle>
+              </CardHeader>
 
-            <CardContent>
-              <div className="space-y-4">
-                {isLoading ? (
-                  <p className="text-sm text-gray-500">
-                    {t("dashboard.loadingActivities")}
-                  </p>
-                ) : activityLogs.length === 0 ? (
-                  <p className="text-sm text-gray-500">
-                    {t("dashboard.noRecentActivities")}
-                  </p>
-                ) : (
-                  (activityLogs as ActivityLog[])
-                    .sort(
-                      (a: ActivityLog, b: ActivityLog) =>
-                        new Date(b.createdAt).getTime() -
-                        new Date(a.createdAt).getTime()
-                    )
-                    .slice(0, 5)
-                    .map((log: ActivityLog) => {
-                      const meta = getActivityMeta(log.action);
-                      return (
-                        <div
-                          key={log.id}
-                          className="flex items-start space-x-3"
-                        >
+              <CardContent>
+                <div className="space-y-4">
+                  {isLoading ? (
+                    <p className="text-sm text-gray-500">
+                      {t("dashboard.loadingActivities")}
+                    </p>
+                  ) : activityLogs.length === 0 ? (
+                    <p className="text-sm text-gray-500">
+                      {t("dashboard.noRecentActivities")}
+                    </p>
+                  ) : (
+                    (activityLogs as ActivityLog[])
+                      .sort(
+                        (a: ActivityLog, b: ActivityLog) =>
+                          new Date(b.createdAt).getTime() -
+                          new Date(a.createdAt).getTime()
+                      )
+                      .slice(0, 5)
+                      .map((log: ActivityLog) => {
+                        const meta = getActivityMeta(log.action);
+                        return (
                           <div
-                            className={`w-8 h-8 ${meta.color} rounded-full flex items-center justify-center flex-shrink-0`}
+                            key={log.id}
+                            className="flex items-start space-x-3"
                           >
-                            {meta.icon}
+                            <div
+                              className={`w-8 h-8 ${meta.color} rounded-full flex items-center justify-center flex-shrink-0`}
+                            >
+                              {meta.icon}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm text-gray-900">
+                                {meta.label} by {log.userName}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {formatDistanceToNow(new Date(log.createdAt), {
+                                  addSuffix: true,
+                                })}
+                              </p>
+                            </div>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm text-gray-900">
-                              {meta.label} by {log.userName}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {formatDistanceToNow(new Date(log.createdAt), {
-                                addSuffix: true,
-                              })}
-                            </p>
-                          </div>
-                        </div>
-                      );
-                    })
-                )}
-              </div>
+                        );
+                      })
+                  )}
+                </div>
 
-              <Button
-                variant="ghost"
-                className="w-full mt-4 text-green-600 hover:text-green-700"
-                onClick={() => setLocation("/team")}
-              >
-                {t("dashboard.viewAllActivities")}{" "}
-                <ExternalLink className="w-4 h-4 ml-1" />
-              </Button>
-            </CardContent>
-          </Card>
+                <Button
+                  variant="ghost"
+                  className="w-full mt-4 text-green-600 hover:text-green-700"
+                  onClick={() => setLocation("/team")}
+                >
+                  {t("dashboard.viewAllActivities")}{" "}
+                  <ExternalLink className="w-4 h-4 ml-1" />
+                </Button>
+              </CardContent>
+            </Card>
           )}
         </div>
 

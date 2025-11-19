@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { formatDateTime } from "@/lib/formatDate";
+import Header from "@/components/layout/header";
 
 function TransactionsPage() {
   const [filters, setFilters] = useState({
@@ -163,18 +164,10 @@ function TransactionsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
-          <div className="py-4 sm:py-6">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
-              Transactions
-            </h1>
-            <p className="text-sm sm:text-base text-gray-600 mt-1">
-              Manage and monitor all payment transactions
-            </p>
-          </div>
-        </div>
-      </div>
+      <Header
+        title={"Transactions"}
+        subtitle={"Manage and monitor all payment transactions"}
+      />
 
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
         {/* Stats */}

@@ -1,11 +1,12 @@
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { setMeta } from "@/hooks/setMeta";
+import { SidebarProvider } from "@/contexts/sidebar-context";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const { data: brandSettings } = useQuery({
     queryKey: ["/api/brand-settings"],
-    queryFn: () => fetch("/api/brand-settings").then(res => res.json()),
+    queryFn: () => fetch("/api/brand-settings").then((res) => res.json()),
     staleTime: 5 * 60 * 1000,
   });
 
@@ -20,5 +21,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [brandSettings]);
 
-  return <>{children}</>;
+  return (
+    <>
+      <SidebarProvider>{children}</SidebarProvider>
+    </>
+  );
 }

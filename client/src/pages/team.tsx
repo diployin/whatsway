@@ -61,6 +61,7 @@ import {
 import type { User } from "@shared/schema";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/auth-context";
+import Header from "@/components/layout/header";
 
 interface TeamMemberFormData {
   firstName: string;
@@ -83,7 +84,6 @@ type TeamMemberFormState = {
   permissions: Record<string, boolean>; // ✅ form uses boolean map
 };
 
-
 // Function to fetch team members with pagination
 const fetchTeamMembers = async (page: number = 1, limit: number = 10) => {
   const response = await fetch(`/api/team/members?page=${page}&limit=${limit}`);
@@ -92,7 +92,6 @@ const fetchTeamMembers = async (page: number = 1, limit: number = 10) => {
   }
   return response.json(); // Expect { data, total, page, limit, totalPages }
 };
-
 
 export default function TeamPage() {
   const { toast } = useToast();
@@ -106,7 +105,7 @@ export default function TeamPage() {
   // });
 
   const [page, setPage] = useState(1); // Page state for pagination
-  const limit = 10;  // Number of items per page
+  const limit = 10; // Number of items per page
 
   // Fetch team members with pagination
   const { data, isLoading, isError, error } = useQuery({
@@ -125,8 +124,6 @@ export default function TeamPage() {
       setPage(newPage);
     }
   };
-
-  
 
   // Fetch team activity logs
   const { data: activityLogs = [] } = useQuery({
@@ -258,18 +255,14 @@ export default function TeamPage() {
 
   return (
     <div className="container max-w-7xl mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">Team Management</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage your team members, roles, and permissions
-          </p>
-        </div>
-        <Button onClick={() => handleOpenDialog()}>
-          <UserPlus className="mr-2 h-4 w-4" />
-          Add Team Member
-        </Button>
-      </div>
+      <Header
+        title={"Team Management"}
+        subtitle={"   Manage your team members, roles, and permissions"}
+        action={{
+          label: "Add Team Member",
+          onClick: () => handleOpenDialog(),
+        }}
+      />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
@@ -284,168 +277,189 @@ export default function TeamPage() {
         </TabsList>
 
         <TabsContent value="members" className="mt-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Team Members</CardTitle>
-          <CardDescription>
-            Manage team members and their access permissions
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Member</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Last Active</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">
-                    Loading team members...
-                  </TableCell>
-                </TableRow>
-              ) : teamMembers.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">
-                    No team members found. Add your first team member.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                teamMembers.map((member) => (
-                  <TableRow key={member.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="relative">
-                          <Avatar>
-                            <AvatarImage src={member.avatar || undefined} />
-                            <AvatarFallback>
-                              {`${member.firstName || ""} ${member.lastName || ""}`
-                                .split(" ")
-                                .filter((n) => n)
-                                .map((n) => n[0])
-                                .join("")
-                                .toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div
-                            className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white ${getOnlineStatusColor(
-                              "offline"
-                            )}`}
-                          />
-                        </div>
-                        <div>
-                          <div className="font-medium">
-                            {`${member.firstName || ""} ${member.lastName || ""}`.trim() || member.username}
+          <Card>
+            <CardHeader>
+              <CardTitle>Team Members</CardTitle>
+              <CardDescription>
+                Manage team members and their access permissions
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Member</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Last Active</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {isLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-8">
+                        Loading team members...
+                      </TableCell>
+                    </TableRow>
+                  ) : teamMembers.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-8">
+                        No team members found. Add your first team member.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    teamMembers.map((member) => (
+                      <TableRow key={member.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <div className="relative">
+                              <Avatar>
+                                <AvatarImage src={member.avatar || undefined} />
+                                <AvatarFallback>
+                                  {`${member.firstName || ""} ${
+                                    member.lastName || ""
+                                  }`
+                                    .split(" ")
+                                    .filter((n) => n)
+                                    .map((n) => n[0])
+                                    .join("")
+                                    .toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div
+                                className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white ${getOnlineStatusColor(
+                                  "offline"
+                                )}`}
+                              />
+                            </div>
+                            <div>
+                              <div className="font-medium">
+                                {`${member.firstName || ""} ${
+                                  member.lastName || ""
+                                }`.trim() || member.username}
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                {user?.username === "demouser" ? (
+                                  <span className=" px-2 py-1 rounded">
+                                    {member.email
+                                      .split("@")[0]
+                                      .slice(0, -2)
+                                      .replace(/./g, "*") +
+                                      member.email.slice(
+                                        member.email.indexOf("@") - 2
+                                      )}
+                                  </span>
+                                ) : (
+                                  member.email
+                                )}
+                              </div>
+                            </div>
                           </div>
-                          <div className="text-sm text-muted-foreground">
-                            {user?.username === "demouser" ? (
-                              <span className=" px-2 py-1 rounded">
-                                {member.email
-                                  .split("@")[0]
-                                  .slice(0, -2)
-                                  .replace(/./g, "*") +
-                                  member.email.slice(member.email.indexOf("@") - 2)}
-                              </span>
-                            ) : (
-                              member.email
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={getRoleBadgeVariant(member.role)}>
-                        {member.role}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={getStatusBadgeVariant(member.status) || "default"}>
-                        {member.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-sm">
-                          {member.lastLogin
-                            ? new Date(member.lastLogin).toLocaleString()
-                            : "Never"}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleOpenDialog(member)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            disabled={user?.username === "demouser"}
-                            onClick={() =>
-                              updateStatusMutation.mutate({
-                                memberId: member.id,
-                                status: member.status === "active" ? "inactive" : "active",
-                              })
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={getRoleBadgeVariant(member.role)}>
+                            {member.role}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              getStatusBadgeVariant(member.status) || "default"
                             }
                           >
-                            <Shield className="mr-2 h-4 w-4" />
-                            {member.status === "active" ? "Deactivate" : "Activate"}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            disabled={user?.username === "demouser"}
-                            className="text-destructive"
-                            onClick={() => {
-                              if (confirm("Are you sure you want to remove this team member?")) {
-                                deleteMemberMutation.mutate(member.id);
-                              }
-                            }}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Remove
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-          
-          {/* Pagination Controls */}
-          <div className="flex justify-between items-center mt-4">
-            <button
-              onClick={() => handlePageChange(page - 1)}
-              disabled={page === 1}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md"
-            >
-              Previous
-            </button>
-            <div className="text-sm">
-              Page {page} of {totalPages}
-            </div>
-            <button
-              onClick={() => handlePageChange(page + 1)}
-              disabled={page === totalPages}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md"
-            >
-              Next
-            </button>
-          </div>
-        </CardContent>
-      </Card>
-    </TabsContent>
+                            {member.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-3 w-3 text-muted-foreground" />
+                            <span className="text-sm">
+                              {member.lastLogin
+                                ? new Date(member.lastLogin).toLocaleString()
+                                : "Never"}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => handleOpenDialog(member)}
+                              >
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                disabled={user?.username === "demouser"}
+                                onClick={() =>
+                                  updateStatusMutation.mutate({
+                                    memberId: member.id,
+                                    status:
+                                      member.status === "active"
+                                        ? "inactive"
+                                        : "active",
+                                  })
+                                }
+                              >
+                                <Shield className="mr-2 h-4 w-4" />
+                                {member.status === "active"
+                                  ? "Deactivate"
+                                  : "Activate"}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                disabled={user?.username === "demouser"}
+                                className="text-destructive"
+                                onClick={() => {
+                                  if (
+                                    confirm(
+                                      "Are you sure you want to remove this team member?"
+                                    )
+                                  ) {
+                                    deleteMemberMutation.mutate(member.id);
+                                  }
+                                }}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Remove
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+
+              {/* Pagination Controls */}
+              <div className="flex justify-between items-center mt-4">
+                <button
+                  onClick={() => handlePageChange(page - 1)}
+                  disabled={page === 1}
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md"
+                >
+                  Previous
+                </button>
+                <div className="text-sm">
+                  Page {page} of {totalPages}
+                </div>
+                <button
+                  onClick={() => handlePageChange(page + 1)}
+                  disabled={page === totalPages}
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md"
+                >
+                  Next
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="activity" className="mt-6">
           <Card>

@@ -46,7 +46,6 @@ import CRMSystem from "./pages/CRMSystem";
 import LeadManagement from "./pages/LeadManagement";
 import BulkImport from "./pages/BulkImport";
 import Segmentation from "./pages/Segmentation";
-import MessageLogs from "./pages/MessageLogs";
 import HealthMonitor from "./pages/HealthMonitor";
 import Reports from "./pages/Reports";
 import Notifications from "./pages/Notifications";
@@ -397,14 +396,14 @@ function ProtectedRoutes() {
             <PermissionRoute component={Notifications} />
           </Route>
 
-
-          <Route path="master-subscriptions">
-            <PermissionRoute component={AllSubscriptionsPage}/>
-          </Route>
-
           <Route path="/chat-hub">
             <PermissionRoute component={ChatHub} />
           </Route>
+
+          <Route path="master-subscriptions">
+            <PermissionRoute component={AllSubscriptionsPage} />
+          </Route>
+
           <Route component={NotFound} />
         </Switch>
 
