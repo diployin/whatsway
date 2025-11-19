@@ -22,6 +22,16 @@ export const getDashboardStatsForAdmin = asyncHandler(async (req: RequestWithCha
   
 });
 
+export const getDashboardStatsForUser = asyncHandler(async(req: RequestWithChannel, res: Response) => {
+  const channelId = req.query.channelId as string | undefined;
+  const userId = req?.session?.user?.id
+
+  console.log("CHECKK CHANNNEL IDDD", channelId)
+
+  const stats = await storage.getDashboardStatsByChannel(channelId, userId)
+  res.json(stats);
+})
+
 export const getAnalytics = asyncHandler(async (req: RequestWithChannel, res: Response) => {
   const channelId = req.query.channelId as string | undefined;
   const days = req.query.days ? parseInt(req.query.days as string) : undefined;

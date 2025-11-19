@@ -91,4 +91,15 @@ export class ChannelRepository {
       .orderBy(desc(channels.createdAt));
     return channel || undefined;
   }
+
+
+  async getTotalChannelsByUser(createdBy: string): Promise<number> {
+  const result = await db
+    .select({ id: channels.id })
+    .from(channels)
+    .where(eq(channels.createdBy, createdBy));
+
+  return result.length;
+}
+
 }

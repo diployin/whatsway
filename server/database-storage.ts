@@ -700,7 +700,7 @@ const totalChannels = await this.channelRepo.getAll()
     };
   }
 
-  async getDashboardStatsByChannel(channelId: string): Promise<any> {
+  async getDashboardStatsByChannel(channelId: string, userId: string): Promise<any> {
     const { totalCount, todayCount, weekCount, lastWeekCount } =
       await this.contactRepo.getContactStats(channelId);
     const totalCampaigns = await this.campaignRepo
@@ -713,6 +713,10 @@ const totalChannels = await this.channelRepo.getAll()
       channelId
     );
 
+    const totalChannels = await this.channelRepo.getTotalChannelsByUser(userId);
+
+    const totalTeamMembers = await this.userRepo.getTeamUsersCountByCreator(userId)
+
     return {
       totalContacts: Number(totalCount),
       todayContacts: Number(todayCount),
@@ -720,6 +724,8 @@ const totalChannels = await this.channelRepo.getAll()
       lastWeekContacts: Number(lastWeekCount),
       totalCampaigns,
       totalTemplates,
+      totalChannels,
+      totalTeamMembers,
       ...messageStats,
     };
   }
