@@ -177,6 +177,53 @@ export const updateUser = async (req: Request, res: Response) => {
   }
 };
 
+
+export const updateUserStatus = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    // Validate status
+    const allowed = ["active", "inactive"];
+    if (!allowed.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status. Allowed: active, inactive",
+      });
+    }
+
+    // Update status only
+    const updated = await db
+      .update(users)
+      .set({ status })
+      .where(eq(users.id, id))
+      .returning();
+
+    // No user found
+    if (!updated.length) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Status updated successfully",
+      data: updated[0],
+    });
+
+  } catch (error) {
+    console.error("Error updating status:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error updating status",
+      error,
+    });
+  }
+};
+
+
 export const deleteUser = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;

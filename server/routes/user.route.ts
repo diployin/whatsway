@@ -5,6 +5,7 @@ import {
   createUser,
   updateUser,
   deleteUser,
+  updateUserStatus,
 } from "../controllers/user.controller";
 import type { Express } from "express";
 
@@ -13,5 +14,6 @@ app.get("/api/admin/users", requireAuth, getAllUsers);
 app.get("/api/admin/users/:id", requireAuth, getUserById);
 app.post("/api/users/create", createUser);
 app.put("/api/users/:id", requireAuth, updateUser);
+app.put("/api/user/status/:id", requireAuth, updateUserStatus);
 app.delete("/api/admin/users/:id", requireAuth, deleteUser);
 }

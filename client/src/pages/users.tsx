@@ -510,7 +510,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { FaEllipsisH, FaEye, FaBan, FaSearch } from "react-icons/fa";
+import { FaEllipsisH, FaEye, FaBan, FaSearch, FaCheck } from "react-icons/fa";
 import Header from "@/components/layout/header";
 import { Link } from "wouter";
 
@@ -553,6 +553,48 @@ const User: React.FC = () => {
   });
 
   const [search, setSearch] = useState("");
+
+
+  const handleToggleStatus = async (user: UserType) => {
+  try {
+    const newStatus = user.status === "active" ? "inactive" : "active";
+
+    const res = await apiRequest(
+      "PUT",
+      `/api/user/status/${user.id}`,
+      { status: newStatus }
+    );
+
+    const data = await res.json();
+
+    if (data.success) {
+      toast({
+        title: "Success",
+        description: `User status updated to ${newStatus}`,
+      });
+
+      // Update list
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === user.id ? { ...u, status: newStatus } : u
+        )
+      );
+    } else {
+      toast({
+        title: "Error",
+        description: "Failed to update status",
+        variant: "destructive",
+      });
+    }
+  } catch (error) {
+    toast({
+      title: "Error",
+      description: "Something went wrong",
+      variant: "destructive",
+    });
+  }
+};
+
 
   const fetchUsers = async (page = 1, searchTerm = "", limit = pagination.limit) => {
     try {
@@ -733,7 +775,20 @@ const User: React.FC = () => {
                         <Link href={`/users/${u.id}`}>
                           <FaEye className="cursor-pointer hover:text-green-600" />
                         </Link>
-                        <FaBan className="cursor-pointer hover:text-red-600" />
+                        {u.status === "active" ? (
+  <FaBan
+    onClick={() => handleToggleStatus(u)}
+    className="cursor-pointer hover:text-red-600"
+    title="Block User"
+  />
+) : (
+  <FaCheck
+    onClick={() => handleToggleStatus(u)}
+    className="cursor-pointer hover:text-green-600"
+    title="Activate User"
+  />
+)}
+
                         {/* <FaEllipsisH className="cursor-pointer hover:text-gray-700" /> */}
                       </div>
                     </td>
@@ -811,7 +866,20 @@ const User: React.FC = () => {
                   <Link href={`/users/${u.id}`}>
                     <FaEye className="cursor-pointer hover:text-green-600" />
                   </Link>
-                  <FaBan className="cursor-pointer hover:text-red-600" />
+                  {u.status === "active" ? (
+  <FaBan
+    onClick={() => handleToggleStatus(u)}
+    className="cursor-pointer hover:text-red-600"
+    title="Block User"
+  />
+) : (
+  <FaCheck
+    onClick={() => handleToggleStatus(u)}
+    className="cursor-pointer hover:text-green-600"
+    title="Activate User"
+  />
+)}
+
                   {/* <FaEllipsisH className="cursor-pointer hover:text-gray-700" /> */}
                 </div>
               </div>
