@@ -886,6 +886,31 @@ async function initializeRazorpayPayment(
 
 // ==================== STRIPE INITIALIZATION ====================
 
+
+
+// this url is working 
+// export const initiateStripePayment = async (transaction: any, packageData: any, user: any) => {
+//   const session = await stripe.checkout.sessions.create({
+//     mode: "payment",
+//     customer_email: user.email,
+//     line_items: [
+//       {
+//         price_data: {
+//           currency: transaction.currency.toLowerCase(),
+//           product_data: { name: `Package ${packageData.name}` },
+//           unit_amount: Math.round(parseFloat(transaction.amount) * 100),
+//         },
+//         quantity: 1
+//       }
+//     ],
+//     success_url: `${process.env.FRONTEND_URL}/payment-success?tid=${transaction.id}`,
+//     cancel_url: `${process.env.FRONTEND_URL}/payment-failed?tid=${transaction.id}`,
+//     metadata: { transactionId: transaction.id }
+//   });
+
+//   return { sessionUrl: session.url };
+// };
+
 async function initializeStripePayment(
   transaction: any,
   provider: any,
