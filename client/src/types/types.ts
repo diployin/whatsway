@@ -134,3 +134,38 @@ export interface SubscriptionUser {
   id: string;
   username: string;
 }
+
+// **********************
+
+export interface DashboardStats {
+  // Contact Stats
+  totalContacts: number | string;
+  todayContacts: number | string;
+  weekContacts: number | string;
+  lastWeekContacts: number | string;
+
+  // Templates & Channels
+  totalTemplates: number;
+  totalChannels: number;
+
+  // Message Stats
+  messagesSent: number;
+  messagesDelivered: number;
+  messagesFailed: number;
+  messagesRead: number;
+  totalMessages: number;
+  todayMessages: number;
+  thisMonthMessages: number;
+  lastMonthMessages: number;
+
+  // Extra from API #1
+  totalTeamMembers?: number;
+
+  // Extra from API #2
+  totalCampaigns?: number;
+  totalUsers?: number;
+  totalActiveUsers?: number;
+  totalBlockedUsers?: number;
+  todaySignups?: number;
+  totalPaidUsers?: number;
+}
