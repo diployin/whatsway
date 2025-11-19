@@ -14,6 +14,7 @@ export function registerDashboardRoutes(app: Express) {
 
 
   app.get("/api/dashboard/admin/stats", dashboardController.getDashboardStatsForAdmin)
+  app.get("/api/dashboard/user/statss", dashboardController.getDashboardStatsForUser);
 
   // Get analytics data
   app.get("/api/analytics",

@@ -1,5 +1,5 @@
 import { db } from "../db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import { 
   users, 
   type User, 
@@ -39,4 +39,19 @@ export class UserRepository {
   async getAll(): Promise<User[]> {
     return await db.select().from(users).orderBy(desc(users.createdAt));
   }
+
+  async getTeamUsersCountByCreator(createdBy: string): Promise<number> {
+  const result = await db
+    .select()
+    .from(users)
+    .where(
+      and(
+        eq(users.createdBy, createdBy),
+        eq(users.role, "team")
+      )
+    );
+
+  return result.length;
+}
+
 }
