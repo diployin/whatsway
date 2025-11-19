@@ -28,6 +28,7 @@ import { useLocation } from "wouter";
 import { DashboardStarApiDataType } from "./types/type";
 import { useAuth } from "@/contexts/auth-context";
 import { apiRequest } from "@/lib/queryClient";
+import AdminStats from "@/components/AdminStats";
 
 export default function Dashboard() {
   const { t } = useTranslation();
@@ -37,7 +38,7 @@ export default function Dashboard() {
   const { data: activeChannel } = useQuery({
     queryKey: ["/api/channels/active"],
     queryFn: async () => {
-      const response = await apiRequest("GET" , "/api/channels/active");
+      const response = await apiRequest("GET", "/api/channels/active");
       if (!response.ok) return null;
       return await response.json();
     },
@@ -251,6 +252,7 @@ export default function Dashboard() {
               </div>
             </CardContent>
           </Card> */}
+          <AdminStats />
 
           <Card className="hover-lift fade-in">
             <CardContent className="p-6">

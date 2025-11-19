@@ -82,13 +82,13 @@ export interface BuilderNodeData {
   templateId?: string;
   assigneeId?: string; // user id
   // Condition specific fields
-  conditionType?: 'keyword' | 'contains' | 'equals' | 'starts_with';
+  conditionType?: "keyword" | "contains" | "equals" | "starts_with";
   keywords?: string[];
-  matchType?: 'any' | 'all';
+  matchType?: "any" | "all";
   buttons?: Array<{
     id: string;
     text: string;
-    action: 'next' | 'custom';
+    action: "next" | "custom";
     value?: string;
   }>;
 }
@@ -127,8 +127,8 @@ const defaultsByKind: Record<NodeKind, Partial<BuilderNodeData>> = {
     question: "",
     saveAs: "",
     buttons: [
-      { id: "answer1", text: "Answer 1", action: 'next' },
-      { id: "default", text: "Default", action: 'next' }
+      { id: "answer1", text: "Answer 1", action: "next" },
+      { id: "default", text: "Default", action: "next" },
     ],
   },
   time_gap: { kind: "time_gap", label: "Delay", delay: 60 },
@@ -158,16 +158,18 @@ function transformAutomationToFlow(automation: any) {
   const nodes: Node<BuilderNodeData>[] = [
     {
       id: "start",
-      type: "start", 
+      type: "start",
       position: { x: 200, y: 40 },
       data: { ...(defaultsByKind.start as BuilderNodeData) },
     },
   ];
 
   // Sort nodes by position
-  const sortedNodes = [...automation.automation_nodes].sort((a, b) => a.position - b.position);
+  const sortedNodes = [...automation.automation_nodes].sort(
+    (a, b) => a.position - b.position
+  );
   console.log("sortedNodes", sortedNodes);
-  
+
   // Transform each automation node
   sortedNodes.forEach((autoNode: any, index: number) => {
     const nodeData: BuilderNodeData = {
@@ -180,9 +182,10 @@ function transformAutomationToFlow(automation: any) {
       id: autoNode.nodeId,
       type: autoNode.type,
       // FIXED: Use saved position if available, otherwise use calculated position
-      position: autoNode.position_x && autoNode.position_y 
-        ? { x: autoNode.position_x, y: autoNode.position_y }
-        : { x: 200, y: 140 + (index * 140) },
+      position:
+        autoNode.position_x && autoNode.position_y
+          ? { x: autoNode.position_x, y: autoNode.position_y }
+          : { x: 200, y: 140 + index * 140 },
       data: nodeData,
     };
 
@@ -198,7 +201,7 @@ function transformAutomationToFlow(automation: any) {
       // Normalize edge format - handle both database and ReactFlow formats
       const source = edge.source || edge.sourceNodeId;
       const target = edge.target || edge.targetNodeId;
-      
+
       if (!source || !target) {
         console.warn("Invalid edge data:", edge);
         return;
@@ -206,10 +209,10 @@ function transformAutomationToFlow(automation: any) {
 
       // Create unique key for deduplication
       const edgeKey = `${source}-${target}`;
-      
+
       if (!edgeSet.has(edgeKey)) {
         edgeSet.add(edgeKey);
-        
+
         edges.push({
           id: edge.id || `edge-${source}-${target}`,
           source: source,
@@ -240,8 +243,6 @@ function transformAutomationToFlow(automation: any) {
 
   return { nodes, edges };
 }
-
-
 
 // -----------------------
 // Custom Node Components
@@ -278,10 +279,12 @@ function ConditionsNode({ data }: { data: BuilderNodeData }) {
         <GitBranch className="w-4 h-4" /> Conditions
       </div>
       <div className="text-white/90 text-sm mt-1">
-        {data.conditionType === 'keyword' && data.keywords && data.keywords.length > 0 ? (
+        {data.conditionType === "keyword" &&
+        data.keywords &&
+        data.keywords.length > 0 ? (
           <div>
-            Keywords: {data.keywords.slice(0, 3).join(', ')}
-            {data.keywords.length > 3 && '...'}
+            Keywords: {data.keywords.slice(0, 3).join(", ")}
+            {data.keywords.length > 3 && "..."}
           </div>
         ) : (
           <div>No conditions set</div>
@@ -306,10 +309,12 @@ function CustomReplyNode({ data }: { data: BuilderNodeData }) {
       </div>
       {data.message && (
         <div className="text-white/90 text-sm mt-1 whitespace-pre-wrap">
-          {data.message.length > 50 ? `${data.message.slice(0, 50)}...` : data.message}
+          {data.message.length > 50
+            ? `${data.message.slice(0, 50)}...`
+            : data.message}
         </div>
       )}
-      
+
       {/* Media previews */}
       {data.imagePreview && (
         <div className="mt-2 rounded-lg overflow-hidden bg-white/10">
@@ -338,21 +343,26 @@ function CustomReplyNode({ data }: { data: BuilderNodeData }) {
           Document attached
         </div>
       )}
-      
+
       {/* Buttons preview */}
       {data.buttons && data.buttons.length > 0 && (
         <div className="mt-2 space-y-1">
           {data.buttons.slice(0, 2).map((button) => (
-            <div key={button.id} className="bg-white/20 text-xs px-2 py-1 rounded">
+            <div
+              key={button.id}
+              className="bg-white/20 text-xs px-2 py-1 rounded"
+            >
               {button.text}
             </div>
           ))}
           {data.buttons.length > 2 && (
-            <div className="text-xs text-white/70">+{data.buttons.length - 2} more</div>
+            <div className="text-xs text-white/70">
+              +{data.buttons.length - 2} more
+            </div>
           )}
         </div>
       )}
-      
+
       <Handle type="target" position={Position.Top} />
       <Handle type="source" position={Position.Bottom} />
     </Shell>
@@ -367,10 +377,12 @@ function UserReplyNode({ data }: { data: BuilderNodeData }) {
       </div>
       {data.question && (
         <div className="text-white/90 text-sm mt-1 whitespace-pre-wrap">
-          {data.question.length > 50 ? `${data.question.slice(0, 50)}...` : data.question}
+          {data.question.length > 50
+            ? `${data.question.slice(0, 50)}...`
+            : data.question}
         </div>
       )}
-      
+
       {/* Media previews */}
       {data.imagePreview && (
         <div className="mt-2 rounded-lg overflow-hidden bg-white/10">
@@ -381,25 +393,28 @@ function UserReplyNode({ data }: { data: BuilderNodeData }) {
           />
         </div>
       )}
-      
+
       {data.saveAs && (
         <div className="text-[11px] mt-2 bg-white/15 rounded px-2 py-1 inline-block">
           save as: <span className="font-mono">{data.saveAs}</span>
         </div>
       )}
-      
+
       {/* Answer buttons preview */}
       {data.buttons && data.buttons.length > 0 && (
         <div className="mt-2 space-y-1">
           {data.buttons.slice(0, 2).map((button) => (
-            <div key={button.id} className="bg-green-500 text-xs px-2 py-1 rounded flex items-center gap-1">
+            <div
+              key={button.id}
+              className="bg-green-500 text-xs px-2 py-1 rounded flex items-center gap-1"
+            >
               <div className="w-1 h-1 bg-white rounded-full" />
               {button.text}
             </div>
           ))}
         </div>
       )}
-      
+
       <Handle type="target" position={Position.Top} />
       <Handle type="source" position={Position.Bottom} />
     </Shell>
@@ -462,14 +477,14 @@ const nodeTypes = {
 };
 
 // File upload helper
-function FileUploadButton({ 
-  accept, 
-  onUpload, 
-  children, 
-  className = "" 
-}: { 
-  accept: string; 
-  onUpload: (file: File) => void; 
+function FileUploadButton({
+  accept,
+  onUpload,
+  children,
+  className = "",
+}: {
+  accept: string;
+  onUpload: (file: File) => void;
   children: React.ReactNode;
   className?: string;
 }) {
@@ -486,7 +501,7 @@ function FileUploadButton({
     }
     // Reset input
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
@@ -537,15 +552,16 @@ function ConfigPanel({
   const d = selected.data;
 
   // File upload handlers
-  const handleFileUpload = (type: 'image' | 'video' | 'audio' | 'document') => (file: File) => {
-    const previewUrl = URL.createObjectURL(file);
-    onChange({
-      [`${type}File`]: file,
-      [`${type}Preview`]: previewUrl,
-    } as any);
-  };
+  const handleFileUpload =
+    (type: "image" | "video" | "audio" | "document") => (file: File) => {
+      const previewUrl = URL.createObjectURL(file);
+      onChange({
+        [`${type}File`]: file,
+        [`${type}Preview`]: previewUrl,
+      } as any);
+    };
 
-  const removeFile = (type: 'image' | 'video' | 'audio' | 'document') => () => {
+  const removeFile = (type: "image" | "video" | "audio" | "document") => () => {
     onChange({
       [`${type}File`]: null,
       [`${type}Preview`]: null,
@@ -556,17 +572,20 @@ function ConfigPanel({
   const addButton = () => {
     const newButton = {
       id: uid(),
-      text: 'New Button',
-      action: 'next' as const,
+      text: "New Button",
+      action: "next" as const,
     };
     onChange({
       buttons: [...(d.buttons || []), newButton],
     });
   };
 
-  const updateButton = (buttonId: string, updates: Partial<typeof d.buttons[0]>) => {
+  const updateButton = (
+    buttonId: string,
+    updates: Partial<(typeof d.buttons)[0]>
+  ) => {
     onChange({
-      buttons: (d.buttons || []).map(btn => 
+      buttons: (d.buttons || []).map((btn) =>
         btn.id === buttonId ? { ...btn, ...updates } : btn
       ),
     });
@@ -574,7 +593,7 @@ function ConfigPanel({
 
   const removeButton = (buttonId: string) => {
     onChange({
-      buttons: (d.buttons || []).filter(btn => btn.id !== buttonId),
+      buttons: (d.buttons || []).filter((btn) => btn.id !== buttonId),
     });
   };
 
@@ -582,7 +601,7 @@ function ConfigPanel({
   const addKeyword = () => {
     const keywords = d.keywords || [];
     onChange({
-      keywords: [...keywords, ''],
+      keywords: [...keywords, ""],
     });
   };
 
@@ -604,463 +623,503 @@ function ConfigPanel({
 
   return (
     <div className="flex flex-col h-screen">
-  <ScrollArea className="flex-1 min-h-0">
-      <div className="p-4 space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="text-xs uppercase tracking-wide text-gray-500">
-              Configure
-            </div>
-            <div className="text-lg font-semibold">{d.label}</div>
-          </div>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={onDelete}
-            className="text-red-500 hover:text-red-700 hover:bg-red-50"
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
-        </div>
-
-        {d.kind === "conditions" && (
-          <Card className="p-3 space-y-4">
+      <ScrollArea className="flex-1 min-h-0">
+        <div className="p-4 space-y-4">
+          <div className="flex items-center justify-between">
             <div>
-              <Label>Condition Type</Label>
-              <select
-                className="w-full border rounded-md h-9 px-2"
-                value={d.conditionType || "keyword"}
-                onChange={(e) => onChange({ conditionType: e.target.value as any })}
-              >
-                <option value="keyword">Contains Keywords</option>
-                <option value="equals">Equals</option>
-                <option value="starts_with">Starts With</option>
-                <option value="contains">Contains Text</option>
-              </select>
-            </div>
-
-            <div>
-              <Label>Match Type</Label>
-              <select
-                className="w-full border rounded-md h-9 px-2"
-                value={d.matchType || "any"}
-                onChange={(e) => onChange({ matchType: e.target.value as any })}
-              >
-                <option value="any">Match Any</option>
-                <option value="all">Match All</option>
-              </select>
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label>Keywords</Label>
-                <Button size="sm" variant="outline" onClick={addKeyword}>
-                  <Plus className="w-3 h-3 mr-1" />
-                  Add Keyword
-                </Button>
+              <div className="text-xs uppercase tracking-wide text-gray-500">
+                Configure
               </div>
-              
-              {(d.keywords || []).map((keyword, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <Input
-                    value={keyword}
-                    onChange={(e) => updateKeyword(index, e.target.value)}
-                    placeholder={`Keyword ${index + 1}`}
-                    className="flex-1"
-                  />
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => removeKeyword(index)}
-                    className="text-red-500"
-                  >
-                    <X className="w-4 h-4" />
+              <div className="text-lg font-semibold">{d.label}</div>
+            </div>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={onDelete}
+              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+
+          {d.kind === "conditions" && (
+            <Card className="p-3 space-y-4">
+              <div>
+                <Label>Condition Type</Label>
+                <select
+                  className="w-full border rounded-md h-9 px-2"
+                  value={d.conditionType || "keyword"}
+                  onChange={(e) =>
+                    onChange({ conditionType: e.target.value as any })
+                  }
+                >
+                  <option value="keyword">Contains Keywords</option>
+                  <option value="equals">Equals</option>
+                  <option value="starts_with">Starts With</option>
+                  <option value="contains">Contains Text</option>
+                </select>
+              </div>
+
+              <div>
+                <Label>Match Type</Label>
+                <select
+                  className="w-full border rounded-md h-9 px-2"
+                  value={d.matchType || "any"}
+                  onChange={(e) =>
+                    onChange({ matchType: e.target.value as any })
+                  }
+                >
+                  <option value="any">Match Any</option>
+                  <option value="all">Match All</option>
+                </select>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label>Keywords</Label>
+                  <Button size="sm" variant="outline" onClick={addKeyword}>
+                    <Plus className="w-3 h-3 mr-1" />
+                    Add Keyword
                   </Button>
                 </div>
-              ))}
-              
-              {(!d.keywords || d.keywords.length === 0) && (
-                <div className="text-sm text-gray-500 italic">
-                  No keywords added yet. Click "Add Keyword" to start.
-                </div>
-              )}
-            </div>
-          </Card>
-        )}
 
-        {d.kind === "custom_reply" && (
-          <Card className="p-3 space-y-4">
-            <div>
-              <Label>Message</Label>
-              <Textarea
-                rows={4}
-                value={d.message || ""}
-                onChange={(e) => onChange({ message: e.target.value })}
-                placeholder="Hi {{name}},&#10;&#10;Welcome to Product Academy, please share the following information before we proceed."
-              />
-              <div className="mt-2">
-                <Button size="sm" variant="outline" className="bg-green-500 text-white border-green-500 hover:bg-green-600">
-                  Variables
-                </Button>
-              </div>
-            </div>
-
-            {/* Media Upload Section */}
-            <div className="space-y-3">
-              <Label>Attachments</Label>
-              <div className="grid grid-cols-2 gap-2">
-                <FileUploadButton
-                  accept="image/*"
-                  onUpload={handleFileUpload('image')}
-                  className="text-green-600 border-green-200 hover:bg-green-50"
-                >
-                  <ImageIcon className="w-4 h-4" />
-                  Image
-                </FileUploadButton>
-                <FileUploadButton
-                  accept="video/*"
-                  onUpload={handleFileUpload('video')}
-                  className="text-green-600 border-green-200 hover:bg-green-50"
-                >
-                  <Video className="w-4 h-4" />
-                  Video
-                </FileUploadButton>
-                <FileUploadButton
-                  accept="audio/*"
-                  onUpload={handleFileUpload('audio')}
-                  className="text-green-600 border-green-200 hover:bg-green-50"
-                >
-                  <FileAudio className="w-4 h-4" />
-                  Audio
-                </FileUploadButton>
-                <FileUploadButton
-                  accept=".pdf,.doc,.docx,.txt"
-                  onUpload={handleFileUpload('document')}
-                  className="text-green-600 border-green-200 hover:bg-green-50"
-                >
-                  <FileIcon className="w-4 h-4" />
-                  Document
-                </FileUploadButton>
-              </div>
-
-              {/* File Previews */}
-              {d.imagePreview && (
-                <div className="relative border rounded-lg p-2">
-                  <img src={d.imagePreview} alt="preview" className="w-full h-32 object-cover rounded" />
-                  <button
-                    onClick={removeFile('image')}
-                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              )}
-              
-              {d.videoPreview && (
-                <div className="relative border rounded-lg p-2 flex items-center gap-2">
-                  <Video className="w-5 h-5 text-blue-500" />
-                  <span className="text-sm">Video file attached</span>
-                  <button
-                    onClick={removeFile('video')}
-                    className="ml-auto bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              )}
-
-              {d.audioPreview && (
-                <div className="relative border rounded-lg p-2 flex items-center gap-2">
-                  <FileAudio className="w-5 h-5 text-purple-500" />
-                  <span className="text-sm">Audio file attached</span>
-                  <button
-                    onClick={removeFile('audio')}
-                    className="ml-auto bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              )}
-
-              {d.documentPreview && (
-                <div className="relative border rounded-lg p-2 flex items-center gap-2">
-                  <FileIcon className="w-5 h-5 text-gray-500" />
-                  <span className="text-sm">Document attached</span>
-                  <button
-                    onClick={removeFile('document')}
-                    className="ml-auto bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Buttons Section */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label>Buttons (Optional)</Label>
-                <Button size="sm" variant="outline" onClick={addButton}>
-                  <Plus className="w-3 h-3 mr-1" />
-                  Add Button
-                </Button>
-              </div>
-              
-              {d.buttons?.map((button) => (
-                <div key={button.id} className="border rounded-lg p-3 space-y-2">
-                  <div className="flex items-center gap-2">
+                {(d.keywords || []).map((keyword, index) => (
+                  <div key={index} className="flex items-center gap-2">
                     <Input
-                      value={button.text}
-                      onChange={(e) => updateButton(button.id, { text: e.target.value })}
-                      placeholder="Button text"
+                      value={keyword}
+                      onChange={(e) => updateKeyword(index, e.target.value)}
+                      placeholder={`Keyword ${index + 1}`}
                       className="flex-1"
                     />
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => removeButton(button.id)}
+                      onClick={() => removeKeyword(index)}
                       className="text-red-500"
                     >
                       <X className="w-4 h-4" />
                     </Button>
                   </div>
+                ))}
+
+                {(!d.keywords || d.keywords.length === 0) && (
+                  <div className="text-sm text-gray-500 italic">
+                    No keywords added yet. Click "Add Keyword" to start.
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
+
+          {d.kind === "custom_reply" && (
+            <Card className="p-3 space-y-4">
+              <div>
+                <Label>Message</Label>
+                <Textarea
+                  rows={4}
+                  value={d.message || ""}
+                  onChange={(e) => onChange({ message: e.target.value })}
+                  placeholder="Hi {{name}},&#10;&#10;Welcome to Product Academy, please share the following information before we proceed."
+                />
+                <div className="mt-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="bg-green-500 text-white border-green-500 hover:bg-green-600"
+                  >
+                    Variables
+                  </Button>
                 </div>
-              ))}
-            </div>
-          </Card>
-        )}
+              </div>
 
-        {d.kind === "time_gap" && (
-          <Card className="p-3 space-y-3">
-            <div>
-              <Label>Delay (seconds)</Label>
-              <Input
-                type="number"
-                min={10}
-                value={d.delay ?? 60}
-                onChange={(e) =>
-                  onChange({ delay: parseInt(e.target.value, 10) })
-                }
-              />
-            </div>
-          </Card>
-        )}
+              {/* Media Upload Section */}
+              <div className="space-y-3">
+                <Label>Attachments</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <FileUploadButton
+                    accept="image/*"
+                    onUpload={handleFileUpload("image")}
+                    className="text-green-600 border-green-200 hover:bg-green-50"
+                  >
+                    <ImageIcon className="w-4 h-4" />
+                    Image
+                  </FileUploadButton>
+                  <FileUploadButton
+                    accept="video/*"
+                    onUpload={handleFileUpload("video")}
+                    className="text-green-600 border-green-200 hover:bg-green-50"
+                  >
+                    <Video className="w-4 h-4" />
+                    Video
+                  </FileUploadButton>
+                  <FileUploadButton
+                    accept="audio/*"
+                    onUpload={handleFileUpload("audio")}
+                    className="text-green-600 border-green-200 hover:bg-green-50"
+                  >
+                    <FileAudio className="w-4 h-4" />
+                    Audio
+                  </FileUploadButton>
+                  <FileUploadButton
+                    accept=".pdf,.doc,.docx,.txt"
+                    onUpload={handleFileUpload("document")}
+                    className="text-green-600 border-green-200 hover:bg-green-50"
+                  >
+                    <FileIcon className="w-4 h-4" />
+                    Document
+                  </FileUploadButton>
+                </div>
 
-        {d.kind === "send_template" && (
-          <Card className="p-3 space-y-3">
-            <div>
-              <Label>Choose Template</Label>
-              <select
-                className="w-full border rounded-md h-9 px-2"
-                value={d.templateId || ""}
-                onChange={(e) => onChange({ templateId: e.target.value })}
-              >
-                <option value="">Select template</option>
-                {templates?.map((t: any) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
-                  </option>
+                {/* File Previews */}
+                {d.imagePreview && (
+                  <div className="relative border rounded-lg p-2">
+                    <img
+                      src={d.imagePreview}
+                      alt="preview"
+                      className="w-full h-32 object-cover rounded"
+                    />
+                    <button
+                      onClick={removeFile("image")}
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
+
+                {d.videoPreview && (
+                  <div className="relative border rounded-lg p-2 flex items-center gap-2">
+                    <Video className="w-5 h-5 text-blue-500" />
+                    <span className="text-sm">Video file attached</span>
+                    <button
+                      onClick={removeFile("video")}
+                      className="ml-auto bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
+
+                {d.audioPreview && (
+                  <div className="relative border rounded-lg p-2 flex items-center gap-2">
+                    <FileAudio className="w-5 h-5 text-purple-500" />
+                    <span className="text-sm">Audio file attached</span>
+                    <button
+                      onClick={removeFile("audio")}
+                      className="ml-auto bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
+
+                {d.documentPreview && (
+                  <div className="relative border rounded-lg p-2 flex items-center gap-2">
+                    <FileIcon className="w-5 h-5 text-gray-500" />
+                    <span className="text-sm">Document attached</span>
+                    <button
+                      onClick={removeFile("document")}
+                      className="ml-auto bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Buttons Section */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label>Buttons (Optional)</Label>
+                  <Button size="sm" variant="outline" onClick={addButton}>
+                    <Plus className="w-3 h-3 mr-1" />
+                    Add Button
+                  </Button>
+                </div>
+
+                {d.buttons?.map((button) => (
+                  <div
+                    key={button.id}
+                    className="border rounded-lg p-3 space-y-2"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Input
+                        value={button.text}
+                        onChange={(e) =>
+                          updateButton(button.id, { text: e.target.value })
+                        }
+                        placeholder="Button text"
+                        className="flex-1"
+                      />
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => removeButton(button.id)}
+                        className="text-red-500"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
                 ))}
-              </select>
-            </div>
-          </Card>
-        )}
+              </div>
+            </Card>
+          )}
 
-        {d.kind === "assign_user" && (
-          <Card className="p-3 space-y-3">
-            <div>
-              <Label className="flex items-center gap-2">
-                <UserPlus className="w-4 h-4" /> Assign to Member
-              </Label>
-              <select
-                className="w-full border rounded-md h-9 px-2"
-                value={d.assigneeId || ""}
-                onChange={(e) => onChange({ assigneeId: e.target.value })}
-              >
-                <option value="">Select member</option>
-                {members.map((m: any) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name || `${m.firstName || ""} ${m.lastName || ""}`}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </Card>
-        )}
+          {d.kind === "time_gap" && (
+            <Card className="p-3 space-y-3">
+              <div>
+                <Label>Delay (seconds)</Label>
+                <Input
+                  type="number"
+                  min={10}
+                  value={d.delay ?? 60}
+                  onChange={(e) =>
+                    onChange({ delay: parseInt(e.target.value, 10) })
+                  }
+                />
+              </div>
+            </Card>
+          )}
 
-        {d.kind === "user_reply" && (
-          <Card className="p-3 space-y-4">
-            <div>
-              <Label>Question Text</Label>
-              <Textarea
-                rows={4}
-                value={d.question || ""}
-                onChange={(e) => onChange({ question: e.target.value })}
-                placeholder="What would you like to ask the user?"
-              />
-            </div>
+          {d.kind === "send_template" && (
+            <Card className="p-3 space-y-3">
+              <div>
+                <Label>Choose Template</Label>
+                <select
+                  className="w-full border rounded-md h-9 px-2"
+                  value={d.templateId || ""}
+                  onChange={(e) => onChange({ templateId: e.target.value })}
+                >
+                  <option value="">Select template</option>
+                  {templates?.map((t: any) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </Card>
+          )}
 
-            <div>
-              <Label>Save Answer As (Variable Name)</Label>
-              <Input
-                value={d.saveAs || ""}
-                onChange={(e) => onChange({ saveAs: e.target.value })}
-                placeholder="e.g., user_name, phone_number"
-              />
-              {/* <div className="text-xs text-gray-500 mt-1">
+          {d.kind === "assign_user" && (
+            <Card className="p-3 space-y-3">
+              <div>
+                <Label className="flex items-center gap-2">
+                  <UserPlus className="w-4 h-4" /> Assign to Member
+                </Label>
+                <select
+                  className="w-full border rounded-md h-9 px-2"
+                  value={d.assigneeId || ""}
+                  onChange={(e) => onChange({ assigneeId: e.target.value })}
+                >
+                  <option value="">Select member</option>
+                  {members.map((m: any) => (
+                    <option key={m.id} value={m.id}>
+                      {m.name || `${m.firstName || ""} ${m.lastName || ""}`}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </Card>
+          )}
+
+          {d.kind === "user_reply" && (
+            <Card className="p-3 space-y-4">
+              <div>
+                <Label>Question Text</Label>
+                <Textarea
+                  rows={4}
+                  value={d.question || ""}
+                  onChange={(e) => onChange({ question: e.target.value })}
+                  placeholder="What would you like to ask the user?"
+                />
+              </div>
+
+              <div>
+                <Label>Save Answer As (Variable Name)</Label>
+                <Input
+                  value={d.saveAs || ""}
+                  onChange={(e) => onChange({ saveAs: e.target.value })}
+                  placeholder="e.g., user_name, phone_number"
+                />
+                {/* <div className="text-xs text-gray-500 mt-1">
                 The user's answer will be saved with this variable name
               </div> */}
-            </div>
-
-            {/* Media Upload Section for Questions */}
-            <div className="space-y-3">
-              <Label>Attachments (Optional)</Label>
-              <div className="grid grid-cols-2 gap-2">
-                <FileUploadButton
-                  accept="image/*"
-                  onUpload={handleFileUpload('image')}
-                  className="text-green-600 border-green-200 hover:bg-green-50"
-                >
-                  <ImageIcon className="w-4 h-4" />
-                  Image
-                </FileUploadButton>
-                <FileUploadButton
-                  accept="video/*"
-                  onUpload={handleFileUpload('video')}
-                  className="text-green-600 border-green-200 hover:bg-green-50"
-                >
-                  <Video className="w-4 h-4" />
-                  Video
-                </FileUploadButton>
               </div>
 
-              {/* File Previews for Questions */}
-              {d.imagePreview && (
-                <div className="relative border rounded-lg p-2">
-                  <img src={d.imagePreview} alt="preview" className="w-full h-32 object-cover rounded" />
-                  <button
-                    onClick={removeFile('image')}
-                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+              {/* Media Upload Section for Questions */}
+              <div className="space-y-3">
+                <Label>Attachments (Optional)</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <FileUploadButton
+                    accept="image/*"
+                    onUpload={handleFileUpload("image")}
+                    className="text-green-600 border-green-200 hover:bg-green-50"
                   >
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              )}
-              
-              {d.videoPreview && (
-                <div className="relative border rounded-lg p-2 flex items-center gap-2">
-                  <Video className="w-5 h-5 text-blue-500" />
-                  <span className="text-sm">Video file attached</span>
-                  <button
-                    onClick={removeFile('video')}
-                    className="ml-auto bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                    <ImageIcon className="w-4 h-4" />
+                    Image
+                  </FileUploadButton>
+                  <FileUploadButton
+                    accept="video/*"
+                    onUpload={handleFileUpload("video")}
+                    className="text-green-600 border-green-200 hover:bg-green-50"
                   >
-                    <X className="w-3 h-3" />
-                  </button>
+                    <Video className="w-4 h-4" />
+                    Video
+                  </FileUploadButton>
                 </div>
-              )}
-            </div>
 
-            {/* Answer Options/Buttons Section */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label>Answer Options</Label>
-                <Button size="sm" variant="outline" onClick={addButton}>
-                  <Plus className="w-3 h-3 mr-1" />
-                  Add Option
-                </Button>
+                {/* File Previews for Questions */}
+                {d.imagePreview && (
+                  <div className="relative border rounded-lg p-2">
+                    <img
+                      src={d.imagePreview}
+                      alt="preview"
+                      className="w-full h-32 object-cover rounded"
+                    />
+                    <button
+                      onClick={removeFile("image")}
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
+
+                {d.videoPreview && (
+                  <div className="relative border rounded-lg p-2 flex items-center gap-2">
+                    <Video className="w-5 h-5 text-blue-500" />
+                    <span className="text-sm">Video file attached</span>
+                    <button
+                      onClick={removeFile("video")}
+                      className="ml-auto bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
               </div>
-              
-              {/* <div className="text-xs text-gray-600">
+
+              {/* Answer Options/Buttons Section */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label>Answer Options</Label>
+                  <Button size="sm" variant="outline" onClick={addButton}>
+                    <Plus className="w-3 h-3 mr-1" />
+                    Add Option
+                  </Button>
+                </div>
+
+                {/* <div className="text-xs text-gray-600">
                 Create predefined answer buttons for users to click, or leave empty for free text input.
               </div> */}
-              
-              {d.buttons?.map((button) => (
-                <div key={button.id} className="border rounded-lg p-3 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Input
-                      value={button.text}
-                      onChange={(e) => updateButton(button.id, { text: e.target.value })}
-                      placeholder="Answer option text"
-                      className="flex-1"
-                    />
+
+                {d.buttons?.map((button) => (
+                  <div
+                    key={button.id}
+                    className="border rounded-lg p-3 space-y-2"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Input
+                        value={button.text}
+                        onChange={(e) =>
+                          updateButton(button.id, { text: e.target.value })
+                        }
+                        placeholder="Answer option text"
+                        className="flex-1"
+                      />
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => removeButton(button.id)}
+                        className="text-red-500"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-xs">
+                      <select
+                        value={button.action || "next"}
+                        onChange={(e) =>
+                          updateButton(button.id, {
+                            action: e.target.value as any,
+                          })
+                        }
+                        className="border rounded px-2 py-1 text-xs"
+                      >
+                        <option value="next">Continue to next step</option>
+                        <option value="custom">Custom action</option>
+                      </select>
+
+                      {button.action === "custom" && (
+                        <Input
+                          value={button.value || ""}
+                          onChange={(e) =>
+                            updateButton(button.id, { value: e.target.value })
+                          }
+                          placeholder="Custom value"
+                          className="flex-1 text-xs h-7"
+                        />
+                      )}
+                    </div>
+                  </div>
+                ))}
+
+                {(!d.buttons || d.buttons.length === 0) && (
+                  <div className="text-sm text-gray-500 italic border rounded-lg p-4 text-center">
+                    No answer options added. Users will be able to type free
+                    text responses.
+                    <br />
+                    <br />
                     <Button
                       size="sm"
-                      variant="ghost"
-                      onClick={() => removeButton(button.id)}
-                      className="text-red-500"
+                      variant="outline"
+                      onClick={addButton}
+                      className="mt-2"
                     >
-                      <X className="w-4 h-4" />
+                      <Plus className="w-3 h-3 mr-1" />
+                      Add First Option
                     </Button>
                   </div>
-                  
-                  <div className="flex items-center gap-2 text-xs">
-                    <select
-                      value={button.action || 'next'}
-                      onChange={(e) => updateButton(button.id, { action: e.target.value as any })}
-                      className="border rounded px-2 py-1 text-xs"
-                    >
-                      <option value="next">Continue to next step</option>
-                      <option value="custom">Custom action</option>
-                    </select>
-                    
-                    {button.action === 'custom' && (
-                      <Input
-                        value={button.value || ""}
-                        onChange={(e) => updateButton(button.id, { value: e.target.value })}
-                        placeholder="Custom value"
-                        className="flex-1 text-xs h-7"
-                      />
+                )}
+              </div>
+
+              {/* Preview Section */}
+              {(d.question || d.buttons?.length > 0) && (
+                <div className="border-t pt-4">
+                  <Label className="text-xs text-gray-500">PREVIEW</Label>
+                  <div className="bg-gray-50 rounded-lg p-3 mt-2">
+                    {d.question && (
+                      <div className="font-medium text-sm mb-3">
+                        {d.question}
+                      </div>
+                    )}
+                    {d.buttons && d.buttons.length > 0 && (
+                      <div className="space-y-1">
+                        {d.buttons.map((button) => (
+                          <div
+                            key={button.id}
+                            className="bg-blue-500 text-white text-xs px-3 py-1 rounded-full inline-block mr-2"
+                          >
+                            {button.text}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {(!d.buttons || d.buttons.length === 0) && (
+                      <div className="text-xs text-gray-500 italic">
+                        [User can type free text response]
+                      </div>
                     )}
                   </div>
                 </div>
-              ))}
-              
-              {(!d.buttons || d.buttons.length === 0) && (
-                <div className="text-sm text-gray-500 italic border rounded-lg p-4 text-center">
-                  No answer options added. Users will be able to type free text responses.
-                  <br />
-                  <br />
-                  <Button size="sm" variant="outline" onClick={addButton} className="mt-2">
-                    <Plus className="w-3 h-3 mr-1" />
-                    Add First Option
-                  </Button>
-                </div>
               )}
-            </div>
-
-            {/* Preview Section */}
-            {(d.question || d.buttons?.length > 0) && (
-              <div className="border-t pt-4">
-                <Label className="text-xs text-gray-500">PREVIEW</Label>
-                <div className="bg-gray-50 rounded-lg p-3 mt-2">
-                  {d.question && (
-                    <div className="font-medium text-sm mb-3">{d.question}</div>
-                  )}
-                  {d.buttons && d.buttons.length > 0 && (
-                    <div className="space-y-1">
-                      {d.buttons.map((button) => (
-                        <div 
-                          key={button.id} 
-                          className="bg-blue-500 text-white text-xs px-3 py-1 rounded-full inline-block mr-2"
-                        >
-                          {button.text}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {(!d.buttons || d.buttons.length === 0) && (
-                    <div className="text-xs text-gray-500 italic">
-                      [User can type free text response]
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </Card>
-        )}
-      </div>
-    </ScrollArea>
+            </Card>
+          )}
+        </div>
+      </ScrollArea>
     </div>
   );
 }
@@ -1075,23 +1134,36 @@ export default function AutomationFlowBuilderXYFlow({
 }: AutomationFlowBuilderProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   // Initialize with automation data or defaults
-  const [name, setName] = useState<string>(automation?.name || "Send a message");
-  const [description, setDescription] = useState<string>(automation?.description || "");
-  const [trigger, setTrigger] = useState<string>(automation?.trigger || "new_conversation");
+  const [name, setName] = useState<string>(
+    automation?.name || "Send a message"
+  );
+  const [description, setDescription] = useState<string>(
+    automation?.description || ""
+  );
+  const [trigger, setTrigger] = useState<string>(
+    automation?.trigger || "new_conversation"
+  );
 
   // FIXED: Transform automation data once and store in ref to prevent re-computation
-  const initialFlowRef = useRef<{ nodes: Node<BuilderNodeData>[]; edges: Edge[] } | null>(null);
-  
+  const initialFlowRef = useRef<{
+    nodes: Node<BuilderNodeData>[];
+    edges: Edge[];
+  } | null>(null);
+
   if (!initialFlowRef.current) {
     initialFlowRef.current = transformAutomationToFlow(automation);
   }
 
   // FIXED: Initialize directly without useMemo or normalizeEdges function
-  const [nodes, setNodes, onNodesChange] = useNodesState<BuilderNodeData>(initialFlowRef.current.nodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialFlowRef.current.edges);
-  
+  const [nodes, setNodes, onNodesChange] = useNodesState<BuilderNodeData>(
+    initialFlowRef.current.nodes
+  );
+  const [edges, setEdges, onEdgesChange] = useEdgesState(
+    initialFlowRef.current.edges
+  );
+
   // Selection
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selectedNode = useMemo(
@@ -1102,10 +1174,7 @@ export default function AutomationFlowBuilderXYFlow({
   const onConnect = useCallback(
     (params: Edge | Connection) =>
       setEdges((eds) =>
-        addEdge(
-          { ...params, animated: true, type: "custom" },
-          eds
-        )
+        addEdge({ ...params, animated: true, type: "custom" }, eds)
       ),
     [setEdges]
   );
@@ -1116,14 +1185,16 @@ export default function AutomationFlowBuilderXYFlow({
   );
 
   // Data sources
-  const { data: templates = [] } = useQuery({ 
+  const { data: templates = [] } = useQuery({
     queryKey: ["/api/templates"],
-    queryFn: () => apiRequest("GET", "/api/templates").then(res => res.json())
+    queryFn: () =>
+      apiRequest("GET", "/api/templates").then((res) => res.json()),
   });
-  
-  const { data: members = [] } = useQuery({ 
+
+  const { data: members = [] } = useQuery({
     queryKey: ["/api/team/members"],
-    queryFn: () => apiRequest("GET", "/api/team/members").then(res => res.json())
+    queryFn: () =>
+      apiRequest("GET", "/api/team/members").then((res) => res.json()),
   });
 
   // Add node actions
@@ -1143,9 +1214,11 @@ export default function AutomationFlowBuilderXYFlow({
   // Delete node
   const deleteNode = () => {
     if (!selectedId || selectedId === "start") return;
-    
+
     setNodes((nds) => nds.filter((n) => n.id !== selectedId));
-    setEdges((eds) => eds.filter((e) => e.source !== selectedId && e.target !== selectedId));
+    setEdges((eds) =>
+      eds.filter((e) => e.source !== selectedId && e.target !== selectedId)
+    );
     setSelectedId(null);
   };
 
@@ -1159,59 +1232,69 @@ export default function AutomationFlowBuilderXYFlow({
     );
   };
 
-
-  
-// FRONTEND: Fixed FormData construction
+  // FRONTEND: Fixed FormData construction
   const saveMutation = useMutation({
     mutationFn: async (payload: any) => {
       const formData = new FormData();
-      formData.append('name', payload.name);
-      formData.append('description', payload.description);
-      formData.append('trigger', payload.trigger);
-      formData.append('triggerConfig', JSON.stringify(payload.triggerConfig));
-      formData.append('nodes', JSON.stringify(payload.nodes));
-      formData.append('edges', JSON.stringify(payload.edges));
-  
+      formData.append("name", payload.name);
+      formData.append("description", payload.description);
+      formData.append("trigger", payload.trigger);
+      formData.append("triggerConfig", JSON.stringify(payload.triggerConfig));
+      formData.append("nodes", JSON.stringify(payload.nodes));
+      formData.append("edges", JSON.stringify(payload.edges));
+
       // FIXED: Add files with proper field names and validation
       payload.nodes.forEach((node, index) => {
         if (node.data.imageFile && node.data.imageFile instanceof File) {
-          console.log(`Adding imageFile for node ${index}:`, node.data.imageFile.name);
+          console.log(
+            `Adding imageFile for node ${index}:`,
+            node.data.imageFile.name
+          );
           formData.append(`${node.id}_imageFile`, node.data.imageFile);
         }
-        
+
         if (node.data.videoFile && node.data.videoFile instanceof File) {
-          console.log(`Adding videoFile for node ${index}:`, node.data.videoFile.name);
+          console.log(
+            `Adding videoFile for node ${index}:`,
+            node.data.videoFile.name
+          );
           formData.append(`${node.id}_videoFile`, node.data.videoFile);
         }
         if (node.data.audioFile && node.data.audioFile instanceof File) {
-          console.log(`Adding audioFile for node ${index}:`, node.data.audioFile.name);
+          console.log(
+            `Adding audioFile for node ${index}:`,
+            node.data.audioFile.name
+          );
           formData.append(`${node.id}_audioFile`, node.data.audioFile);
         }
         if (node.data.documentFile && node.data.documentFile instanceof File) {
-          console.log(`Adding documentFile for node ${index}:`, node.data.documentFile.name);
+          console.log(
+            `Adding documentFile for node ${index}:`,
+            node.data.documentFile.name
+          );
           formData.append(`${node.id}_documentFile`, node.data.documentFile);
         }
       });
-  
+
       // Debug FormData contents
-      console.log('FormData entries:');
+      console.log("FormData entries:");
       for (let pair of formData.entries()) {
         console.log(pair[0], pair[1]);
       }
-  
+
       if (payload.automationId) {
         // Update existing automation
         // return await apiRequest("PUT", `/api/automations/${payload.automationId}`, formData);
-        return await fetch( `/api/automations/${payload.automationId}`, {
+        return await fetch(`/api/automations/${payload.automationId}`, {
           method: "PUT",
-          body: formData
+          body: formData,
         });
       } else {
         // Create new automation
         //  apiRequest("POST", "/api/automations", formData);
-       return await fetch("/api/automations", {
+        return await fetch("/api/automations", {
           method: "POST",
-          body: formData
+          body: formData,
         });
       }
     },
@@ -1224,15 +1307,15 @@ export default function AutomationFlowBuilderXYFlow({
       onClose();
     },
     onError: (error: any) => {
-      console.error('Save mutation error:', error);
-      toast({ 
-        title: "Failed to save automation", 
+      console.error("Save mutation error:", error);
+      toast({
+        title: "Failed to save automation",
         description: error?.message || "An error occurred while saving.",
-        variant: "destructive" 
+        variant: "destructive",
       });
     },
   });
-  
+
   // FRONTEND: Fixed handleSave function
   const handleSave = () => {
     if (!name.trim()) {
@@ -1243,31 +1326,31 @@ export default function AutomationFlowBuilderXYFlow({
       });
       return;
     }
-  
+
     const backendNodes = nodes
-      .filter(n => n.id !== 'start')
+      .filter((n) => n.id !== "start")
       .map((node, index) => ({
         ...node,
         position: {
           x: node.position.x,
-          y: node.position.y
+          y: node.position.y,
         },
       }));
-    
+
     // Normalize edges for backend storage
-    const normalizedEdges = edges.map(edge => ({
+    const normalizedEdges = edges.map((edge) => ({
       id: edge.id,
       source: edge.source,
       target: edge.target,
       type: edge.type || "custom",
       animated: edge.animated || true,
     }));
-  
+
     // Remove duplicate edges
     const uniqueEdges = [];
     const seenConnections = new Set();
-    
-    normalizedEdges.forEach(edge => {
+
+    normalizedEdges.forEach((edge) => {
       const connectionKey = `${edge.source}-${edge.target}`;
       if (!seenConnections.has(connectionKey)) {
         seenConnections.add(connectionKey);
@@ -1276,8 +1359,8 @@ export default function AutomationFlowBuilderXYFlow({
     });
     console.log("DEBUG uniqueEdges:", uniqueEdges);
 
-    const mainEdges = uniqueEdges.filter(e => e.source !== 'start');
-    
+    const mainEdges = uniqueEdges.filter((e) => e.source !== "start");
+
     console.log("Filtered mainEdges:", mainEdges);
 
     const payload = {
@@ -1289,42 +1372,47 @@ export default function AutomationFlowBuilderXYFlow({
       edges: mainEdges,
       automationId: automation?.id || null,
     };
-    
+
     console.log("Saving automation with payload:", payload);
-    console.log("Files to upload:", backendNodes.filter(node => 
-      node.data.imageFile || node.data.videoFile || node.data.audioFile || node.data.documentFile
-    ));
-    
+    console.log(
+      "Files to upload:",
+      backendNodes.filter(
+        (node) =>
+          node.data.imageFile ||
+          node.data.videoFile ||
+          node.data.audioFile ||
+          node.data.documentFile
+      )
+    );
+
     saveMutation.mutate(payload);
   };
 
+  // Additional helper function to clean up edge data periodically
+  const cleanupEdges = useCallback(() => {
+    setEdges((currentEdges) => {
+      const cleaned = [];
+      const seen = new Set();
 
+      currentEdges.forEach((edge) => {
+        const key = `${edge.source}-${edge.target}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          cleaned.push(edge);
+        }
+      });
 
-
-// Additional helper function to clean up edge data periodically
-const cleanupEdges = useCallback(() => {
-  setEdges(currentEdges => {
-    const cleaned = [];
-    const seen = new Set();
-    
-    currentEdges.forEach(edge => {
-      const key = `${edge.source}-${edge.target}`;
-      if (!seen.has(key)) {
-        seen.add(key);
-        cleaned.push(edge);
-      }
+      return cleaned;
     });
-    
-    return cleaned;
-  });
-}, [setEdges]);
+  }, [setEdges]);
 
-// Call cleanup when component mounts or edges change significantly
-useEffect(() => {
-  if (edges.length > nodes.length * 2) { // If too many edges, cleanup
-    cleanupEdges();
-  }
-}, [edges.length, nodes.length, cleanupEdges]);
+  // Call cleanup when component mounts or edges change significantly
+  useEffect(() => {
+    if (edges.length > nodes.length * 2) {
+      // If too many edges, cleanup
+      cleanupEdges();
+    }
+  }, [edges.length, nodes.length, cleanupEdges]);
 
   const onInit = useCallback((reactFlowInstance) => {
     reactFlowInstance.setViewport({ x: 0, y: 0, zoom: 1 });
@@ -1352,11 +1440,12 @@ useEffect(() => {
                   onClick={() => addNode("conditions")}
                   className="w-full text-left text-sm px-3 py-2 hover:bg-purple-50 rounded flex items-center gap-2"
                 >
-                  <div className="w-2 h-2 bg-purple-500 rounded-full" /> Conditions
+                  <div className="w-2 h-2 bg-purple-500 rounded-full" />{" "}
+                  Conditions
                 </button>
               </div>
             </div>
-            
+
             <div>
               <div className="text-[11px] uppercase text-gray-500 px-2 mb-1 flex items-center gap-2">
                 <MessageCircle className="w-3 h-3" /> Send a message
@@ -1461,13 +1550,13 @@ useEffect(() => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button 
-              size="sm" 
-              variant="outline" 
+            <Button
+              size="sm"
+              variant="outline"
               onClick={handleSave}
               disabled={saveMutation.isPending}
             >
-              <Save className="w-4 h-4 mr-1" /> 
+              <Save className="w-4 h-4 mr-1" />
               {saveMutation.isPending ? "Saving..." : "Save"}
             </Button>
             <Button size="sm" variant="ghost">
@@ -1560,7 +1649,16 @@ useEffect(() => {
   );
 }
 
-function CustomEdge({ id, sourceX, sourceY, targetX, targetY, style, markerEnd, setEdges }) {
+function CustomEdge({
+  id,
+  sourceX,
+  sourceY,
+  targetX,
+  targetY,
+  style,
+  markerEnd,
+  setEdges,
+}) {
   // get edge path + center position
   const [edgePath, labelX, labelY] = getStraightPath({
     sourceX,
@@ -1589,7 +1687,7 @@ function CustomEdge({ id, sourceX, sourceY, targetX, targetY, style, markerEnd, 
           }}
           onClick={handleDelete}
         >
-          <Trash2 color="red" size={14}/>
+          <Trash2 color="red" size={14} />
         </div>
       </EdgeLabelRenderer>
     </>

@@ -201,7 +201,7 @@ const navItems: NavItem[] = [
     icon: Star,
     labelKey: "Stats",
     color: "text-yellow-600",
-    allowedRoles: ["admin"],
+    allowedRoles: ["admin", "superadmin"],
   },
 ];
 
