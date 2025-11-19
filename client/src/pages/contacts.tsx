@@ -68,6 +68,7 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from "@/contexts/auth-context";
 import { apiRequest } from "@/lib/queryClient";
+import { useLocation } from "wouter";
 
 interface ContactsResponse {
   data: Contact[];
@@ -85,7 +86,7 @@ function EditContactForm({
   contact,
   onSuccess,
   onCancel,
-  groupsData
+  groupsData,
 }: {
   contact: Contact;
   onSuccess: () => void;
@@ -101,7 +102,6 @@ function EditContactForm({
       phone: contact.phone,
       groups: contact.groups || [],
       tags: contact.tags || [],
-
       status: contact.status,
     },
   });
@@ -230,32 +230,55 @@ function EditContactForm({
           }}
         />
 
-<FormField
-  control={form.control}
-  name="groups"
-  render={({ field }) => (
-    <FormItem>
-      {/* ... */}
-      <FormControl>
-        <Input
-          {...field}
-          placeholder={`${t("contacts.editContact.groupsPlaceholder")}`}
-          value={
-            Array.isArray(field.value) ? field.value.join(", ") : ""
-          }
-          onChange={(e) => {
-            const groups = e.target.value
-              .split(",")
-              .map((g) => g.trim())
-              .filter((g) => g.length > 0);
-            field.onChange(groups); // Updates form value with array of strings
-          }}
+        <FormField
+          control={form.control}
+          name="groups"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Groups</FormLabel>
+
+              {/* dropdown select */}
+              <Select
+                onValueChange={(value) => {
+                  if (!field.value.includes(value)) {
+                    field.onChange([...field.value, value]); // store only name
+                  }
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select group" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  {groupsData?.map((g: any) => (
+                    <SelectItem key={g.id} value={g.name}>
+                      {g.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* show selected badges */}
+              <div className="flex flex-wrap gap-2 mt-2">
+                {field.value?.map((name: string) => (
+                  <Badge key={name}>
+                    {name}
+                    <X
+                      className="ml-1 h-3 w-3 cursor-pointer"
+                      onClick={() =>
+                        field.onChange(
+                          field.value.filter((n: string) => n !== name)
+                        )
+                      }
+                    />
+                  </Badge>
+                ))}
+              </div>
+
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </FormControl>
-      {/* ... */}
-    </FormItem>
-  )}
-/>
 
         <div className="flex justify-end space-x-2">
           <Button type="button" variant="outline" onClick={onCancel}>
@@ -307,6 +330,7 @@ export default function Contacts() {
   const [currentPage, setCurrentPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const { user } = useAuth();
+  const [, setLocation] = useLocation()
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -348,7 +372,7 @@ export default function Contacts() {
     },
   });
 
-  console.log(activeChannel?.id)
+  console.log(activeChannel?.id);
 
   // First, get the active channel
   // const { data: groupsData } = useQuery({
@@ -369,8 +393,8 @@ export default function Contacts() {
     enabled: !!activeChannel,
   });
 
-  const groupsData = groupsFormateData?.groups
-  console.log(groupsData)
+  const groupsData = groupsFormateData?.groups;
+  console.log(groupsData);
 
   // Updated query to fetch contacts with proper server-side filtering
   // const { data: contactsResponse, isLoading } = useQuery<ContactsResponse>({
@@ -1080,19 +1104,24 @@ export default function Contacts() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
+                    {/* All Groups */}
                     <DropdownMenuItem
                       onClick={() => setSelectedGroup(null)}
                       className={!selectedGroup ? "bg-gray-100" : ""}
                     >
                       {t("contacts.allGroups")}
                     </DropdownMenuItem>
+
+                    {/* Create Group */}
                     <DropdownMenuItem
-                      onClick={() => setShowGroupDialog(true)}
+                      onClick={() => setLocation('/groups')}
                       className="text-green-600"
                     >
                       <Plus className="h-4 w-4 mr-2" />
                       {t("contacts.createNewGroup")}
                     </DropdownMenuItem>
+
+                    {/* Available Groups */}
                     {groupsData?.length > 0 && (
                       <>
                         <DropdownMenuItem disabled className="py-1">
@@ -1100,15 +1129,16 @@ export default function Contacts() {
                             {t("contacts.availableGroups")}
                           </span>
                         </DropdownMenuItem>
+
                         {groupsData?.map((group) => (
                           <DropdownMenuItem
-                            key={group}
-                            onClick={() => setSelectedGroup(group)}
+                            key={group.id}
+                            onClick={() => setSelectedGroup(group.name)} // ← fix
                             className={
                               selectedGroup === group.name ? "bg-gray-100" : ""
                             }
                           >
-                            {group?.name}
+                            {group.name}
                           </DropdownMenuItem>
                         ))}
                       </>
