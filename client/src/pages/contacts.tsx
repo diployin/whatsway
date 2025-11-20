@@ -576,18 +576,27 @@ export default function Contacts() {
   const createContactMutation = useMutation({
     mutationFn: async (data: InsertContact) => {
       const response = await fetch(
-        `/api/contacts${
-          activeChannel?.id ? `?channelId=${activeChannel.id}` : ""
-        }`,
+        `/api/contacts${activeChannel?.id ? `?channelId=${activeChannel.id}` : ""}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data),
         }
       );
-      if (!response.ok) throw new Error("Failed to create contact");
+  
+      // Read error message from API
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        const message =
+          errorData?.error ||
+          errorData?.message ||
+          "Failed to create contact";
+        throw new Error(message);
+      }
+  
       return response.json();
     },
+  
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
       toast({
@@ -597,14 +606,16 @@ export default function Contacts() {
       setShowAddDialog(false);
       form.reset();
     },
-    onError: () => {
+  
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: "Failed to create contact. Please try again.",
+        description: error?.message || "Failed to create contact.",
         variant: "destructive",
       });
     },
   });
+  
 
   const deleteContactMutation = useMutation({
     mutationFn: async (id: string) => {

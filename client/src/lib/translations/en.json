@@ -148,6 +148,7 @@
   "contacts": {
     "contact": "Contact",
     "contacts": "Contacts",
+    "addYourFirstContact":"Add New Contact",
     "selected": "selected",
     "title": "Contacts Management",
     "subtitle": "Manage your WhatsApp contacts and groups",

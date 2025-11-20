@@ -120,7 +120,7 @@ export const campaigns = pgTable(
     channelId: varchar("channel_id").references(() => channels.id, {
       onDelete: "cascade",
     }),
-    createdBy: uuid("created_by"),
+    createdBy: varchar("created_by"),
     name: text("name").notNull(),
     description: text("description"),
     campaignType: text("campaign_type").notNull(), // contacts, csv, api
@@ -238,6 +238,13 @@ export const templates = pgTable("templates", {
   usage_count: integer("usage_count").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+
+export const session = pgTable("session", {
+  sid: varchar("sid").notNull().primaryKey(),
+  sess: jsonb("sess").notNull(),
+  expire: timestamp("expire", { precision: 6 }).notNull(),
 });
 
 export const conversations = pgTable(
