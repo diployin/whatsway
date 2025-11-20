@@ -1075,8 +1075,7 @@ async function initializeStripePayment(
     orderId: null,
     paymentIntentId: paymentIntent.id,
     clientSecret: paymentIntent.client_secret,
-    publishableKey:
-      provider.config.publicKey || process.env.STRIPE_PUBLISHABLE_KEY,
+    publishableKey: provider.config.apiSecretTest,
     amount: paymentIntent.amount,
     currency: paymentIntent.currency,
   };
@@ -1345,61 +1344,196 @@ export const verifyRazorpayPayment = async (req: Request, res: Response) => {
 };
 
 // Verify Stripe payment
+// export const verifyStripePayment = async (req: Request, res: Response) => {
+//   try {
+//     const { payment_intent_id, transactionId } = req.body;
+
+//     console.log("payment_intent_id", payment_intent_id);
+//     console.log("transactionId", transactionId);
+
+//     // Retrieve payment intent from Stripe
+//     const paymentIntent = await stripe.paymentIntents.retrieve(
+//       payment_intent_id
+//     );
+
+//     if (paymentIntent.status === "succeeded") {
+//       // Update transaction
+//       await db
+//         .update(transactions)
+//         .set({
+//           status: "completed",
+//           providerTransactionId: payment_intent_id,
+//           providerPaymentId: paymentIntent.charges.data[0]?.id,
+//           paidAt: new Date(),
+//           metadata: {
+//             paymentMethod: paymentIntent.payment_method,
+//             verified: true,
+//           },
+//           updatedAt: new Date(),
+//         })
+//         .where(eq(transactions.id, transactionId));
+
+//       res.status(200).json({
+//         success: true,
+//         message: "Payment verified successfully",
+//         data: {
+//           transactionId,
+//           paymentIntentId: payment_intent_id,
+//           status: paymentIntent.status,
+//         },
+//       });
+
+//       // Note: Subscription creation will be handled by webhook
+//     } else {
+//       // Payment not successful
+//       await db
+//         .update(transactions)
+//         .set({
+//           status: "failed",
+//           metadata: {
+//             status: paymentIntent.status,
+//             error: paymentIntent.last_payment_error?.message,
+//           },
+//           updatedAt: new Date(),
+//         })
+//         .where(eq(transactions.id, transactionId));
+
+//       res.status(400).json({
+//         success: false,
+//         message: "Payment not completed",
+//         data: {
+//           status: paymentIntent.status,
+//         },
+//       });
+//     }
+//   } catch (error) {
+//     console.error("Error verifying Stripe payment:", error);
+//     res
+//       .status(500)
+//       .json({ success: false, message: "Error verifying payment", error });
+//   }
+// };
+
+
 export const verifyStripePayment = async (req: Request, res: Response) => {
   try {
     const { payment_intent_id, transactionId } = req.body;
 
-    console.log("payment_intent_id", payment_intent_id);
-    console.log("transactionId", transactionId);
+    if (!payment_intent_id || !transactionId) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required parameters",
+      });
+    }
 
-    // Retrieve payment intent from Stripe
-    const paymentIntent = await stripe.paymentIntents.retrieve(
-      payment_intent_id
-    );
+    // Retrieve PaymentIntent from Stripe
+    const paymentIntent = await stripe.paymentIntents.retrieve(payment_intent_id, {
+      expand: ["payment_method"], // optional if you need payment method details
+    });
+
+    // Safely get the first charge
+    const charge = paymentIntent.charges?.data?.[0] || null;
+
+    // Fetch transaction
+    const transactionData = await db
+      .select()
+      .from(transactions)
+      .where(eq(transactions.id, transactionId))
+      .limit(1);
+
+    if (!transactionData.length) {
+      return res.status(404).json({ success: false, message: "Transaction not found" });
+    }
+
+    const transaction = transactionData[0];
 
     if (paymentIntent.status === "succeeded") {
       // Update transaction
-      await db
-        .update(transactions)
+      await db.update(transactions)
         .set({
           status: "completed",
           providerTransactionId: payment_intent_id,
-          providerPaymentId: paymentIntent.charges.data[0]?.id,
+          providerPaymentId: charge?.id || null,
           paidAt: new Date(),
           metadata: {
-            paymentMethod: paymentIntent.payment_method,
+            paymentMethod: paymentIntent.payment_method || null,
             verified: true,
           },
           updatedAt: new Date(),
         })
         .where(eq(transactions.id, transactionId));
 
-      res.status(200).json({
+      // Fetch plan
+      const planData = await db
+        .select()
+        .from(plans)
+        .where(eq(plans.id, transaction.planId))
+        .limit(1);
+
+      if (!planData.length) {
+        return res.status(404).json({ success: false, message: "Plan not found" });
+      }
+
+      const plan = planData[0];
+
+      // Calculate subscription dates
+      const startDate = new Date();
+      const endDate = new Date();
+      if (transaction.billingCycle === "monthly") {
+        endDate.setMonth(endDate.getMonth() + 1);
+      } else if (transaction.billingCycle === "annual") {
+        endDate.setFullYear(endDate.getFullYear() + 1);
+      }
+
+      // Create subscription
+      const newSubscription = await db.insert(subscriptions)
+        .values({
+          userId: transaction.userId,
+          planId: transaction.planId,
+          planData: {
+            name: plan.name || "Unknown Plan",
+            description: plan.description || "",
+            icon: plan.icon || "",
+            monthlyPrice: plan.monthlyPrice || 0,
+            annualPrice: plan.annualPrice || 0,
+            permissions: plan.permissions || {},
+            features: plan.features || [],
+          },
+          status: "active",
+          billingCycle: transaction.billingCycle,
+          startDate,
+          endDate,
+          autoRenew: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .returning();
+
+      return res.status(200).json({
         success: true,
-        message: "Payment verified successfully",
+        message: "Payment verified & subscription created successfully",
         data: {
           transactionId,
           paymentIntentId: payment_intent_id,
+          chargeId: charge?.id || null,
           status: paymentIntent.status,
+          subscription: newSubscription[0],
         },
       });
-
-      // Note: Subscription creation will be handled by webhook
     } else {
-      // Payment not successful
-      await db
-        .update(transactions)
+      // Payment failed
+      await db.update(transactions)
         .set({
           status: "failed",
           metadata: {
             status: paymentIntent.status,
-            error: paymentIntent.last_payment_error?.message,
+            error: paymentIntent.last_payment_error?.message || "Unknown error",
           },
           updatedAt: new Date(),
         })
         .where(eq(transactions.id, transactionId));
 
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         message: "Payment not completed",
         data: {
@@ -1407,13 +1541,17 @@ export const verifyStripePayment = async (req: Request, res: Response) => {
         },
       });
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error verifying Stripe payment:", error);
-    res
-      .status(500)
-      .json({ success: false, message: "Error verifying payment", error });
+    res.status(500).json({
+      success: false,
+      message: "Error verifying payment",
+      error: error.message || error,
+    });
   }
 };
+
+
 
 // ==================== GET PAYMENT STATUS ====================
 
