@@ -18,6 +18,7 @@ import { CampaignDetailsDialog } from "@/components/campaigns/CampaignDetailsDia
 import { CreateCampaignDialog } from "@/components/campaigns/CreateCampaignDialog";
 import { useTranslation } from "@/lib/i18n";
 import { useAuth } from "@/contexts/auth-context";
+import { api } from "@/lib/api";
 
 export default function Campaigns() {
   const { t } = useTranslation();
@@ -35,6 +36,12 @@ export default function Campaigns() {
   // Pagination state
   const [page, setPage] = useState(1);
   const limit = 10;
+
+  const { data: activeChannel } = useQuery({
+      queryKey: ["/api/channels/active"],
+    });
+
+    const channelId = activeChannel?.id;
 
   // Fetch campaigns
   const { data: campaignResponse, isLoading: campaignsLoading } = useQuery({
@@ -65,19 +72,19 @@ export default function Campaigns() {
 
   // Fetch templates
   const { data: templates = [] } = useQuery({
-    queryKey: ["/api/getTemplateByUserId", userId],
-    enabled: !!userId,
-    queryFn: async () => {
-      const res = await fetch("/api/getTemplateByUserId", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId }),
-      });
-      if (!res.ok) throw new Error(await res.text());
-      const json = await res.json();
-      return Array.isArray(json) ? json : json?.data?.data || [];
-    },
-  });
+  queryKey: ["/api/getTemplateByUserId", userId, channelId], // <-- channelId add kiya
+  enabled: !!userId && !!channelId, // <-- dono available honi chahiye
+  queryFn: async () => {
+
+    // New API call
+    const response = await api.getTemplates(channelId);
+    const data = await response.json();
+
+    // Return clean array
+    return Array.isArray(data) ? data : [];
+  },
+});
+
 
   // Fetch contacts
   const { data: contactsResponse } = useQuery({

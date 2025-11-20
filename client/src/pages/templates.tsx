@@ -12,6 +12,7 @@ import { TemplatesTable } from "@/components/templates/TemplatesTable";
 import { TemplatePreview } from "@/components/templates/TemplatePreview";
 import { TemplateDialog } from "@/components/templates/TemplateDialog";
 import { useAuth } from "@/contexts/auth-context";
+import { api } from "@/lib/api";
 
 export default function Templates() {
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(
@@ -28,18 +29,13 @@ export default function Templates() {
     queryKey: ["/api/channels/active"],
   });
 
-  // // Fetch templates
-  // const { data: templates = [], isLoading: templatesLoading } = useQuery<
-  //   Template[]
-  // >({
-  //   queryKey: ["/api/templates"],
-  //   enabled: !!activeChannel,
-  // });
+ 
+  const channelId = activeChannel?.id; 
 
 
   // Fetch templates
 const { data: templates = [], isLoading: templatesLoading } = useQuery<Template[]>({
-  queryKey: ["templates"],
+  queryKey: ["templates", userRole, channelId],
   queryFn: async () => {
     let res: Response;
 
@@ -48,11 +44,9 @@ const { data: templates = [], isLoading: templatesLoading } = useQuery<Template[
       res = await fetch("/api/templates", { credentials: "include" });
     } else {
       // Normal user → own templates
-      res = await fetch("/api/getTemplateByUserId", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user?.id }),
-      });
+      const response = await api.getTemplates(channelId);
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
     }
 
     if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
@@ -66,11 +60,11 @@ const { data: templates = [], isLoading: templatesLoading } = useQuery<Template[
   },
 
   enabled:
-    userRole === "superadmin" || (!!user?.id && !!activeChannel),
+    userRole === "superadmin" || (!!activeChannel),
 });
 
 
-console.log("TEMPLATES DATAAA", templates);
+
 
 
 
