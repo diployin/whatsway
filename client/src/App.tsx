@@ -59,6 +59,7 @@ import UserSupportTicketsNew from "./pages/user-support-tickets";
 import BillingSubscriptionPage from "./components/billing-subscription-page";
 import GroupsUI from "./pages/group-list";
 import AllSubscriptionsPage from "./pages/masterSubscriptions";
+import DemoPage from "./pages/DemoPage";
 // Define route permissions mapping
 const ROUTE_PERMISSIONS: Record<string, string> = {
   "/contacts": "contacts.view",
@@ -457,6 +458,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/login" component={LoginPage} />
+      <Route path="/demo" component={DemoPage} />
       <Route path="/signup" component={Signup} />
       <Route path="/" component={Home} />
       <Route
