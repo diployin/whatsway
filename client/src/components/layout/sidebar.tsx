@@ -153,7 +153,7 @@ const navItems: NavItem[] = [
     // requiredPrefix: "notifications.",
     allowedRoles: ["superadmin"],
   },
-   {
+  {
     href: "/inbox",
     icon: MessageSquare,
     labelKey: "navigation.inbox",
@@ -203,7 +203,7 @@ const navItems: NavItem[] = [
     labelKey: "Groups",
     color: "text-blue-400",
     allowedRoles: ["admin"],
-  }
+  },
 ];
 
 const sidebarItemsCategories = [

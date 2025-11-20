@@ -1,43 +1,50 @@
-import React from 'react';
-import { Link } from 'wouter';
-import { MessageCircle, Twitter, Linkedin, Github, Mail, ArrowRight } from 'lucide-react';
-import ThemeToggle from './ThemeToggle';
+import React from "react";
+import { Link } from "wouter";
+import {
+  MessageCircle,
+  Twitter,
+  Linkedin,
+  Github,
+  Mail,
+  ArrowRight,
+} from "lucide-react";
+import ThemeToggle from "./ThemeToggle";
 
 const Footer = () => {
   const links = {
     product: [
-      { name: 'Features', href: '/#features' },
-      { name: 'How it Works', href: '/#how-it-works' },
-      { name: 'Use Cases', href: '/#use-cases' },
-      { name: 'Pricing', href: '/#pricing' },
-      { name: 'API Documentation', href: '/api-docs' }
+      { name: "Features", href: "/#features" },
+      { name: "How it Works", href: "/#how-it-works" },
+      { name: "Use Cases", href: "/#use-cases" },
+      { name: "Pricing", href: "/#pricing" },
+      { name: "API Documentation", href: "/api-docs" },
     ],
     company: [
-      { name: 'About Us', href: '/about' },
-      { name: 'Contact', href: '/contact' },
-      { name: 'Careers', href: '/careers' },
-      { name: 'Press Kit', href: '/press-kit' },
-      { name: 'Integrations', href: '/integrations' }
+      { name: "About Us", href: "/about" },
+      { name: "Contact", href: "/contact" },
+      { name: "Careers", href: "/careers" },
+      { name: "Press Kit", href: "/press-kit" },
+      { name: "Integrations", href: "/integrations" },
     ],
     support: [
-      { name: 'Help Center', href: '#' },
-      { name: 'Community', href: '#' },
-      { name: 'Status', href: '#' },
-      { name: 'Security', href: '#' }
+      { name: "Help Center", href: "#" },
+      { name: "Community", href: "#" },
+      { name: "Status", href: "#" },
+      { name: "Security", href: "#" },
     ],
     resources: [
-      { name: 'Templates', href: '/templates' },
-      { name: 'Case Studies', href: '/case-studies' },
-      { name: 'WhatsApp Guide', href: '/whatsapp-guide' },
-      { name: 'Best Practices', href: '/best-practices' },
-      { name: 'ROI Calculator', href: '/roi-calculator' }
+      { name: "Templates", href: "/templates" },
+      { name: "Case Studies", href: "/case-studies" },
+      { name: "WhatsApp Guide", href: "/whatsapp-guide" },
+      { name: "Best Practices", href: "/best-practices" },
+      { name: "ROI Calculator", href: "/roi-calculator" },
     ],
     legal: [
-      { name: 'Privacy Policy', href: '/privacy-policy' },
-      { name: 'Terms of Service', href: '/terms-of-service' },
-      { name: 'Cookie Policy', href: '/cookie-policy' },
-      { name: 'GDPR', href: '#' }
-    ]
+      { name: "Privacy Policy", href: "/privacy-policy" },
+      { name: "Terms of Service", href: "/terms-of-service" },
+      { name: "Cookie Policy", href: "/cookie-policy" },
+      { name: "GDPR", href: "#" },
+    ],
   };
 
   return (
@@ -51,12 +58,15 @@ const Footer = () => {
                 Stay Updated with WhatsApp Marketing Tips
               </h3>
               <p className="text-gray-300">
-                Get the latest strategies, case studies, and platform updates delivered to your inbox.
+                Get the latest strategies, case studies, and platform updates
+                delivered to your inbox.
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4">
-              <input 
-                type="email" 
+              <input
+                type="email"
+                name="subscriptEmail"
+                id="subscriptEmail"
                 placeholder="Enter your email address"
                 className="flex-1 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
@@ -82,20 +92,33 @@ const Footer = () => {
               <span className="text-xl font-bold">Whatsway</span>
             </Link>
             <p className="text-gray-300 mb-6 max-w-md">
-              The most powerful WhatsApp marketing platform. Scale your business with 
-              automated campaigns, advanced analytics, and seamless API integration.
+              The most powerful WhatsApp marketing platform. Scale your business
+              with automated campaigns, advanced analytics, and seamless API
+              integration.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="bg-gray-800 p-3 rounded-lg hover:bg-gray-700 transition-colors group">
+              <a
+                href="#"
+                className="bg-gray-800 p-3 rounded-lg hover:bg-gray-700 transition-colors group"
+              >
                 <Twitter className="w-5 h-5 group-hover:text-blue-400 transition-colors" />
               </a>
-              <a href="#" className="bg-gray-800 p-3 rounded-lg hover:bg-gray-700 transition-colors group">
+              <a
+                href="#"
+                className="bg-gray-800 p-3 rounded-lg hover:bg-gray-700 transition-colors group"
+              >
                 <Linkedin className="w-5 h-5 group-hover:text-blue-500 transition-colors" />
               </a>
-              <a href="#" className="bg-gray-800 p-3 rounded-lg hover:bg-gray-700 transition-colors group">
+              <a
+                href="#"
+                className="bg-gray-800 p-3 rounded-lg hover:bg-gray-700 transition-colors group"
+              >
                 <Github className="w-5 h-5 group-hover:text-gray-300 transition-colors" />
               </a>
-              <a href="#" className="bg-gray-800 p-3 rounded-lg hover:bg-gray-700 transition-colors group">
+              <a
+                href="#"
+                className="bg-gray-800 p-3 rounded-lg hover:bg-gray-700 transition-colors group"
+              >
                 <Mail className="w-5 h-5 group-hover:text-green-400 transition-colors" />
               </a>
             </div>
@@ -107,7 +130,10 @@ const Footer = () => {
             <ul className="space-y-3">
               {links.product.map((link, index) => (
                 <li key={index}>
-                  <a href={link.href} className="text-gray-300 hover:text-white transition-colors">
+                  <a
+                    href={link.href}
+                    className="text-gray-300 hover:text-white transition-colors"
+                  >
                     {link.name}
                   </a>
                 </li>
@@ -120,12 +146,18 @@ const Footer = () => {
             <ul className="space-y-3">
               {links.company.map((link, index) => (
                 <li key={index}>
-                  {link.href.startsWith('/') ? (
-                    <Link to={link.href} className="text-gray-300 hover:text-white transition-colors">
+                  {link.href.startsWith("/") ? (
+                    <Link
+                      to={link.href}
+                      className="text-gray-300 hover:text-white transition-colors"
+                    >
                       {link.name}
                     </Link>
                   ) : (
-                    <a href={link.href} className="text-gray-300 hover:text-white transition-colors">
+                    <a
+                      href={link.href}
+                      className="text-gray-300 hover:text-white transition-colors"
+                    >
                       {link.name}
                     </a>
                   )}
@@ -139,12 +171,18 @@ const Footer = () => {
             <ul className="space-y-3">
               {links.resources.map((link, index) => (
                 <li key={index}>
-                  {link.href.startsWith('/') ? (
-                    <Link to={link.href} className="text-gray-300 hover:text-white transition-colors">
+                  {link.href.startsWith("/") ? (
+                    <Link
+                      to={link.href}
+                      className="text-gray-300 hover:text-white transition-colors"
+                    >
                       {link.name}
                     </Link>
                   ) : (
-                    <a href={link.href} className="text-gray-300 hover:text-white transition-colors">
+                    <a
+                      href={link.href}
+                      className="text-gray-300 hover:text-white transition-colors"
+                    >
                       {link.name}
                     </a>
                   )}
@@ -158,12 +196,18 @@ const Footer = () => {
             <ul className="space-y-3">
               {links.legal.map((link, index) => (
                 <li key={index}>
-                  {link.href.startsWith('/') ? (
-                    <Link to={link.href} className="text-gray-300 hover:text-white transition-colors">
+                  {link.href.startsWith("/") ? (
+                    <Link
+                      to={link.href}
+                      className="text-gray-300 hover:text-white transition-colors"
+                    >
                       {link.name}
                     </Link>
                   ) : (
-                    <a href={link.href} className="text-gray-300 hover:text-white transition-colors">
+                    <a
+                      href={link.href}
+                      className="text-gray-300 hover:text-white transition-colors"
+                    >
                       {link.name}
                     </a>
                   )}
@@ -182,13 +226,22 @@ const Footer = () => {
               © 2025 Whatsway. All rights reserved.
             </p>
             <div className="flex items-center space-x-6 mt-4 sm:mt-0">
-              <Link to="/terms-of-service" className="text-gray-400 hover:text-white text-sm transition-colors">
+              <Link
+                to="/terms-of-service"
+                className="text-gray-400 hover:text-white text-sm transition-colors"
+              >
                 Terms of Service
               </Link>
-              <Link to="/privacy-policy" className="text-gray-400 hover:text-white text-sm transition-colors">
+              <Link
+                to="/privacy-policy"
+                className="text-gray-400 hover:text-white text-sm transition-colors"
+              >
                 Privacy Policy
               </Link>
-              <Link to="/cookie-policy" className="text-gray-400 hover:text-white text-sm transition-colors">
+              <Link
+                to="/cookie-policy"
+                className="text-gray-400 hover:text-white text-sm transition-colors"
+              >
                 Cookie Policy
               </Link>
               <ThemeToggle />
@@ -201,7 +254,3 @@ const Footer = () => {
 };
 
 export default Footer;
-
-
-
-
