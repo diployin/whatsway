@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { storage } from "../storage";
-import { contacts, insertContactSchema } from "@shared/schema";
+import { contacts, users, insertContactSchema } from "@shared/schema";
 import { AppError, asyncHandler } from "../middlewares/error.middleware";
 import { db } from "server/db";
 import { and, eq, ilike, inArray, or, sql } from "drizzle-orm";
@@ -150,6 +150,7 @@ export const getContactsByUser = asyncHandler(async (req: Request, res: Response
 // );
 
 
+
 export const getContactsWithPagination = asyncHandler(
   async (req: RequestWithChannel, res: Response) => {
     const { search, channelId, page = "1", limit = "10", group, status, createdBy } = req.query;
@@ -165,7 +166,112 @@ export const getContactsWithPagination = asyncHandler(
       conditions.push(eq(contacts.channelId, channelId));
     }
 
-    // Filter by createdBy (VERY IMPORTANT UPDATE)
+    // Filter by createdBy
+    if (createdBy && typeof createdBy === "string") {
+      conditions.push(eq(contacts.createdBy, createdBy));
+    }
+
+    // Search filter
+    if (search && typeof search === "string") {
+      const searchTerm = `%${search.toLowerCase()}%`;
+      conditions.push(
+        or(
+          ilike(contacts.name, searchTerm),
+          ilike(contacts.email, searchTerm),
+          ilike(contacts.phone, `%${search}%`)
+        )
+      );
+    }
+
+    // Group filter (jsonb array)
+    if (group && typeof group === "string") {
+      const groupList = group.split(',').map(g => g.trim());
+      if (groupList.length > 0) {
+        const jsonArray = JSON.stringify(groupList);
+        conditions.push(
+          sql`${contacts.groups} @> ${sql.raw(`'${jsonArray}'::jsonb`)}`
+        );
+      }
+    }
+
+    // Status filter
+    if (status && typeof status === "string") {
+      conditions.push(eq(contacts.status, status));
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    // Count total
+    const totalQuery = db
+      .select({ count: sql<number>`count(*)` })
+      .from(contacts)
+      .where(whereClause);
+    const totalResult = await totalQuery;
+    const total = totalResult[0]?.count ?? 0;
+
+    // Fetch data with createdByName
+    const dataQuery = db
+  .select({
+    id: contacts.id,
+    channelId: contacts.channelId,
+    name: contacts.name,
+    phone: contacts.phone,
+    email: contacts.email,
+    groups: contacts.groups,
+    tags: contacts.tags,
+    status: contacts.status,
+    source: contacts.source,
+    lastContact: contacts.lastContact,
+    createdAt: contacts.createdAt,
+    updatedAt: contacts.updatedAt,
+    createdBy: contacts.createdBy,
+
+    createdByName: sql<string>`
+      CONCAT(
+        COALESCE(${users.firstName}, ''), ' ', COALESCE(${users.lastName}, '')
+      )
+    `.as("createdByName"),
+  })
+  .from(contacts)
+  .leftJoin(users, eq(users.id, sql`${contacts.createdBy}::text`))
+  .where(whereClause)
+  .limit(pageSize)
+  .offset(offset);
+
+
+    const data = await dataQuery;
+
+    res.json({
+      data,
+      pagination: {
+        page: currentPage,
+        limit: pageSize,
+        count: data.length,
+        total,
+        totalPages: Math.ceil(total / pageSize),
+      },
+    });
+  }
+);
+
+
+
+ const getContactsWithPaginationOld = asyncHandler(
+  async (req: RequestWithChannel, res: Response) => {
+    const { search, channelId, page = "1", limit = "10", group, status, createdBy } = req.query;
+
+    const currentPage = parseInt(page, 10);
+    const pageSize = parseInt(limit, 10);
+    const offset = (currentPage - 1) * pageSize;
+
+    const conditions = [];
+
+    // Filter by channelId
+    if (channelId && typeof channelId === "string") {
+      conditions.push(eq(contacts.channelId, channelId));
+    }
+
+    //export Filter by createdBy (VERY IMPORTANT UPDATE)
     if (createdBy && typeof createdBy === "string") {
       conditions.push(eq(contacts.createdBy, createdBy));
     }

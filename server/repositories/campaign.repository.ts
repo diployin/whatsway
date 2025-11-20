@@ -2,12 +2,16 @@ import { db } from "../db";
 import { eq, desc, sql } from "drizzle-orm";
 import { 
   campaigns, 
+  users,
   type Campaign, 
   type InsertCampaign 
 } from "@shared/schema";
 
+
+
+
 export class CampaignRepository {
-  async getAll(page: number = 1, limit: number = 10): Promise<{
+  async getAllold(page: number = 1, limit: number = 10): Promise<{
   data: Campaign[];
   total: number;
   page: number;
@@ -24,6 +28,46 @@ export class CampaignRepository {
     .offset(offset);
 
   // Fetch total count
+  const totalResult = await db
+    .select({ total: sql<number>`COUNT(*)` })
+    .from(campaigns);
+
+  return {
+    data: campaignsList,
+    total: totalResult[0]?.total ?? 0,
+    page,
+    limit,
+  };
+}
+
+
+async getAll(
+  page: number = 1,
+  limit: number = 10
+) {
+  const offset = (page - 1) * limit;
+
+  const campaignsList = await db
+    .select({
+      id: campaigns.id,
+      name: campaigns.name,
+      createdBy: campaigns.createdBy,
+      createdByName: sql<string>`
+        CONCAT(
+          COALESCE(${users.firstName}, ''), ' ', COALESCE(${users.lastName}, '')
+        )
+      `.as("createdByName"),
+      status: campaigns.status,
+      createdAt: campaigns.createdAt,
+      updatedAt: campaigns.updatedAt,
+    })
+    .from(campaigns)
+    // 👇 Cast campaigns.createdBy uuid → text for join
+    .leftJoin(users, eq(users.id, sql`${campaigns.createdBy}::text`))
+    .orderBy(desc(campaigns.createdAt))
+    .limit(limit)
+    .offset(offset);
+
   const totalResult = await db
     .select({ total: sql<number>`COUNT(*)` })
     .from(campaigns);

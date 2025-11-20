@@ -1685,7 +1685,7 @@ export default function Contacts() {
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-gray-500 font-medium text-xs">
-                            Last Contact:
+                            Last Contactttt:
                           </span>
                           <span className="text-gray-700 text-xs">
                             {contact.lastContact

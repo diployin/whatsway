@@ -1,12 +1,42 @@
 import { db } from "../db";
 import { eq, desc, and, gte, sql, lt } from "drizzle-orm";
-import { contacts, type Contact, type InsertContact } from "@shared/schema";
+import { contacts, users, type Contact, type InsertContact } from "@shared/schema";
 import { startOfDay, startOfWeek, subWeeks } from "date-fns";
 
 export class ContactRepository {
   async getAll(): Promise<Contact[]> {
     return await db.select().from(contacts).orderBy(desc(contacts.createdAt));
   }
+
+
+  async getAllwithUsername(): Promise<(Contact & { createdByName: string })[]> {
+  return await db
+    .select({
+      id: contacts.id,
+      channelId: contacts.channelId,
+      name: contacts.name,
+      phone: contacts.phone,
+      email: contacts.email,
+      groups: contacts.groups,
+      tags: contacts.tags,
+      status: contacts.status,
+      source: contacts.source,
+      lastContact: contacts.lastContact,
+      createdAt: contacts.createdAt,
+      updatedAt: contacts.updatedAt,
+      createdBy: contacts.createdBy,
+
+      // 👇 Full name of the creator
+      createdByName: sql<string>`
+        CONCAT(
+          COALESCE(${users.firstName}, ''), ' ', COALESCE(${users.lastName}, '')
+        )
+      `.as("createdByName"),
+    })
+    .from(contacts)
+    .leftJoin(users, eq(users.id, contacts.createdBy))
+    .orderBy(desc(contacts.createdAt));
+}
 
   async getByChannel(channelId: string): Promise<Contact[]> {
     return await db

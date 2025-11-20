@@ -26,13 +26,15 @@ import {
   Users,
   Target,
   Activity,
+  User,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-
+import { useAuth } from "@/contexts/auth-context";
 export default function Analytics() {
   const [timeRange, setTimeRange] = useState<number>(30);
   const [exportLoading, setExportLoading] = useState(false);
+  const {user} = useAuth();
 
   const { data: activeChannel } = useQuery({
     queryKey: ["/api/channels/active"],
@@ -266,16 +268,18 @@ export default function Analytics() {
 
         {/* Analytics Tabs */}
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3 h-auto">
+          <TabsList className={user?.role === 'superadmin' ? `grid w-full grid-cols-2 h-auto` : `grid w-full grid-cols-3 h-auto`}>
             <TabsTrigger value="overview" className="text-xs sm:text-sm py-2">
               Overview
             </TabsTrigger>
             <TabsTrigger value="messages" className="text-xs sm:text-sm py-2">
               Messages
             </TabsTrigger>
+            {user?.role !== "superadmin" && (
             <TabsTrigger value="campaigns" className="text-xs sm:text-sm py-2">
-              Campaigns
+              Campaignsss
             </TabsTrigger>
+            )}
           </TabsList>
 
           {/* Overview Tab */}

@@ -333,7 +333,7 @@ export default function ContactsManagements() {
   const { data: activeChannel } = useQuery({
     queryKey: ["/api/channels/active"],
     queryFn: async () => {
-      const response = await apiRequest("GET" , "/api/channels/active");
+      const response = await apiRequest("GET", "/api/channels/active");
       if (!response.ok) return null;
       return await response.json();
     },
@@ -355,18 +355,17 @@ export default function ContactsManagements() {
         currentPage,
         limit
       );
-     
+
       return (await response.json()) as ContactsResponse;
     },
     placeholderData: (prev) => prev,
     // enabled: !!activeChannel,
   });
 
-  console.log("check contact", contactsResponse)
+  console.log("check contact", contactsResponse);
 
   const contacts = contactsResponse?.data || [];
 
-  
   const pagination = contactsResponse?.pagination || {
     page: 1,
     limit: limit,
@@ -485,7 +484,6 @@ export default function ContactsManagements() {
     enabled: !!activeChannel,
   });
 
-
   const deleteContactMutation = useMutation({
     mutationFn: async (id: string) => {
       const response = await fetch(`/api/contacts/${id}`, {
@@ -540,9 +538,6 @@ export default function ContactsManagements() {
     },
   });
 
-
-
-
   const toggleContactStatusMutation = useMutation({
     mutationFn: async ({
       id,
@@ -590,7 +585,6 @@ export default function ContactsManagements() {
     toggleContactStatusMutation.mutate({ id, newStatus });
   };
 
-
   type InsertContact = {
     name: string;
     phone: string;
@@ -598,7 +592,6 @@ export default function ContactsManagements() {
     groups: string[];
     tags: string[];
   };
-
 
   if (isLoading) {
     return (
@@ -646,7 +639,6 @@ export default function ContactsManagements() {
       alert("Failed to export contacts. Please try again.");
     }
   };
-
 
   // ✅ Reusable Excel Export Function (using ExcelJS)
   const exportToExcel = async (data: any[], fileName: string) => {
@@ -869,7 +861,7 @@ export default function ContactsManagements() {
                         {t("contacts.phone")}
                       </th>
                       <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {t("contacts.groups")}
+                        {/* {t("contacts.groups")} */} CreatedBy
                       </th>
                       <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
                         {t("contacts.status")}
@@ -877,7 +869,6 @@ export default function ContactsManagements() {
                       <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
                         {t("contacts.lastContact")}
                       </th>
-                      
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -944,24 +935,11 @@ export default function ContactsManagements() {
                             contact.phone
                           )}
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="flex space-x-1">
-                            {Array.isArray(contact.groups) &&
-                            contact.groups.length > 0 ? (
-                              contact.groups.map(
-                                (group: string, index: number) => (
-                                  <Badge key={index} variant="secondary">
-                                    {group}
-                                  </Badge>
-                                )
-                              )
-                            ) : (
-                              <span className="text-sm text-gray-400">
-                                {t("contacts.noGroups")}
-                              </span>
-                            )}
-                          </div>
+
+                        <td className="px-6 py-4 text-sm text-gray-900">
+                          {contact?.createdByName?.trim() || "-"}
                         </td>
+
                         <td className="px-6 py-4">
                           <Badge
                             variant={
@@ -983,7 +961,6 @@ export default function ContactsManagements() {
                             ? new Date(contact.lastContact).toLocaleDateString()
                             : "Never"}
                         </td>
-                      
                       </tr>
                     ))}
                   </tbody>
@@ -1173,7 +1150,6 @@ export default function ContactsManagements() {
           )}
         </DialogContent>
       </Dialog>
-
     </div>
   );
 }

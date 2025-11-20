@@ -2,14 +2,54 @@ import { db } from "../db";
 import { eq, desc, sql } from "drizzle-orm";
 import { 
   templates, 
+  users,
   type Template, 
   type InsertTemplate 
 } from "@shared/schema";
 
 export class TemplateRepository {
-  async getAll(): Promise<Template[]> {
+  async getAllold(): Promise<Template[]> {
     return await db.select().from(templates).orderBy(desc(templates.createdAt));
   }
+
+ async getAll() {
+  return await db
+    .select({
+      id: templates.id,
+      channelId: templates.channelId,
+      name: templates.name,
+      category: templates.category,
+      language: templates.language,
+      header: templates.header,
+      body: templates.body,
+      footer: templates.footer,
+      buttons: templates.buttons,
+      variables: templates.variables,
+      status: templates.status,
+      rejectionReason: templates.rejectionReason,
+      mediaType: templates.mediaType,
+      mediaUrl: templates.mediaUrl,
+      mediaHandle: templates.mediaHandle,
+      carouselCards: templates.carouselCards,
+      whatsappTemplateId: templates.whatsappTemplateId,
+      usage_count: templates.usage_count,
+      createdAt: templates.createdAt,
+      updatedAt: templates.updatedAt,
+      createdBy: templates.createdBy,
+
+      // 👇 FULL NAME (with safe fallback)
+      createdByName: sql<string>`
+        CONCAT(
+          COALESCE(${users.firstName}, ''), 
+          ' ', 
+          COALESCE(${users.lastName}, '')
+        )
+      `.as("createdByName"),
+    })
+    .from(templates)
+    .leftJoin(users, eq(users.id, templates.createdBy))
+    .orderBy(desc(templates.createdAt));
+}
 
   async getTemplateByUserID(
   userId: string,

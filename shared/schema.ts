@@ -120,7 +120,7 @@ export const campaigns = pgTable(
     channelId: varchar("channel_id").references(() => channels.id, {
       onDelete: "cascade",
     }),
-    createdBy: varchar("created_by"),
+    createdBy: uuid("created_by"),
     name: text("name").notNull(),
     description: text("description"),
     campaignType: text("campaign_type").notNull(), // contacts, csv, api

@@ -306,6 +306,7 @@ const { data: templates = [], isLoading: templatesLoading } = useQuery<Template[
         <thead className="bg-gray-100 text-left text-sm font-semibold text-gray-700">
           <tr>
             <th className="py-3 px-4 border-b">Name</th>
+            <th className="py-3 px-4 border-b">CreatedBy</th>
             <th className="py-3 px-4 border-b">Category</th>
             <th className="py-3 px-4 border-b">Status</th>
             <th className="py-3 px-4 border-b">Body</th>
@@ -319,6 +320,7 @@ const { data: templates = [], isLoading: templatesLoading } = useQuery<Template[
               className="hover:bg-gray-50 transition-colors text-sm text-gray-700"
             >
               <td className="py-3 px-4 border-b">{template.name}</td>
+              <td className="py-3 px-4 border-b">{template?.createdByName?.trim() ? template.createdByName : "-"}</td>
               <td className="py-3 px-4 border-b">{template.category}</td>
               <td className="py-3 px-4 border-b">
                 <span

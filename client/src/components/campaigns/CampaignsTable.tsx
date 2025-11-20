@@ -22,6 +22,7 @@ interface Campaign {
   createdAt: string;
   completedAt?: string;
   scheduledAt?: string;
+  createdByName: string;
 }
 
 interface CampaignsTableProps {
@@ -80,6 +81,7 @@ export function CampaignsTable({ campaigns, onViewCampaign, onUpdateStatus, onDe
       <TableHeader>
         <TableRow>
           <TableHead>{t('campaigns.title')}</TableHead>
+          <TableHead>CreatedBy</TableHead>
           <TableHead>{t('campaigns.status')}</TableHead>
           <TableHead>{t('campaigns.template')}</TableHead>
           <TableHead>{t('campaigns.recipients')}</TableHead>
@@ -111,6 +113,7 @@ export function CampaignsTable({ campaigns, onViewCampaign, onUpdateStatus, onDe
           return (
             <TableRow key={campaign.id}>
               <TableCell className="font-medium">{campaign.name}</TableCell>
+              <TableCell>{campaign.createdByName}</TableCell>
               <TableCell>{getStatusBadge(campaign.status)}</TableCell>
               <TableCell>{campaign.templateName || "-"}</TableCell>
               <TableCell>{campaign.recipientCount || 0}</TableCell>
