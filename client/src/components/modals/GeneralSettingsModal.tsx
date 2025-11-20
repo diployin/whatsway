@@ -27,6 +27,19 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/contexts/auth-context";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandItem,
+  CommandGroup,
+  CommandEmpty,
+} from "@/components/ui/command";
 
 // Types
 interface BrandSettings {
@@ -35,16 +48,19 @@ interface BrandSettings {
   logo?: string;
   favicon?: string;
   updatedAt?: string;
+  country?: string;
+  currency?: string;
 }
 
 // This is only for React state
 interface BrandFormValues {
   title: string;
   tagline: string;
+  country: string;
+  currency: string;
   logo: File | null;
   favicon: File | null;
 }
-
 
 interface ValidationErrors {
   title?: string;
@@ -66,21 +82,40 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
   brandSettings,
   onSuccess,
 }) => {
-  const {user} = useAuth()
+  const { user } = useAuth();
   const [formData, setFormData] = useState<BrandFormValues>({
     title: "",
     tagline: "",
     logo: null,
     favicon: null,
+    currency: "",
+    country: "",
   });
   const [logoPreview, setLogoPreview] = useState<string>("");
   const [faviconPreview, setFaviconPreview] = useState<string>("");
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [uploadStatus, setUploadStatus] = useState<{
-    logo?: 'uploading' | 'success' | 'error';
-    favicon?: 'uploading' | 'success' | 'error';
+    logo?: "uploading" | "success" | "error";
+    favicon?: "uploading" | "success" | "error";
   }>({});
   const { toast } = useToast();
+
+  const [countryData, setCountryData] = useState([]);
+  const [loadingData, setLoadingData] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/auth/country-data");
+        const data = await res.json();
+        setCountryData(data); // full combined list
+      } catch (error) {
+        console.error("Failed to load country data", error);
+      } finally {
+        setLoadingData(false);
+      }
+    })();
+  }, []);
 
   // Initialize form data when modal opens
   useEffect(() => {
@@ -88,7 +123,9 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
       setFormData({
         title: brandSettings.title || "",
         tagline: brandSettings.tagline || "",
-        logo: null,    // no File yet
+        country: brandSettings.country || "",
+        currency: brandSettings.currency || "",
+        logo: null, // no File yet
         favicon: null, // no File yet
       });
       setLogoPreview(brandSettings.logo || "");
@@ -127,9 +164,11 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
       });
     },
   });
-  
 
-  const handleInputChange = (field: keyof BrandFormValues, value: string): void => {
+  const handleInputChange = (
+    field: keyof BrandFormValues,
+    value: string
+  ): void => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -149,13 +188,13 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
     type: "logo" | "favicon"
   ): void => {
     if (!file) return;
-  
+
     // Save file in state for sending later
     setFormData((prev) => ({
       ...prev,
       [type]: file,
     }));
-  
+
     // Create preview URL
     const previewUrl = URL.createObjectURL(file);
     if (type === "logo") {
@@ -163,10 +202,9 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
     } else {
       setFaviconPreview(previewUrl);
     }
-  
+
     setUploadStatus((prev) => ({ ...prev, [type]: "success" }));
   };
-  
 
   const validateForm = (): boolean => {
     const newErrors: ValidationErrors = {};
@@ -189,14 +227,16 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
 
   const handleSubmit = (): void => {
     if (!validateForm()) return;
-  
+
     const formDataToSend = new FormData();
     formDataToSend.append("title", formData.title);
     formDataToSend.append("tagline", formData.tagline);
-  
+    formDataToSend.append("country", formData.country);
+    formDataToSend.append("currency", formData.currency);
+
     if (formData.logo) formDataToSend.append("logo", formData.logo);
-    if (formData.favicon) formDataToSend.append("favicon", formData.favicon);    
-  
+    if (formData.favicon) formDataToSend.append("favicon", formData.favicon);
+
     updateBrandMutation.mutate(formDataToSend);
   };
 
@@ -208,6 +248,8 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
       tagline: "",
       logo: null,
       favicon: null,
+      currency: "",
+      country: "",
     });
     setLogoPreview("");
     setFaviconPreview("");
@@ -227,7 +269,7 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
       setFaviconPreview("");
     }
 
-    setUploadStatus(prev => ({ ...prev, [type]: undefined }));
+    setUploadStatus((prev) => ({ ...prev, [type]: undefined }));
   };
 
   const handleFileInputChange = (
@@ -241,11 +283,13 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
   const getUploadStatusIcon = (type: "logo" | "favicon") => {
     const status = uploadStatus[type];
     switch (status) {
-      case 'uploading':
-        return <div className="animate-spin w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full" />;
-      case 'success':
+      case "uploading":
+        return (
+          <div className="animate-spin w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full" />
+        );
+      case "success":
         return <CheckCircle className="w-4 h-4 text-green-500" />;
-      case 'error':
+      case "error":
         return <AlertCircle className="w-4 h-4 text-red-500" />;
       default:
         return null;
@@ -313,10 +357,8 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
             <Label className="flex items-center font-medium">
               <ImageIcon className="w-4 h-4 mr-2 text-purple-500" />
               Logo
-              {getUploadStatusIcon('logo') && (
-                <span className="ml-2">
-                  {getUploadStatusIcon('logo')}
-                </span>
+              {getUploadStatusIcon("logo") && (
+                <span className="ml-2">{getUploadStatusIcon("logo")}</span>
               )}
             </Label>
             <Card className="border-dashed border-2">
@@ -374,10 +416,8 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
             <Label className="flex items-center font-medium">
               <Globe className="w-4 h-4 mr-2 text-orange-500" />
               Favicon
-              {getUploadStatusIcon('favicon') && (
-                <span className="ml-2">
-                  {getUploadStatusIcon('favicon')}
-                </span>
+              {getUploadStatusIcon("favicon") && (
+                <span className="ml-2">{getUploadStatusIcon("favicon")}</span>
               )}
             </Label>
             <Card className="border-dashed border-2">
@@ -429,6 +469,85 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
               </p>
             )}
           </div>
+
+          {/* Country Select */}
+          <div className="space-y-2">
+            <Label className="flex items-center font-medium">
+              <Globe className="w-4 h-4 mr-2 text-blue-500" />
+              Country
+            </Label>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-between">
+                  {formData.country || "Select country"}
+                </Button>
+              </PopoverTrigger>
+
+              <PopoverContent className="p-0 w-full">
+                <Command>
+                  <CommandInput placeholder="Search country..." />
+                  <CommandList>
+                    <CommandEmpty>No country found.</CommandEmpty>
+
+                    <CommandGroup heading="Countries">
+                      {!loadingData &&
+                        countryData.map((item) => (
+                          <CommandItem
+                            key={item.country_code}
+                            onSelect={() => {
+                              handleInputChange("country", item.country_code);
+                              handleInputChange("currency", item.currency_code); // auto set currency
+                            }}
+                          >
+                            {item.country} ({item.country_code})
+                          </CommandItem>
+                        ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Currency Select */}
+          <div className="space-y-2">
+            <Label className="flex items-center font-medium">
+              <Tag className="w-4 h-4 mr-2 text-amber-500" />
+              Currency
+            </Label>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-between">
+                  {formData.currency || "Select currency"}
+                </Button>
+              </PopoverTrigger>
+
+              <PopoverContent className="p-0 w-full">
+                <Command>
+                  <CommandInput placeholder="Search currency..." />
+                  <CommandList>
+                    <CommandEmpty>No currency found.</CommandEmpty>
+
+                    <CommandGroup heading="Currencies">
+                      {!loadingData &&
+                        countryData.map((item) => (
+                          <CommandItem
+                            key={item.currency_code}
+                            onSelect={() =>
+                              handleInputChange("currency", item.currency_code)
+                            }
+                          >
+                            {item.currency} ({item.currency_code}) {item.symbol}
+                          </CommandItem>
+                        ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
 
         <DialogFooter className="gap-2">
@@ -442,7 +561,13 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={user?.username === 'demouser'? true : updateBrandMutation.isPending || uploadStatus.logo === 'uploading' || uploadStatus.favicon === 'uploading'}
+            disabled={
+              user?.username === "demouser"
+                ? true
+                : updateBrandMutation.isPending ||
+                  uploadStatus.logo === "uploading" ||
+                  uploadStatus.favicon === "uploading"
+            }
             type="button"
           >
             {updateBrandMutation.isPending ? "Saving..." : "Save Changes"}

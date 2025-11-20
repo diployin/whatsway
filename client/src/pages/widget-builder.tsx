@@ -334,13 +334,14 @@ export default function WidgetBuilder() {
   useEffect(() => {
     console.log(isSuccess, site)
     if (isSuccess && site?.widgetConfig) {
-      setConfig((prev) => ({ 
-        ...prev, 
-        ...site.widgetConfig, 
-        tenantId: site.id, 
-        name: site.name, 
+      setConfig((prev) => ({
+        ...prev,
+        ...site.widgetConfig,              // merge everything from backend
+        appName: brandSettings?.title || site.widgetConfig.appName,
+        tenantId: site.id,
+        name: site.name,
         domain: site.domain,
-       }));
+      }));
     }
   }, [isSuccess, site]);
   

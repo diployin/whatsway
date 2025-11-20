@@ -38,6 +38,8 @@ interface BrandSettings {
   logo?: string;
   favicon?: string;
   updatedAt?: string;
+  country?: string;
+  currency?: string;
   firebase?: {};
 }
 
@@ -69,6 +71,8 @@ export function GeneralSettings(): JSX.Element {
     tagline: "Building amazing experiences",
     logo: "",
     favicon: "",
+    country: "IN",
+    currency: "INR",
     updatedAt: new Date().toISOString(),
   };
   // console.log('BrandSettings render, error:', error , brandSettings );
@@ -82,6 +86,8 @@ export function GeneralSettings(): JSX.Element {
       setMeta({
         title: displayData.title,
         favicon: displayData.favicon,
+        currency: displayData.currency,
+        country: displayData.country,
         description: displayData.tagline, // or a separate field
         keywords: `${displayData.title} ${displayData?.tagline}`, // optional
       });
@@ -381,6 +387,40 @@ export function GeneralSettings(): JSX.Element {
                   )}
                 </div>
               </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Tag className="w-4 h-4 text-green-500" />
+                  <Label className="font-medium">Country</Label>
+                </div>
+                <div className="p-4 bg-gray-50 rounded-lg border">
+                  <p className="text-sm text-gray-700">
+                    {displayData.country || "Not configured"}
+                  </p>
+                  {!displayData.country && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Add a compelling country for your brand
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Tag className="w-4 h-4 text-green-500" />
+                  <Label className="font-medium">Currency</Label>
+                </div>
+                <div className="p-4 bg-gray-50 rounded-lg border">
+                  <p className="text-sm text-gray-700">
+                    {displayData.currency || "Not configured"}
+                  </p>
+                  {!displayData.currency && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Add a compelling currency for your brand
+                    </p>
+                  )}
+                </div>
+              </div>
+
             </div>
 
             {/* Configuration Status */}
