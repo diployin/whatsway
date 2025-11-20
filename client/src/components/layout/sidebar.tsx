@@ -153,6 +153,14 @@ const navItems: NavItem[] = [
     // requiredPrefix: "notifications.",
     allowedRoles: ["superadmin"],
   },
+   {
+    href: "/inbox",
+    icon: MessageSquare,
+    labelKey: "navigation.inbox",
+    color: "text-blue-400",
+    // requiredPrefix: "notifications.",
+    allowedRoles: ["admin"],
+  },
   {
     href: "/gateway",
     icon: Bell,
@@ -195,14 +203,7 @@ const navItems: NavItem[] = [
     labelKey: "Groups",
     color: "text-blue-400",
     allowedRoles: ["admin"],
-  },
-  {
-    href: "/stats",
-    icon: Star,
-    labelKey: "Stats",
-    color: "text-yellow-600",
-    allowedRoles: ["admin", "superadmin"],
-  },
+  }
 ];
 
 const sidebarItemsCategories = [

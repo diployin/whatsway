@@ -39,17 +39,15 @@ export default function Templates() {
 
   // Fetch templates
 const { data: templates = [], isLoading: templatesLoading } = useQuery<Template[]>({
-  queryKey: ["templates", user?.id, userRole],
+  queryKey: ["templates"],
   queryFn: async () => {
     let res: Response;
 
     if (userRole === "superadmin") {
-      // Superadmin ke liye: saare templates
-      res = await fetch("/api/templates", {
-        credentials: "include",
-      });
+      // Superadmin → all templates
+      res = await fetch("/api/templates", { credentials: "include" });
     } else {
-      // Normal user ke liye: apne templates
+      // Normal user → own templates
       res = await fetch("/api/getTemplateByUserId", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -58,16 +56,22 @@ const { data: templates = [], isLoading: templatesLoading } = useQuery<Template[
     }
 
     if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
+
     const json = await res.json();
 
-    // Hamesha array return karo
     if (Array.isArray(json)) return json;
     if (json?.data && Array.isArray(json.data)) return json.data;
-    if (json) return [json]; // wrap single object into array
+    if (json) return [json];
     return [];
   },
-  enabled: !!user?.id && !!activeChannel,
+
+  enabled:
+    userRole === "superadmin" || (!!user?.id && !!activeChannel),
 });
+
+
+console.log("TEMPLATES DATAAA", templates);
+
 
 
   // Create template mutation
@@ -229,7 +233,7 @@ const { data: templates = [], isLoading: templatesLoading } = useQuery<Template[
     syncTemplatesMutation.mutate();
   };
 
-  if (!activeChannel) {
+  if (!activeChannel && userRole !== "superadmin") {
     return (
       <div className="flex-1 dots-bg min-h-screen">
         <Header

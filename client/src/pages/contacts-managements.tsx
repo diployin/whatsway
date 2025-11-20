@@ -317,15 +317,6 @@ export default function ContactsManagements() {
     console.log("Initial search query from URL:", phone);
   }, []);
 
-  // const { data: contacts, isLoading } = useQuery({
-  //   queryKey: ["/api/contacts", searchQuery, activeChannel?.id],
-  //   queryFn: async () => {
-  //     const response = await api.getContacts(searchQuery, activeChannel?.id);
-  //     return await response.json();
-  //   },
-  //   enabled: !!activeChannel,
-  // });
-
   // Form for adding contacts
   const form = useForm<InsertContact>({
     resolver: zodResolver(insertContactSchema),
@@ -351,7 +342,7 @@ export default function ContactsManagements() {
   // Updated query to fetch contacts with proper server-side filtering
   const { data: contactsResponse, isLoading } = useQuery<ContactsResponse>({
     queryKey: [
-      "/api/contacts-management",
+      "/contacts-management",
       currentPage,
       limit,
       selectedGroup,
@@ -368,10 +359,14 @@ export default function ContactsManagements() {
       return (await response.json()) as ContactsResponse;
     },
     placeholderData: (prev) => prev,
-    enabled: !!activeChannel,
+    // enabled: !!activeChannel,
   });
 
+  console.log("check contact", contactsResponse)
+
   const contacts = contactsResponse?.data || [];
+
+  
   const pagination = contactsResponse?.pagination || {
     page: 1,
     limit: limit,
