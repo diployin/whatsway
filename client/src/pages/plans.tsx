@@ -59,7 +59,7 @@ export default function Plans() {
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
-  const { user } = useAuth();
+  const { user, currencySymble } = useAuth();
 
   const isSuper = user?.role === "superadmin";
 
@@ -119,8 +119,6 @@ export default function Plans() {
     try {
       setLoading(true);
       const response = await apiRequest("GET", "/api/admin/plans");
-      // const response = await fetch(`${API_URL}/admin/plans`);
-      // const reposne = await apiRequest('GET' , )
       const data: PlansDataTypes = await response.json();
       if (data.success) {
         setPlans(data.data);
@@ -480,7 +478,7 @@ export default function Plans() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Monthly Price ($)
+                        Monthly Price ({currencySymble})
                       </label>
                       <input
                         type="number"
@@ -499,7 +497,7 @@ export default function Plans() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Annual Price ($)
+                        Annual Price ({currencySymble})
                       </label>
                       <input
                         type="number"
@@ -790,7 +788,7 @@ export default function Plans() {
                           <div className="mb-4">
                             <div className="flex items-baseline gap-1">
                               <span className="text-3xl font-black text-gray-900">
-                                $
+                                {currencySymble}
                                 {isAnnual
                                   ? plan.annualPrice
                                   : plan.monthlyPrice}

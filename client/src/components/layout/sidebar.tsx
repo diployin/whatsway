@@ -317,13 +317,15 @@ export default function Sidebar() {
   useEffect(() => {
     function handleResize() {
       if (window.innerWidth >= 1024) {
-        open();
+        setCollapsed(true);
+      } else {
+        if (isOpen) setCollapsed(false);
       }
     }
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [open, close]);
+  }, []);
   const canView = (item: NavItem): boolean => {
     if (!user) return false;
     if (item.allowedRoles && !item.allowedRoles.includes(user.role as Role)) {

@@ -169,3 +169,21 @@ export interface DashboardStats {
   todaySignups?: number;
   totalPaidUsers?: number;
 }
+
+export interface AppSettings {
+  title: string;
+  tagline: string;
+  currency: string;
+  country: string;
+  logo: string | null;
+  favicon: string | null;
+  updatedAt: string;
+}
+
+export interface CountryCurrency {
+  country: string;
+  country_code: string;
+  currency: string;
+  currency_code: string;
+  symbol: string;
+}
