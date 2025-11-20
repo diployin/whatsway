@@ -6,6 +6,7 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { validateRequest } from "../middlewares/validateRequest.middleware";
 import { resolveUserPermissions } from "server/utils/role-permissions";
+import country from "../config/country.json"
 
 const router = Router();
 
@@ -214,6 +215,11 @@ router.post("/api/me/update-fcm-token", async (req: Request, res: Response) => {
 router.get("/check", (req, res) => {
   const user = (req as any).session?.user;
   res.json({ authenticated: !!user, user });
+});
+
+
+router.get("/country-data", (req, res) => {
+  res.json(country);
 });
 
 export default router;

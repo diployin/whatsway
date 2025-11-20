@@ -931,6 +931,8 @@ export const panelConfig = pgTable("panel_config", {
   companyName: varchar("company_name"),
   companyWebsite: varchar("company_website"),
   supportEmail: varchar("support_email"),
+  currency: varchar("currency", { length: 10 }).default("INR"), // e.g. USD, INR
+  country: varchar("country", { length: 2 }).default("IN"), // ISO country code like US, IN
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

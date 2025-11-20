@@ -225,6 +225,13 @@
       "when": 1763467716879,
       "tag": "0031_cooing_sinister_six",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1763624566417,
+      "tag": "0032_burly_tinkerer",
+      "breakpoints": true
     }
   ]
 }

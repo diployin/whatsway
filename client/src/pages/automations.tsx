@@ -51,15 +51,6 @@ export default function Automations() {
     setIsModalOpen(true);
   };
 
-  const { data: automations = [], isLoading } = useQuery<Automation[]>({
-    queryKey: ["/api/automations"],
-    queryFn: async () => {
-      const res = await fetch("/api/automations");
-      if (!res.ok) throw new Error("Failed to fetch automations");
-      return res.json() as Promise<Automation[]>;
-    },
-  });
-
   const { data: activeChannel } = useQuery({
     queryKey: ["/api/channels/active"],
     queryFn: async () => {
@@ -68,6 +59,19 @@ export default function Automations() {
       return await response.json();
     },
   });
+
+  
+  const { data: automations = [], isLoading } = useQuery<Automation[]>({
+    queryKey: ["/api/automations", activeChannel?.id], // include channelId here
+    queryFn: async () => {
+      if (!activeChannel?.id) return []; // avoid calling API with undefined
+      const res = await fetch(`/api/automations?channelId=${activeChannel.id}`);
+      if (!res.ok) throw new Error("Failed to fetch automations");
+      return res.json() as Promise<Automation[]>;
+    },
+    enabled: !!activeChannel?.id, // prevents query from running without channelId
+  });  
+
 
   const toggleMutation = useMutation({
     mutationFn: async (id: string) => {

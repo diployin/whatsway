@@ -75,18 +75,21 @@ export const requireRole = (...roles: string[]) => {
 //   };
 // };
 
-
 export const requirePermission = (...permissions: string[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user;
+
     if (!user) {
       return res.status(401).json({ error: "Authentication required" });
     }
 
+    // ✅ admin & user bypass all permission checks
+    if (user.role === "admin" || user.role === "user") {
+      return next();
+    }
+
     try {
       const getUserPermissions = await storage.getPermissions(user.id);
-
-      // console.log(`User permissions from storage: ${JSON.stringify(getUserPermissions)}`);
 
       const userPermissions = (getUserPermissions ?? []).reduce(
         (acc, perm) => {
@@ -94,17 +97,11 @@ export const requirePermission = (...permissions: string[]) => {
           return acc;
         },
         {} as Record<string, boolean>
-      );      
-      
-      
+      );
+
       const hasPermission = permissions.some(
         (perm) => userPermissions[perm]
-      )
-
-      // console.log(
-      //   `User permissions: ${JSON.stringify(userPermissions)}, ` +
-      //   `Required permissions: ${permissions}, Has permission: ${hasPermission}`
-      // );
+      );
 
       if (!hasPermission) {
         return res.status(403).json({ error: "Insufficient permissions" });
