@@ -21,8 +21,8 @@ export const panelConfigSchema = z.object({
   supportEmail: z.string().email().optional().or(z.literal("")),
   defaultLanguage: z.string().length(2).default("en"),
   supportedLanguages: z.array(z.string()).default(["en"]),
-  currency: z.string().min(1).default("INR"),     // e.g. USD, INR
-  country: z.string().length(2).default("IN"),    // ISO2 country code
+  currency: z.string().min(1).default("INR"), // e.g. USD, INR
+  country: z.string().length(2).default("IN"), // ISO2 country code
   firebase: z.record(z.any()).optional(),
 });
 
@@ -31,12 +31,12 @@ export const brandSettingsSchema = z.object({
   tagline: z.string().optional(),
   logo: z.string().optional(),
   favicon: z.string().optional(),
-  currency: z.string().min(1).default("INR"),     // e.g. USD, INR
-  country: z.string().length(2).default("IN"),  // ISO2 country code
+  currency: z.string().min(1).default("INR"), // e.g. USD, INR
+  country: z.string().length(2).default("IN"), // ISO2 country code
 });
 
-
-interface ParsedPanelConfig extends Partial<{
+interface ParsedPanelConfig
+  extends Partial<{
     name: string;
     description: string;
     tagline: string;
@@ -52,8 +52,11 @@ interface ParsedPanelConfig extends Partial<{
   }> {}
 
 // Helper function to process base64 images
-const processBase64Image = async (base64Data: string, type: 'logo' | 'favicon'): Promise<string | null> => {
-  if (!base64Data || !base64Data.includes('base64,')) {
+const processBase64Image = async (
+  base64Data: string,
+  type: "logo" | "favicon"
+): Promise<string | null> => {
+  if (!base64Data || !base64Data.includes("base64,")) {
     return base64Data; // Return as-is if not base64
   }
 
@@ -65,33 +68,33 @@ const processBase64Image = async (base64Data: string, type: 'logo' | 'favicon'):
 
     const mimeType = matches[1];
     const data = matches[2];
-    
+
     // Determine file extension
-    let extension = 'png';
-    if (mimeType.includes('jpeg') || mimeType.includes('jpg')) {
-      extension = 'jpg';
-    } else if (mimeType.includes('svg')) {
-      extension = 'svg';
-    } else if (mimeType.includes('icon') || type === 'favicon') {
-      extension = 'ico';
+    let extension = "png";
+    if (mimeType.includes("jpeg") || mimeType.includes("jpg")) {
+      extension = "jpg";
+    } else if (mimeType.includes("svg")) {
+      extension = "svg";
+    } else if (mimeType.includes("icon") || type === "favicon") {
+      extension = "ico";
     }
 
     // Create filename
     const filename = `${type}-${Date.now()}.${extension}`;
-    const uploadPath = path.join(process.cwd(), 'uploads', filename);
-    
+    const uploadPath = path.join(process.cwd(), "uploads", filename);
+
     // Ensure uploads directory exists
-    const uploadsDir = path.join(process.cwd(), 'uploads');
+    const uploadsDir = path.join(process.cwd(), "uploads");
     if (!fs.existsSync(uploadsDir)) {
       fs.mkdirSync(uploadsDir, { recursive: true });
     }
 
     // Write file
-    fs.writeFileSync(uploadPath, data, 'base64');
-    
+    fs.writeFileSync(uploadPath, data, "base64");
+
     return `/uploads/${filename}`;
   } catch (error) {
-    console.error('Error processing base64 image:', error);
+    console.error("Error processing base64 image:", error);
     return null;
   }
 };
@@ -100,25 +103,39 @@ export const create = async (req: Request, res: Response) => {
   try {
     const parsed = panelConfigSchema.parse(req.body);
 
-    const files = req.files as Record<string, (Express.Multer.File & { cloudUrl?: string })[]> | undefined;
+    const files = req.files as
+      | Record<string, (Express.Multer.File & { cloudUrl?: string })[]>
+      | undefined;
 
     // ✅ Resolve logo and favicon paths
     const logoFile = files?.logo?.[0];
     const faviconFile = files?.favicon?.[0];
 
     const logoPath = logoFile
-      ? logoFile.cloudUrl || `/uploads/${path.basename(path.dirname(logoFile.path))}/${logoFile.filename}`
+      ? logoFile.cloudUrl ||
+        `/uploads/${path.basename(path.dirname(logoFile.path))}/${
+          logoFile.filename
+        }`
       : undefined;
 
     const faviconPath = faviconFile
-      ? faviconFile.cloudUrl || `/uploads/${path.basename(path.dirname(faviconFile.path))}/${faviconFile.filename}`
+      ? faviconFile.cloudUrl ||
+        `/uploads/${path.basename(path.dirname(faviconFile.path))}/${
+          faviconFile.filename
+        }`
       : undefined;
 
     // ✅ Log the file type (Cloud / Local)
     if (logoFile)
-      console.log(`🖼️ Logo: ${logoFile.cloudUrl ? "Cloud" : "Local"} → ${logoPath}`);
+      console.log(
+        `🖼️ Logo: ${logoFile.cloudUrl ? "Cloud" : "Local"} → ${logoPath}`
+      );
     if (faviconFile)
-      console.log(`🌐 Favicon: ${faviconFile.cloudUrl ? "Cloud" : "Local"} → ${faviconPath}`);
+      console.log(
+        `🌐 Favicon: ${
+          faviconFile.cloudUrl ? "Cloud" : "Local"
+        } → ${faviconPath}`
+      );
 
     const data = {
       ...parsed,
@@ -134,7 +151,6 @@ export const create = async (req: Request, res: Response) => {
     res.status(400).json({ error: err.errors || err.message });
   }
 };
-
 
 export const getAll = async (_req: Request, res: Response) => {
   try {
@@ -157,25 +173,43 @@ export const getOne = async (req: Request, res: Response) => {
 
 export const update = async (req: Request, res: Response) => {
   try {
-    const parsed: ParsedPanelConfig = panelConfigSchema.partial().parse(req.body);
-    const files = req.files as Record<string, (Express.Multer.File & { cloudUrl?: string })[]> | undefined;
+    const parsed: ParsedPanelConfig = panelConfigSchema
+      .partial()
+      .parse(req.body);
+    const files = req.files as
+      | Record<string, (Express.Multer.File & { cloudUrl?: string })[]>
+      | undefined;
 
     // ✅ Resolve logo and favicon paths
     const logoFile = files?.logo?.[0];
     const faviconFile = files?.favicon?.[0];
 
     const logoPath = logoFile
-      ? logoFile.cloudUrl || `/uploads/${path.basename(path.dirname(logoFile.path))}/${logoFile.filename}`
+      ? logoFile.cloudUrl ||
+        `/uploads/${path.basename(path.dirname(logoFile.path))}/${
+          logoFile.filename
+        }`
       : parsed.logo;
 
     const faviconPath = faviconFile
-      ? faviconFile.cloudUrl || `/uploads/${path.basename(path.dirname(faviconFile.path))}/${faviconFile.filename}`
+      ? faviconFile.cloudUrl ||
+        `/uploads/${path.basename(path.dirname(faviconFile.path))}/${
+          faviconFile.filename
+        }`
       : parsed.favicon;
 
     if (logoFile)
-      console.log(`🖼️ Updating logo: ${logoFile.cloudUrl ? "Cloud" : "Local"} → ${logoPath}`);
+      console.log(
+        `🖼️ Updating logo: ${
+          logoFile.cloudUrl ? "Cloud" : "Local"
+        } → ${logoPath}`
+      );
     if (faviconFile)
-      console.log(`🌐 Updating favicon: ${faviconFile.cloudUrl ? "Cloud" : "Local"} → ${faviconPath}`);
+      console.log(
+        `🌐 Updating favicon: ${
+          faviconFile.cloudUrl ? "Cloud" : "Local"
+        } → ${faviconPath}`
+      );
 
     const data: ParsedPanelConfig = {
       ...parsed,
@@ -194,7 +228,6 @@ export const update = async (req: Request, res: Response) => {
   }
 };
 
-
 export const remove = async (req: Request, res: Response) => {
   try {
     await deletePanelConfig(req.params.id);
@@ -208,7 +241,7 @@ export const remove = async (req: Request, res: Response) => {
 export const getBrandSettings = async (_req: Request, res: Response) => {
   try {
     const config = await getFirstPanelConfig();
-    
+
     if (!config) {
       // Return default settings if no config exists
       return res.json({
@@ -226,8 +259,12 @@ export const getBrandSettings = async (_req: Request, res: Response) => {
       tagline: config.tagline || "",
       currency: config.currency || "",
       country: config.country || "",
-      logo: config.logo?.startsWith("https") ? config.logo : `/uploads/${config.logo}`,
-      favicon: config.favicon?.startsWith("https") ? config.favicon : `/uploads/${config.favicon}`,
+      logo: config.logo?.startsWith("https")
+        ? config.logo
+        : `/uploads/${config.logo}`,
+      favicon: config.favicon?.startsWith("https")
+        ? config.favicon
+        : `/uploads/${config.favicon}`,
       updatedAt: config.updatedAt?.toISOString() || new Date().toISOString(),
     };
 
@@ -242,7 +279,9 @@ export const createBrandSettings = async (req: Request, res: Response) => {
     // console.log("Creating Brand Settings with data:", req.body);
     const parsed = brandSettingsSchema.parse(req.body);
 
-    const files = req.files as Record<string, (Express.Multer.File & { cloudUrl?: string })[]> | undefined;
+    const files = req.files as
+      | Record<string, (Express.Multer.File & { cloudUrl?: string })[]>
+      | undefined;
 
     let logoPath: string | undefined;
     let faviconPath: string | undefined;
@@ -251,7 +290,11 @@ export const createBrandSettings = async (req: Request, res: Response) => {
     if (files?.logo?.[0]) {
       const logoFile = files.logo[0];
       const isCloudFile = !!logoFile.cloudUrl;
-      logoPath = logoFile.cloudUrl || `/uploads/${path.basename(path.dirname(logoFile.path))}/${logoFile.filename}`;
+      logoPath =
+        logoFile.cloudUrl ||
+        `/uploads/${path.basename(path.dirname(logoFile.path))}/${
+          logoFile.filename
+        }`;
       console.log(`🖼️ Logo (${isCloudFile ? "Cloud" : "Local"}): ${logoPath}`);
     } else if (parsed.logo && parsed.logo.includes("base64,")) {
       // ✅ 2. Handle base64 fallback
@@ -263,10 +306,17 @@ export const createBrandSettings = async (req: Request, res: Response) => {
     if (files?.favicon?.[0]) {
       const faviconFile = files.favicon[0];
       const isCloudFile = !!faviconFile.cloudUrl;
-      faviconPath = faviconFile.cloudUrl || `/uploads/${path.basename(path.dirname(faviconFile.path))}/${faviconFile.filename}`;
-      console.log(`🌐 Favicon (${isCloudFile ? "Cloud" : "Local"}): ${faviconPath}`);
+      faviconPath =
+        faviconFile.cloudUrl ||
+        `/uploads/${path.basename(path.dirname(faviconFile.path))}/${
+          faviconFile.filename
+        }`;
+      console.log(
+        `🌐 Favicon (${isCloudFile ? "Cloud" : "Local"}): ${faviconPath}`
+      );
     } else if (parsed.favicon && parsed.favicon.includes("base64,")) {
-      faviconPath = (await processBase64Image(parsed.favicon, "favicon")) ?? undefined;
+      faviconPath =
+        (await processBase64Image(parsed.favicon, "favicon")) ?? undefined;
       console.log(`🌐 Favicon (Base64 processed): ${faviconPath}`);
     }
 
@@ -282,8 +332,8 @@ export const createBrandSettings = async (req: Request, res: Response) => {
       supportedLanguages: ["en"],
       logo: logoPath,
       favicon: faviconPath,
-      country :"IN",
-      currency:"INR"
+      country: "IN",
+      currency: "INR",
     };
 
     const config = await createPanelConfig(panelData);
@@ -312,7 +362,9 @@ export const updateBrandSettings = async (req: Request, res: Response) => {
     // console.log("Parsed Files:", req.files);
 
     const parsed = brandSettingsSchema.parse(req.body);
-    const files = req.files as Record<string, (Express.Multer.File & { cloudUrl?: string })[]> | undefined;
+    const files = req.files as
+      | Record<string, (Express.Multer.File & { cloudUrl?: string })[]>
+      | undefined;
 
     let logoPath: string | undefined;
     let faviconPath: string | undefined;
@@ -353,8 +405,12 @@ export const updateBrandSettings = async (req: Request, res: Response) => {
       tagline: config.tagline || "",
       country: config.country || "",
       currency: config.currency || "",
-      logo: config.logo?.startsWith("https") ? config.logo : `/uploads/${config.logo}`,
-      favicon: config.favicon?.startsWith("https") ? config.favicon : `/uploads/${config.favicon}`,
+      logo: config.logo?.startsWith("https")
+        ? config.logo
+        : `/uploads/${config.logo}`,
+      favicon: config.favicon?.startsWith("https")
+        ? config.favicon
+        : `/uploads/${config.favicon}`,
       updatedAt: config.updatedAt?.toISOString() || new Date().toISOString(),
     };
 

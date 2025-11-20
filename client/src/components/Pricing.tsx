@@ -17,6 +17,7 @@ import CheckoutModal from "./modals/CheckoutPage";
 import { useAuth } from "@/contexts/auth-context";
 import { useQuery } from "@tanstack/react-query";
 
+
 const Pricing = () => {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
@@ -24,7 +25,9 @@ const Pricing = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [isAnnual, setIsAnnual] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, currencySymble } = useAuth();
+
+  console.log("user", user);
 
   // Fetch payment providers
   const { data: paymentProviders, isLoading: isLoadingProviders } =
@@ -153,7 +156,8 @@ const Pricing = () => {
                 {/* Price */}
                 <div className="flex items-baseline justify-center mb-2">
                   <span className="text-4xl font-bold text-gray-900">
-                    ${isAnnual ? plan.annualPrice : plan.monthlyPrice}
+                    {currencySymble}
+                    {isAnnual ? plan.annualPrice : plan.monthlyPrice}
                   </span>
                   <span className="text-gray-600 ml-2">
                     /{isAnnual ? "year" : "month"}

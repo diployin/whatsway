@@ -29,6 +29,8 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
+import { useAuth } from "@/contexts/auth-context";
+import { useLocation } from "wouter";
 
 interface CheckoutModalProps {
   plan: Plan;
@@ -49,6 +51,7 @@ interface PaymentInitiationData {
   paymentIntentId: string;
   clientSecret: string;
   publishableKey: string;
+  keyId: string;
 }
 
 interface PaymentInitiationResponse {
@@ -76,38 +79,6 @@ const StripePaymentForm: React.FC<{
   const elements = useElements();
   const [loading, setLoading] = useState(false);
 
-  // const handleSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-
-  //   if (!stripe || !elements) {
-  //     return;
-  //   }
-
-  //   setLoading(true);
-
-  //   try {
-  //     const { error } = await stripe.confirmPayment({
-  //       elements,
-  //       confirmParams: {
-  //         return_url: `${window.location.origin}/payment/success?transactionId=${transactionId}`,
-  //       },
-  //     });
-  //     // http://localhost:5001/payment/success?transactionId=2a3b9cf1-ed4c-4cb9-809b-ba689c7c16ef&payment_intent=pi_3SSGn674FnUP6weT08wMEFaQ&payment_intent_client_secret=pi_3SSGn674FnUP6weT08wMEFaQ_secret_3t2qsxCMFTl2Nm57NroTEsS3K&redirect_status=succeeded
-
-  //     if (error) {
-  //       onError(error.message || "Payment failed");
-  //     } else {
-  //       onSuccess();
-  //     }
-  //   } catch (error: any) {
-  //     onError(error.message || "Payment failed");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-  // Update StripePaymentForm component:
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -121,7 +92,7 @@ const StripePaymentForm: React.FC<{
       // Confirm payment WITHOUT redirect
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
-        redirect: "if_required", // ✅ Don't redirect automatically
+        redirect: "if_required",
       });
 
       if (error) {
@@ -134,7 +105,6 @@ const StripePaymentForm: React.FC<{
           {
             transactionId,
             payment_intent_id: paymentIntent.id,
-            // redirectStatus: "succeeded",
           }
         );
 
@@ -142,8 +112,6 @@ const StripePaymentForm: React.FC<{
 
         if (verifyData.success) {
           onSuccess();
-          console.log("after success");
-          // Show success modal here
         } else {
           onError("Payment verification failed");
         }
@@ -201,6 +169,9 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
     useState<Promise<Stripe | null> | null>(null);
   const [clientSecret, setClientSecret] = useState<string>("");
   const [transactionId, setTransactionId] = useState<string>("");
+
+  const { currencySymble, currency } = useAuth();
+  const [, setLocation] = useLocation();
 
   const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
     Zap,
@@ -279,9 +250,11 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
         name: "Your Company Name",
         description: `${plan.name} Plan - ${isAnnual ? "Annual" : "Monthly"}`,
         order_id: paymentData.orderId,
-        handler: async (response: any) => {
+        handler: async function (response: any) {
           try {
-            // Verify payment on backend
+            console.log("Razorpay payment success:", response);
+
+            // ✅ Verify payment on backend
             const verifyResponse = await apiRequest(
               "POST",
               "/api/payment/verify/razorpay",
@@ -295,24 +268,40 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
             const verifyData = await verifyResponse.json();
 
-            console.log("verifyData", verifyData);
+            console.log("Verification response:", verifyData);
 
             if (verifyData.success) {
+              // ✅ Show success toast
               toast({
                 title: "Payment Successful!",
                 description: `Welcome to ${plan.name} plan. Your subscription is now active.`,
               });
+
+              // ✅ Close modal first
               onOpenChange(false);
-              // window.location.href = `/payment/success?transactionId=${paymentData.transactionId}`;
+
+              // ✅ Use setTimeout to ensure modal closes before navigation
+              setTimeout(() => {
+                setLocation("/plans");
+              }, 100);
             } else {
-              throw new Error("Payment verification failed");
+              throw new Error(
+                verifyData.message || "Payment verification failed"
+              );
             }
           } catch (error: any) {
+            console.error("Payment verification error:", error);
             toast({
               title: "Payment Verification Failed",
-              description: error.message,
+              description: error.message || "Please contact support",
               variant: "destructive",
             });
+
+            // ✅ Redirect to plans page even on error to show status
+            setTimeout(() => {
+              onOpenChange(false);
+              setLocation("/plans");
+            }, 100);
           }
         },
         prefill: {
@@ -322,7 +311,8 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
           color: "#3b82f6",
         },
         modal: {
-          ondismiss: () => {
+          ondismiss: function () {
+            console.log("Payment modal dismissed");
             setLoading(false);
             toast({
               title: "Payment Cancelled",
@@ -330,14 +320,22 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
               variant: "destructive",
             });
           },
+          // ✅ Prevent backdrop click to close
+          escape: true,
+          backdropclose: false,
         },
       };
 
       const razorpay = new window.Razorpay(options);
       razorpay.open();
     } catch (error: any) {
-      console.error("Razorpay payment error:", error);
-      throw error;
+      console.error("Razorpay initialization error:", error);
+      setLoading(false);
+      toast({
+        title: "Payment Failed",
+        description: "Failed to initialize payment. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -358,7 +356,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
         userId: userId,
         planId: plan.id,
         paymentProviderId: selectedProvider.id,
-        currency: "INR",
+        currency: currency,
         billingCycle: isAnnual ? "annual" : "monthly",
       };
 
@@ -409,9 +407,17 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   const handleStripeSuccess = () => {
     toast({
-      title: "Payment Processing",
-      description: "Your payment is being processed. Redirecting...",
+      title: "Payment Successful!",
+      description: `Welcome to ${plan.name} plan. Your subscription is now active.`,
     });
+
+    // ✅ Close modal first
+    onOpenChange(false);
+
+    // ✅ Navigate after modal closes
+    setTimeout(() => {
+      setLocation("/plans");
+    }, 100);
   };
 
   const handleStripeError = (error: string) => {
@@ -539,18 +545,23 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
             <div className="flex items-center justify-between text-xs sm:text-sm">
               <span className="text-gray-600">Subtotal</span>
               <span className="font-medium text-gray-900">
-                ${price.toFixed(2)}
+                {currencySymble}
+                {price.toFixed(2)}
               </span>
             </div>
             <div className="flex items-center justify-between text-xs sm:text-sm">
               <span className="text-gray-600">Tax (18% GST)</span>
               <span className="font-medium text-gray-900">
-                ${tax.toFixed(2)}
+                {currencySymble}
+                {tax.toFixed(2)}
               </span>
             </div>
             <div className="flex items-center justify-between text-base sm:text-lg font-bold pt-2 sm:pt-3 border-t">
               <span className="text-gray-900">Total</span>
-              <span className="text-blue-600">${total.toFixed(2)}</span>
+              <span className="text-blue-600">
+                {currencySymble}
+                {total.toFixed(2)}
+              </span>
             </div>
           </div>
 
@@ -653,7 +664,8 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
             ) : (
               <>
                 <Lock className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-                Pay ${total.toFixed(2)}
+                Pay {currencySymble}
+                {total.toFixed(2)}
               </>
             )}
           </Button>

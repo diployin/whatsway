@@ -17,7 +17,10 @@ const SidebarContext = createContext<SidebarContextType | null>(null);
 
 // Provider implementation
 export function SidebarProvider({ children }: { children: ReactNode }) {
-  const [isOpen, setOpen] = useState(false);
+  if (window.innerWidth >= 1024) {
+  }
+
+  const [isOpen, setOpen] = useState();
   const [isCollapsed, setCollapsed] = useState(false);
   const [selectedMenu, setSelectedMenu] = useState<string | null>(null);
 
