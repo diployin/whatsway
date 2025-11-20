@@ -38,10 +38,10 @@ export default function Campaigns() {
   const limit = 10;
 
   const { data: activeChannel } = useQuery({
-      queryKey: ["/api/channels/active"],
-    });
+    queryKey: ["/api/channels/active"],
+  });
 
-    const channelId = activeChannel?.id;
+  const channelId = activeChannel?.id;
 
   // Fetch campaigns
   const { data: campaignResponse, isLoading: campaignsLoading } = useQuery({
@@ -72,19 +72,17 @@ export default function Campaigns() {
 
   // Fetch templates
   const { data: templates = [] } = useQuery({
-  queryKey: ["/api/getTemplateByUserId", userId, channelId], // <-- channelId add kiya
-  enabled: !!userId && !!channelId, // <-- dono available honi chahiye
-  queryFn: async () => {
+    queryKey: ["/api/getTemplateByUserId", userId, channelId], // <-- channelId add kiya
+    enabled: !!userId && !!channelId, // <-- dono available honi chahiye
+    queryFn: async () => {
+      // New API call
+      const response = await api.getTemplates(channelId);
+      const data = await response.json();
 
-    // New API call
-    const response = await api.getTemplates(channelId);
-    const data = await response.json();
-
-    // Return clean array
-    return Array.isArray(data) ? data : [];
-  },
-});
-
+      // Return clean array
+      return Array.isArray(data) ? data : [];
+    },
+  });
 
   // Fetch contacts
   const { data: contactsResponse } = useQuery({
@@ -252,25 +250,29 @@ export default function Campaigns() {
             />
 
             {/* Pagination */}
-            <div className="flex justify-between items-center mt-4">
-              <Button
-                variant="outline"
-                disabled={page === 1}
-                onClick={() => setPage(page - 1)}
-              >
-                Previous
-              </Button>
-              <span className="text-sm text-muted-foreground">
-                Page {page} of {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                disabled={page === totalPages}
-                onClick={() => setPage(page + 1)}
-              >
-                Next
-              </Button>
-            </div>
+            {campaigns && campaigns.length >= 0 ? (
+              <div className="flex justify-between items-center mt-4">
+                <Button
+                  variant="outline"
+                  disabled={page === 1}
+                  onClick={() => setPage(page - 1)}
+                >
+                  Previous
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  Page {page} of {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  disabled={page === totalPages}
+                  onClick={() => setPage(page + 1)}
+                >
+                  Next
+                </Button>
+              </div>
+            ) : (
+              ""
+            )}
           </CardContent>
         </Card>
       </div>
