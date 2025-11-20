@@ -170,7 +170,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [clientSecret, setClientSecret] = useState<string>("");
   const [transactionId, setTransactionId] = useState<string>("");
 
-  const { currencySymble, currency } = useAuth();
+  const { currencySymbol, currency } = useAuth();
   const [, setLocation] = useLocation();
 
   const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -545,21 +545,21 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
             <div className="flex items-center justify-between text-xs sm:text-sm">
               <span className="text-gray-600">Subtotal</span>
               <span className="font-medium text-gray-900">
-                {currencySymble}
+                {currencySymbol}
                 {price.toFixed(2)}
               </span>
             </div>
             <div className="flex items-center justify-between text-xs sm:text-sm">
               <span className="text-gray-600">Tax (18% GST)</span>
               <span className="font-medium text-gray-900">
-                {currencySymble}
+                {currencySymbol}
                 {tax.toFixed(2)}
               </span>
             </div>
             <div className="flex items-center justify-between text-base sm:text-lg font-bold pt-2 sm:pt-3 border-t">
               <span className="text-gray-900">Total</span>
               <span className="text-blue-600">
-                {currencySymble}
+                {currencySymbol}
                 {total.toFixed(2)}
               </span>
             </div>
@@ -664,7 +664,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
             ) : (
               <>
                 <Lock className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-                Pay {currencySymble}
+                Pay {currencySymbol}
                 {total.toFixed(2)}
               </>
             )}

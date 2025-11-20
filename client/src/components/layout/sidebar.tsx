@@ -34,6 +34,7 @@ import { MdOutlineSupportAgent, MdGroups } from "react-icons/md";
 import { useSidebar } from "@/contexts/sidebar-context";
 
 import { AdminCreditBox } from "../AdminCreditBox";
+import { useQuery } from "@tanstack/react-query";
 
 type Role = "superadmin" | "admin" | "user";
 
@@ -58,6 +59,14 @@ const navItems: NavItem[] = [
     allowedRoles: ["superadmin", "admin", "user"],
   },
   {
+    href: "/inbox",
+    icon: MessageSquare,
+    labelKey: "navigation.inbox",
+    color: "text-blue-400",
+    // requiredPrefix: "notifications.",
+    allowedRoles: ["admin"],
+  },
+  {
     href: "/contacts",
     icon: Users,
     labelKey: "navigation.contacts",
@@ -65,7 +74,13 @@ const navItems: NavItem[] = [
     requiredPrefix: "contacts.",
     allowedRoles: ["superadmin", "admin"],
   },
-
+  {
+    href: "/groups",
+    icon: MdGroups,
+    labelKey: "Groups",
+    color: "text-blue-400",
+    allowedRoles: ["admin"],
+  },
   {
     href: "/campaigns",
     icon: Megaphone,
@@ -154,14 +169,6 @@ const navItems: NavItem[] = [
     allowedRoles: ["superadmin"],
   },
   {
-    href: "/inbox",
-    icon: MessageSquare,
-    labelKey: "navigation.inbox",
-    color: "text-blue-400",
-    // requiredPrefix: "notifications.",
-    allowedRoles: ["admin"],
-  },
-  {
     href: "/gateway",
     icon: Bell,
     labelKey: "navigation.plans",
@@ -196,14 +203,7 @@ const navItems: NavItem[] = [
     labelKey: "Billing & Credits",
     color: "text-blue-400",
     allowedRoles: ["admin"],
-  },
-  {
-    href: "/groups",
-    icon: MdGroups,
-    labelKey: "Groups",
-    color: "text-blue-400",
-    allowedRoles: ["admin"],
-  },
+  }
 ];
 
 const sidebarItemsCategories = [
@@ -293,7 +293,6 @@ export default function Sidebar() {
   const { user, logout } = useAuth();
   const { t } = useTranslation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [isAIActive, setIsAIActive] = useState(false);
   const isSuper = user?.role === "superadmin";
   const isAdmin = user?.role === "admin";
 
@@ -309,10 +308,6 @@ export default function Sidebar() {
   } = useSidebar();
 
   console.log("isOpen", isOpen);
-
-  const handleToggleAI = (): void => {
-    setIsAIActive(!isAIActive);
-  };
 
   useEffect(() => {
     function handleResize() {
@@ -388,6 +383,19 @@ export default function Sidebar() {
       </Link>
     );
   };
+
+
+  const { data:aiData, isLoading, error, refetch, isFetching } = useQuery({
+    queryKey: ["/api/ai-settings"],
+    queryFn: async () => {
+      const res = await fetch("/api/ai-settings");
+      if (!res.ok) throw new Error("Failed to fetch settings");
+      return res.json();
+    },
+  });
+
+  // Extract dynamic active status
+const isAIActive = aiData?.isActive ?? false;
 
   return (
     <>
@@ -467,51 +475,44 @@ export default function Sidebar() {
 
           {isAdmin && (
             <div className="px-6 py-3">
-              <AdminCreditBox credits={595} />
+              <AdminCreditBox />
             </div>
           )}
 
           {/* Smaller Toggle Button with Green Color */}
-          {isAdmin ? (
-            <div className="p-4 border-t border-gray-100">
-              <div className="flex items-center space-x-3 p-3 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg">
-                <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-                  <Bot className="w-4 h-4 text-white" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">
-                    {t("common.aiAssistant")}
-                  </p>
-                  <div className="flex items-center space-x-2">
-                    <div
-                      className={`w-2 h-2 rounded-full transition-colors ${
-                        isAIActive ? "bg-green-500 pulse-gentle" : "bg-gray-400"
-                      }`}
-                    ></div>
-                    <span className="text-xs text-gray-600">
-                      {/* {isAIActive ? t("common.active") : t("Inactive")} */}
-                      {t("campaigns.comingSoon")}
-                    </span>
-                  </div>
-                </div>
-                {/* Smaller Toggle Button with Green Color */}
-                <button
-                  onClick={handleToggleAI}
-                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${
-                    isAIActive ? "bg-green-600" : "bg-gray-200"
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-3 w-3 transform rounded-full bg-white transition ${
-                      isAIActive ? "translate-x-5" : "translate-x-1"
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
-          ) : (
-            ""
-          )}
+          {isAdmin && (
+  <div className="p-4 border-t border-gray-100">
+    <div className="flex items-center space-x-3 p-3 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg">
+      
+      {/* Icon Box */}
+      <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+        <Bot className="w-4 h-4 text-white" />
+      </div>
+
+      {/* Text + Status Dot */}
+      <div className="flex-1">
+        <p className="text-sm font-medium text-gray-900">
+          {t("common.aiAssistant")}
+        </p>
+
+        <div className="flex items-center space-x-2">
+          {/* Status Dot */}
+          <div
+            className={`w-2 h-2 rounded-full transition-all ${
+              isAIActive ? "bg-green-500 animate-pulse" : "bg-gray-400"
+            }`}
+          ></div>
+
+          {/* Status Text */}
+          <span className="text-xs text-gray-600">
+            {isAIActive ? t("common.active") : t("common.inactive")}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
         </div>
       </div>
     </>

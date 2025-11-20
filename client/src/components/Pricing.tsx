@@ -25,7 +25,7 @@ const Pricing = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [isAnnual, setIsAnnual] = useState(false);
   const { toast } = useToast();
-  const { user, currencySymble } = useAuth();
+  const { user, currencySymbol } = useAuth();
 
   console.log("user", user);
 
@@ -156,7 +156,7 @@ const Pricing = () => {
                 {/* Price */}
                 <div className="flex items-baseline justify-center mb-2">
                   <span className="text-4xl font-bold text-gray-900">
-                    {currencySymble}
+                    {currencySymbol}
                     {isAnnual ? plan.annualPrice : plan.monthlyPrice}
                   </span>
                   <span className="text-gray-600 ml-2">

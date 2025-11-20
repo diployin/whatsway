@@ -59,7 +59,7 @@ export default function Plans() {
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
-  const { user, currencySymble } = useAuth();
+  const { user, currencySymbol } = useAuth();
 
   const isSuper = user?.role === "superadmin";
 
@@ -88,6 +88,7 @@ export default function Plans() {
       channel: "",
       contacts: "",
       automation: "",
+      campaign: "",
     },
     features: [],
   });
@@ -175,7 +176,7 @@ export default function Plans() {
     if (!confirm("Are you sure you want to delete this plan?")) return;
 
     try {
-      const response = await fetch(`${API_URL}/admin/plans/${id}`, {
+      const response = await fetch(`/api/admin/plans/${id}`, {
         method: "DELETE",
       });
 
@@ -214,8 +215,12 @@ export default function Plans() {
         channel: "",
         contacts: "",
         automation: "",
+        campaign: "",
       },
-      features: plan.features || [],
+      features: (plan.features || []).map((f: string) => ({
+        name: f,
+        included: true,
+      })),
     });
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -232,7 +237,7 @@ export default function Plans() {
       buttonColor: "bg-blue-500 hover:bg-blue-600",
       monthlyPrice: "0",
       annualPrice: "0",
-      permissions: { channel: "", contacts: "", automation: "" },
+      permissions: { channel: "", contacts: "", automation: "", campaign: "" },
       features: [],
     });
     setEditingPlan(null);
@@ -270,7 +275,7 @@ export default function Plans() {
 
       <main className="p-6 space-y-6">
         {/* Stats Card */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+       {   isSuper && ( <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
@@ -336,7 +341,7 @@ export default function Plans() {
               </div>
             </CardContent>
           </Card>
-        </div>
+        </div>)}
 
         {/* Main Card */}
         <Card>
@@ -478,7 +483,7 @@ export default function Plans() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Monthly Price ({currencySymble})
+                        Monthly Price ({currencySymbol})
                       </label>
                       <input
                         type="number"
@@ -497,7 +502,7 @@ export default function Plans() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Annual Price ({currencySymble})
+                        Annual Price ({currencySymbol})
                       </label>
                       <input
                         type="number"
@@ -607,6 +612,26 @@ export default function Plans() {
                             permissions: {
                               ...formData.permissions,
                               automation: e.target.value,
+                            },
+                          })
+                        }
+                        placeholder="Advanced"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Campaign
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.permissions.campaign}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            permissions: {
+                              ...formData.permissions,
+                              campaign: e.target.value,
                             },
                           })
                         }
@@ -788,7 +813,7 @@ export default function Plans() {
                           <div className="mb-4">
                             <div className="flex items-baseline gap-1">
                               <span className="text-3xl font-black text-gray-900">
-                                {currencySymble}
+                                {currencySymbol}
                                 {isAnnual
                                   ? plan.annualPrice
                                   : plan.monthlyPrice}
@@ -799,12 +824,16 @@ export default function Plans() {
                             </div>
                             {plan.permissions && (
                               <div className="mt-2 space-y-1">
-                                <div className="text-xs text-gray-600">
-                                  ✓ {plan.permissions.contacts} contacts
-                                </div>
-                                <div className="text-xs text-gray-600">
-                                  ✓ {plan.permissions.channel} channels
-                                </div>
+                                {Object.entries(plan.permissions).map(
+                                  ([key, value]) => (
+                                    <div
+                                      key={key}
+                                      className="text-xs text-gray-600 capitalize"
+                                    >
+                                      ✓ {value} {key}
+                                    </div>
+                                  )
+                                )}
                               </div>
                             )}
                           </div>
