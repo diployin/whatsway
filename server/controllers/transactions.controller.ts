@@ -432,6 +432,7 @@ export const exportTransactions = async (req: Request, res: Response) => {
         provider: paymentProviders,
       })
       .from(transactions)
+      .where(ne(transactions.status, "pending")) 
       .leftJoin(users, eq(transactions.userId, users.id))
       .leftJoin(plans, eq(transactions.planId, plans.id))
       .leftJoin(

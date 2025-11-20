@@ -312,7 +312,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             </form>
 
             {/* Or Sign up with Google */}
-            <div className="mt-6">
+            {/* <div className="mt-6">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-300" />
@@ -334,7 +334,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                 </svg>
                 Continue with Google
               </button>
-            </div>
+            </div> */}
 
             <div className="mt-6 text-center">
               <p className="text-gray-600">
