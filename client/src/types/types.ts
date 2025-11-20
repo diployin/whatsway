@@ -1,7 +1,9 @@
 export interface PlanPermissions {
+  campaign: string | number | readonly string[] | undefined;
   channel: string;
   contacts: string;
   automation: string;
+  campaigns?: string;
 }
 export interface Feature {
   name: string;

@@ -33,7 +33,7 @@ interface AuthContextType {
   isBrandSettingsLoading: boolean;
   currency: string; // Direct access to currency
   logout: () => void;
-  currencySymble: string | undefined;
+  currencySymbol: string | undefined;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -122,7 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         isBrandSettingsLoading,
         currency: brandSettings?.currency || "INR",
-        currencySymble: currency?.symbol,
+        currencySymbol: currency?.symbol,
         logout,
       }}
     >

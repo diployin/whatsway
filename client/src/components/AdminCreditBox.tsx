@@ -3,9 +3,11 @@ import { apiRequest } from "@/lib/queryClient";
 import { SubscriptionResponse } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { Crown, Check } from "lucide-react";
+import { Link } from "wouter";
 
 export function AdminCreditBox() {
   const { user } = useAuth();
+
   const { data: activeplandata, isLoading } = useQuery<SubscriptionResponse>({
     queryKey: [`api/subscriptions/user/${user?.id}`],
     queryFn: () =>
@@ -15,8 +17,34 @@ export function AdminCreditBox() {
     enabled: !!user?.id,
   });
 
-  const creditData = activeplandata?.data?.slice(0, 1)[0];
-  const hasActivePlan = activeplandata?.data && activeplandata.data.length > 0;
+  // -----------------------------
+  // ⭐ FILTER ACTIVE PLANS ⭐
+  // -----------------------------
+  const activePlans =
+    activeplandata?.data?.filter(
+      (p) => p.subscription.status === "active"
+    ) || [];
+
+  const hasActivePlan = activePlans.length > 0;
+
+  // -----------------------------
+  // ⭐ DYNAMIC PERMISSION SUMMER ⭐
+  // -----------------------------
+  const totalPermissions: Record<string, number> = {};
+
+  activePlans.forEach((plan) => {
+    const permissions = plan.subscription.planData.permissions || {};
+
+    Object.keys(permissions).forEach((key) => {
+      const val = Number(permissions[key] || 0);
+
+      if (!totalPermissions[key]) {
+        totalPermissions[key] = val;
+      } else {
+        totalPermissions[key] += val;
+      }
+    });
+  });
 
   if (isLoading) {
     return (
@@ -36,63 +64,46 @@ export function AdminCreditBox() {
             Subscription
           </span>
         </div>
+
         {hasActivePlan ? (
           <span className="text-[10px] font-bold text-green-600 bg-green-100 px-2 py-1 rounded-full">
             PRO
           </span>
         ) : (
-          <a
-            href="#upgrade"
+          <Link
+            to="/plan-upgrade"
             className="text-xs font-semibold text-blue-600 hover:underline"
           >
             Upgrade
-          </a>
+          </Link>
         )}
       </div>
 
-      {/* Plan Name */}
-      {hasActivePlan && creditData && (
+      {/* Plan Summary */}
+      {hasActivePlan && (
         <div className="mb-3">
           <p className="text-xs font-bold text-gray-900 mb-2">
-            {creditData.subscription.planData.name || "Pro Plan"}
+            Active Plans ({activePlans.length})
           </p>
         </div>
       )}
 
-      {/* Permissions List with Check Icons */}
+      {/* Dynamic Permissions List */}
       <div className="space-y-2">
-        {hasActivePlan && creditData ? (
-          <>
-            <div className="flex items-center gap-2">
-              <Check className="w-3 h-3 text-blue-600 flex-shrink-0" />
-              <span className="text-[11px] text-gray-700">
-                <span className="font-semibold">
-                  {creditData.subscription.planData.permissions.channel || 0}
-                </span>{" "}
-                <span className="text-gray-500">Channels</span>
+        {hasActivePlan ? (
+          Object.entries(totalPermissions).map(([key, value], idx) => (
+            <div key={key} className="flex items-center gap-2">
+              <Check
+                className={`w-3 h-3 flex-shrink-0 ${
+                  idx % 2 === 0 ? "text-blue-600" : "text-purple-600"
+                }`}
+              />
+              <span className="text-[11px] text-gray-700 capitalize">
+                <span className="font-semibold">{value}</span>{" "}
+                <span className="text-gray-500">{key}</span>
               </span>
             </div>
-
-            <div className="flex items-center gap-2">
-              <Check className="w-3 h-3 text-green-600 flex-shrink-0" />
-              <span className="text-[11px] text-gray-700">
-                <span className="font-semibold">
-                  {creditData.subscription.planData.permissions.contacts || 0}
-                </span>{" "}
-                <span className="text-gray-500">Contacts</span>
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Check className="w-3 h-3 text-purple-600 flex-shrink-0" />
-              <span className="text-[11px] text-gray-700">
-                <span className="font-semibold">
-                  {creditData.subscription.planData.permissions.automation || 0}
-                </span>{" "}
-                <span className="text-gray-500">Automation</span>
-              </span>
-            </div>
-          </>
+          ))
         ) : (
           <div className="text-xs text-gray-500 text-center py-3 bg-white rounded-lg">
             No active subscription
