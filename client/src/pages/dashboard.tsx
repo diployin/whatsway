@@ -225,184 +225,8 @@ export default function Dashboard() {
 
       <main className="p-6 space-y-6">
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* <Card className="hover-lift fade-in">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    {t("dashboard.totalMessagesSent")}
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">
-                    {messageMetrics?.totalMessages?.toLocaleString() || "0"}
-                  </p>
-                  <div className="flex items-center mt-2">
-                    <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-                    <span className="text-sm text-green-600 font-medium">
-                      +{stats?.messagesGrowth || 0}%
-                    </span>
-                    <span className="text-sm text-gray-500 ml-1">
-                      {t("dashboard.vsLastMonth")}
-                    </span>
-                  </div>
-                </div>
-                <div className="p-3 bg-blue-50 rounded-lg">
-                  <MessageSquare className="w-6 h-6 text-blue-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card> */}
-          <AdminStats />
-
-          <Card className="hover-lift fade-in">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    {t("dashboard.totalMessagesSent")}
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">
-                    {stats?.totalMessages?.toLocaleString() || "0"}
-                  </p>
-                  <div className="flex items-center mt-2">
-                    {(() => {
-                      if (!stats) {
-                        return; // or handle default case
-                      }
-                      const monthlyGrowth = getMonthlyGrowth(stats);
-
-                      return (
-                        <>
-                          {monthlyGrowth.isPositive ? (
-                            <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-                          ) : (
-                            <TrendingDown className="w-4 h-4 text-red-500 mr-1" />
-                          )}
-                          <span
-                            className={`text-sm font-medium ${
-                              monthlyGrowth.isFlat
-                                ? "text-gray-600"
-                                : monthlyGrowth.isPositive
-                                ? "text-green-600"
-                                : "text-red-600"
-                            }`}
-                          >
-                            {monthlyGrowth.isPositive ? "+" : "-"}
-                            {monthlyGrowth.growth}%
-                          </span>
-                          <span className="text-sm text-gray-500 ml-1">
-                            {t("dashboard.vsLastMonth")}
-                          </span>
-                        </>
-                      );
-                    })()}
-                  </div>
-                </div>
-                <div className="p-3 bg-blue-50 rounded-lg">
-                  <MessageSquare className="w-6 h-6 text-blue-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="hover-lift fade-in">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    {t("dashboard.totalCampaigns")}
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">
-                    {campaignAnalytics?.summary?.totalCampaigns || 0}
-                  </p>
-                  <div className="flex items-center mt-2">
-                    <Clock className="w-4 h-4 text-orange-500 mr-1" />
-                    <span className="text-sm text-orange-600 font-medium">
-                      {campaignAnalytics?.summary?.activeCampaigns || 0}{" "}
-                      {t("dashboard.runningNow")}
-                    </span>
-                  </div>
-                </div>
-                <div className="p-3 bg-orange-50 rounded-lg">
-                  <Megaphone className="w-6 h-6 text-orange-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="hover-lift fade-in">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    {t("dashboard.deliveryRate")}
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">
-                    {deliveryRate.toFixed(1) || "0.0"}%
-                  </p>
-                  <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                    <div
-                      className="bg-green-500 h-2 rounded-full"
-                      style={{ width: `${stats?.deliveryRate || 0}%` }}
-                    />
-                  </div>
-                </div>
-                <div className="p-3 bg-green-50 rounded-lg">
-                  <CheckCircle className="w-6 h-6 text-green-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="hover-lift fade-in">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    {t("dashboard.textLead")}
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">
-                    {stats?.todayContacts || "0"}
-                  </p>
-
-                  <div className="flex items-center mt-2">
-                    {(() => {
-                      if (!stats) {
-                        return; // or handle default case
-                      }
-                      const comparison = getWeekComparison(stats);
-                      return (
-                        <>
-                          {comparison.isUp ? (
-                            <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-                          ) : (
-                            <TrendingDown className="w-4 h-4 text-red-500 mr-1" />
-                          )}
-                          <span
-                            className={`text-sm font-medium ${
-                              comparison.isUp
-                                ? "text-green-600"
-                                : "text-red-600"
-                            }`}
-                          >
-                            {comparison.percentage}%
-                          </span>
-                          <span className="text-sm text-gray-500 ml-1">
-                            {t("dashboard.vsLastWeek")}
-                          </span>
-                        </>
-                      );
-                    })()}
-                  </div>
-                </div>
-
-                <div className="p-3 bg-purple-50 rounded-lg">
-                  <Users className="w-6 h-6 text-purple-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+        <AdminStats />
 
         {/* Charts and Recent Activity */}
         <div
@@ -645,21 +469,19 @@ export default function Dashboard() {
                       : "bg-red-50"
                   }`}
                 >
-                  <div className="flex items-center space-x-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3 space-y-2 sm:space-y-0">
                     <div
-                      className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                        activeChannel?.isActive === true
-                          ? "bg-green-600"
-                          : "bg-red-600"
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                        activeChannel?.isActive ? "bg-green-600" : "bg-red-600"
                       }`}
                     >
                       <MessageSquare className="w-4 h-4 text-white" />
                     </div>
-                    <div>
-                      <h4 className="font-medium text-gray-900">
+                    <div className="min-w-0">
+                      <h4 className="font-medium text-gray-900 text-sm sm:text-base truncate">
                         {t("dashboard.whatsAppCloudAPI")}
                       </h4>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-xs sm:text-sm text-gray-600 truncate">
                         {user?.username
                           ? activeChannel
                             ? `${
@@ -680,6 +502,7 @@ export default function Dashboard() {
                       </p>
                     </div>
                   </div>
+
                   <div className="flex items-center space-x-2">
                     <div
                       className={`w-2 h-2 rounded-full ${
