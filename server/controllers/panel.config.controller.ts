@@ -21,6 +21,8 @@ export const panelConfigSchema = z.object({
   supportEmail: z.string().email().optional().or(z.literal("")),
   defaultLanguage: z.string().length(2).default("en"),
   supportedLanguages: z.array(z.string()).default(["en"]),
+  currency: z.string().min(1).default("INR"),     // e.g. USD, INR
+  country: z.string().length(2).default("IN"),    // ISO2 country code
   firebase: z.record(z.any()).optional(),
 });
 
@@ -29,6 +31,8 @@ export const brandSettingsSchema = z.object({
   tagline: z.string().optional(),
   logo: z.string().optional(),
   favicon: z.string().optional(),
+  currency: z.string().min(1).default("INR"),     // e.g. USD, INR
+  country: z.string().length(2).default("IN"),  // ISO2 country code
 });
 
 
@@ -43,6 +47,8 @@ interface ParsedPanelConfig extends Partial<{
     supportEmail: string;
     logo: string;
     favicon: string;
+    currency: string;
+    country: string;
   }> {}
 
 // Helper function to process base64 images
@@ -218,6 +224,8 @@ export const getBrandSettings = async (_req: Request, res: Response) => {
     const brandSettings = {
       title: config.name || "Your App Name",
       tagline: config.tagline || "",
+      currency: config.currency || "",
+      country: config.country || "",
       logo: config.logo?.startsWith("https") ? config.logo : `/uploads/${config.logo}`,
       favicon: config.favicon?.startsWith("https") ? config.favicon : `/uploads/${config.favicon}`,
       updatedAt: config.updatedAt?.toISOString() || new Date().toISOString(),
@@ -231,7 +239,7 @@ export const getBrandSettings = async (_req: Request, res: Response) => {
 
 export const createBrandSettings = async (req: Request, res: Response) => {
   try {
-    console.log("Creating Brand Settings with data:", req.body);
+    // console.log("Creating Brand Settings with data:", req.body);
     const parsed = brandSettingsSchema.parse(req.body);
 
     const files = req.files as Record<string, (Express.Multer.File & { cloudUrl?: string })[]> | undefined;
@@ -274,6 +282,8 @@ export const createBrandSettings = async (req: Request, res: Response) => {
       supportedLanguages: ["en"],
       logo: logoPath,
       favicon: faviconPath,
+      country :"IN",
+      currency:"INR"
     };
 
     const config = await createPanelConfig(panelData);
@@ -284,6 +294,8 @@ export const createBrandSettings = async (req: Request, res: Response) => {
       tagline: config.tagline || "",
       logo: config.logo || "",
       favicon: config.favicon || "",
+      country: config.country || "",
+      currency: config.currency || "",
       updatedAt: config.updatedAt?.toISOString() || new Date().toISOString(),
     };
 
@@ -296,8 +308,8 @@ export const createBrandSettings = async (req: Request, res: Response) => {
 
 export const updateBrandSettings = async (req: Request, res: Response) => {
   try {
-    console.log("Parsed Body:", req.body);
-    console.log("Parsed Files:", req.files);
+    // console.log("Parsed Body:", req.body);
+    // console.log("Parsed Files:", req.files);
 
     const parsed = brandSettingsSchema.parse(req.body);
     const files = req.files as Record<string, (Express.Multer.File & { cloudUrl?: string })[]> | undefined;
@@ -329,6 +341,8 @@ export const updateBrandSettings = async (req: Request, res: Response) => {
       tagline: parsed.tagline || "",
       logo: logoPath,
       favicon: faviconPath,
+      country: parsed.country || "",
+      currency: parsed.currency || "",
     };
 
     const config = await updateFirstPanelConfig(panelData);
@@ -337,6 +351,8 @@ export const updateBrandSettings = async (req: Request, res: Response) => {
     const brandSettings = {
       title: config.name || parsed.title,
       tagline: config.tagline || "",
+      country: config.country || "",
+      currency: config.currency || "",
       logo: config.logo?.startsWith("https") ? config.logo : `/uploads/${config.logo}`,
       favicon: config.favicon?.startsWith("https") ? config.favicon : `/uploads/${config.favicon}`,
       updatedAt: config.updatedAt?.toISOString() || new Date().toISOString(),
