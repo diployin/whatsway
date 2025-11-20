@@ -3,6 +3,7 @@ import { campaignsController } from "../controllers/campaigns.controller";
 import { extractChannelId } from "../middlewares/channel.middleware";
 import { requireAuth, requirePermission } from "../middlewares/auth.middleware";
 import { PERMISSIONS } from "@shared/schema";
+import { requireSubscription } from "server/middlewares/requireSubscription";
 
 export function registerCampaignRoutes(app: Express) {
   // Get all campaigns
@@ -21,7 +22,7 @@ export function registerCampaignRoutes(app: Express) {
 
   // Create new campaign
   app.post("/api/campaigns",   requireAuth,
-  requirePermission(PERMISSIONS.CAMPAIGNS_CREATE),
+  requirePermission(PERMISSIONS.CAMPAIGNS_CREATE), requireSubscription("campaign"), 
     campaignsController.createCampaign
   );
 

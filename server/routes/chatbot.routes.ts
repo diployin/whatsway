@@ -9,6 +9,7 @@ import OpenAI from 'openai';
 import { requireAuth } from 'server/middlewares/auth.middleware';
 import { insertSiteSchema, sites } from '@shared/schema';
 import { io } from '../socket';
+import { requireSubscription } from 'server/middlewares/requireSubscription';
 
 // Initialize OpenAI
 const openai = new OpenAI({
@@ -123,7 +124,7 @@ export function registerWidgetRoutes(app: Express) {
   });
 
   // Save contact
-  app.post("/api/widget/contacts", async (req, res) => {
+  app.post("/api/widget/contacts",requireSubscription('contacts'), async (req, res) => {
     try {
       const { siteId, name, email, phone, source } = req.body;
       
@@ -546,16 +547,16 @@ app.post("/api/widget/chat", async (req, res) => {
   app.get("/api/active-site", async (req, res) => {
     try {
       // Use authenticated user's tenantId
-      console.log("active-site-channelId" , req)
+      // console.log("active-site-channelId" , req)
       const { channelId } = req.query; 
-      console.log("active-site-channelId" , channelId)
+      // console.log("active-site-channelId" , channelId)
 
       if (!channelId) {
         return res.status(400).json({ message: "No Channel fount" });
       }
 
       const [site] = await storage.getSitesByChannel(channelId);
-      console.log("site" , site)
+      // console.log("site" , site)
       res.json(site);
     } catch (error: any) {
       res.status(500).json({ message: error.message });

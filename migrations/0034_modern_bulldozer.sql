@@ -1,0 +1,1 @@
+ALTER TABLE "campaigns" ALTER COLUMN "created_by" SET DATA TYPE varchar;
