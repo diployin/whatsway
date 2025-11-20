@@ -371,6 +371,7 @@ export default function Dashboard() {
         </div>
 
         {/* Quick Actions and API Status */}
+        {user?.role !== "superadmin" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Quick Actions */}
           <Card className="hover-lift fade-in">
@@ -625,6 +626,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
+        )}
       </main>
     </div>
   );
