@@ -4,6 +4,7 @@ import { validateRequest } from "../middlewares/validation.middleware";
 import { insertContactSchema , PERMISSIONS } from "@shared/schema";
 import { extractChannelId } from "../middlewares/channel.middleware";
 import { requireAuth, requirePermission } from "../middlewares/auth.middleware";
+import { requireSubscription } from "server/middlewares/requireSubscription";
 
 export function registerContactRoutes(app: Express) {
   // Get all contacts
@@ -28,7 +29,7 @@ export function registerContactRoutes(app: Express) {
   // Create contact
   app.post("/api/contacts",
     extractChannelId, requireAuth,
-    requirePermission(PERMISSIONS.CONTACTS_CREATE),
+    requirePermission(PERMISSIONS.CONTACTS_CREATE),requireSubscription('contacts'),
     validateRequest(insertContactSchema), 
     contactsController.createContact
   );

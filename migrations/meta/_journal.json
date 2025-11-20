@@ -232,6 +232,20 @@
       "when": 1763624566417,
       "tag": "0032_burly_tinkerer",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1763641653370,
+      "tag": "0033_rich_moonstone",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1763641742761,
+      "tag": "0034_modern_bulldozer",
+      "breakpoints": true
     }
   ]
 }

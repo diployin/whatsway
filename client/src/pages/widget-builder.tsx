@@ -352,7 +352,7 @@ export default function WidgetBuilder() {
     }
   }, [brandSettings]);
 
-  console.log("setConfig" , config)
+  // console.log("setConfig" , config)
 
   const saveConfigMutation = useMutation({
     mutationFn: async (widgetConfig: typeof config) => {
@@ -365,7 +365,9 @@ export default function WidgetBuilder() {
       return await res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/sites"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/active-site", activeChannel?.id],
+      });
       toast({
         title: "Configuration saved",
         description: "Your widget design has been saved successfully",
@@ -1632,7 +1634,7 @@ export default function WidgetBuilder() {
 
                 <Button
                   onClick={() => saveConfigMutation.mutate(config)}
-                  disabled={!selectedSiteId || saveConfigMutation.isPending}
+                  disabled={saveConfigMutation.isPending}
                   className="w-full"
                 >
                   {saveConfigMutation.isPending

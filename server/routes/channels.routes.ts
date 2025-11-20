@@ -3,6 +3,7 @@ import * as channelsController from "../controllers/channels.controller";
 import { validateRequest } from "../middlewares/validation.middleware";
 import { insertChannelSchema } from "@shared/schema";
 import { requireAuth } from "server/middlewares/auth.middleware";
+import { requireSubscription } from "server/middlewares/requireSubscription";
 
 export function registerChannelRoutes(app: Express) {
   // Get all channels
@@ -15,7 +16,7 @@ export function registerChannelRoutes(app: Express) {
 
   // Create channel
   app.post("/api/channels", 
-    validateRequest(insertChannelSchema),
+    validateRequest(insertChannelSchema), requireSubscription("channel"), 
     channelsController.createChannel
   );
 

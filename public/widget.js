@@ -920,39 +920,62 @@
             Start Chat
           </button>
         </form>
+        <div id="lead-error" 
+          style="display:none; color:red; font-size:14px; margin-top:8px;">
+      </div>
       </div>
     `;
   }
 
   async function submitLeadForm(event) {
     event.preventDefault();
-    
+  
     const name = document.getElementById('lead-name').value.trim();
     const email = document.getElementById('lead-email').value.trim();
     const mobile = document.getElementById('lead-mobile').value.trim();
-    
-    if (!name || !email || !mobile) return;
-    
+  
+    const errorBox = document.getElementById('lead-error'); // Add error element in form
+  
+    if (!name || !email || !mobile) {
+      errorBox.textContent = "All fields are required.";
+      errorBox.style.display = "block";
+      return;
+    }
+  
     leadInfo = { name, email, mobile };
-    
+  
     try {
-      await fetch(`${API_BASE}/api/widget/contacts`, {
+      const res = await fetch(`${API_BASE}/api/widget/contacts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           siteId: siteId,
-          name: name,
-          email: email,
+          name,
+          email,
           phone: mobile,
           source: 'chat_widget'
         })
       });
+  
+      // ❌ If API failed → show message & STOP
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        errorBox.textContent = data.error || "Failed to save your details. Try again.";
+        errorBox.style.display = "block";
+        return; // ❗ STOP HERE
+      }
+  
     } catch (error) {
       console.error('Failed to save lead:', error);
+      errorBox.textContent = "Network error. Please try again.";
+      errorBox.style.display = "block";
+      return; // ❗ STOP HERE
     }
-    
+  
+    // ✔️ Only open chat when lead successfully saved
     proceedToChat();
   }
+  
 
   function proceedToChat() {
     currentScreen = 'chat';
