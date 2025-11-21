@@ -189,3 +189,27 @@ export interface CountryCurrency {
   currency_code: string;
   symbol: string;
 }
+
+export interface TeamUserResponse {
+  data: TeamUser[];
+  total: string; // If you want number, change to: number
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface TeamUser {
+  id: string;
+  username: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string; // you can make it a union type if needed
+  status: string; // (e.g. "active" | "inactive")
+  permissions: string[]; // array of permission strings
+  avatar: string | null;
+  lastLogin: string | null;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+}
