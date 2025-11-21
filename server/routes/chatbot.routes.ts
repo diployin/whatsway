@@ -132,6 +132,8 @@ export function registerWidgetRoutes(app: Express) {
       if (!site) {
         return res.status(404).json({ error: "Site not found" });
       }
+
+      const getCreated = await storage.getChannel(site.channelId!);
       
       // Check if contact exists
       let [contact] = await storage.getContactByEmail(email);
@@ -143,6 +145,7 @@ export function registerWidgetRoutes(app: Express) {
           name,
           email,
           phone,
+          createdBy: getCreated?.createdBy || null,
           source: source || 'chat_widget',
           tags: ['widget-lead'],
         });
