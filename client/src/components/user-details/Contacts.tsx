@@ -98,8 +98,8 @@ export default function Contacts({ userId }: ContactsProps) {
               <th className="py-3 px-4 border-b">Phone</th>
               <th className="py-3 px-4 border-b">Email</th>
               <th className="py-3 px-4 border-b">Status</th>
-              <th className="py-3 px-4 border-b">Groups</th>
-              <th className="py-3 px-4 border-b">Tags</th>
+              {/* <th className="py-3 px-4 border-b">Groups</th>
+              <th className="py-3 px-4 border-b">Tags</th> */}
               <th className="py-3 px-4 border-b">Created At</th>
             </tr>
           </thead>
@@ -123,12 +123,12 @@ export default function Contacts({ userId }: ContactsProps) {
                     </span>
                   )}
                 </td>
-                <td className="py-3 px-4 border-b">
+                {/* <td className="py-3 px-4 border-b">
                   {contact.groups.join(", ") || "-"}
                 </td>
                 <td className="py-3 px-4 border-b">
                   {contact.tags.join(", ") || "-"}
-                </td>
+                </td> */}
                 <td className="py-3 px-4 border-b">
                   {new Date(contact.createdAt).toLocaleDateString()}
                 </td>

@@ -132,7 +132,7 @@ const { data: templates = [], isLoading: templatesLoading } = useQuery<Template[
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/templates"] });
+      queryClient.invalidateQueries({ queryKey: ["templates"] });
       toast({
         title: editingTemplate ? "Template updated" : "Template created",
         description: editingTemplate
@@ -179,7 +179,7 @@ const { data: templates = [], isLoading: templatesLoading } = useQuery<Template[
       return await apiRequest("POST", `/api/templates/sync`);
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/templates"] });
+      queryClient.invalidateQueries({ queryKey: ["templates"] });
       toast({
         title: "Templates synced",
         description: `Synced ${data.synced || 0} templates from WhatsApp`,
