@@ -189,10 +189,10 @@ async getContactsByUser(
     return this.contactRepo.getContactsByTenant(tenantId);
   }
   async getContactByEmail(email: string): Promise<Contact[]> {
-    return this.contactRepo.getContactsByTenant(email);
+    return this.contactRepo.getContactByEmail(email);
   }
   async getContactsByPhone(phone: string): Promise<Contact[]> {
-    return this.contactRepo.getContactsByTenant(phone);
+    return this.contactRepo.getContactByPhone(phone);
   }
   async searchContactsByChannel(channelId: string): Promise<Contact[]> {
     return this.contactRepo.getByChannel(channelId);
