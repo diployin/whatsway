@@ -29,44 +29,38 @@ export default function Templates() {
     queryKey: ["/api/channels/active"],
   });
 
- 
-  const channelId = activeChannel?.id; 
-
+  const channelId = activeChannel?.id;
 
   // Fetch templates
-const { data: templates = [], isLoading: templatesLoading } = useQuery<Template[]>({
-  queryKey: ["templates", userRole, channelId],
-  queryFn: async () => {
-    let res: Response;
+  const { data: templates = [], isLoading: templatesLoading } = useQuery<
+    Template[]
+  >({
+    queryKey: ["templates", userRole, channelId],
+    queryFn: async () => {
+      let res: Response;
 
-    if (userRole === "superadmin") {
-      // Superadmin → all templates
-      res = await fetch("/api/templates", { credentials: "include" });
-    } else {
-      // Normal user → own templates
-      const response = await api.getTemplates(channelId);
+      if (userRole === "superadmin") {
+        // Superadmin → all templates
+        res = await fetch("/api/templates", { credentials: "include" });
+      } else {
+        // Normal user → own templates
+        const response = await api.getTemplates(channelId);
         const data = await response.json();
         return Array.isArray(data) ? data : [];
-    }
+      }
 
-    if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
+      if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
 
-    const json = await res.json();
+      const json = await res.json();
 
-    if (Array.isArray(json)) return json;
-    if (json?.data && Array.isArray(json.data)) return json.data;
-    if (json) return [json];
-    return [];
-  },
+      if (Array.isArray(json)) return json;
+      if (json?.data && Array.isArray(json.data)) return json.data;
+      if (json) return [json];
+      return [];
+    },
 
-  enabled:
-    userRole === "superadmin" || (!!activeChannel),
-});
-
-
-
-
-
+    enabled: userRole === "superadmin" || !!activeChannel,
+  });
 
   // Create template mutation
   const createTemplateMutation = useMutation({
@@ -263,98 +257,195 @@ const { data: templates = [], isLoading: templatesLoading } = useQuery<Template[
         subtitle="Create and manage WhatsApp message templates"
       />
 
-      <main className="p-6">
+      <main className="p-4 sm:p-6">
         <Card>
-        <CardHeader>
-  <div className="flex items-center justify-between">
-    <CardTitle className="flex items-center">
-      <FileText className="w-5 h-5 mr-2" />
-      Message Templates
-    </CardTitle>
+          <CardHeader>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <CardTitle className="flex items-center text-lg sm:text-xl">
+                <FileText className="w-5 h-5 mr-2" />
+                Message Templates
+              </CardTitle>
 
-    {/* Buttons sirf normal users ke liye */}
-    {userRole !== "superadmin" && (
-      <div className="flex items-center space-x-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleSyncTemplates}
-          disabled={syncTemplatesMutation.isPending}
-        >
-          <RefreshCw
-            className={`w-4 h-4 mr-2 ${
-              syncTemplatesMutation.isPending ? "animate-spin" : ""
-            }`}
-          />
-          Sync from WhatsApp
-        </Button>
-        <Button onClick={handleCreateTemplate}>
-          <Plus className="w-4 h-4 mr-2" />
-          Create Template
-        </Button>
-      </div>
-    )}
-  </div>
-</CardHeader>
+              {/* Buttons sirf normal users ke liye */}
+              {userRole !== "superadmin" && (
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSyncTemplates}
+                    disabled={syncTemplatesMutation.isPending}
+                    className="w-full sm:w-auto"
+                  >
+                    <RefreshCw
+                      className={`w-4 h-4 mr-2 ${
+                        syncTemplatesMutation.isPending ? "animate-spin" : ""
+                      }`}
+                    />
+                    Sync from WhatsApp
+                  </Button>
+                  <Button
+                    onClick={handleCreateTemplate}
+                    className="w-full sm:w-auto"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create Template
+                  </Button>
+                </div>
+              )}
+            </div>
+          </CardHeader>
 
-<CardContent>
-  {templatesLoading ? (
-    <Loading />
-  ) : userRole === "superadmin" ? (
-    <div className="overflow-x-auto">
-      <table className="min-w-full border border-gray-200 bg-white rounded-lg shadow-sm">
-        <thead className="bg-gray-100 text-left text-sm font-semibold text-gray-700">
-          <tr>
-            <th className="py-3 px-4 border-b">Name</th>
-            <th className="py-3 px-4 border-b">CreatedBy</th>
-            <th className="py-3 px-4 border-b">Category</th>
-            <th className="py-3 px-4 border-b">Status</th>
-            <th className="py-3 px-4 border-b">Body</th>
-            <th className="py-3 px-4 border-b">Created At</th>
-          </tr>
-        </thead>
-        <tbody>
-          {templates.map((template) => (
-            <tr
-              key={template.id}
-              className="hover:bg-gray-50 transition-colors text-sm text-gray-700"
-            >
-              <td className="py-3 px-4 border-b">{template.name}</td>
-              <td className="py-3 px-4 border-b">{template?.createdByName?.trim() ? template.createdByName : "-"}</td>
-              <td className="py-3 px-4 border-b">{template.category}</td>
-              <td className="py-3 px-4 border-b">
-                <span
-                  className={`px-2 py-1 rounded text-xs ${
-                    template.status === "approved"
-                      ? "bg-green-100 text-green-700"
-                      : template.status === "pending"
-                      ? "bg-yellow-100 text-yellow-700"
-                      : "bg-red-100 text-red-700"
-                  }`}
-                >
-                  {template.status}
-                </span>
-              </td>
-              <td className="py-3 px-4 border-b">{template.body}</td>
-              <td className="py-3 px-4 border-b">
-                {new Date(template.createdAt).toLocaleString()}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  ) : (
-    <TemplatesTable
-      templates={templates}
-      onViewTemplate={setSelectedTemplate}
-      onEditTemplate={handleEditTemplate}
-      onDuplicateTemplate={handleDuplicateTemplate}
-      onDeleteTemplate={handleDeleteTemplate}
-    />
-  )}
-</CardContent>
-</Card>
+          <CardContent>
+            {templatesLoading ? (
+              <Loading />
+            ) : userRole === "superadmin" ? (
+              <>
+                {/* Desktop Table View for Superadmin */}
+                <div className="hidden lg:block overflow-x-auto">
+                  <table className="min-w-full border border-gray-200 bg-white rounded-lg shadow-sm">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="py-3 px-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-b">
+                          Name
+                        </th>
+                        <th className="py-3 px-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-b">
+                          Created By
+                        </th>
+                        <th className="py-3 px-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-b">
+                          Category
+                        </th>
+                        <th className="py-3 px-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-b">
+                          Status
+                        </th>
+                        <th className="py-3 px-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-b">
+                          Body
+                        </th>
+                        <th className="py-3 px-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-b">
+                          Created At
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {templates.map((template) => (
+                        <tr
+                          key={template.id}
+                          className="hover:bg-gray-50 transition-colors"
+                        >
+                          <td className="py-3 px-4 text-sm text-gray-900 font-medium">
+                            {template.name}
+                          </td>
+                          <td className="py-3 px-4 text-sm text-gray-700">
+                            {template?.createdByName?.trim()
+                              ? template.createdByName
+                              : "-"}
+                          </td>
+                          <td className="py-3 px-4 text-sm text-gray-700">
+                            <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                              {template.category}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span
+                              className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
+                                template.status === "approved"
+                                  ? "bg-green-100 text-green-700"
+                                  : template.status === "pending"
+                                  ? "bg-yellow-100 text-yellow-700"
+                                  : "bg-red-100 text-red-700"
+                              }`}
+                            >
+                              {template.status}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-sm text-gray-700 max-w-md truncate">
+                            {template.body}
+                          </td>
+                          <td className="py-3 px-4 text-sm text-gray-600">
+                            {new Date(template.createdAt).toLocaleDateString()}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile/Tablet Card View for Superadmin */}
+                <div className="lg:hidden space-y-4">
+                  {templates.map((template) => (
+                    <Card key={template.id} className="overflow-hidden">
+                      <CardContent className="p-4">
+                        {/* Header Section */}
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-gray-900 mb-1">
+                              {template.name}
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                              {template?.createdByName?.trim()
+                                ? template.createdByName
+                                : "Unknown"}
+                            </p>
+                          </div>
+                          <span
+                            className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
+                              template.status === "approved"
+                                ? "bg-green-100 text-green-700"
+                                : template.status === "pending"
+                                ? "bg-yellow-100 text-yellow-700"
+                                : "bg-red-100 text-red-700"
+                            }`}
+                          >
+                            {template.status}
+                          </span>
+                        </div>
+
+                        {/* Category and Date */}
+                        <div className="grid grid-cols-2 gap-3 mb-4 pb-4 border-b">
+                          <div>
+                            <div className="text-xs text-gray-500 mb-1">
+                              Category
+                            </div>
+                            <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                              {template.category}
+                            </span>
+                          </div>
+                          <div>
+                            <div className="text-xs text-gray-500 mb-1">
+                              Created
+                            </div>
+                            <div className="text-sm text-gray-700">
+                              {new Date(
+                                template.createdAt
+                              ).toLocaleDateString()}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Body Section */}
+                        <div>
+                          <div className="text-xs text-gray-500 mb-2">
+                            Message Body
+                          </div>
+                          <p className="text-sm text-gray-700 line-clamp-3">
+                            {template.body}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <TemplatesTable
+                templates={templates}
+                onViewTemplate={setSelectedTemplate}
+                onEditTemplate={handleEditTemplate}
+                onDuplicateTemplate={handleDuplicateTemplate}
+                onDeleteTemplate={handleDeleteTemplate}
+              />
+            )}
+          </CardContent>
+        </Card>
       </main>
 
       {/* Template Preview */}

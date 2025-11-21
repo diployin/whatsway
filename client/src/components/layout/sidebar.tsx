@@ -211,7 +211,7 @@ const navItems: NavItem[] = [
     labelKey: "Billing & Credits",
     color: "text-blue-400",
     allowedRoles: ["admin"],
-  }
+  },
 ];
 
 const sidebarItemsCategories = [
@@ -331,16 +331,38 @@ export default function Sidebar() {
   }, []);
 
   const canView = (item: NavItem): boolean => {
-  if (!user) return false;
+    if (!user) return false;
 
-  const role = user.role as Role;
+    const role = user.role as Role;
 
-  // SUPERADMIN sees everything
-  if (role === "superadmin") return true;
+    // SUPERADMIN sees everything
+    if (role === "superadmin") return true;
 
-  // TEAM role must ONLY use permissions — ignore allowedRoles & alwaysVisible
-  if (role === "team") {
-    if (!item.requiredPrefix) return false;
+    // TEAM role must ONLY use permissions — ignore allowedRoles & alwaysVisible
+    if (role === "team") {
+      if (!item.requiredPrefix) return false;
+      if (!user.permissions) return false;
+
+      const perms = Array.isArray(user.permissions)
+        ? user.permissions
+        : Object.keys(user.permissions);
+
+      const normalize = (str: string) => str.replace(".", ":");
+
+      return perms.some((perm) =>
+        perm.startsWith(normalize(item.requiredPrefix!))
+      );
+    }
+
+    // ---- ADMIN / USER LOGIC ----
+    if (item.allowedRoles && !item.allowedRoles.includes(role)) {
+      return false;
+    }
+
+    if (item.alwaysVisible) return true;
+
+    if (!item.requiredPrefix) return true;
+
     if (!user.permissions) return false;
 
     const perms = Array.isArray(user.permissions)
@@ -352,29 +374,7 @@ export default function Sidebar() {
     return perms.some((perm) =>
       perm.startsWith(normalize(item.requiredPrefix!))
     );
-  }
-
-  // ---- ADMIN / USER LOGIC ----
-  if (item.allowedRoles && !item.allowedRoles.includes(role)) {
-    return false;
-  }
-
-  if (item.alwaysVisible) return true;
-
-  if (!item.requiredPrefix) return true;
-
-  if (!user.permissions) return false;
-
-  const perms = Array.isArray(user.permissions)
-    ? user.permissions
-    : Object.keys(user.permissions);
-
-  const normalize = (str: string) => str.replace(".", ":");
-
-  return perms.some((perm) =>
-    perm.startsWith(normalize(item.requiredPrefix!))
-  );
-};
+  };
 
   const canViewOld = (item: NavItem): boolean => {
     if (!user) return false;
@@ -386,22 +386,22 @@ export default function Sidebar() {
     }
 
     // --- TEAM ROLE custom permission-based ---
-  if (user.role === "team") {
-    if (!user.permissions) return false;
+    if (user.role === "team") {
+      if (!user.permissions) return false;
 
-    // requiredPrefix must match permission
-    if (!item.requiredPrefix) return false;
+      // requiredPrefix must match permission
+      if (!item.requiredPrefix) return false;
 
-    const perms = Array.isArray(user.permissions)
-      ? user.permissions
-      : Object.keys(user.permissions);
+      const perms = Array.isArray(user.permissions)
+        ? user.permissions
+        : Object.keys(user.permissions);
 
-    const normalize = (str: string) => str.replace(".", ":");
+      const normalize = (str: string) => str.replace(".", ":");
 
-    return perms.some((perm) =>
-      perm.startsWith(normalize(item.requiredPrefix!))
-    );
-  }
+      return perms.some((perm) =>
+        perm.startsWith(normalize(item.requiredPrefix!))
+      );
+    }
     if (item.alwaysVisible) {
       return true;
     }
@@ -457,8 +457,13 @@ export default function Sidebar() {
     );
   };
 
-
-  const { data:aiData, isLoading, error, refetch, isFetching } = useQuery({
+  const {
+    data: aiData,
+    isLoading,
+    error,
+    refetch,
+    isFetching,
+  } = useQuery({
     queryKey: ["/api/ai-settings"],
     queryFn: async () => {
       const res = await fetch("/api/ai-settings");
@@ -468,7 +473,7 @@ export default function Sidebar() {
   });
 
   // Extract dynamic active status
-const isAIActive = aiData?.isActive ?? false;
+  const isAIActive = aiData?.isActive ?? false;
 
   return (
     <>
@@ -554,38 +559,38 @@ const isAIActive = aiData?.isActive ?? false;
 
           {/* Smaller Toggle Button with Green Color */}
           {isAdmin && (
-  <div className="p-4 border-t border-gray-100">
-    <div className="flex items-center space-x-3 p-3 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg">
-      
-      {/* Icon Box */}
-      <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-        <Bot className="w-4 h-4 text-white" />
-      </div>
+            <div className="p-4 border-t border-gray-100">
+              <div className="flex items-center space-x-3 p-3 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg">
+                {/* Icon Box */}
+                <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+                  <Bot className="w-4 h-4 text-white" />
+                </div>
 
-      {/* Text + Status Dot */}
-      <div className="flex-1">
-        <p className="text-sm font-medium text-gray-900">
-          {t("common.aiAssistant")}
-        </p>
+                {/* Text + Status Dot */}
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900">
+                    {t("common.aiAssistant")}
+                  </p>
 
-        <div className="flex items-center space-x-2">
-          {/* Status Dot */}
-          <div
-            className={`w-2 h-2 rounded-full transition-all ${
-              isAIActive ? "bg-green-500 animate-pulse" : "bg-gray-400"
-            }`}
-          ></div>
+                  <div className="flex items-center space-x-2">
+                    {/* Status Dot */}
+                    <div
+                      className={`w-2 h-2 rounded-full transition-all ${
+                        isAIActive
+                          ? "bg-green-500 animate-pulse"
+                          : "bg-gray-400"
+                      }`}
+                    ></div>
 
-          {/* Status Text */}
-          <span className="text-xs text-gray-600">
-            {isAIActive ? t("common.active") : t("common.inactive")}
-          </span>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
-
+                    {/* Status Text */}
+                    <span className="text-xs text-gray-600">
+                      {isAIActive ? t("common.active") : t("common.inactive")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </>
