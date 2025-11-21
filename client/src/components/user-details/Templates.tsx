@@ -121,20 +121,30 @@ export default function Templates({ userId }: TemplatesProps) {
                 <td className="py-3 px-4 border-b">{template.name}</td>
                 <td className="py-3 px-4 border-b">{template.category}</td>
                 <td className="py-3 px-4 border-b">
-                  {template.status === "approved" ? (
-                    <span className="px-2 py-1 rounded text-xs bg-green-100 text-green-700">
-                      {template.status}
-                    </span>
-                  ) : template.status === "pending" ? (
-                    <span className="px-2 py-1 rounded text-xs bg-yellow-100 text-yellow-700">
-                      {template.status}
-                    </span>
-                  ) : (
-                    <span className="px-2 py-1 rounded text-xs bg-red-100 text-red-700">
-                      {template.status}
-                    </span>
-                  )}
-                </td>
+  {(() => {
+    const status = (template.status || "").toLowerCase();
+    if (status === "approved") {
+      return (
+        <span className="px-2 py-1 rounded text-xs bg-green-100 text-green-700">
+          {template.status}
+        </span>
+      );
+    } else if (status === "pending") {
+      return (
+        <span className="px-2 py-1 rounded text-xs bg-yellow-100 text-yellow-700">
+          {template.status}
+        </span>
+      );
+    } else {
+      return (
+        <span className="px-2 py-1 rounded text-xs bg-red-100 text-red-700">
+          {template.status}
+        </span>
+      );
+    }
+  })()}
+</td>
+
                 <td className="py-3 px-4 border-b">{template.body}</td>
                 <td className="py-3 px-4 border-b">
                   {new Date(template.createdAt).toLocaleString()}
