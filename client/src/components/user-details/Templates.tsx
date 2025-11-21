@@ -1,7 +1,8 @@
-import { Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, Users } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
+import { StateDisplay } from "../StateDisplay";
 
 interface Template {
   id: string;
@@ -72,12 +73,31 @@ export default function Templates({ userId }: TemplatesProps) {
       </div>
     );
 
-  if (isError)
-    return <p className="text-muted-foreground">No templates found.</p>;
-  
+  // Error State
+  if (isError) {
+    return (
+      <StateDisplay
+        variant="error"
+        icon={AlertCircle}
+        title="Failed to Load Channels"
+        description={"Something went wrong while fetching Channels."}
+        buttonText="Try Again"
+        onButtonClick={() => window.location.reload()}
+      />
+    );
+  }
 
-  if (templates.length === 0)
-    return <p className="text-muted-foreground">No templates found.</p>;
+  // Empty State
+  if (templates.length === 0) {
+    return (
+      <StateDisplay
+        icon={Users}
+        title="No Channels Yet"
+        description="Start building your team by inviting members. They'll appear here once added."
+        buttonText="Invite Team Member"
+      />
+    );
+  }
 
   return (
     <div>
@@ -127,57 +147,57 @@ export default function Templates({ userId }: TemplatesProps) {
 
       {/* Pagination */}
       {data?.pagination && (
-  <div className="w-full mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="w-full mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          {/* LEFT SIDE → Showing X to Y of Total */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <span className="text-sm text-gray-700">
+              Showing {(page - 1) * limit + 1} to{" "}
+              {Math.min(page * limit, Number(data.pagination.total))} of{" "}
+              {data.pagination.total} templates
+            </span>
 
-    {/* LEFT SIDE → Showing X to Y of Total */}
-    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-      <span className="text-sm text-gray-700">
-        Showing {(page - 1) * limit + 1} to{" "}
-        {Math.min(page * limit, Number(data.pagination.total))} of{" "}
-        {data.pagination.total} templates
-      </span>
+            {/* Optional: Per Page Selector */}
+            <select
+              value={limit}
+              onChange={(e) => {
+                setLimit(Number(e.target.value));
+                setCurrentPage(1); // reset page
+              }}
+              className="border px-3 py-2 rounded-md text-sm w-24"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
 
-      {/* Optional: Per Page Selector */}
-      <select
-  value={limit}
-  onChange={(e) => {
-    setLimit(Number(e.target.value));
-    setCurrentPage(1); // reset page
-  }}
-  className="border px-3 py-2 rounded-md text-sm w-24"
->
-  <option value={5}>5</option>
-  <option value={10}>10</option>
-  <option value={20}>20</option>
-  <option value={50}>50</option>
-</select>
-    </div>
+          {/* RIGHT SIDE → Pagination Buttons */}
+          <div className="flex items-center justify-center sm:justify-end gap-2">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={page <= 1}
+              className="px-3 py-1 border rounded disabled:opacity-50"
+            >
+              Previous
+            </button>
 
-    {/* RIGHT SIDE → Pagination Buttons */}
-    <div className="flex items-center justify-center sm:justify-end gap-2">
-      <button
-        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-        disabled={page <= 1}
-        className="px-3 py-1 border rounded disabled:opacity-50"
-      >
-        Previous
-      </button>
+            <span className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium">
+              {page}
+            </span>
 
-      <span className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium">
-        {page}
-      </span>
-
-      <button
-        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-        disabled={page >= totalPages}
-        className="px-3 py-1 border rounded disabled:opacity-50"
-      >
-        Next
-      </button>
-    </div>
-  </div>
-)}
-
+            <button
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
+              disabled={page >= totalPages}
+              className="px-3 py-1 border rounded disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

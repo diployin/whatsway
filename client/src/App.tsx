@@ -60,6 +60,7 @@ import BillingSubscriptionPage from "./components/billing-subscription-page";
 import GroupsUI from "./pages/group-list";
 import AllSubscriptionsPage from "./pages/masterSubscriptions";
 import DemoPage from "./pages/DemoPage";
+import MinimalLoader from "./components/MinimalLoader";
 // Define route permissions mapping
 const ROUTE_PERMISSIONS: Record<string, string> = {
   "/contacts": "contacts.view",
@@ -198,7 +199,15 @@ function ProtectedRoutes() {
   if (showLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <LoadingAnimation onComplete={() => setShowLoading(false)} />;
+        {user?.role === "superadmin" ? (
+          <MinimalLoader
+            onComplete={() => setShowLoading(false)}
+            duration={1500}
+            color="green"
+          />
+        ) : (
+          <LoadingAnimation onComplete={() => setShowLoading(false)} />
+        )}
       </div>
     );
   }

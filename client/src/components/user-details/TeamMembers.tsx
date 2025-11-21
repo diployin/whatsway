@@ -1,7 +1,9 @@
-import { Loader2, Shield } from "lucide-react";
+import { Loader2, Shield, Users, UserPlus, AlertCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
+import { EmptyState } from "../EmptyState";
+import { StateDisplay } from "../StateDisplay";
 
 interface TeamMember {
   id: string;
@@ -27,14 +29,14 @@ export default function TeamMembers({ userId }: TeamMembersProps) {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
 
-  const {
-    data,
-    isLoading,
-    isError,
-    error,
-  } = useQuery<{
+  const { data, isLoading, isError, error } = useQuery<{
     data: TeamMember[];
-    pagination: { page: number; limit: number; total: number; totalPages: number };
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
   }>({
     queryKey: ["/api/team/membersByUserId", userId, page],
     queryFn: async () => {
@@ -52,22 +54,80 @@ export default function TeamMembers({ userId }: TeamMembersProps) {
   const teamMembers = data?.data || [];
   const totalPages = data?.pagination?.totalPages || 1;
 
-  if (isLoading)
+  // Loading State with Skeleton
+  if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-10 text-muted-foreground">
-        <Loader2 className="w-5 h-5 mr-2 animate-spin" /> Loading team members...
+      <div className="space-y-4">
+        <div className="overflow-x-auto">
+          <table className="min-w-full border border-gray-200 bg-white rounded-lg shadow-sm">
+            <thead className="bg-gray-100 text-left text-sm font-semibold text-gray-700">
+              <tr>
+                <th className="py-3 px-4 border-b">Name</th>
+                <th className="py-3 px-4 border-b">Email</th>
+                <th className="py-3 px-4 border-b">Role</th>
+                <th className="py-3 px-4 border-b">Status</th>
+                <th className="py-3 px-4 border-b">Created At</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[...Array(5)].map((_, index) => (
+                <tr key={index} className="animate-pulse">
+                  <td className="py-3 px-4 border-b">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full bg-gray-200"></div>
+                      <div className="h-4 bg-gray-200 rounded w-32"></div>
+                    </div>
+                  </td>
+                  <td className="py-3 px-4 border-b">
+                    <div className="h-4 bg-gray-200 rounded w-40"></div>
+                  </td>
+                  <td className="py-3 px-4 border-b">
+                    <div className="h-4 bg-gray-200 rounded w-20"></div>
+                  </td>
+                  <td className="py-3 px-4 border-b">
+                    <div className="h-6 bg-gray-200 rounded-full w-16"></div>
+                  </td>
+                  <td className="py-3 px-4 border-b">
+                    <div className="h-4 bg-gray-200 rounded w-24"></div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="flex items-center justify-center py-4 text-gray-500">
+          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+          <span className="text-sm">Loading team members...</span>
+        </div>
       </div>
     );
+  }
 
-  if (isError)
+  // Error State
+  if (isError) {
     return (
-      <p className="text-red-500 text-sm">
-        Error: {(error as Error)?.message || "Failed to load team members"}
-      </p>
+      <StateDisplay
+        variant="error"
+        icon={AlertCircle}
+        title="Failed to Load Team Members"
+        description={"Something went wrong while fetching team members."}
+        buttonText="Try Again"
+        onButtonClick={() => window.location.reload()}
+      />
     );
+  }
 
-  if (teamMembers.length === 0)
-    return <p className="text-muted-foreground">No team members found.</p>;
+  // Empty State
+  if (teamMembers.length === 0) {
+    return (
+      <StateDisplay
+        icon={Users}
+        title="No Team Members Yet"
+        description="Start building your team by inviting members. They'll appear here once added."
+        buttonText="Invite Team Member"
+      />
+    );
+  }
 
   return (
     <div>
@@ -120,65 +180,58 @@ export default function TeamMembers({ userId }: TeamMembersProps) {
         </table>
       </div>
 
-      {/* Pagination controls */}
-      {/* Pagination (Responsive & Unified) */}
-{data?.pagination && (
-  <div className="w-full mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {/* Pagination */}
+      {data?.pagination && (
+        <div className="w-full mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <span className="text-sm text-gray-700">
+              Showing {(page - 1) * limit + 1} to{" "}
+              {Math.min(page * limit, data.pagination.total)} of{" "}
+              {data.pagination.total} team members
+            </span>
 
-    {/* LEFT SIDE → Showing X to Y of Total */}
-    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-      <span className="text-sm text-gray-700">
-        Showing {(page - 1) * limit + 1} to{" "}
-        {Math.min(page * limit, data.pagination.total)} of{" "}
-        {data.pagination.total} team members
-      </span>
+            <select
+              value={limit}
+              onChange={(e) => {
+                setLimit(Number(e.target.value));
+                setPage(1);
+              }}
+              className="border px-3 py-2 rounded-md text-sm w-24"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
 
-      {/* Optional: Per Page Selector */}
-      <select
-  value={limit}
-  onChange={(e) => {
-    setLimit(Number(e.target.value));
-    setPage(1); // Reset page when limit changes
-  }}
-  className="border px-3 py-2 rounded-md text-sm w-24"
->
-  <option value={5}>5</option>
-  <option value={10}>10</option>
-  <option value={20}>20</option>
-  <option value={50}>50</option>
-</select>
+          <div className="flex items-center justify-center sm:justify-end gap-2">
+            <button
+              className="px-3 py-1 border rounded disabled:opacity-50"
+              disabled={page <= 1}
+              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+            >
+              Previous
+            </button>
 
-    </div>
+            <span className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium">
+              {page}
+            </span>
 
-    {/* RIGHT SIDE → Pagination Buttons */}
-    <div className="flex items-center justify-center sm:justify-end gap-2">
-
-      <button
-        className="px-3 py-1 border rounded disabled:opacity-50"
-        disabled={page <= 1}
-        onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-      >
-        Previous
-      </button>
-
-      <span className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium">
-        {page}
-      </span>
-
-      <button
-        className="px-3 py-1 border rounded disabled:opacity-50"
-        disabled={page >= data.pagination.totalPages}
-        onClick={() =>
-          setPage((prev) => Math.min(prev + 1, data.pagination.totalPages))
-        }
-      >
-        Next
-      </button>
-
-    </div>
-  </div>
-)}
-
+            <button
+              className="px-3 py-1 border rounded disabled:opacity-50"
+              disabled={page >= data.pagination.totalPages}
+              onClick={() =>
+                setPage((prev) =>
+                  Math.min(prev + 1, data.pagination.totalPages)
+                )
+              }
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

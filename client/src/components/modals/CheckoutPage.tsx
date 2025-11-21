@@ -186,8 +186,8 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const price = isAnnual
     ? parseFloat(plan.annualPrice)
     : parseFloat(plan.monthlyPrice);
-  const tax = price * 0.18;
-  const total = price + tax;
+
+  const total = price;
 
   const activeProviders = paymentProviders?.filter((p) => p.isActive) || [];
 
@@ -351,6 +351,8 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
     setLoading(true);
 
+    onOpenChange(false);
+
     try {
       const paymentData = {
         userId: userId,
@@ -416,7 +418,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
     // ✅ Navigate after modal closes
     setTimeout(() => {
-      setLocation("/plans");
+      setLocation("/billing");
     }, 100);
   };
 
@@ -549,13 +551,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 {price.toFixed(2)}
               </span>
             </div>
-            <div className="flex items-center justify-between text-xs sm:text-sm">
-              <span className="text-gray-600">Tax (18% GST)</span>
-              <span className="font-medium text-gray-900">
-                {currencySymbol}
-                {tax.toFixed(2)}
-              </span>
-            </div>
+
             <div className="flex items-center justify-between text-base sm:text-lg font-bold pt-2 sm:pt-3 border-t">
               <span className="text-gray-900">Total</span>
               <span className="text-blue-600">
