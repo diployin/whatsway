@@ -690,13 +690,16 @@ export default function Templates() {
                                 <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">{template.category}</span>
                               </td>
                               <td className="py-3 px-4">
-                                <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
-                                  template.status === "approved"
-                                    ? "bg-green-100 text-green-700"
-                                    : template.status === "pending"
-                                    ? "bg-yellow-100 text-yellow-700"
-                                    : "bg-red-100 text-red-700"
-                                }`}>{template.status}</span>
+                               <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
+  template.status.toLowerCase() === "approved"
+    ? "bg-green-100 text-green-700"
+    : template.status.toLowerCase() === "pending"
+    ? "bg-yellow-100 text-yellow-700"
+    : "bg-red-100 text-red-700"
+}`}>
+  {template.status}
+</span>
+
                               </td>
                               <td className="py-3 px-4 text-sm text-gray-700 max-w-md truncate">{template.body}</td>
                               <td className="py-3 px-4 text-sm text-gray-600">{new Date(template.createdAt).toLocaleDateString()}</td>
@@ -717,12 +720,15 @@ export default function Templates() {
                                 <p className="text-sm text-gray-600">{template?.createdByName?.trim() || "Unknown"}</p>
                               </div>
                               <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
-                                template.status === "approved"
-                                  ? "bg-green-100 text-green-700"
-                                  : template.status === "pending"
-                                  ? "bg-yellow-100 text-yellow-700"
-                                  : "bg-red-100 text-red-700"
-                              }`}>{template.status}</span>
+  template.status.toLowerCase() === "approved"
+    ? "bg-green-100 text-green-700"
+    : template.status.toLowerCase() === "pending"
+    ? "bg-yellow-100 text-yellow-700"
+    : "bg-red-100 text-red-700"
+}`}>
+  {template.status}
+</span>
+
                             </div>
                             <div className="grid grid-cols-2 gap-3 mb-4 pb-4 border-b">
                               <div>

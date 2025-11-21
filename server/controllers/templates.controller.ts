@@ -28,7 +28,7 @@ export const getTemplates = asyncHandler(
 
     if (channelId) {
       // Agar channelId diya hai, to get paginated templates by channel
-      result = await storage.getTemplatesByChannel(channelId);
+      result = await storage.getTemplatesByChannel(channelId, page, limit);
     } else {
       // Else, get all templates paginated
       result = await storage.getTemplates(page, limit);
