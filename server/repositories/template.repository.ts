@@ -3,6 +3,7 @@ import { eq, desc, sql } from "drizzle-orm";
 import { 
   templates, 
   users,
+  channels,
   type Template, 
   type InsertTemplate 
 } from "@shared/schema";
@@ -12,7 +13,7 @@ export class TemplateRepository {
     return await db.select().from(templates).orderBy(desc(templates.createdAt));
   }
 
- async getAll() {
+ async getAllOLD() {
   return await db
     .select({
       id: templates.id,
@@ -50,6 +51,73 @@ export class TemplateRepository {
     .leftJoin(users, eq(users.id, templates.createdBy))
     .orderBy(desc(templates.createdAt));
 }
+
+
+
+async getAll(page: number = 1, limit: number = 10) {
+  const offset = (page - 1) * limit;
+
+  // 1️⃣ Get total count
+  const [{ count }] = await db
+    .select({ count: sql<number>`COUNT(*)` })
+    .from(templates);
+
+  const total = Number(count);
+  const totalPages = Math.ceil(total / limit);
+
+  // 2️⃣ Fetch paginated templates with channel name + createdByName
+  const rows = await db
+    .select({
+      id: templates.id,
+      channelId: templates.channelId,
+      channelName: channels.name, // 👈 NEW
+      name: templates.name,
+      category: templates.category,
+      language: templates.language,
+      header: templates.header,
+      body: templates.body,
+      footer: templates.footer,
+      buttons: templates.buttons,
+      variables: templates.variables,
+      status: templates.status,
+      rejectionReason: templates.rejectionReason,
+      mediaType: templates.mediaType,
+      mediaUrl: templates.mediaUrl,
+      mediaHandle: templates.mediaHandle,
+      carouselCards: templates.carouselCards,
+      whatsappTemplateId: templates.whatsappTemplateId,
+      usage_count: templates.usage_count,
+      createdAt: templates.createdAt,
+      updatedAt: templates.updatedAt,
+      createdBy: templates.createdBy,
+
+      createdByName: sql<string>`
+        CONCAT(
+          COALESCE(${users.firstName}, ''), 
+          ' ', 
+          COALESCE(${users.lastName}, '')
+        )
+      `.as("createdByName"),
+    })
+    .from(templates)
+    .leftJoin(users, eq(users.id, templates.createdBy))
+    .leftJoin(channels, eq(channels.id, templates.channelId)) // 👈 JOIN CHANNEL
+    .orderBy(desc(templates.createdAt))
+    .limit(limit)
+    .offset(offset);
+
+  return {
+    success: true,
+    data: rows,
+    pagination: {
+      total,
+      totalPages,
+      page,
+      limit,
+    },
+  };
+}
+
 
   async getTemplateByUserID(
   userId: string,

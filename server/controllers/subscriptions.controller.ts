@@ -1,17 +1,63 @@
 import { Request, Response } from 'express';
 import { db } from '../db';
 import { subscriptions, users, plans } from '@shared/schema';
-import { eq, and, desc, lt, gte } from 'drizzle-orm';
+import { eq, and, desc, lt, gte, sql } from 'drizzle-orm';
 
 // Get all subscriptions
+// export const getAllSubscriptions = async (req: Request, res: Response) => {
+//   try {
+//     const allSubscriptions = await db
+//       .select({
+//         subscription: subscriptions,
+//         user: {
+//           id: users.id,
+//           username: users.username, // only username
+//         },
+//         plan: {
+//           id: plans.id,
+//           name: plans.name,
+//           description: plans.description,
+//           icon: plans.icon,
+//           monthlyPrice: plans.monthlyPrice,
+//           annualPrice: plans.annualPrice,
+//           features: plans.features,
+//           permissions: plans.permissions
+//         }
+//       })
+//       .from(subscriptions)
+//       .leftJoin(users, eq(subscriptions.userId, users.id))
+//       .leftJoin(plans, eq(subscriptions.planId, plans.id))
+//       .orderBy(desc(subscriptions.createdAt));
+
+//     res.status(200).json({ success: true, data: allSubscriptions });
+//   } catch (error) {
+//     res.status(500).json({ success: false, message: 'Error fetching subscriptions', error });
+//   }
+// };
+
+
 export const getAllSubscriptions = async (req: Request, res: Response) => {
   try {
-    const allSubscriptions = await db
+    // --- 1️⃣ Read page & limit from query ---
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+
+    // --- 2️⃣ Count total subscriptions ---
+    const [{ count }] = await db
+      .select({ count: sql<number>`COUNT(*)` })
+      .from(subscriptions);
+
+    const total = Number(count);
+    const totalPages = Math.ceil(total / limit);
+
+    // --- 3️⃣ Fetch paginated results ---
+    const paginatedSubscriptions = await db
       .select({
         subscription: subscriptions,
         user: {
           id: users.id,
-          username: users.username, // only username
+          username: users.username,
         },
         plan: {
           id: plans.id,
@@ -21,19 +67,37 @@ export const getAllSubscriptions = async (req: Request, res: Response) => {
           monthlyPrice: plans.monthlyPrice,
           annualPrice: plans.annualPrice,
           features: plans.features,
-          permissions: plans.permissions
-        }
+          permissions: plans.permissions,
+        },
       })
       .from(subscriptions)
       .leftJoin(users, eq(subscriptions.userId, users.id))
       .leftJoin(plans, eq(subscriptions.planId, plans.id))
-      .orderBy(desc(subscriptions.createdAt));
+      .orderBy(desc(subscriptions.createdAt))
+      .limit(limit)
+      .offset(offset);
 
-    res.status(200).json({ success: true, data: allSubscriptions });
+    // --- 4️⃣ Send response ---
+    res.status(200).json({
+      success: true,
+      data: paginatedSubscriptions,
+      pagination: {
+        total,
+        totalPages,
+        page,
+        limit,
+      },
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Error fetching subscriptions', error });
+    console.error("Error fetching subscriptions:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching subscriptions",
+      error,
+    });
   }
 };
+
 
 
 export const getActivePaidUsersCount = async () => {

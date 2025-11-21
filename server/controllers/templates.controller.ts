@@ -5,7 +5,7 @@ import { AppError, asyncHandler } from '../middlewares/error.middleware';
 import { WhatsAppApiService } from '../services/whatsapp-api';
 import type { RequestWithChannel } from '../middlewares/channel.middleware';
 
-export const getTemplates = asyncHandler(async (req: RequestWithChannel, res: Response) => {
+export const getTemplatesOld = asyncHandler(async (req: RequestWithChannel, res: Response) => {
   const channelId = req.query.channelId as string | undefined;
   console.log("Fetching templates for channelId:", channelId);
   const templates = channelId 
@@ -13,6 +13,36 @@ export const getTemplates = asyncHandler(async (req: RequestWithChannel, res: Re
     : await storage.getTemplates();
   res.json(templates);
 });
+
+
+export const getTemplates = asyncHandler(
+  async (req: RequestWithChannel, res: Response) => {
+    const channelId = req.query.channelId as string | undefined;
+
+    // Get page & limit from query params
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+
+    let result;
+    console.log("Fetching templates for channelId:", channelId, " page:", page, " limit:", limit);
+
+    if (channelId) {
+      // Agar channelId diya hai, to get paginated templates by channel
+      result = await storage.getTemplatesByChannel(channelId);
+    } else {
+      // Else, get all templates paginated
+      result = await storage.getTemplates(page, limit);
+    }
+
+    // Return paginated response structure
+    res.status(200).json({
+      success: true,
+      data: result.data,
+      pagination: result.pagination,
+    });
+  }
+);
+
 
 
 export const getTemplatesByUser = asyncHandler(async (req: RequestWithChannel, res: Response) => {

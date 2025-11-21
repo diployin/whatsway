@@ -344,9 +344,23 @@ async getActiveChannelByUserId(userId: string): Promise<Channel | undefined> {
   }
 
   // Templates
-  async getTemplates(): Promise<Template[]> {
-    return this.templateRepo.getAll();
-  }
+  // async getTemplates(): Promise<Template[]> {
+  //   return this.templateRepo.getAll();
+  // }
+
+  // database-storage.ts
+
+async getTemplates(page = 1, limit = 10): Promise<{
+  data: Template[];
+  pagination: { total: number; totalPages: number; page: number; limit: number };
+}> {
+  const result = await this.templateRepo.getAll(page, limit);
+  return {
+    data: result.data,
+    pagination: result.pagination,
+  };
+}
+
 
   async getTemplatesByUserId(
   userId: string,
