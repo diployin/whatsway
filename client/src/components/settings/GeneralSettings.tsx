@@ -420,7 +420,6 @@ export function GeneralSettings(): JSX.Element {
                   )}
                 </div>
               </div>
-
             </div>
 
             {/* Configuration Status */}
@@ -497,16 +496,14 @@ export function GeneralSettings(): JSX.Element {
       )}
 
       {/* Firebase Configuration */}
-      <Card>
+      {/* <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            {/* Title */}
             <CardTitle className="flex items-center text-base sm:text-lg">
               <Settings className="w-5 h-5 mr-2 shrink-0" />
               Firebase Configuration
             </CardTitle>
 
-            {/* Button */}
             <Button
               onClick={() =>
                 toast({
@@ -529,7 +526,6 @@ export function GeneralSettings(): JSX.Element {
 
         <CardContent>
           <div className="border border-gray-200 rounded-lg p-6 space-y-6">
-            {/* status + last updated */}
             <div className="flex items-center justify-between mb-4">
               <Badge variant="default" className="text-xs flex items-center">
                 <CheckCircle className="w-3 h-3 mr-1" />
@@ -543,7 +539,6 @@ export function GeneralSettings(): JSX.Element {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* API Key */}
               <div className="space-y-2">
                 <Label className="flex items-center space-x-2 font-medium">
                   <span>API Key</span>
@@ -553,7 +548,6 @@ export function GeneralSettings(): JSX.Element {
                 </div>
               </div>
 
-              {/* Auth Domain */}
               <div className="space-y-2">
                 <Label className="flex items-center space-x-2 font-medium">
                   <span>Auth Domain</span>
@@ -563,7 +557,6 @@ export function GeneralSettings(): JSX.Element {
                 </div>
               </div>
 
-              {/* Project ID */}
               <div className="space-y-2">
                 <Label className="flex items-center space-x-2 font-medium">
                   <span>Project ID</span>
@@ -573,7 +566,6 @@ export function GeneralSettings(): JSX.Element {
                 </div>
               </div>
 
-              {/* Storage Bucket */}
               <div className="space-y-2">
                 <Label className="flex items-center space-x-2 font-medium">
                   <span>Storage Bucket</span>
@@ -583,7 +575,6 @@ export function GeneralSettings(): JSX.Element {
                 </div>
               </div>
 
-              {/* Sender ID */}
               <div className="space-y-2">
                 <Label className="flex items-center space-x-2 font-medium">
                   <span>Messaging Sender ID</span>
@@ -593,7 +584,6 @@ export function GeneralSettings(): JSX.Element {
                 </div>
               </div>
 
-              {/* App ID */}
               <div className="space-y-2">
                 <Label className="flex items-center space-x-2 font-medium">
                   <span>App ID</span>
@@ -604,14 +594,13 @@ export function GeneralSettings(): JSX.Element {
               </div>
             </div>
 
-            {/* Status message */}
             <div className="mt-4 pt-4 border-t border-gray-200 text-sm text-gray-600 flex items-center space-x-2">
               <div className="w-2 h-2 rounded-full bg-green-500"></div>
               <span>Firebase configuration active</span>
             </div>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* General Settings Modal */}
       <GeneralSettingsModal

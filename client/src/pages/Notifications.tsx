@@ -234,12 +234,7 @@ export default function Notifications() {
       <div className="py-8 px-5">
         {/* Header */}
         <div className="flex items-center justify-between my-3">
-          <div>
-            {/* <h1 className="text-3xl font-bold">Notifications</h1>
-          <p className="text-muted-foreground mt-1">
-            Send notifications to users, admins, or your team.
-          </p> */}
-          </div>
+          <div></div>
 
           <div className=" w-full flex items-center justify-end gap-2">
             <Button

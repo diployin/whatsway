@@ -672,14 +672,7 @@ export default function ContactsManagements() {
 
   return (
     <div className="flex-1 dots-bg min-h-screen">
-      <Header
-        title={t("contacts.title")}
-        subtitle={t("contacts.subtitle")}
-        // action={{
-        //   label: `${t('contacts.addContact.title')}`,
-        //   onClick: () =>{ setShowAddDialog(true)},
-        // }}
-      />
+      <Header title={t("contacts.title")} subtitle={t("contacts.subtitle")} />
 
       <main className="p-6 space-y-6">
         {/* Search and Filters */}
@@ -695,49 +688,7 @@ export default function ContactsManagements() {
                   className="pl-10"
                 />
               </div>
-              {/* <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline">
-                    <Filter className="w-4 h-4 mr-2" />
-                    {selectedGroup || `${t('contacts.allGroups')}`}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    onClick={() => setSelectedGroup(null)}
-                    className={!selectedGroup ? "bg-gray-100" : ""}
-                  >
-                    {t('contacts.allGroups')}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => setShowGroupDialog(true)}
-                    className="text-green-600"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    {t('contacts.createNewGroup')}
-                  </DropdownMenuItem>
-                  {uniqueGroups.length > 0 && (
-                    <>
-                      <DropdownMenuItem disabled className="py-1">
-                        <span className="text-xs text-gray-500 uppercase">
-                          {t('contacts.availableGroups')}
-                        </span>
-                      </DropdownMenuItem>
-                      {uniqueGroups.map((group) => (
-                        <DropdownMenuItem
-                          key={group}
-                          onClick={() => setSelectedGroup(group)}
-                          className={
-                            selectedGroup === group ? "bg-gray-100" : ""
-                          }
-                        >
-                          {group}
-                        </DropdownMenuItem>
-                      ))}
-                    </>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu> */}
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline">
@@ -816,7 +767,6 @@ export default function ContactsManagements() {
           </Card>
         )}
 
-        {/* Contacts Table */}
         <Card>
           <CardContent className="p-0">
             {!contacts.length ? (
@@ -842,202 +792,376 @@ export default function ContactsManagements() {
                 className="py-12"
               />
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <input
-                          type="checkbox"
-                          className="rounded border-gray-300"
-                          checked={allSelected}
-                          onChange={toggleSelectAll}
-                        />
-                      </th>
-                      <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {t("contacts.contact")}
-                      </th>
-                      <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {t("contacts.phone")}
-                      </th>
-                      <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {/* {t("contacts.groups")} */} CreatedBy
-                      </th>
-                      <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {t("contacts.status")}
-                      </th>
-                      <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {t("contacts.lastContact")}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {contacts.map((contact: Contact) => (
-                      <tr
-                        key={contact.id}
-                        className="hover:bg-gray-50 transition-colors"
-                      >
-                        <td className="px-6 py-4">
+              <>
+                {/* Desktop Table View */}
+                <div className="hidden lg:block overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="text-left px-4 xl:px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
                           <input
                             type="checkbox"
                             className="rounded border-gray-300"
-                            checked={selectedContactIds.includes(contact.id)}
-                            onChange={() => toggleSelectOne(contact.id)}
+                            checked={allSelected}
+                            onChange={toggleSelectAll}
                           />
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center">
-                            <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                              <span className="text-sm font-medium text-gray-600">
-                                {contact.name.charAt(0).toUpperCase()}
-                              </span>
-                            </div>
-                            <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">
-                                {user?.username === "demouser" ? (
-                                  <span className=" px-2 py-1 rounded">
-                                    {contact.name
-                                      .slice(0, -1)
-                                      .replace(/./g, "*") +
-                                      contact.name.slice(-1)}
-                                  </span>
-                                ) : (
-                                  contact.name
+                        </th>
+                        <th className="text-left px-4 xl:px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {t("contacts.contact")}
+                        </th>
+                        <th className="text-left px-4 xl:px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {t("contacts.phone")}
+                        </th>
+                        <th className="text-left px-4 xl:px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Created By
+                        </th>
+                        <th className="text-left px-4 xl:px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {t("contacts.status")}
+                        </th>
+                        <th className="text-left px-4 xl:px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {t("contacts.lastContact")}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {contacts.map((contact: Contact) => (
+                        <tr
+                          key={contact.id}
+                          className="hover:bg-gray-50 transition-colors"
+                        >
+                          <td className="px-4 xl:px-6 py-4">
+                            <input
+                              type="checkbox"
+                              className="rounded border-gray-300"
+                              checked={selectedContactIds.includes(contact.id)}
+                              onChange={() => toggleSelectOne(contact.id)}
+                            />
+                          </td>
+                          <td className="px-4 xl:px-6 py-4">
+                            <div className="flex items-center">
+                              <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span className="text-sm font-medium text-gray-600">
+                                  {contact.name.charAt(0).toUpperCase()}
+                                </span>
+                              </div>
+                              <div className="ml-3 xl:ml-4">
+                                <div className="text-sm font-medium text-gray-900">
+                                  {user?.username === "demouser"
+                                    ? contact.name
+                                        .slice(0, -1)
+                                        .replace(/./g, "*") +
+                                      contact.name.slice(-1)
+                                    : contact.name}
+                                </div>
+                                {contact.email && (
+                                  <div className="text-sm text-gray-500">
+                                    {user?.username === "demouser"
+                                      ? contact.email
+                                          .split("@")[0]
+                                          .slice(0, -2)
+                                          .replace(/./g, "*") +
+                                        contact.email.slice(
+                                          contact.email.indexOf("@") - 2
+                                        )
+                                      : contact.email}
+                                  </div>
                                 )}
                               </div>
+                            </div>
+                          </td>
+                          <td className="px-4 xl:px-6 py-4 text-sm text-gray-900">
+                            {user?.username === "demouser"
+                              ? contact.phone.slice(0, -4).replace(/\d/g, "*") +
+                                contact.phone.slice(-4)
+                              : contact.phone}
+                          </td>
+                          <td className="px-4 xl:px-6 py-4 text-sm text-gray-900">
+                            {contact?.createdByName?.trim() || "-"}
+                          </td>
+                          <td className="px-4 xl:px-6 py-4">
+                            <Badge
+                              variant={
+                                contact.status === "active"
+                                  ? "default"
+                                  : "secondary"
+                              }
+                              className={
+                                contact.status === "active"
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-red-100 text-red-800"
+                              }
+                            >
+                              {contact.status?.toLocaleUpperCase() || "N/A"}
+                            </Badge>
+                          </td>
+                          <td className="px-4 xl:px-6 py-4 text-sm text-gray-900">
+                            {contact.lastContact
+                              ? new Date(
+                                  contact.lastContact
+                                ).toLocaleDateString()
+                              : "Never"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile/Tablet Card View */}
+                <div className="lg:hidden divide-y divide-gray-200">
+                  {/* Select All Bar */}
+                  <div className="bg-gray-50 px-4 py-3 flex items-center justify-between">
+                    <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                      <input
+                        type="checkbox"
+                        className="rounded border-gray-300"
+                        checked={allSelected}
+                        onChange={toggleSelectAll}
+                      />
+                      Select All
+                    </label>
+                    {selectedContactIds.length > 0 && (
+                      <span className="text-sm text-gray-600">
+                        {selectedContactIds.length} selected
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Contact Cards */}
+                  {contacts.map((contact: Contact) => (
+                    <div key={contact.id} className="bg-white p-4">
+                      <div className="flex items-start gap-3">
+                        {/* Checkbox */}
+                        <input
+                          type="checkbox"
+                          className="rounded border-gray-300 mt-1"
+                          checked={selectedContactIds.includes(contact.id)}
+                          onChange={() => toggleSelectOne(contact.id)}
+                        />
+
+                        {/* Avatar */}
+                        <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-base font-medium text-gray-600">
+                            {contact.name.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+
+                        {/* Contact Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-base font-semibold text-gray-900 truncate">
+                                {user?.username === "demouser"
+                                  ? contact.name
+                                      .slice(0, -1)
+                                      .replace(/./g, "*") +
+                                    contact.name.slice(-1)
+                                  : contact.name}
+                              </h3>
                               {contact.email && (
-                                <div className="text-sm text-gray-500">
-                                  {user?.username === "demouser" ? (
-                                    <span className=" px-2 py-1 rounded">
-                                      {contact.email
+                                <p className="text-sm text-gray-500 truncate">
+                                  {user?.username === "demouser"
+                                    ? contact.email
                                         .split("@")[0]
                                         .slice(0, -2)
                                         .replace(/./g, "*") +
-                                        contact.email.slice(
-                                          contact.email.indexOf("@") - 2
-                                        )}
-                                    </span>
-                                  ) : (
-                                    contact.email
-                                  )}
-                                </div>
+                                      contact.email.slice(
+                                        contact.email.indexOf("@") - 2
+                                      )
+                                    : contact.email}
+                                </p>
                               )}
                             </div>
+                            <Badge
+                              variant={
+                                contact.status === "active"
+                                  ? "default"
+                                  : "secondary"
+                              }
+                              className={`ml-2 flex-shrink-0 ${
+                                contact.status === "active"
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-red-100 text-red-800"
+                              }`}
+                            >
+                              {contact.status?.toUpperCase() || "N/A"}
+                            </Badge>
                           </div>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          {user?.username === "demouser" ? (
-                            <span className=" px-2 py-1 rounded">
-                              {contact.phone.slice(0, -4).replace(/\d/g, "*") +
-                                contact.phone.slice(-4)}
-                            </span>
-                          ) : (
-                            contact.phone
-                          )}
-                        </td>
 
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          {contact?.createdByName?.trim() || "-"}
-                        </td>
-
-                        <td className="px-6 py-4">
-                          <Badge
-                            variant={
-                              contact.status === "active"
-                                ? "default"
-                                : "secondary"
-                            }
-                            className={
-                              contact.status === "active"
-                                ? "bg-green-100 text-green-800"
-                                : "bg-red-100 text-red-800"
-                            }
-                          >
-                            {contact.status?.toLocaleUpperCase() || "N/A"}
-                          </Badge>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          {contact.lastContact
-                            ? new Date(contact.lastContact).toLocaleDateString()
-                            : "Never"}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                          {/* Contact Details Grid */}
+                          <div className="space-y-2 text-sm">
+                            <div className="flex items-center justify-between">
+                              <span className="text-gray-500">Phone:</span>
+                              <span className="text-gray-900 font-medium">
+                                {user?.username === "demouser"
+                                  ? contact.phone
+                                      .slice(0, -4)
+                                      .replace(/\d/g, "*") +
+                                    contact.phone.slice(-4)
+                                  : contact.phone}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-gray-500">Created By:</span>
+                              <span className="text-gray-900">
+                                {contact?.createdByName?.trim() || "-"}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-gray-500">
+                                Last Contact:
+                              </span>
+                              <span className="text-gray-900">
+                                {contact.lastContact
+                                  ? new Date(
+                                      contact.lastContact
+                                    ).toLocaleDateString()
+                                  : "Never"}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
 
-            {/* Enhanced Pagination */}
+            {/* Enhanced Pagination - Responsive */}
             {contacts.length > 0 && (
-              <div className="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
-                <div className="flex items-center gap-4">
-                  <div className="text-sm text-gray-700">
-                    Showing{" "}
-                    <span className="font-medium">
-                      {(page - 1) * limit + 1}
-                    </span>{" "}
-                    to{" "}
-                    <span className="font-medium">
-                      {Math.min((page - 1) * limit + limit, total)}
-                    </span>{" "}
-                    of <span className="font-medium">{total}</span> contacts
+              <div className="bg-gray-50 border-t border-gray-200">
+                {/* Desktop Pagination */}
+                <div className="hidden md:flex items-center justify-between px-4 xl:px-6 py-3">
+                  <div className="flex items-center gap-4">
+                    <div className="text-sm text-gray-700">
+                      Showing{" "}
+                      <span className="font-medium">
+                        {(page - 1) * limit + 1}
+                      </span>{" "}
+                      to{" "}
+                      <span className="font-medium">
+                        {Math.min((page - 1) * limit + limit, total)}
+                      </span>{" "}
+                      of <span className="font-medium">{total}</span> contacts
+                    </div>
+
+                    <Select
+                      value={limit.toString()}
+                      onValueChange={(value) => {
+                        setLimit(Number(value));
+                        setCurrentPage(1);
+                      }}
+                    >
+                      <SelectTrigger className="w-20 h-8">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                        <SelectItem value="100">100</SelectItem>
+                        <SelectItem value="500">500</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
-                  {/* Items per page selector */}
-                  <Select
-                    value={limit.toString()}
-                    onValueChange={(value) => {
-                      setLimit(Number(value));
-                      setCurrentPage(1); // reset page when limit changes
-                    }}
-                  >
-                    <SelectTrigger className="w-20 h-8">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="50">50</SelectItem>
-                      <SelectItem value="100">100</SelectItem>
-                      <SelectItem value="500">500</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={goToPreviousPage}
+                      disabled={page === 1}
+                    >
+                      {t("contacts.previous")}
+                    </Button>
+
+                    {getPageNumbers().map((pageNum) => (
+                      <Button
+                        key={pageNum}
+                        variant={page === pageNum ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => goToPage(pageNum)}
+                        className={
+                          page === pageNum
+                            ? "bg-green-600 text-white hover:bg-green-700"
+                            : ""
+                        }
+                      >
+                        {pageNum}
+                      </Button>
+                    ))}
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={goToNextPage}
+                      disabled={page === totalPages}
+                    >
+                      {t("contacts.next")}
+                    </Button>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={goToPreviousPage}
-                    disabled={page === 1}
-                  >
-                    {t("contacts.previous")}
-                  </Button>
+                {/* Mobile Pagination */}
+                <div className="md:hidden px-4 py-3 space-y-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-700">
+                      <span className="font-medium">
+                        {(page - 1) * limit + 1}
+                      </span>{" "}
+                      -{" "}
+                      <span className="font-medium">
+                        {Math.min((page - 1) * limit + limit, total)}
+                      </span>{" "}
+                      of <span className="font-medium">{total}</span>
+                    </span>
 
-                  {getPageNumbers().map((pageNum) => (
-                    <Button
-                      key={pageNum}
-                      variant={page === pageNum ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => goToPage(pageNum)}
-                      className={
-                        page === pageNum
-                          ? "bg-green-600 text-white hover:bg-green-700"
-                          : ""
-                      }
+                    <Select
+                      value={limit.toString()}
+                      onValueChange={(value) => {
+                        setLimit(Number(value));
+                        setCurrentPage(1);
+                      }}
                     >
-                      {pageNum}
-                    </Button>
-                  ))}
+                      <SelectTrigger className="w-20 h-8">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                        <SelectItem value="100">100</SelectItem>
+                        <SelectItem value="500">500</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={goToNextPage}
-                    disabled={page === totalPages}
-                  >
-                    {t("contacts.next")}
-                  </Button>
+                  <div className="flex items-center justify-between gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={goToPreviousPage}
+                      disabled={page === 1}
+                      className="flex-1"
+                    >
+                      Previous
+                    </Button>
+
+                    <div className="px-3 py-1.5 bg-green-100 rounded-md">
+                      <span className="text-sm font-medium text-green-700">
+                        Page {page} of {totalPages}
+                      </span>
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={goToNextPage}
+                      disabled={page === totalPages}
+                      className="flex-1"
+                    >
+                      Next
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}

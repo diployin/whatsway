@@ -27,19 +27,21 @@ import {
   Target,
   Activity,
   User,
+  Database,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/contexts/auth-context";
+import { StateDisplay } from "@/components/StateDisplay";
 export default function Analytics() {
   const [timeRange, setTimeRange] = useState<number>(30);
   const [exportLoading, setExportLoading] = useState(false);
-  const {user} = useAuth();
+  const { user } = useAuth();
 
   const { data: activeChannel } = useQuery({
     queryKey: ["/api/channels/active"],
     queryFn: async () => {
-      const response = await apiRequest("GET" , "/api/channels/active");
+      const response = await apiRequest("GET", "/api/channels/active");
       if (!response.ok) return null;
       return await response.json();
     },
@@ -174,7 +176,6 @@ export default function Analytics() {
       <Header
         title="Analytics & Reports"
         subtitle="Track your WhatsApp business performance with real-time data"
-        
       />
 
       <main className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
@@ -268,7 +269,13 @@ export default function Analytics() {
 
         {/* Analytics Tabs */}
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList className={user?.role === 'superadmin' ? `grid w-full grid-cols-2 h-auto` : `grid w-full grid-cols-3 h-auto`}>
+          <TabsList
+            className={
+              user?.role === "superadmin"
+                ? `grid w-full grid-cols-2 h-auto`
+                : `grid w-full grid-cols-3 h-auto`
+            }
+          >
             <TabsTrigger value="overview" className="text-xs sm:text-sm py-2">
               Overview
             </TabsTrigger>
@@ -276,9 +283,12 @@ export default function Analytics() {
               Messages
             </TabsTrigger>
             {user?.role !== "superadmin" && (
-            <TabsTrigger value="campaigns" className="text-xs sm:text-sm py-2">
-              Campaignsss
-            </TabsTrigger>
+              <TabsTrigger
+                value="campaigns"
+                className="text-xs sm:text-sm py-2"
+              >
+                Campaignsss
+              </TabsTrigger>
             )}
           </TabsList>
 
@@ -418,9 +428,15 @@ export default function Analytics() {
                       <MessageChart data={chartData} />
                     </div>
                   ) : (
-                    <div className="h-48 sm:h-64 flex items-center justify-center text-gray-500 text-sm">
-                      No data available for the selected period
-                    </div>
+                    // <div className="h-48 sm:h-64 flex items-center justify-center text-gray-500 text-sm">
+                    //   No data available for the selected period
+                    // </div>
+                    <StateDisplay
+                      variant="empty"
+                      title="No  Message Performance yet"
+                      icon={Database}
+                      description=" No data available for the selected period"
+                    />
                   )}
                 </CardContent>
               </Card>
