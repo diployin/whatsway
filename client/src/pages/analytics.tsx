@@ -51,7 +51,7 @@ export default function Analytics() {
 const { data: messageAnalytics, isLoading: messageLoading } = useQuery({
   queryKey: [
     "/api/analytics/messages",
-    user?.role === "super_admin" ? null : activeChannel?.id,
+    user?.role === "superadmin" ? null : activeChannel?.id,
     timeRange,
   ],
 
@@ -59,7 +59,7 @@ const { data: messageAnalytics, isLoading: messageLoading } = useQuery({
     const baseParams = { days: timeRange.toString() };
 
     const params = new URLSearchParams(
-      user?.role === "super_admin"
+      user?.role === "superadmin"
         ? baseParams
         : {
             ...baseParams,
@@ -72,7 +72,7 @@ const { data: messageAnalytics, isLoading: messageLoading } = useQuery({
     return await response.json();
   },
 
-  enabled: user?.role === "super_admin" ? true : !!activeChannel,
+  enabled: user?.role === "superadmin" ? true : !!activeChannel,
 });
 
 
