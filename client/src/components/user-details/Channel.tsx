@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, Users } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { EmptyState } from "../EmptyState";
+import { StateDisplay } from "../StateDisplay";
 
 interface Channel {
   id: string;
@@ -30,7 +32,6 @@ interface ChannelsProps {
 export default function Channels({ userId }: ChannelsProps) {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
-
 
   const {
     data: response,
@@ -61,15 +62,52 @@ export default function Channels({ userId }: ChannelsProps) {
       </div>
     );
 
-  if (isError)
-    return (
-      <p className="text-red-500 text-sm">
-        Error: {(error as Error)?.message || "Failed to load channels"}
-      </p>
-    );
+  // if (isError)
+  //   return (
+  //     <p className="text-red-500 text-sm">
+  //       Error: {(error as Error)?.message || "Failed to load channels"}
+  //     </p>
+  //   );
 
-  if (channels.length === 0)
-    return <p className="text-muted-foreground">No channels found.</p>;
+  // if (channels.length === 0)
+  //   return <p className="text-muted-foreground">No channels found.</p>;
+
+  // if (channels.length === 0) {
+  //   return (
+  //     <EmptyState
+  //       icon={Users}
+  //       title="No Team Members Yet"
+  //       description="Start building your team by inviting members. They'll appear here once added."
+  //       buttonText="Invite Team Member"
+  //     />
+  //   );
+  // }
+
+  // Error State
+  if (isError) {
+    return (
+      <StateDisplay
+        variant="error"
+        icon={AlertCircle}
+        title="Failed to Load Channels"
+        description={"Something went wrong while fetching Channels."}
+        buttonText="Try Again"
+        onButtonClick={() => window.location.reload()}
+      />
+    );
+  }
+
+  // Empty State
+  if (channels.length === 0) {
+    return (
+      <StateDisplay
+        icon={Users}
+        title="No Channels Yet"
+        description="Start building your team by inviting members. They'll appear here once added."
+        buttonText="Invite Team Member"
+      />
+    );
+  }
 
   return (
     <div>
@@ -129,66 +167,59 @@ export default function Channels({ userId }: ChannelsProps) {
         </table>
       </div>
 
-     {/* Pagination (Fully Responsive) */}
-{pagination && (
-  <div className="w-full mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {/* Pagination (Fully Responsive) */}
+      {pagination && (
+        <div className="w-full mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          {/* LEFT SIDE → Showing + Per Page */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <span className="text-sm text-gray-700">
+              Showing {(page - 1) * limit + 1} to{" "}
+              {Math.min(page * limit, pagination.total)} of {pagination.total}{" "}
+              channels
+            </span>
 
-    {/* LEFT SIDE → Showing + Per Page */}
-    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            {/* Per Page Selector (optional) */}
+            <select
+              value={limit}
+              onChange={(e) => {
+                setLimit(Number(e.target.value));
+                setPage(1);
+              }}
+              className="border px-3 py-2 rounded-md text-sm w-24"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
 
-      <span className="text-sm text-gray-700">
-        Showing {(page - 1) * limit + 1} to{" "}
-        {Math.min(page * limit, pagination.total)} of{" "}
-        {pagination.total} channels
-      </span>
+          {/* RIGHT SIDE → Pagination Buttons */}
+          <div className="flex items-center justify-center sm:justify-end gap-2">
+            <button
+              className="px-3 py-1 border rounded disabled:opacity-50"
+              disabled={page <= 1}
+              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+            >
+              Previous
+            </button>
 
-      {/* Per Page Selector (optional) */}
-      <select
-  value={limit}
-  onChange={(e) => {
-    setLimit(Number(e.target.value));
-    setPage(1);
-  }}
-  className="border px-3 py-2 rounded-md text-sm w-24"
->
-  <option value={5}>5</option>
-  <option value={10}>10</option>
-  <option value={20}>20</option>
-  <option value={50}>50</option>
-</select>
+            <span className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium">
+              {page}
+            </span>
 
-    </div>
-
-    {/* RIGHT SIDE → Pagination Buttons */}
-    <div className="flex items-center justify-center sm:justify-end gap-2">
-
-      <button
-        className="px-3 py-1 border rounded disabled:opacity-50"
-        disabled={page <= 1}
-        onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-      >
-        Previous
-      </button>
-
-      <span className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium">
-        {page}
-      </span>
-
-      <button
-        className="px-3 py-1 border rounded disabled:opacity-50"
-        disabled={page >= pagination.totalPages}
-        onClick={() =>
-          setPage((prev) => Math.min(prev + 1, pagination.totalPages))
-        }
-      >
-        Next
-      </button>
-
-    </div>
-
-  </div>
-)}
-
+            <button
+              className="px-3 py-1 border rounded disabled:opacity-50"
+              disabled={page >= pagination.totalPages}
+              onClick={() =>
+                setPage((prev) => Math.min(prev + 1, pagination.totalPages))
+              }
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

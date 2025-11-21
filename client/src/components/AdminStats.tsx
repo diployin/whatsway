@@ -152,7 +152,7 @@ export default function AdminStats() {
 
   return (
     <div className="container mx-auto">
-      <div className="px-4 py-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="px-4 py-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
         {/* Total Contacts */}
         {stats &&
           stats.totalContacts !== undefined &&
@@ -162,6 +162,7 @@ export default function AdminStats() {
               value={stats.totalContacts}
               icon={ContactsIcon}
               iconClassName="bg-blue-50 text-blue-600"
+              borderColor="border-l-blue-500"
             />
           )}
 
@@ -174,6 +175,7 @@ export default function AdminStats() {
               value={stats.totalTemplates}
               icon={TemplatesIcon}
               iconClassName="bg-purple-50 text-purple-600"
+              borderColor="border-l-purple-500"
             />
           )}
 
@@ -186,6 +188,7 @@ export default function AdminStats() {
               value={stats.totalChannels}
               icon={ChannelsIcon}
               iconClassName="bg-green-50 text-green-600"
+              borderColor="border-l-green-500"
             />
           )}
 
@@ -198,6 +201,7 @@ export default function AdminStats() {
               value={stats.totalMessages}
               icon={MessagesIcon}
               iconClassName="bg-orange-50 text-orange-600"
+              borderColor="border-l-orange-500"
             />
           )}
 
@@ -210,6 +214,7 @@ export default function AdminStats() {
               value={stats.totalUsers}
               icon={UsersIcon}
               iconClassName="bg-indigo-50 text-indigo-600"
+              borderColor="border-l-indigo-500"
             />
           )}
 
@@ -222,6 +227,7 @@ export default function AdminStats() {
               value={stats.totalCampaigns}
               icon={CampaignsIcon}
               iconClassName="bg-pink-50 text-pink-600"
+              borderColor="border-l-pink-500"
             />
           )}
 
@@ -234,6 +240,7 @@ export default function AdminStats() {
               value={stats.todaySignups}
               icon={SignupsIcon}
               iconClassName="bg-teal-50 text-teal-600"
+              borderColor="border-l-teal-500"
             />
           )}
       </div>

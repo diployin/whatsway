@@ -4,45 +4,33 @@ import { Card, CardContent } from "@/components/ui/card";
 interface CardStatProps {
   label: string;
   value: number | string;
-  subLabel?: string;
   icon: React.ReactNode;
   iconClassName?: string;
   valueClassName?: string;
-  subLabelClassName?: string;
+  borderColor?: string;
 }
 
 export function CardStat({
   label,
   value,
-  subLabel,
   icon,
-  iconClassName = "bg-blue-50 text-blue-500",
+  iconClassName = "bg-green-50 text-green-600",
   valueClassName = "text-gray-900",
-  subLabelClassName = "text-gray-400",
+  borderColor = "border-l-green-500",
 }: CardStatProps) {
   return (
-    <Card className="rounded-xl border shadow hover:shadow-md transition duration-150 bg-white">
-      <CardContent className="flex flex-col justify-between h-full p-6">
-        <div className="flex justify-between items-center mb-1 gap-2">
-          <div>
-            <div className="font-semibold text-gray-600">{label}</div>
-            <div className={`text-2xl font-bold ${valueClassName}`}>
-              {value}
-            </div>
-          </div>
-          <div
-            className={`rounded-xl p-2 flex items-center justify-center ${iconClassName}`}
-          >
-            {icon}
-          </div>
+    <Card
+      className={`rounded-lg border-l-4 ${borderColor} shadow-sm hover:shadow-md transition-shadow duration-200 bg-white`}
+    >
+      <CardContent className="px-6 py-4">
+        {/* Icon and Label Row */}
+        <div className="flex items-center justify-start gap-4 mb-4">
+          <div className={`rounded-lg p-3 ${iconClassName}`}>{icon}</div>
+          <h3 className="text-sm font-medium text-gray-600 mt-1">{label}</h3>
         </div>
-        {subLabel && (
-          <div
-            className={`mt-2 text-sm flex items-center ${subLabelClassName}`}
-          >
-            {subLabel}
-          </div>
-        )}
+
+        {/* Value */}
+        <div className={`text-3xl font-bold ${valueClassName}`}>{value}</div>
       </CardContent>
     </Card>
   );

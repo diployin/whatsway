@@ -17,7 +17,6 @@ import CheckoutModal from "./modals/CheckoutPage";
 import { useAuth } from "@/contexts/auth-context";
 import { useQuery } from "@tanstack/react-query";
 
-
 const Pricing = () => {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);

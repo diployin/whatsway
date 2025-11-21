@@ -1,7 +1,9 @@
-import { Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, Users } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
+import { EmptyState } from "../EmptyState";
+import { StateDisplay } from "../StateDisplay";
 
 interface Campaign {
   id: string;
@@ -48,13 +50,10 @@ export default function Campaigns({ userId }: CampaignsProps) {
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState(10);
 
-
-  const {
-    data,
-    isLoading,
-    isError,
-    error,
-  } = useQuery<CampaignsResponse, Error>({
+  const { data, isLoading, isError, error } = useQuery<
+    CampaignsResponse,
+    Error
+  >({
     queryKey: ["campaigns", userId, page, limit],
     queryFn: async () => {
       const res = await apiRequest("POST", "/api/getCampaignsByUserId", {
@@ -80,15 +79,31 @@ export default function Campaigns({ userId }: CampaignsProps) {
       </div>
     );
 
-  if (isError)
+  // Error State
+  if (isError) {
     return (
-      <p className="text-red-500 text-sm">
-        Error: {error?.message || "Failed to load campaigns"}
-      </p>
+      <StateDisplay
+        variant="error"
+        icon={AlertCircle}
+        title="Failed to Load Channels"
+        description={"Something went wrong while fetching Channels."}
+        buttonText="Try Again"
+        onButtonClick={() => window.location.reload()}
+      />
     );
+  }
 
-  if (campaigns.length === 0)
-    return <p className="text-muted-foreground">No campaigns found.</p>;
+  // Empty State
+  if (campaigns.length === 0) {
+    return (
+      <StateDisplay
+        icon={Users}
+        title="No Channels Yet"
+        description="Start building your team by inviting members. They'll appear here once added."
+        buttonText="Invite Team Member"
+      />
+    );
+  }
 
   return (
     <div>
@@ -140,62 +155,54 @@ export default function Campaigns({ userId }: CampaignsProps) {
         </table>
       </div>
 
-      
-  {/* Pagination (Fully Responsive) */}
-<div className="w-full mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {/* Pagination (Fully Responsive) */}
+      <div className="w-full mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        {/* LEFT SIDE → Showing Results + Per Page */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+          <span className="text-sm text-gray-700">
+            Showing {(page - 1) * limit + 1} to {Math.min(page * limit, total)}{" "}
+            of {total} campaigns
+          </span>
 
-  {/* LEFT SIDE → Showing Results + Per Page */}
-  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+          {/* Per Page Dropdown */}
+          <select
+            value={limit}
+            onChange={(e) => {
+              setLimit(Number(e.target.value));
+              setPage(1);
+            }}
+            className="border px-3 py-2 rounded-md text-sm w-24"
+          >
+            <option value={5}>5</option>
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+            <option value={50}>50</option>
+          </select>
+        </div>
 
-    <span className="text-sm text-gray-700">
-      Showing {(page - 1) * limit + 1} to{" "}
-      {Math.min(page * limit, total)} of {total} campaigns
-    </span>
+        {/* RIGHT SIDE → Pagination Buttons */}
+        <div className="flex items-center justify-center sm:justify-end gap-2">
+          <button
+            className="px-3 py-1 border rounded disabled:opacity-50"
+            onClick={() => setPage((p) => Math.max(p - 1, 1))}
+            disabled={page === 1}
+          >
+            Previous
+          </button>
 
-    {/* Per Page Dropdown */}
-    <select
-      value={limit}
-      onChange={(e) => {
-  setLimit(Number(e.target.value));
-  setPage(1);
-}}
+          <span className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium">
+            {page}
+          </span>
 
-      className="border px-3 py-2 rounded-md text-sm w-24"
-    >
-      <option value={5}>5</option>
-      <option value={10}>10</option>
-      <option value={20}>20</option>
-      <option value={50}>50</option>
-    </select>
-  </div>
-
-  {/* RIGHT SIDE → Pagination Buttons */}
-  <div className="flex items-center justify-center sm:justify-end gap-2">
-
-    <button
-      className="px-3 py-1 border rounded disabled:opacity-50"
-      onClick={() => setPage((p) => Math.max(p - 1, 1))}
-      disabled={page === 1}
-    >
-      Previous
-    </button>
-
-    <span className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium">
-      {page}
-    </span>
-
-    <button
-      className="px-3 py-1 border rounded disabled:opacity-50"
-      onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-      disabled={page === totalPages}
-    >
-      Next
-    </button>
-
-  </div>
-
-</div>
-
+          <button
+            className="px-3 py-1 border rounded disabled:opacity-50"
+            onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+            disabled={page === totalPages}
+          >
+            Next
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

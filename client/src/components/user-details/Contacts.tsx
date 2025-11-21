@@ -1,7 +1,9 @@
-import { Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, Users } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
+import { EmptyState } from "../EmptyState";
+import { StateDisplay } from "../StateDisplay";
 
 interface Contact {
   id: string;
@@ -30,11 +32,19 @@ export default function Contacts({ userId }: ContactsProps) {
 
   const { data, isLoading, isError, error } = useQuery<{
     data: Contact[];
-    pagination: { page: number; limit: number; total: number; totalPages: number };
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
   }>({
     queryKey: ["contacts", userId, page, limit],
     queryFn: async () => {
-      const res = await apiRequest("GET", `/api/user/contacts/${userId}?page=${page}&limit=${limit}`);
+      const res = await apiRequest(
+        "GET",
+        `/api/user/contacts/${userId}?page=${page}&limit=${limit}`
+      );
       const json = await res.json();
       console.log("🧩 Parsed API JSON:", json);
       return json;
@@ -52,16 +62,31 @@ export default function Contacts({ userId }: ContactsProps) {
         <Loader2 className="w-5 h-5 mr-2 animate-spin" /> Loading contacts...
       </div>
     );
-
-  if (isError)
+  // Error State
+  if (isError) {
     return (
-      <p className="text-red-500 text-sm">
-        Error: {(error as Error)?.message || "Failed to load contacts"}
-      </p>
+      <StateDisplay
+        variant="error"
+        icon={AlertCircle}
+        title="Failed to Load Channels"
+        description={"Something went wrong while fetching Channels."}
+        buttonText="Try Again"
+        onButtonClick={() => window.location.reload()}
+      />
     );
+  }
 
-  if (contacts.length === 0)
-    return <p className="text-muted-foreground">No contacts found.</p>;
+  // Empty State
+  if (contacts.length === 0) {
+    return (
+      <StateDisplay
+        icon={Users}
+        title="No Channels Yet"
+        description="Start building your team by inviting members. They'll appear here once added."
+        buttonText="Invite Team Member"
+      />
+    );
+  }
 
   return (
     <div>
@@ -80,7 +105,10 @@ export default function Contacts({ userId }: ContactsProps) {
           </thead>
           <tbody>
             {contacts.map((contact) => (
-              <tr key={contact.id} className="hover:bg-gray-50 transition-colors text-sm text-gray-700">
+              <tr
+                key={contact.id}
+                className="hover:bg-gray-50 transition-colors text-sm text-gray-700"
+              >
                 <td className="py-3 px-4 border-b">{contact.name}</td>
                 <td className="py-3 px-4 border-b">{contact.phone}</td>
                 <td className="py-3 px-4 border-b">{contact.email}</td>
@@ -95,9 +123,15 @@ export default function Contacts({ userId }: ContactsProps) {
                     </span>
                   )}
                 </td>
-                <td className="py-3 px-4 border-b">{contact.groups.join(", ") || "-"}</td>
-                <td className="py-3 px-4 border-b">{contact.tags.join(", ") || "-"}</td>
-                <td className="py-3 px-4 border-b">{new Date(contact.createdAt).toLocaleDateString()}</td>
+                <td className="py-3 px-4 border-b">
+                  {contact.groups.join(", ") || "-"}
+                </td>
+                <td className="py-3 px-4 border-b">
+                  {contact.tags.join(", ") || "-"}
+                </td>
+                <td className="py-3 px-4 border-b">
+                  {new Date(contact.createdAt).toLocaleDateString()}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -106,63 +140,60 @@ export default function Contacts({ userId }: ContactsProps) {
 
       {/* Pagination */}
       {/* Pagination (Fully Responsive) */}
-{data?.pagination && (
-  <div className="w-full mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {data?.pagination && (
+        <div className="w-full mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          {/* LEFT SIDE → Showing + Per Page */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <span className="text-sm text-gray-700">
+              Showing {(page - 1) * limit + 1} to{" "}
+              {Math.min(page * limit, data.pagination.total)} of{" "}
+              {data.pagination.total} contacts
+            </span>
 
-    {/* LEFT SIDE → Showing + Per Page */}
-    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-      <span className="text-sm text-gray-700">
-        Showing {(page - 1) * limit + 1} to{" "}
-        {Math.min(page * limit, data.pagination.total)} of{" "}
-        {data.pagination.total} contacts
-      </span>
+            {/* Per Page Selector (Optional) */}
+            <select
+              value={limit}
+              onChange={(e) => {
+                setLimit(Number(e.target.value));
+                setPage(1);
+              }}
+              className="border px-3 py-2 rounded-md text-sm w-24"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
 
-      {/* Per Page Selector (Optional) */}
-      <select
-  value={limit}
-  onChange={(e) => {
-    setLimit(Number(e.target.value));
-    setPage(1);
-  }}
-  className="border px-3 py-2 rounded-md text-sm w-24"
->
-  <option value={5}>5</option>
-  <option value={10}>10</option>
-  <option value={20}>20</option>
-  <option value={50}>50</option>
-</select>
+          {/* RIGHT SIDE → Pagination Buttons */}
+          <div className="flex items-center justify-center sm:justify-end gap-2">
+            <button
+              className="px-3 py-1 border rounded disabled:opacity-50"
+              disabled={page <= 1}
+              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+            >
+              Previous
+            </button>
 
-    </div>
+            <span className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium">
+              {page}
+            </span>
 
-    {/* RIGHT SIDE → Pagination Buttons */}
-    <div className="flex items-center justify-center sm:justify-end gap-2">
-
-      <button
-        className="px-3 py-1 border rounded disabled:opacity-50"
-        disabled={page <= 1}
-        onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-      >
-        Previous
-      </button>
-
-      <span className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium">
-        {page}
-      </span>
-
-      <button
-        className="px-3 py-1 border rounded disabled:opacity-50"
-        disabled={page >= data.pagination.totalPages}
-        onClick={() =>
-          setPage((prev) => Math.min(prev + 1, data.pagination.totalPages))
-        }
-      >
-        Next
-      </button>
-
-    </div>
-  </div>
-)}
-
+            <button
+              className="px-3 py-1 border rounded disabled:opacity-50"
+              disabled={page >= data.pagination.totalPages}
+              onClick={() =>
+                setPage((prev) =>
+                  Math.min(prev + 1, data.pagination.totalPages)
+                )
+              }
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

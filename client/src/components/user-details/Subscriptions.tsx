@@ -1,7 +1,9 @@
-import { Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, Users } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
+import { EmptyState } from "../EmptyState";
+import { StateDisplay } from "../StateDisplay";
 
 interface Subscription {
   id: string;
@@ -60,19 +62,36 @@ export default function Subscriptions({ userId }: SubscriptionsProps) {
   if (isLoading)
     return (
       <div className="flex items-center justify-center py-10 text-muted-foreground">
-        <Loader2 className="w-5 h-5 mr-2 animate-spin" /> Loading subscriptions...
+        <Loader2 className="w-5 h-5 mr-2 animate-spin" /> Loading
+        subscriptions...
       </div>
     );
 
-  if (isError)
+  // Error State
+  if (isError) {
     return (
-      <p className="text-red-500 text-sm">
-        Error: {(error as Error)?.message || "Failed to load subscriptions"}
-      </p>
+      <StateDisplay
+        variant="error"
+        icon={AlertCircle}
+        title="Failed to Load Channels"
+        description={"Something went wrong while fetching Channels."}
+        buttonText="Try Again"
+        onButtonClick={() => window.location.reload()}
+      />
     );
+  }
 
-  if (subscriptions.length === 0)
-    return <p className="text-muted-foreground">No subscriptions found.</p>;
+  // Empty State
+  if (subscriptions.length === 0) {
+    return (
+      <StateDisplay
+        icon={Users}
+        title="No Channels Yet"
+        description="Start building your team by inviting members. They'll appear here once added."
+        buttonText="Invite Team Member"
+      />
+    );
+  }
 
   return (
     <div className="overflow-x-auto">
@@ -96,7 +115,9 @@ export default function Subscriptions({ userId }: SubscriptionsProps) {
               className="hover:bg-gray-50 transition-colors text-sm text-gray-700"
             >
               <td className="py-3 px-4 border-b">{user.username}</td>
-              <td className="py-3 px-4 border-b">{subscription.planData.name}</td>
+              <td className="py-3 px-4 border-b">
+                {subscription.planData.name}
+              </td>
               <td className="py-3 px-4 border-b">
                 {subscription.billingCycle === "monthly" ? (
                   <span className="text-sm font-medium">
@@ -119,7 +140,9 @@ export default function Subscriptions({ userId }: SubscriptionsProps) {
                   </span>
                 )}
               </td>
-              <td className="py-3 px-4 border-b">{subscription.billingCycle}</td>
+              <td className="py-3 px-4 border-b">
+                {subscription.billingCycle}
+              </td>
               <td className="py-3 px-4 border-b">
                 {new Date(subscription.startDate).toLocaleDateString()}
               </td>

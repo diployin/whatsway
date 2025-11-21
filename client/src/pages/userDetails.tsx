@@ -1,11 +1,19 @@
 import { useState } from "react";
 import Header from "@/components/layout/header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Smartphone, BotIcon, Key, SettingsIcon, Database, LayoutTemplate } from "lucide-react";
+import {
+  User,
+  Smartphone,
+  BotIcon,
+  Key,
+  SettingsIcon,
+  Database,
+  LayoutTemplate,
+} from "lucide-react";
 import TeamMembers from "@/components/user-details/TeamMembers";
 import Channels from "@/components/user-details/Channel";
 import Contacts from "@/components/user-details/Contacts";
-import {useRoute} from "wouter";
+import { useRoute } from "wouter";
 import Templates from "@/components/user-details/Templates";
 import Campaigns from "@/components/user-details/Campaigns";
 import Subscriptions from "@/components/user-details/Subscriptions";
@@ -53,10 +61,7 @@ export default function UserDetails() {
               <span>Channels</span>
             </TabsTrigger>
 
-            <TabsTrigger
-              value="team"
-              className="flex items-center space-x-2"
-            >
+            <TabsTrigger value="team" className="flex items-center space-x-2">
               <User className="w-4 h-4" />
               <span>Team Members</span>
             </TabsTrigger>
@@ -96,33 +101,32 @@ export default function UserDetails() {
 
           {/* Channels Tab */}
           <TabsContent value="channels">
-           <Channels userId={userId}/>
+            <Channels userId={userId} />
           </TabsContent>
 
           {/* Team Members Tab */}
           <TabsContent value="team">
             {/* <h2 className="text-lg font-semibold mb-2">Team Members</h2>
             <p>Team members for {user.username} will be listed here.</p> */}
-            <TeamMembers userId={userId}/>
+            <TeamMembers userId={userId} />
           </TabsContent>
 
           <TabsContent value="Contact">
-           <Contacts userId={userId}/>
+            <Contacts userId={userId} />
           </TabsContent>
 
-
-           <TabsContent value="templates">
-           <Templates userId={userId}/>
+          <TabsContent value="templates">
+            <Templates userId={userId} />
           </TabsContent>
 
           {/* Campaigns Tab */}
           <TabsContent value="campaigns">
-            <Campaigns userId={userId}/>
+            <Campaigns userId={userId} />
           </TabsContent>
 
           {/* Subscriptions Tab */}
           <TabsContent value="subscriptions">
-            <Subscriptions userId={userId}/>
+            <Subscriptions userId={userId} />
           </TabsContent>
         </Tabs>
       </main>
