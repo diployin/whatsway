@@ -19,7 +19,6 @@ import {
   User,
   Settings,
 } from "lucide-react";
-import ThemeToggle from "./ThemeToggle";
 import LoadingAnimation from "./LoadingAnimation";
 import { useAuth } from "@/contexts/auth-context";
 
@@ -28,12 +27,13 @@ const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [showAboutMega, setShowAboutMega] = useState(false);
   const [showResourcesMega, setShowResourcesMega] = useState(false);
+  const [showAboutMobile, setShowAboutMobile] = useState(false);
+  const [showResourcesMobile, setShowResourcesMobile] = useState(false);
   const [loginLoading, setLoginLoading] = useState(false);
   const [getStartedLoading, setGetStartedLoading] = useState(false);
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [location] = useLocation(); // string
   const { isAuthenticated, user, logout } = useAuth();
 
   const username = (user?.firstName || "") + " " + (user?.lastName || "");
@@ -61,6 +61,8 @@ const Header = () => {
 
   useEffect(() => {
     setIsMenuOpen(false);
+    setShowAboutMobile(false);
+    setShowResourcesMobile(false);
     closeMegaMenus();
   }, [location]);
 
@@ -167,6 +169,14 @@ const Header = () => {
   const closeMegaMenus = () => {
     setShowAboutMega(false);
     setShowResourcesMega(false);
+  };
+
+  const handleMenuToggle = () => {
+    setIsMenuOpen(!isMenuOpen);
+    if (isMenuOpen) {
+      setShowAboutMobile(false);
+      setShowResourcesMobile(false);
+    }
   };
 
   const MegaMenu = ({
@@ -290,14 +300,14 @@ const Header = () => {
                 Home
               </Link>
 
-              {/* About Mega Menu - FIXED VERSION */}
+              {/* About Mega Menu */}
               <div
                 className="relative group"
                 onMouseEnter={() => setShowAboutMega(true)}
                 onMouseLeave={() => setShowAboutMega(false)}
               >
                 <button
-                  className="flex items-center text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-500 transition-colors font-medium cursor-pointer bg-transparent border-none text-sm xl:text-base "
+                  className="flex items-center text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-500 transition-colors font-medium cursor-pointer bg-transparent border-none text-sm xl:text-base"
                   aria-haspopup="true"
                   aria-expanded={showAboutMega}
                   type="button"
@@ -310,7 +320,6 @@ const Header = () => {
                   />
                 </button>
 
-                {/* Bridge div to close the gap */}
                 <div
                   className="absolute left-0 right-0 h-4 top-full"
                   style={{ top: "100%" }}
@@ -323,7 +332,7 @@ const Header = () => {
                 />
               </div>
 
-              {/* Resources Mega Menu - FIXED VERSION */}
+              {/* Resources Mega Menu */}
               <div
                 className="relative group"
                 onMouseEnter={() => setShowResourcesMega(true)}
@@ -343,7 +352,6 @@ const Header = () => {
                   />
                 </button>
 
-                {/* Bridge div to close the gap */}
                 <div
                   className="absolute left-0 right-0 h-4 top-full"
                   style={{ top: "100%" }}
@@ -359,13 +367,13 @@ const Header = () => {
               {!isAuthenticated && (
                 <>
                   <Link
-                    to="/login"
-                    className="text-gray-700 hover:text-green-600 transition-colors font-medium"
+                    href="/login"
+                    className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-500 transition-colors font-medium"
                   >
                     Login
                   </Link>
                   <Link
-                    to="/signup"
+                    href="/signup"
                     className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-lg hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105 shadow-lg flex items-center group text-sm"
                   >
                     Get Started Free{" "}
@@ -377,12 +385,11 @@ const Header = () => {
               {isAuthenticated && (
                 <>
                   <Link
-                    to="/dashboard"
-                    className="text-gray-700 hover:text-green-600 transition-colors font-medium"
+                    href="/dashboard"
+                    className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-500 transition-colors font-medium"
                   >
                     Dashboard
                   </Link>
-                  {/* User Profile */}
                   <div className="relative" ref={dropdownRef}>
                     <button
                       className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-200 hover:border-gray-400 transition-colors"
@@ -398,14 +405,13 @@ const Header = () => {
                     </button>
 
                     {dropdownOpen && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                        {/* User Name */}
-                        <div className="px-4 py-2 border-b border-gray-100 text-gray-800 font-semibold">
+                      <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
+                        <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-700 text-gray-800 dark:text-white font-semibold">
                           {username}
                         </div>
 
                         <button
-                          className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-gray-100"
+                          className="flex items-center w-full px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                           onClick={() => {
                             setLocation("/settings");
                             setDropdownOpen(false);
@@ -414,17 +420,20 @@ const Header = () => {
                           <Settings className="w-4 h-4 mr-2" /> Settings
                         </button>
                         <button
-                          className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-gray-100"
+                          className="flex items-center w-full px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                           onClick={() => {
                             setLocation("/account");
                             setDropdownOpen(false);
                           }}
                         >
-                          <User className="w-4 h-4 mr-2" /> Accounts
+                          <User className="w-4 h-4 mr-2" /> Account
                         </button>
                         <button
-                          className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-gray-100"
-                          onClick={logout}
+                          className="flex items-center w-full px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          onClick={() => {
+                            logout();
+                            setDropdownOpen(false);
+                          }}
                         >
                           <LogOut className="w-4 h-4 mr-2" /> Logout
                         </button>
@@ -438,7 +447,7 @@ const Header = () => {
             {/* Mobile Menu Toggle */}
             <button
               className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              onClick={handleMenuToggle}
               aria-label="Toggle menu"
               aria-expanded={isMenuOpen}
             >
@@ -458,80 +467,189 @@ const Header = () => {
           <div className="px-4 py-4 space-y-3">
             <Link
               href="/"
-              className="block py-2 text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-500 font-medium text-sm sm:text-base"
+              className={`block py-2 hover:text-green-600 dark:hover:text-green-500 font-medium text-sm sm:text-base ${
+                location === "/"
+                  ? "text-green-600 dark:text-green-500"
+                  : "text-gray-700 dark:text-gray-300"
+              }`}
               onClick={() => setIsMenuOpen(false)}
             >
               Home
             </Link>
 
-            {/* Mobile About Section */}
+            {/* About Accordion */}
             <div className="space-y-2">
-              <div className="text-gray-900 dark:text-white font-semibold py-2 text-sm sm:text-base">
-                About
+              <button
+                className="flex items-center justify-between w-full py-2 text-gray-900 dark:text-white font-semibold text-sm sm:text-base"
+                onClick={() => setShowAboutMobile(!showAboutMobile)}
+                aria-expanded={showAboutMobile}
+              >
+                <span>About</span>
+                <ChevronDown
+                  className={`w-4 h-4 transition-transform duration-200 ${
+                    showAboutMobile ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              <div
+                className={`grid overflow-hidden transition-all duration-300 ease-in-out ${
+                  showAboutMobile
+                    ? "grid-rows-[1fr] opacity-100"
+                    : "grid-rows-[0fr] opacity-0"
+                }`}
+              >
+                <div className="overflow-hidden">
+                  <div className="space-y-2 pl-4">
+                    {aboutMenuItems.map((item, index) => (
+                      <Link
+                        key={`mobile-about-${index}`}
+                        href={item.path}
+                        className="flex items-center py-2 text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-500 font-medium text-sm sm:text-base gap-2"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <item.icon className="w-4 h-4 text-green-600" />
+                        {item.title}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
               </div>
-              {aboutMenuItems.map((item, index) => (
-                <Link
-                  key={`mobile-about-${index}`}
-                  href={item.path}
-                  className="flex items-center py-2 pl-4 text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-500 font-medium text-sm sm:text-base gap-2"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <item.icon className="w-4 h-4 text-green-600" />
-                  {item.title}
-                </Link>
-              ))}
             </div>
 
-            {/* Mobile Resources Section */}
+            {/* Resources Accordion */}
             <div className="space-y-2">
-              <div className="text-gray-900 dark:text-white font-semibold py-2 text-sm sm:text-base">
-                Resources
+              <button
+                className="flex items-center justify-between w-full py-2 text-gray-900 dark:text-white font-semibold text-sm sm:text-base"
+                onClick={() => setShowResourcesMobile(!showResourcesMobile)}
+                aria-expanded={showResourcesMobile}
+              >
+                <span>Resources</span>
+                <ChevronDown
+                  className={`w-4 h-4 transition-transform duration-200 ${
+                    showResourcesMobile ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              <div
+                className={`grid overflow-hidden transition-all duration-300 ease-in-out ${
+                  showResourcesMobile
+                    ? "grid-rows-[1fr] opacity-100"
+                    : "grid-rows-[0fr] opacity-0"
+                }`}
+              >
+                <div className="overflow-hidden">
+                  <div className="space-y-2 pl-4">
+                    {resourcesMenuItems.map((item, index) => (
+                      <Link
+                        key={`mobile-resources-${index}`}
+                        href={item.path}
+                        className="flex items-center py-2 text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-500 font-medium text-sm sm:text-base gap-2"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <item.icon className="w-4 h-4 text-green-600" />
+                        {item.title}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
               </div>
-              {resourcesMenuItems.map((item, index) => (
-                <Link
-                  key={`mobile-resources-${index}`}
-                  href={item.path}
-                  className="flex items-center py-2 pl-4 text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-500 font-medium text-sm sm:text-base gap-2"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <item.icon className="w-4 h-4 text-green-600" />
-                  {item.title}
-                </Link>
-              ))}
             </div>
 
-            <Link
-              href="/login"
-              onClick={() => {
-                setIsMenuOpen(false);
-                handleLogin();
-              }}
-              className="block w-full text-left py-2 text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-500 font-medium text-sm sm:text-base"
-            >
-              {loginLoading ? (
-                <LoadingAnimation size="sm" color="green" />
-              ) : (
-                "Login"
-              )}
-            </Link>
+            {!isAuthenticated ? (
+              <>
+                <Link
+                  href="/login"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    handleLogin();
+                  }}
+                  className="block w-full text-left py-2 text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-500 font-medium text-sm sm:text-base"
+                >
+                  {loginLoading ? (
+                    <LoadingAnimation size="sm" color="green" />
+                  ) : (
+                    "Login"
+                  )}
+                </Link>
 
-            <Link
-              href="/signup"
-              onClick={() => {
-                setIsMenuOpen(false);
-                handleGetStarted();
-              }}
-              className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-2.5 sm:py-3 rounded-lg hover:from-green-600 hover:to-green-700 transition-all font-medium flex items-center justify-center text-sm sm:text-base"
-            >
-              {getStartedLoading ? (
-                <LoadingAnimation size="sm" color="white" />
-              ) : (
-                <>
-                  Get Started Free
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </>
-              )}
-            </Link>
+                <Link
+                  href="/signup"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    handleGetStarted();
+                  }}
+                  className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-2.5 sm:py-3 rounded-lg hover:from-green-600 hover:to-green-700 transition-all font-medium flex items-center justify-center text-sm sm:text-base"
+                >
+                  {getStartedLoading ? (
+                    <LoadingAnimation size="sm" color="white" />
+                  ) : (
+                    <>
+                      Get Started Free
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </>
+                  )}
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/dashboard"
+                  className="block py-2 text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-500 font-medium text-sm sm:text-base"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Dashboard
+                </Link>
+
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-3 mt-3">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-200">
+                      <img
+                        src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
+                          username
+                        )}`}
+                        alt="User Profile"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <span className="text-gray-800 dark:text-white font-semibold">
+                      {username}
+                    </span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <button
+                      className="flex items-center w-full px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+                      onClick={() => {
+                        setLocation("/settings");
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      <Settings className="w-4 h-4 mr-2" /> Settings
+                    </button>
+                    <button
+                      className="flex items-center w-full px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+                      onClick={() => {
+                        setLocation("/account");
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      <User className="w-4 h-4 mr-2" /> Account
+                    </button>
+                    <button
+                      className="flex items-center w-full px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                      onClick={() => {
+                        logout();
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      <LogOut className="w-4 h-4 mr-2" /> Logout
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
