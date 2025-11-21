@@ -301,7 +301,7 @@ const { data: messageAnalytics, isLoading: messageLoading } = useQuery({
                 value="campaigns"
                 className="text-xs sm:text-sm py-2"
               >
-                Campaignsss
+                Campaigns
               </TabsTrigger>
             )}
           </TabsList>
