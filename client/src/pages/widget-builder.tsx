@@ -406,9 +406,9 @@ export default function WidgetBuilder() {
   const widgetCode = `<!-- AI Chat Widget -->
     <script>
       window.aiChatConfig = {
-       siteId: "${site?.id || "your-site-id"}"
-        channelId:"${site?.channelId || "your-channel-id"}"
-        url: ${widgetDomain},
+       siteId: "${site?.id || "your-site-id"}",
+        channelId:"${site?.channelId || "your-channel-id"}",
+        url: "${widgetDomain}",
       };
     </script>
 <script src="${widgetDomain}/widget/widget.js" async></script>`;

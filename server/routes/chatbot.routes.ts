@@ -127,18 +127,19 @@ export function registerWidgetRoutes(app: Express) {
   app.post("/api/widget/contacts",requireSubscription('contacts'), async (req, res) => {
     try {
       const { siteId, name, email, phone, source } = req.body;
-      
+      console.log("widget contact body", req.body)
       const site = await storage.getSite(siteId);
       if (!site) {
         return res.status(404).json({ error: "Site not found" });
       }
-
+      
       // Check if contact exists
-      let contact = await storage.getContactByEmail(site.tenantId, email);
+      let [contact] = await storage.getContactByEmail(email);
+      // return  console.log("site", site ,contact)
       
       if (!contact) {
         contact = await storage.createContact({
-          tenantId: site.tenantId,
+          channelId: site?.channelId || null,
           name,
           email,
           phone,
