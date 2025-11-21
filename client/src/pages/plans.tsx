@@ -217,10 +217,23 @@ export default function Plans() {
         automation: "",
         campaign: "",
       },
-      features: (plan.features || []).map((f: string) => ({
-        name: f,
-        included: true,
-      })),
+      features: (plan.features || []).map((f: any) => {
+        // case 1: feature is string [GOOD]
+        if (typeof f === "string") {
+          return { name: f, included: true };
+        }
+
+        // case 2: feature is object { name: "...", included: true }
+        if (typeof f === "object" && f !== null) {
+          return {
+            name: typeof f.name === "string" ? f.name : "",
+            included: typeof f.included === "boolean" ? f.included : true,
+          };
+        }
+
+        // fallback
+        return { name: "", included: true };
+      }),
     });
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -275,73 +288,77 @@ export default function Plans() {
 
       <main className="p-6 space-y-6">
         {/* Stats Card */}
-       {   isSuper && ( <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    Total Plans
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {plans.length}
-                  </p>
+        {isSuper && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">
+                      Total Plans
+                    </p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {plans.length}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-blue-100 rounded-lg">
+                    <Award className="w-6 h-6 text-blue-600" />
+                  </div>
                 </div>
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <Award className="w-6 h-6 text-blue-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Featured</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {plans.filter((p) => p.popular).length}
-                  </p>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">
+                      Featured
+                    </p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {plans.filter((p) => p.popular).length}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-purple-100 rounded-lg">
+                    <Star className="w-6 h-6 text-purple-600" />
+                  </div>
                 </div>
-                <div className="p-3 bg-purple-100 rounded-lg">
-                  <Star className="w-6 h-6 text-purple-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Active</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {plans.length}
-                  </p>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Active</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {plans.length}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-green-100 rounded-lg">
+                    <Check className="w-6 h-6 text-green-600" />
+                  </div>
                 </div>
-                <div className="p-3 bg-green-100 rounded-lg">
-                  <Check className="w-6 h-6 text-green-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Billing</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {isAnnual ? "Annual" : "Monthly"}
-                  </p>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Billing</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {isAnnual ? "Annual" : "Monthly"}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-orange-100 rounded-lg">
+                    <RefreshCw className="w-6 h-6 text-orange-600" />
+                  </div>
                 </div>
-                <div className="p-3 bg-orange-100 rounded-lg">
-                  <RefreshCw className="w-6 h-6 text-orange-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>)}
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Main Card */}
         <Card>
