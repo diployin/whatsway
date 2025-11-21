@@ -50,10 +50,16 @@ export default function Dashboard() {
     queryKey: ["/api/team/activity-logs"],
     queryFn: async () => {
       const response = await fetch("/api/team/activity-logs");
-      if (!response.ok) return null;
+      
+      // if (!response.ok) return null;
       return await response.json();
     },
   });
+
+
+  
+
+  console.log("activity logs response ", activityLogs);
 
   const [timeRange, setTimeRange] = useState<number>(30);
 

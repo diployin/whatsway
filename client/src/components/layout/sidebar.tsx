@@ -57,7 +57,7 @@ const navItems: NavItem[] = [
     color: "text-green-600",
     alwaysVisible: true,
     requiredPrefix: "dashboard.",
-    allowedRoles: ["superadmin", "admin", "user"],
+    allowedRoles: ["superadmin", "admin", "user", "team"],
   },
   {
     href: "/inbox",

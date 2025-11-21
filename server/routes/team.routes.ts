@@ -532,16 +532,54 @@ router.delete("/members/:id",requireAuth, async (req, res) => {
 
 
 
+// router.get("/activity-logs", async (req, res) => {
+//   try {
+//     // Get the logged-in user's ID from the session or JWT (adjust this according to your authentication method)
+//     const loggedInUserId = req?.session?.user?.id;  // Example using `req.user` for the authenticated user.
+
+//     if (!loggedInUserId) {
+//       return res.status(401).json({ error: "Unauthorized" });
+//     }
+
+//     // Fetch activity logs where the 'created_by' field matches the logged-in user's ID
+//     const logs = await db
+//       .select({
+//         id: userActivityLogs.id,
+//         userId: userActivityLogs.userId,
+//         userName: users.username,
+//         userEmail: users.email,
+//         action: userActivityLogs.action,
+//         entityType: userActivityLogs.entityType,
+//         entityId: userActivityLogs.entityId,
+//         details: userActivityLogs.details,
+//         ipAddress: userActivityLogs.ipAddress,
+//         userAgent: userActivityLogs.userAgent,
+//         createdAt: userActivityLogs.createdAt,
+//       })
+//       .from(userActivityLogs)
+//       .leftJoin(users, eq(userActivityLogs.userId, users.id))
+//       .where(eq(users.createdBy, loggedInUserId)) // Add this line to filter logs by the user who created the team member
+//       .orderBy(desc(userActivityLogs.createdAt))
+//       .limit(100);
+
+//     res.json(logs);
+//   } catch (error) {
+//     console.error("Error fetching activity logs:", error);
+//     res.status(500).json({ error: "Failed to fetch activity logs" });
+//   }
+// });
+
+
+
 router.get("/activity-logs", async (req, res) => {
   try {
-    // Get the logged-in user's ID from the session or JWT (adjust this according to your authentication method)
-    const loggedInUserId = req?.session?.user?.id;  // Example using `req.user` for the authenticated user.
+    const loggedInUserId = req?.session?.user?.id;
 
     if (!loggedInUserId) {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    // Fetch activity logs where the 'created_by' field matches the logged-in user's ID
+    // Fetch ALL activity logs (No filter)
     const logs = await db
       .select({
         id: userActivityLogs.id,
@@ -558,16 +596,17 @@ router.get("/activity-logs", async (req, res) => {
       })
       .from(userActivityLogs)
       .leftJoin(users, eq(userActivityLogs.userId, users.id))
-      .where(eq(users.createdBy, loggedInUserId)) // Add this line to filter logs by the user who created the team member
       .orderBy(desc(userActivityLogs.createdAt))
       .limit(100);
 
     res.json(logs);
+
   } catch (error) {
     console.error("Error fetching activity logs:", error);
     res.status(500).json({ error: "Failed to fetch activity logs" });
   }
 });
+
 
 
 // Update member permissions
