@@ -25,20 +25,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { 
-  Search, 
+import {
+  Search,
   Send,
   Paperclip,
   MoreVertical,
@@ -69,28 +64,34 @@ import {
   Reply,
   Download,
   Volume2,
-  Bot
+  Bot,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { format, differenceInMinutes, differenceInHours, differenceInDays, isToday, isYesterday } from "date-fns";
+import {
+  format,
+  differenceInMinutes,
+  differenceInHours,
+  differenceInDays,
+  isToday,
+  isYesterday,
+} from "date-fns";
 import { cn } from "@/lib/utils";
 import type { Conversation, Contact, User } from "@shared/schema";
 import { useAuth } from "@/contexts/auth-context";
-import { io, Socket } from 'socket.io-client';
-
+import { io, Socket } from "socket.io-client";
 
 // Helper functions
 const formatLastSeen = (date: Date | string | null) => {
   if (!date) return "Never";
-  
+
   const lastSeenDate = new Date(date);
   const now = new Date();
   const minutes = differenceInMinutes(now, lastSeenDate);
   const hours = differenceInHours(now, lastSeenDate);
   const days = differenceInDays(now, lastSeenDate);
-  
+
   if (minutes < 1) return "Just now";
   if (minutes < 60) return `${minutes}m ago`;
   if (hours < 24) return `${hours}h ago`;
@@ -100,7 +101,7 @@ const formatLastSeen = (date: Date | string | null) => {
 
 const formatMessageDate = (date: Date | string) => {
   const messageDate = new Date(date);
-  
+
   if (isToday(messageDate)) return "Today";
   if (isYesterday(messageDate)) return "Yesterday";
   return format(messageDate, "MMMM d, yyyy");
@@ -120,40 +121,39 @@ const getMessageStatusIcon = (status: string) => {
 };
 
 // Conversation List Item Component
-const ConversationListItem = ({ 
-  conversation, 
-  isSelected, 
-  onClick ,
-  user
-}: { 
+const ConversationListItem = ({
+  conversation,
+  isSelected,
+  onClick,
+  user,
+}: {
   conversation: Conversation & { contact?: Contact };
   isSelected: boolean;
   onClick: () => void;
 }) => {
-  const lastMessageTime = conversation.lastMessageAt 
+  const lastMessageTime = conversation.lastMessageAt
     ? formatLastSeen(conversation.lastMessageAt)
     : "";
 
-
-    function getMessagePreview(message: string | null | undefined): string {
-      if (!message) {
-        return ''; // or return 'No message' if you want a placeholder
-      }
-    
-      if (message.length <= 40) {
-        return message;
-      } else {
-        return message.substring(0, 40) + '...';
-      }
+  function getMessagePreview(message: string | null | undefined): string {
+    if (!message) {
+      return ""; // or return 'No message' if you want a placeholder
     }
+
+    if (message.length <= 40) {
+      return message;
+    } else {
+      return message.substring(0, 40) + "...";
+    }
+  }
 
   return (
     <div
       onClick={onClick}
       className={cn(
         "flex items-center gap-3 p-3 cursor-pointer transition-colors border-b",
-        isSelected 
-          ? "bg-green-50 border-l-4 border-l-green-600" 
+        isSelected
+          ? "bg-green-50 border-l-4 border-l-green-600"
           : "hover:bg-gray-50"
       )}
     >
@@ -162,55 +162,52 @@ const ConversationListItem = ({
           {conversation.contactName?.[0]?.toUpperCase() || "?"}
         </AvatarFallback>
       </Avatar>
-      
+
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-1">
           <h4 className="font-medium text-gray-900 truncate">
-            {user?.username === 'demouser'
-              ? (
-                  (conversation.contactName
-                    ? conversation.contactName.slice(0, -1).replace(/./g, "*") +
-                    conversation.contactName.slice(-1)
-                    : conversation.contactPhone
-                    ? conversation.contactPhone.slice(0, -4).replace(/\d/g, "*") +
-                    conversation.contactPhone.slice(-4)
-                    : "Unknown")
-                )
-              : (
-                conversation.contactName ||
+            {user?.username === "demouser"
+              ? conversation.contactName
+                ? conversation.contactName.slice(0, -1).replace(/./g, "*") +
+                  conversation.contactName.slice(-1)
+                : conversation.contactPhone
+                ? conversation.contactPhone.slice(0, -4).replace(/\d/g, "*") +
+                  conversation.contactPhone.slice(-4)
+                : "Unknown"
+              : conversation.contactName ||
                 conversation.contactPhone ||
-                  "Unknown"
-                )}
+                "Unknown"}
           </h4>
           <span className="text-xs text-gray-500 whitespace-nowrap ml-2">
             {lastMessageTime}
           </span>
         </div>
-        
-        <div className="flex items-center justify-between w-full">
-      {/* Left side: message preview + icon */}
-      <div className="flex items-center min-w-0">
-        {conversation.type === "whatsapp" && (
-          <MessageCircle className="w-4 h-4 text-green-600 inline-block mr-1 flex-shrink-0" />
-        )}
-        {conversation.type === "messenger" && (
-          <MessageCircle className="w-4 h-4 text-blue-600 inline-block mr-1 flex-shrink-0" />
-        )}
-        {conversation.type === "chatbot" && (
-          <Bot className="w-4 h-4 text-green-600 inline-block mr-1 flex-shrink-0" />
-        )}
-        <p className="text-sm text-gray-600 truncate">
-          {getMessagePreview(conversation.lastMessageText) || "No messages yet"}
-        </p>
-      </div>
 
-      {/* Right side: unread badge */}
-      {conversation.unreadCount && conversation.unreadCount > 0 &&(
-        <Badge className="ml-2 bg-green-600 text-white">
-          {conversation.unreadCount}
-        </Badge>
-      )}
-    </div>
+        <div className="flex items-center justify-between w-full">
+          {/* Left side: message preview + icon */}
+          <div className="flex items-center min-w-0">
+            {conversation.type === "whatsapp" && (
+              <MessageCircle className="w-4 h-4 text-green-600 inline-block mr-1 flex-shrink-0" />
+            )}
+            {conversation.type === "messenger" && (
+              <MessageCircle className="w-4 h-4 text-blue-600 inline-block mr-1 flex-shrink-0" />
+            )}
+            {conversation.type === "chatbot" && (
+              <Bot className="w-4 h-4 text-green-600 inline-block mr-1 flex-shrink-0" />
+            )}
+            <p className="text-sm text-gray-600 truncate">
+              {getMessagePreview(conversation.lastMessageText) ||
+                "No messages yet"}
+            </p>
+          </div>
+
+          {/* Right side: unread badge */}
+          {conversation.unreadCount && conversation.unreadCount > 0 && (
+            <Badge className="ml-2 bg-green-600 text-white">
+              {conversation.unreadCount}
+            </Badge>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -238,40 +235,45 @@ interface Message {
   createdAt: string;
 }
 
-const MessageItem = ({ 
-  message, 
-  showDate 
-}: { 
+const MessageItem = ({
+  message,
+  showDate,
+}: {
   message: Message;
   showDate: boolean;
 }) => {
   const isOutbound = message.direction === "outbound";
-  
+
   const renderMediaContent = () => {
     // Check if message has media content
     const hasMedia = message.mediaId || message.mediaUrl;
     const messageType = message.messageType || message.type;
-    
+
     // Use backend proxy for Facebook/WhatsApp URLs, direct URL for others
-    const needsProxy = hasMedia && message.mediaUrl && message.mediaUrl.includes('lookaside.fbsbx.com');
-    const mediaUrl = hasMedia 
-      ? (needsProxy 
-          ? `/api/messages/media-proxy?messageId=${message.id}` 
-          : message.mediaUrl)
+    const needsProxy =
+      hasMedia &&
+      message.mediaUrl &&
+      message.mediaUrl.includes("lookaside.fbsbx.com");
+    const mediaUrl = hasMedia
+      ? needsProxy
+        ? `/api/messages/media-proxy?messageId=${message.id}`
+        : message.mediaUrl
       : null;
-    const downloadUrl = hasMedia 
-      ? (needsProxy 
-          ? `/api/messages/media-proxy?messageId=${message.id}&download=true` 
-          : message.mediaUrl)
+    const downloadUrl = hasMedia
+      ? needsProxy
+        ? `/api/messages/media-proxy?messageId=${message.id}&download=true`
+        : message.mediaUrl
       : null;
-    
+
     // Helper function to render text content
     const renderTextContent = () => {
-      if (!message.content || 
-          message.content === '[image]' || 
-          message.content === '[video]' || 
-          message.content === '[audio]' || 
-          message.content === '[document]') {
+      if (
+        !message.content ||
+        message.content === "[image]" ||
+        message.content === "[video]" ||
+        message.content === "[audio]" ||
+        message.content === "[document]"
+      ) {
         return null;
       }
       return <p className="text-sm whitespace-pre-wrap">{message.content}</p>;
@@ -279,28 +281,29 @@ const MessageItem = ({
 
     // Handle different message types
     switch (messageType) {
-      case 'image':
+      case "image":
         return (
           <div className="space-y-2">
             {hasMedia && (
               <div className="relative group">
-                <button 
-                  onClick={() => mediaUrl && window.open(mediaUrl, '_blank')}
+                <button
+                  onClick={() => mediaUrl && window.open(mediaUrl, "_blank")}
                   onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      mediaUrl && window.open(mediaUrl, '_blank');
+                    if (e.key === "Enter") {
+                      mediaUrl && window.open(mediaUrl, "_blank");
                     }
                   }}
                   className="max-w-[250px] max-h-[300px] rounded-lg object-cover cursor-pointer transition-opacity group-hover:opacity-90"
-                  style={{ background: 'none', border: 'none', padding: 0 }}
+                  style={{ background: "none", border: "none", padding: 0 }}
                 >
-                  <img 
-                    src={mediaUrl || ''}
+                  <img
+                    src={mediaUrl || ""}
                     alt=""
                     className="max-w-[250px] max-h-[300px] rounded-lg object-cover"
                     onError={(e) => {
-                      console.error('Failed to load image:', mediaUrl);
-                      e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+PC9zdmc+';
+                      console.error("Failed to load image:", mediaUrl);
+                      e.currentTarget.src =
+                        "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+PC9zdmc+";
                     }}
                   />
                 </button>
@@ -315,20 +318,23 @@ const MessageItem = ({
           </div>
         );
 
-      case 'video':
+      case "video":
         return (
           <div className="space-y-2">
             {hasMedia && (
               <div className="relative">
-                <video 
-                  controls 
+                <video
+                  controls
                   className="max-w-[250px] max-h-[300px] rounded-lg"
                   preload="metadata"
                   onError={(e) => {
-                    console.error('Failed to load video:', mediaUrl);
+                    console.error("Failed to load video:", mediaUrl);
                   }}
                 >
-                  <source src={`${mediaUrl}#t=0.1`} type={message.mediaMimeType} />
+                  <source
+                    src={`${mediaUrl}#t=0.1`}
+                    type={message.mediaMimeType}
+                  />
                   Your browser does not support the video tag.
                 </video>
                 <div className="absolute top-2 right-2 bg-black bg-opacity-50 rounded-full p-1">
@@ -340,35 +346,41 @@ const MessageItem = ({
           </div>
         );
 
-      case 'audio':
+      case "audio":
         return (
           <div className="space-y-2">
             {hasMedia && (
-              <div className={cn(
-                "flex items-center space-x-3 p-3 rounded-lg min-w-[200px]",
-                isOutbound ? "bg-green-700" : "bg-gray-200"
-              )}>
-                <div className={cn(
-                  "p-2 rounded-full",
-                  isOutbound ? "bg-green-800" : "bg-gray-300"
-                )}>
-                  <Volume2 className={cn(
-                    "w-4 h-4",
-                    isOutbound ? "text-white" : "text-gray-600"
-                  )} />
+              <div
+                className={cn(
+                  "flex items-center space-x-3 p-3 rounded-lg min-w-[200px]",
+                  isOutbound ? "bg-green-700" : "bg-gray-200"
+                )}
+              >
+                <div
+                  className={cn(
+                    "p-2 rounded-full",
+                    isOutbound ? "bg-green-800" : "bg-gray-300"
+                  )}
+                >
+                  <Volume2
+                    className={cn(
+                      "w-4 h-4",
+                      isOutbound ? "text-white" : "text-gray-600"
+                    )}
+                  />
                 </div>
                 <div className="flex-1">
-                  <audio 
-                    controls 
+                  <audio
+                    controls
                     className="w-full h-8"
-                    style={{ 
-                      filter: isOutbound ? 'invert(1)' : 'none'
+                    style={{
+                      filter: isOutbound ? "invert(1)" : "none",
                     }}
                     onError={(e) => {
-                      console.error('Failed to load audio:', mediaUrl);
+                      console.error("Failed to load audio:", mediaUrl);
                     }}
                   >
-                    <source src={mediaUrl || ''} type={message.mediaMimeType} />
+                    <source src={mediaUrl || ""} type={message.mediaMimeType} />
                     Your browser does not support the audio tag.
                   </audio>
                 </div>
@@ -378,68 +390,87 @@ const MessageItem = ({
           </div>
         );
 
-      case 'document':
-        const fileName = message.metadata?.originalName || 
-                  (message.metadata as { filePath?: string; fileSize?: number; mimeType?: string; originalName?: string; fileName?: string; }).fileName || 
-                  'Document';
-        const fileSize = message.metadata?.fileSize 
+      case "document":
+        const fileName =
+          message.metadata?.originalName ||
+          (
+            message.metadata as {
+              filePath?: string;
+              fileSize?: number;
+              mimeType?: string;
+              originalName?: string;
+              fileName?: string;
+            }
+          ).fileName ||
+          "Document";
+        const fileSize = message.metadata?.fileSize
           ? `${Math.round(message.metadata.fileSize / 1024)} KB`
-          : '';
-        
+          : "";
+
         return (
           <div className="space-y-2">
             {hasMedia && (
-              <div className={cn(
-                "flex items-center space-x-3 p-3 rounded-lg border",
-                isOutbound 
-                  ? "bg-green-700 border-green-600" 
-                  : "bg-white border-gray-200"
-              )}>
-                <div className={cn(
-                  "p-2 rounded-full",
-                  isOutbound ? "bg-green-800" : "bg-blue-100"
-                )}>
-                  <FileText className={cn(
-                    "w-5 h-5",
-                    isOutbound ? "text-white" : "text-blue-600"
-                  )} />
+              <div
+                className={cn(
+                  "flex items-center space-x-3 p-3 rounded-lg border",
+                  isOutbound
+                    ? "bg-green-700 border-green-600"
+                    : "bg-white border-gray-200"
+                )}
+              >
+                <div
+                  className={cn(
+                    "p-2 rounded-full",
+                    isOutbound ? "bg-green-800" : "bg-blue-100"
+                  )}
+                >
+                  <FileText
+                    className={cn(
+                      "w-5 h-5",
+                      isOutbound ? "text-white" : "text-blue-600"
+                    )}
+                  />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className={cn(
-                    "text-sm font-medium truncate",
-                    isOutbound ? "text-white" : "text-gray-900"
-                  )}>
+                  <p
+                    className={cn(
+                      "text-sm font-medium truncate",
+                      isOutbound ? "text-white" : "text-gray-900"
+                    )}
+                  >
                     {fileName}
                   </p>
                   <div className="flex items-center space-x-2">
                     {fileSize && (
-                      <p className={cn(
-                        "text-xs",
-                        isOutbound ? "text-green-100" : "text-gray-500"
-                      )}>
+                      <p
+                        className={cn(
+                          "text-xs",
+                          isOutbound ? "text-green-100" : "text-gray-500"
+                        )}
+                      >
                         {fileSize}
                       </p>
                     )}
                     {(message.mediaMimeType || message.metadata?.mimeType) && (
                       <p
-                      className={cn(
-                        "text-xs",
-                        isOutbound ? "text-green-100" : "text-gray-500"
-                      )}
-                    >
-                      {(
-                        message.mediaMimeType ??
-                        message.metadata?.mimeType ??
-                        "FILE/UNKNOWN"
-                      )
-                        .split("/")[1]
-                        ?.toUpperCase() || "FILE"}
-                    </p>                    
+                        className={cn(
+                          "text-xs",
+                          isOutbound ? "text-green-100" : "text-gray-500"
+                        )}
+                      >
+                        {(
+                          message.mediaMimeType ??
+                          message.metadata?.mimeType ??
+                          "FILE/UNKNOWN"
+                        )
+                          .split("/")[1]
+                          ?.toUpperCase() || "FILE"}
+                      </p>
                     )}
                   </div>
                 </div>
                 <a
-                  href={downloadUrl || ''}
+                  href={downloadUrl || ""}
                   download={fileName}
                   className={cn(
                     "p-1 rounded-full hover:bg-opacity-80 transition-colors",
@@ -448,10 +479,12 @@ const MessageItem = ({
                   onClick={(e) => e.stopPropagation()}
                   title="Download file"
                 >
-                  <Download className={cn(
-                    "w-4 h-4",
-                    isOutbound ? "text-white" : "text-gray-600"
-                  )} />
+                  <Download
+                    className={cn(
+                      "w-4 h-4",
+                      isOutbound ? "text-white" : "text-gray-600"
+                    )}
+                  />
                 </a>
               </div>
             )}
@@ -459,7 +492,7 @@ const MessageItem = ({
           </div>
         );
 
-      case 'interactive':
+      case "interactive":
         // Handle interactive messages (buttons/lists)
         interface MessageMetadata {
           filePath?: string;
@@ -475,42 +508,48 @@ const MessageItem = ({
             {renderTextContent()}
             {buttons && buttons.length > 0 && (
               <div className="space-y-2">
-                {buttons.map((button: { id?: string; text: string }, index: number) => (
-                  <button
-                    key={button.id || index}
-                    className={cn(
-                      "w-full text-left px-3 py-2 rounded-lg border text-sm transition-colors",
-                      isOutbound 
-                        ? "border-green-300 text-green-100 hover:bg-green-700" 
-                        : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                    )}
-                    onClick={() => {
-                      // Handle button click - you might want to emit an event or call a callback
-                      console.log('Button clicked:', button);
-                    }}
-                  >
-                    {button.text}
-                  </button>
-                ))}
+                {buttons.map(
+                  (button: { id?: string; text: string }, index: number) => (
+                    <button
+                      key={button.id || index}
+                      className={cn(
+                        "w-full text-left px-3 py-2 rounded-lg border text-sm transition-colors",
+                        isOutbound
+                          ? "border-green-300 text-green-100 hover:bg-green-700"
+                          : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                      )}
+                      onClick={() => {
+                        // Handle button click - you might want to emit an event or call a callback
+                        console.log("Button clicked:", button);
+                      }}
+                    >
+                      {button.text}
+                    </button>
+                  )
+                )}
               </div>
             )}
           </div>
         );
 
-      case 'template':
+      case "template":
         return (
-          <div className={cn(
-            "flex items-start space-x-2 p-3 rounded border-l-4",
-            isOutbound 
-              ? "border-green-300 bg-green-700" 
-              : "border-blue-400 bg-blue-50"
-          )}>
+          <div
+            className={cn(
+              "flex items-start space-x-2 p-3 rounded border-l-4",
+              isOutbound
+                ? "border-green-300 bg-green-700"
+                : "border-blue-400 bg-blue-50"
+            )}
+          >
             <div className="text-lg mt-1">📧</div>
             <div className="flex-1">
-              <p className={cn(
-                "text-xs font-medium mb-1",
-                isOutbound ? "text-green-100" : "text-blue-700"
-              )}>
+              <p
+                className={cn(
+                  "text-xs font-medium mb-1",
+                  isOutbound ? "text-green-100" : "text-blue-700"
+                )}
+              >
                 Template Message
               </p>
               {renderTextContent()}
@@ -518,39 +557,44 @@ const MessageItem = ({
           </div>
         );
 
-      case 'text':
+      case "text":
       default:
         // Handle text messages that might also have media
         if (hasMedia) {
           // Determine media type from MIME type or URL
-          const mimeType = message.mediaMimeType || message.metadata?.mimeType || '';
-          const isImage = mimeType.startsWith('image/') || 
-                         mediaUrl?.match(/\.(jpg|jpeg|png|gif|webp)$/i);
-          const isVideo = mimeType.startsWith('video/') || 
-                         mediaUrl?.match(/\.(mp4|webm|ogg|mov)$/i);
-          const isAudio = mimeType.startsWith('audio/') || 
-                         mediaUrl?.match(/\.(mp3|wav|ogg|m4a)$/i);
-          
+          const mimeType =
+            message.mediaMimeType || message.metadata?.mimeType || "";
+          const isImage =
+            mimeType.startsWith("image/") ||
+            mediaUrl?.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+          const isVideo =
+            mimeType.startsWith("video/") ||
+            mediaUrl?.match(/\.(mp4|webm|ogg|mov)$/i);
+          const isAudio =
+            mimeType.startsWith("audio/") ||
+            mediaUrl?.match(/\.(mp3|wav|ogg|m4a)$/i);
+
           if (isImage) {
             return (
               <div className="space-y-2">
                 <div className="relative group">
-                  <button 
-                    onClick={() => mediaUrl && window.open(mediaUrl, '_blank')} // Ensure mediaUrl is a valid string
+                  <button
+                    onClick={() => mediaUrl && window.open(mediaUrl, "_blank")} // Ensure mediaUrl is a valid string
                     className="max-w-[250px] max-h-[300px] rounded-lg object-cover cursor-pointer transition-opacity group-hover:opacity-90"
                     onError={(e) => {
-                      console.error('Failed to load image:', mediaUrl);
+                      console.error("Failed to load image:", mediaUrl);
                       // e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+PC9zdmc+';
                     }}
-                    onKeyDown={(e) => { // Add keyboard event listener for accessibility
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        mediaUrl && window.open(mediaUrl, '_blank'); // Ensure mediaUrl is a valid string
+                    onKeyDown={(e) => {
+                      // Add keyboard event listener for accessibility
+                      if (e.key === "Enter" || e.key === " ") {
+                        mediaUrl && window.open(mediaUrl, "_blank"); // Ensure mediaUrl is a valid string
                       }
                     }}
                     tabIndex={0} // Make the button focusable
                   >
-                    <img 
-                      src={mediaUrl || ''} // Ensure src is a string
+                    <img
+                      src={mediaUrl || ""} // Ensure src is a string
                       alt="" // Remove redundant words from alt attribute
                     />
                   </button>
@@ -567,12 +611,12 @@ const MessageItem = ({
             return (
               <div className="space-y-2">
                 <div className="relative">
-                  <video 
-                    controls 
+                  <video
+                    controls
                     className="max-w-[250px] max-h-[300px] rounded-lg"
                     preload="metadata"
                     onError={(e) => {
-                      console.error('Failed to load video:', mediaUrl);
+                      console.error("Failed to load video:", mediaUrl);
                     }}
                   >
                     <source src={`${mediaUrl}#t=0.1`} type={mimeType} />
@@ -588,31 +632,37 @@ const MessageItem = ({
           } else if (isAudio) {
             return (
               <div className="space-y-2">
-                <div className={cn(
-                  "flex items-center space-x-3 p-3 rounded-lg min-w-[200px]",
-                  isOutbound ? "bg-green-700" : "bg-gray-200"
-                )}>
-                  <div className={cn(
-                    "p-2 rounded-full",
-                    isOutbound ? "bg-green-800" : "bg-gray-300"
-                  )}>
-                    <Volume2 className={cn(
-                      "w-4 h-4",
-                      isOutbound ? "text-white" : "text-gray-600"
-                    )} />
+                <div
+                  className={cn(
+                    "flex items-center space-x-3 p-3 rounded-lg min-w-[200px]",
+                    isOutbound ? "bg-green-700" : "bg-gray-200"
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "p-2 rounded-full",
+                      isOutbound ? "bg-green-800" : "bg-gray-300"
+                    )}
+                  >
+                    <Volume2
+                      className={cn(
+                        "w-4 h-4",
+                        isOutbound ? "text-white" : "text-gray-600"
+                      )}
+                    />
                   </div>
                   <div className="flex-1">
-                    <audio 
-                      controls 
+                    <audio
+                      controls
                       className="w-full h-8"
-                      style={{ 
-                        filter: isOutbound ? 'invert(1)' : 'none'
+                      style={{
+                        filter: isOutbound ? "invert(1)" : "none",
                       }}
                       onError={(e) => {
-                        console.error('Failed to load audio:', mediaUrl);
+                        console.error("Failed to load audio:", mediaUrl);
                       }}
                     >
-                        <source src={mediaUrl || ''} type={mimeType || ''} />
+                      <source src={mediaUrl || ""} type={mimeType || ""} />
                       Your browser does not support the audio tag.
                     </audio>
                   </div>
@@ -622,52 +672,65 @@ const MessageItem = ({
             );
           } else {
             // Generic file/document
-            const fileName = message.metadata?.originalName || 
-                            message.metadata?.originalName || 
-                            'Attachment';
-            const fileSize = message.metadata?.fileSize 
+            const fileName =
+              message.metadata?.originalName ||
+              message.metadata?.originalName ||
+              "Attachment";
+            const fileSize = message.metadata?.fileSize
               ? `${Math.round(message.metadata.fileSize / 1024)} KB`
-              : '';
-            
+              : "";
+
             return (
               <div className="space-y-2">
-                <div className={cn(
-                  "flex items-center space-x-3 p-3 rounded-lg border",
-                  isOutbound 
-                    ? "bg-green-700 border-green-600" 
-                    : "bg-white border-gray-200"
-                )}>
-                  <div className={cn(
-                    "p-2 rounded-full",
-                    isOutbound ? "bg-green-800" : "bg-blue-100"
-                  )}>
-                    <FileText className={cn(
-                      "w-5 h-5",
-                      isOutbound ? "text-white" : "text-blue-600"
-                    )} />
+                <div
+                  className={cn(
+                    "flex items-center space-x-3 p-3 rounded-lg border",
+                    isOutbound
+                      ? "bg-green-700 border-green-600"
+                      : "bg-white border-gray-200"
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "p-2 rounded-full",
+                      isOutbound ? "bg-green-800" : "bg-blue-100"
+                    )}
+                  >
+                    <FileText
+                      className={cn(
+                        "w-5 h-5",
+                        isOutbound ? "text-white" : "text-blue-600"
+                      )}
+                    />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className={cn(
-                      "text-sm font-medium truncate",
-                      isOutbound ? "text-white" : "text-gray-900"
-                    )}>
+                    <p
+                      className={cn(
+                        "text-sm font-medium truncate",
+                        isOutbound ? "text-white" : "text-gray-900"
+                      )}
+                    >
                       {fileName}
                     </p>
                     <div className="flex items-center space-x-2">
                       {fileSize && (
-                        <p className={cn(
-                          "text-xs",
-                          isOutbound ? "text-green-100" : "text-gray-500"
-                        )}>
+                        <p
+                          className={cn(
+                            "text-xs",
+                            isOutbound ? "text-green-100" : "text-gray-500"
+                          )}
+                        >
                           {fileSize}
                         </p>
                       )}
                       {mimeType && (
-                        <p className={cn(
-                          "text-xs",
-                          isOutbound ? "text-green-100" : "text-gray-500"
-                        )}>
-                          {mimeType.split('/')[1]?.toUpperCase() || 'FILE'}
+                        <p
+                          className={cn(
+                            "text-xs",
+                            isOutbound ? "text-green-100" : "text-gray-500"
+                          )}
+                        >
+                          {mimeType.split("/")[1]?.toUpperCase() || "FILE"}
                         </p>
                       )}
                     </div>
@@ -682,10 +745,12 @@ const MessageItem = ({
                     onClick={(e) => e.stopPropagation()}
                     title="Download file"
                   >
-                    <Download className={cn(
-                      "w-4 h-4",
-                      isOutbound ? "text-white" : "text-gray-600"
-                    )} />
+                    <Download
+                      className={cn(
+                        "w-4 h-4",
+                        isOutbound ? "text-white" : "text-gray-600"
+                      )}
+                    />
                   </a>
                 </div>
                 {renderTextContent()}
@@ -693,9 +758,15 @@ const MessageItem = ({
             );
           }
         }
-        
+
         // Pure text message
-        return renderTextContent() || <p className="text-sm whitespace-pre-wrap">{message.content || ""}</p>;
+        return (
+          renderTextContent() || (
+            <p className="text-sm whitespace-pre-wrap">
+              {message.content || ""}
+            </p>
+          )
+        );
     }
   };
 
@@ -705,19 +776,19 @@ const MessageItem = ({
 
   const getMessageStatusIcon = (status: string) => {
     switch (status) {
-      case 'sent':
+      case "sent":
         return <span className="text-xs">✓</span>;
-      case 'delivered':
+      case "delivered":
         return <span className="text-xs">✓✓</span>;
-      case 'read':
+      case "read":
         return <span className="text-xs text-blue-300">✓✓</span>;
-      case 'failed':
+      case "failed":
         return <span className="text-xs text-red-300">✗</span>;
       default:
         return <span className="text-xs">○</span>;
     }
   };
-  
+
   return (
     <>
       {showDate && (
@@ -727,33 +798,41 @@ const MessageItem = ({
           </div>
         </div>
       )}
-      
-      <div className={cn(
-        "flex items-end gap-2 mb-4",
-        isOutbound ? "justify-end" : "justify-start"
-      )}>
+
+      <div
+        className={cn(
+          "flex items-end gap-2 mb-4",
+          isOutbound ? "justify-end" : "justify-start"
+        )}
+      >
         {!isOutbound && (
           <Avatar className="h-8 w-8">
             <AvatarFallback className="bg-gray-200 text-xs">C</AvatarFallback>
           </Avatar>
         )}
-        
-        <div className={cn(
-          "max-w-[70%] rounded-2xl px-4 py-2",
-          isOutbound 
-            ? "bg-green-600 text-white rounded-br-sm" 
-            : "bg-gray-100 text-gray-900 rounded-bl-sm"
-        )}>
+
+        <div
+          className={cn(
+            "max-w-[70%] rounded-2xl px-4 py-2",
+            isOutbound
+              ? "bg-green-600 text-white rounded-br-sm"
+              : "bg-gray-100 text-gray-900 rounded-bl-sm"
+          )}
+        >
           {renderMediaContent()}
-          
-          <div className={cn(
-            "flex items-center gap-1 mt-2",
-            isOutbound ? "justify-end" : "justify-start"
-          )}>
-            <span className={cn(
-              "text-xs",
-              isOutbound ? "text-green-100" : "text-gray-500"
-            )}>
+
+          <div
+            className={cn(
+              "flex items-center gap-1 mt-2",
+              isOutbound ? "justify-end" : "justify-start"
+            )}
+          >
+            <span
+              className={cn(
+                "text-xs",
+                isOutbound ? "text-green-100" : "text-gray-500"
+              )}
+            >
               {format(new Date(message.createdAt), "h:mm a")}
             </span>
             {isOutbound && getMessageStatusIcon(message.status || "pending")}
@@ -764,13 +843,12 @@ const MessageItem = ({
   );
 };
 
-
 // Template Dialog Component
-const TemplateDialog = ({ 
-  channelId, 
-  onSelectTemplate 
-}: { 
-  channelId?: string; 
+const TemplateDialog = ({
+  channelId,
+  onSelectTemplate,
+}: {
+  channelId?: string;
   onSelectTemplate: (template: any) => void;
 }) => {
   const [open, setOpen] = useState(false);
@@ -784,7 +862,9 @@ const TemplateDialog = ({
     enabled: !!channelId && open,
   });
 
-  const approvedTemplates = templates.filter((t: any) => t.status === "APPROVED");
+  const approvedTemplates = templates.filter(
+    (t: any) => t.status === "APPROVED"
+  );
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -800,7 +880,7 @@ const TemplateDialog = ({
             Choose from approved WhatsApp templates
           </DialogDescription>
         </DialogHeader>
-        
+
         <ScrollArea className="h-[400px] pr-4">
           {templatesLoading ? (
             <div className="flex items-center justify-center py-8">
@@ -838,9 +918,13 @@ const TemplateDialog = ({
   );
 };
 
-
 // Team Assignment Dropdown Component
-const TeamAssignDropdown = ({ conversationId, currentAssignee,currentAssigneeName, onAssign }: {
+const TeamAssignDropdown = ({
+  conversationId,
+  currentAssignee,
+  currentAssigneeName,
+  onAssign,
+}: {
   conversationId: string;
   currentAssignee?: string;
   currentAssigneeName?: string;
@@ -878,13 +962,20 @@ const TeamAssignDropdown = ({ conversationId, currentAssignee,currentAssigneeNam
           </>
         )}
         {users?.map((user: any) => (
-          <DropdownMenuItem 
-            key={user.id} 
-            onClick={() => onAssign(user.id, `${user.firstName} ${user.lastName}`.trim() || user.username)}
+          <DropdownMenuItem
+            key={user.id}
+            onClick={() =>
+              onAssign(
+                user.id,
+                `${user.firstName} ${user.lastName}`.trim() || user.username
+              )
+            }
           >
             <UserIcon className="w-4 h-4 mr-2" />
             <div className="flex flex-col">
-              <span>{user.firstName} {user.lastName}</span>
+              <span>
+                {user.firstName} {user.lastName}
+              </span>
               <span className="text-xs text-gray-500">@{user.username}</span>
             </div>
           </DropdownMenuItem>
@@ -894,10 +985,10 @@ const TeamAssignDropdown = ({ conversationId, currentAssignee,currentAssigneeNam
   );
 };
 
-
 // Main Component
 export default function Inbox() {
-  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+  const [selectedConversation, setSelectedConversation] =
+    useState<Conversation | null>(null);
   const [messageText, setMessageText] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterTab, setFilterTab] = useState("all");
@@ -907,7 +998,7 @@ export default function Inbox() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  
+
   // Socket.io state
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isTyping, setIsTyping] = useState(false);
@@ -918,21 +1009,22 @@ export default function Inbox() {
   const { data: activeChannel } = useQuery({
     queryKey: ["/api/channels/active"],
     queryFn: async () => {
-      const response = await apiRequest("GET" , "/api/channels/active");
+      const response = await apiRequest("GET", "/api/channels/active");
       if (!response.ok) return null;
       return await response.json();
     },
   });
 
   // Fetch conversations
-  const { data: conversations = [], isLoading: conversationsLoading } = useQuery({
-    queryKey: ["/api/conversations", activeChannel?.id],
-    queryFn: async () => {
-      const response = await api.getConversations(activeChannel?.id);
-      return await response.json();
-    },
-    enabled: !!activeChannel,
-  });
+  const { data: conversations = [], isLoading: conversationsLoading } =
+    useQuery({
+      queryKey: ["/api/conversations", activeChannel?.id],
+      queryFn: async () => {
+        const response = await api.getConversations(activeChannel?.id);
+        return await response.json();
+      },
+      enabled: !!activeChannel,
+    });
 
   // Fetch messages for selected conversation
   const { data: messages = [], isLoading: messagesLoading } = useQuery({
@@ -956,56 +1048,59 @@ export default function Inbox() {
     if (!user?.id) return;
 
     const API_BASE = `${window.location.origin}`;
-    console.log('Connecting to Socket.io at', API_BASE);
+    console.log("Connecting to Socket.io at", API_BASE);
     const socketInstance = io(API_BASE, {
       query: {
         userId: user.id,
-        role: user.role || 'agent',
-        siteId: activeChannel?.id || 'default'
+        role: user.role || "agent",
+        siteId: activeChannel?.id || "default",
       },
-      transports: ['websocket', 'polling']
+      transports: ["websocket", "polling"],
     });
 
-    socketInstance.on('connect', () => {
-      console.log('Socket.io connected for agent');
+    socketInstance.on("connect", () => {
+      console.log("Socket.io connected for agent");
     });
 
-    socketInstance.on('disconnect', () => {
-      console.log('Socket.io disconnected');
+    socketInstance.on("disconnect", () => {
+      console.log("Socket.io disconnected");
     });
 
     // Listen for new messages (from visitors or AI)
-    socketInstance.on('new_message', (data) => {
-      console.log('New message received:', data);
-      
+    socketInstance.on("new_message", (data) => {
+      console.log("New message received:", data);
+
       // Refresh conversations list
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-      
+
       // If message is for selected conversation, refresh messages
-      if (selectedConversation && data.conversationId === selectedConversation.id) {
-        queryClient.invalidateQueries({ 
-          queryKey: ["/api/conversations", selectedConversation.id, "messages"] 
+      if (
+        selectedConversation &&
+        data.conversationId === selectedConversation.id
+      ) {
+        queryClient.invalidateQueries({
+          queryKey: ["/api/conversations", selectedConversation.id, "messages"],
         });
       }
     });
 
     // Listen for visitor typing
-    socketInstance.on('user_typing', (data) => {
+    socketInstance.on("user_typing", (data) => {
       if (selectedConversation?.id === data.conversationId) {
         setIsTyping(true);
-        setTypingUser('Visitor');
+        setTypingUser("Visitor");
       }
     });
 
-    socketInstance.on('user_stopped_typing', (data) => {
+    socketInstance.on("user_stopped_typing", (data) => {
       if (selectedConversation?.id === data.conversationId) {
         setIsTyping(false);
-        setTypingUser('');
+        setTypingUser("");
       }
     });
 
     // New conversation assigned to this agent
-    socketInstance.on('new_conversation_assigned', (data) => {
+    socketInstance.on("new_conversation_assigned", (data) => {
       if (data.agentId === user.id) {
         queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
         toast({
@@ -1016,34 +1111,34 @@ export default function Inbox() {
     });
 
     // Conversation transferred
-    socketInstance.on('conversation_transferred', (data) => {
+    socketInstance.on("conversation_transferred", (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
       if (selectedConversation?.id === data.conversationId) {
         toast({
           title: "Conversation Transferred",
-          description: `Transferred to ${data.agent?.name || 'another agent'}`,
+          description: `Transferred to ${data.agent?.name || "another agent"}`,
         });
       }
     });
 
     // Messages marked as read
-    socketInstance.on('messages_read', (data) => {
+    socketInstance.on("messages_read", (data) => {
       if (selectedConversation?.id === data.conversationId) {
-        queryClient.invalidateQueries({ 
-          queryKey: ["/api/conversations", selectedConversation.id, "messages"] 
+        queryClient.invalidateQueries({
+          queryKey: ["/api/conversations", selectedConversation.id, "messages"],
         });
       }
     });
 
     // Message status updates
-    socketInstance.on('message_status_update', (data) => {
-      queryClient.invalidateQueries({ 
-        queryKey: ["/api/conversations", selectedConversation?.id, "messages"] 
+    socketInstance.on("message_status_update", (data) => {
+      queryClient.invalidateQueries({
+        queryKey: ["/api/conversations", selectedConversation?.id, "messages"],
       });
     });
 
     // Conversation status changed
-    socketInstance.on('conversation_status_changed', (data) => {
+    socketInstance.on("conversation_status_changed", (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
       if (selectedConversation?.id === data.conversationId) {
         toast({
@@ -1068,26 +1163,33 @@ export default function Inbox() {
     wsRef.current = ws;
 
     ws.onopen = () => {
-      console.log('WebSocket connected (WhatsApp)');
-      ws.send(JSON.stringify({ type: 'join-all-conversations' }));
+      console.log("WebSocket connected (WhatsApp)");
+      ws.send(JSON.stringify({ type: "join-all-conversations" }));
     };
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      
-      if (data.type === 'new-message') {
+
+      if (data.type === "new-message") {
         queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-        
-        if (selectedConversation && data.conversationId === selectedConversation.id) {
-          queryClient.invalidateQueries({ 
-            queryKey: ["/api/conversations", selectedConversation.id, "messages"] 
+
+        if (
+          selectedConversation &&
+          data.conversationId === selectedConversation.id
+        ) {
+          queryClient.invalidateQueries({
+            queryKey: [
+              "/api/conversations",
+              selectedConversation.id,
+              "messages",
+            ],
           });
         }
       }
     };
 
-    ws.onerror = (error) => console.error('WebSocket error:', error);
-    ws.onclose = () => console.log('WebSocket disconnected');
+    ws.onerror = (error) => console.error("WebSocket error:", error);
+    ws.onclose = () => console.log("WebSocket disconnected");
 
     return () => {
       if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
@@ -1099,67 +1201,78 @@ export default function Inbox() {
   // Join conversation room when selected
   useEffect(() => {
     if (!selectedConversation || !socket) return;
-    
+
     // Join the conversation room via Socket.io
-    socket.emit('agent_join_conversation', {
+    socket.emit("agent_join_conversation", {
       conversationId: selectedConversation.id,
       agentId: user?.id,
-      agentName: `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || user?.username
+      agentName:
+        `${user?.firstName || ""} ${user?.lastName || ""}`.trim() ||
+        user?.username,
     });
 
     // Join via WebSocket for WhatsApp
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({
-        type: 'join-conversation',
-        conversationId: selectedConversation.id
-      }));
+      wsRef.current.send(
+        JSON.stringify({
+          type: "join-conversation",
+          conversationId: selectedConversation.id,
+        })
+      );
     }
   }, [selectedConversation, socket]);
 
   // Send message mutation (updated for Socket.io)
   const sendMessageMutation = useMutation({
     mutationFn: async (data: { conversationId: string; content: string }) => {
-      const response = await fetch(`/api/conversations/${data.conversationId}/messages`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          content: data.content, 
-          fromUser: true,
-          fromType: 'agent',
-          agentId: user?.id,
-          agentName: `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || user?.username
-        }),
-      });
-      
+      const response = await fetch(
+        `/api/conversations/${data.conversationId}/messages`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            content: data.content,
+            fromUser: true,
+            fromType: "agent",
+            agentId: user?.id,
+            agentName:
+              `${user?.firstName || ""} ${user?.lastName || ""}`.trim() ||
+              user?.username,
+          }),
+        }
+      );
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || "Failed to send message");
       }
-      
+
       return response.json();
     },
     onSuccess: (data) => {
       // Emit via Socket.io for real-time delivery
       if (socket && selectedConversation) {
-        socket.emit('agent_send_message', {
+        socket.emit("agent_send_message", {
           conversationId: selectedConversation.id,
           content: messageText,
           agentId: user?.id,
-          agentName: `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || user?.username
+          agentName:
+            `${user?.firstName || ""} ${user?.lastName || ""}`.trim() ||
+            user?.username,
         });
       }
 
-      queryClient.invalidateQueries({ 
-        queryKey: ["/api/conversations", selectedConversation?.id, "messages"] 
+      queryClient.invalidateQueries({
+        queryKey: ["/api/conversations", selectedConversation?.id, "messages"],
       });
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-      
+
       setMessageText("");
-      
+
       // Stop typing indicator
       if (socket && selectedConversation) {
-        socket.emit('agent_stopped_typing', {
-          conversationId: selectedConversation.id
+        socket.emit("agent_stopped_typing", {
+          conversationId: selectedConversation.id,
         });
       }
     },
@@ -1175,24 +1288,26 @@ export default function Inbox() {
   // Handle typing indicator
   const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
     setMessageText(e.target.value);
-    
+
     if (!socket || !selectedConversation) return;
-    
+
     // Send typing indicator via Socket.io
-    socket.emit('agent_typing', {
+    socket.emit("agent_typing", {
       conversationId: selectedConversation.id,
-      agentName: `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || user?.username
+      agentName:
+        `${user?.firstName || ""} ${user?.lastName || ""}`.trim() ||
+        user?.username,
     });
-    
+
     // Clear previous timeout
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
-    
+
     // Set timeout to stop typing
     typingTimeoutRef.current = setTimeout(() => {
-      socket.emit('agent_stopped_typing', {
-        conversationId: selectedConversation.id
+      socket.emit("agent_stopped_typing", {
+        conversationId: selectedConversation.id,
       });
     }, 2000);
   };
@@ -1200,28 +1315,31 @@ export default function Inbox() {
   // Update conversation status mutation
   const updateStatusMutation = useMutation({
     mutationFn: async (data: { conversationId: string; status: string }) => {
-      const response = await fetch(`/api/conversations/${data.conversationId}/status`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: data.status }),
-      });
-      
+      const response = await fetch(
+        `/api/conversations/${data.conversationId}/status`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: data.status }),
+        }
+      );
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || "Failed to update status");
       }
-      
+
       return response.json();
     },
     onSuccess: (data, variables) => {
       // Emit status change via Socket.io
       if (socket) {
-        socket.emit('conversation_status_changed', {
+        socket.emit("conversation_status_changed", {
           conversationId: variables.conversationId,
-          status: variables.status
+          status: variables.status,
         });
       }
-      
+
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
       toast({
         title: "Success",
@@ -1239,9 +1357,9 @@ export default function Inbox() {
 
   // Send template mutation
   const sendTemplateMutation = useMutation({
-    mutationFn: async (data: { 
-      conversationId: string; 
-      templateName: string; 
+    mutationFn: async (data: {
+      conversationId: string;
+      templateName: string;
       phoneNumber: string;
     }) => {
       const response = await fetch("/api/messages/send", {
@@ -1250,20 +1368,20 @@ export default function Inbox() {
         body: JSON.stringify({
           to: data.phoneNumber,
           templateName: data.templateName,
-          channelId: selectedConversation?.channelId
+          channelId: selectedConversation?.channelId,
         }),
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || "Failed to send template");
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ 
-        queryKey: ["/api/conversations", selectedConversation?.id, "messages"] 
+      queryClient.invalidateQueries({
+        queryKey: ["/api/conversations", selectedConversation?.id, "messages"],
       });
       toast({
         title: "Success",
@@ -1281,7 +1399,7 @@ export default function Inbox() {
 
   const handleSendMessage = () => {
     if (!messageText.trim() || !selectedConversation) return;
-    
+
     sendMessageMutation.mutate({
       conversationId: selectedConversation.id,
       content: messageText.trim(),
@@ -1290,7 +1408,7 @@ export default function Inbox() {
 
   const handleSelectTemplate = (template: any) => {
     if (!selectedConversation) return;
-    
+
     sendTemplateMutation.mutate({
       conversationId: selectedConversation.id,
       templateName: template.name,
@@ -1302,34 +1420,39 @@ export default function Inbox() {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file || !selectedConversation) return;
-  
+
     const formData = new FormData();
     formData.append("media", file);
     formData.append("fromUser", "true");
     formData.append("conversationId", selectedConversation.id);
     formData.append("caption", messageText || "");
-  
+
     try {
-      const response = await fetch(`/api/conversations/${selectedConversation.id}/messages`, {
-        method: "POST",
-        body: formData,
-      });
-  
+      const response = await fetch(
+        `/api/conversations/${selectedConversation.id}/messages`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || "Failed to send media");
       }
-  
+
       toast({
         title: "Success",
         description: "Media sent successfully",
       });
-  
-      queryClient.invalidateQueries({ 
-        queryKey: ["/api/conversations", selectedConversation.id, "messages"] 
+
+      queryClient.invalidateQueries({
+        queryKey: ["/api/conversations", selectedConversation.id, "messages"],
       });
       setMessageText("");
     } catch (error: any) {
@@ -1339,13 +1462,13 @@ export default function Inbox() {
         variant: "destructive",
       });
     }
-  
+
     event.target.value = "";
   };
 
   const updateConversationStatus = (status: string) => {
     if (!selectedConversation) return;
-    
+
     updateStatusMutation.mutate({
       conversationId: selectedConversation.id,
       status: status,
@@ -1354,20 +1477,26 @@ export default function Inbox() {
 
   const handleViewContact = () => {
     if (!selectedConversation || !selectedConversation.contactId) return;
-    window.location.href = `/contacts?id=${selectedConversation.contactId}&phone=${selectedConversation.contactPhone || ""}`;
+    window.location.href = `/contacts?id=${
+      selectedConversation.contactId
+    }&phone=${selectedConversation.contactPhone || ""}`;
   };
 
   const handleArchiveChat = async () => {
     if (!selectedConversation) return;
-    
+
     try {
-      await apiRequest('PATCH', `/api/conversations/${selectedConversation.id}`, { status: 'archived' });
-      
+      await apiRequest(
+        "PATCH",
+        `/api/conversations/${selectedConversation.id}`,
+        { status: "archived" }
+      );
+
       toast({
         title: "Chat Archived",
         description: "This conversation has been archived",
       });
-      
+
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
       setSelectedConversation(null);
     } catch (error) {
@@ -1381,15 +1510,19 @@ export default function Inbox() {
 
   const handleBlockContact = async () => {
     if (!selectedConversation || !selectedConversation.contactId) return;
-    
+
     try {
-      await apiRequest('PATCH', `/api/contacts/${selectedConversation.contactId}`, { status: 'blocked' });
-      
+      await apiRequest(
+        "PATCH",
+        `/api/contacts/${selectedConversation.contactId}`,
+        { status: "blocked" }
+      );
+
       toast({
         title: "Contact Blocked",
         description: "This contact has been blocked",
       });
-      
+
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
     } catch (error) {
       toast({
@@ -1402,18 +1535,23 @@ export default function Inbox() {
 
   const handleDeleteChat = async () => {
     if (!selectedConversation) return;
-    
-    const confirmed = window.confirm("Are you sure you want to delete this chat? This action cannot be undone.");
+
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this chat? This action cannot be undone."
+    );
     if (!confirmed) return;
-    
+
     try {
-      await apiRequest('DELETE', `/api/conversations/${selectedConversation.id}`);
-      
+      await apiRequest(
+        "DELETE",
+        `/api/conversations/${selectedConversation.id}`
+      );
+
       toast({
         title: "Chat Deleted",
         description: "This conversation has been deleted",
       });
-      
+
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
       setSelectedConversation(null);
     } catch (error) {
@@ -1428,17 +1566,17 @@ export default function Inbox() {
   const updateConversationMutation = useMutation({
     mutationFn: async (data: { id: string; updates: any }) => {
       const response = await fetch(`/api/conversations/${data.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data.updates),
       });
       const result = await response.json();
 
       if (!response.ok) {
-        console.error(result.error || 'Unknown error');
-        throw new Error(result.error || 'Failed to update conversation');
+        console.error(result.error || "Unknown error");
+        throw new Error(result.error || "Failed to update conversation");
       }
-      
+
       return result;
     },
     onSuccess: (updatedConversation) => {
@@ -1458,37 +1596,41 @@ export default function Inbox() {
     },
   });
 
-  const handleAssignConversation = (assignedTo: string, assignedToName: string) => {
+  const handleAssignConversation = (
+    assignedTo: string,
+    assignedToName: string
+  ) => {
     if (!selectedConversation) return;
-    
+
     updateConversationMutation.mutate({
       id: selectedConversation.id,
-      updates: { 
-        assignedTo, 
+      updates: {
+        assignedTo,
         assignedToName,
         assignedAt: new Date().toISOString(),
-        status: assignedTo ? "assigned" : "open" 
-      }
+        status: assignedTo ? "assigned" : "open",
+      },
     });
   };
 
   const handleCloseConversation = () => {
     if (!socket || !selectedConversation) return;
-    
-    socket.emit('close_conversation', {
+
+    socket.emit("close_conversation", {
       conversationId: selectedConversation.id,
-      agentId: user?.id
+      agentId: user?.id,
     });
-    
-    updateConversationStatus('closed');
+
+    updateConversationStatus("closed");
   };
 
-  // Filter conversations  
+  // Filter conversations
   const filteredConversations = conversations.filter((conv: any) => {
-    const matchesSearch = conv.contact?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         conv.contactPhone?.includes(searchQuery) ||
-                         conv.contactName?.toLowerCase().includes(searchQuery.toLowerCase());
-    
+    const matchesSearch =
+      conv.contact?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      conv.contactPhone?.includes(searchQuery) ||
+      conv.contactName?.toLowerCase().includes(searchQuery.toLowerCase());
+
     switch (filterTab) {
       case "unread":
         return matchesSearch && (conv.unreadCount || 0) > 0;
@@ -1501,17 +1643,25 @@ export default function Inbox() {
       case "chatbot":
         return matchesSearch && conv.type === "chatbot";
       case "assigned":
-        return matchesSearch &&
-               conv.status === "assigned" &&
-               (user?.role === 'admin' || conv.assignedTo === user?.id);
+        return (
+          matchesSearch &&
+          conv.status === "assigned" &&
+          (user?.role === "admin" || conv.assignedTo === user?.id)
+        );
       default:
         return matchesSearch;
     }
   });
 
   // Check if 24-hour window has passed (for WhatsApp)
-  const is24HourWindowExpired = selectedConversation?.lastMessageAt && selectedConversation?.type === 'whatsapp' ? 
-    differenceInHours(new Date(), new Date(selectedConversation.lastMessageAt)) > 24 : false;
+  const is24HourWindowExpired =
+    selectedConversation?.lastMessageAt &&
+    selectedConversation?.type === "whatsapp"
+      ? differenceInHours(
+          new Date(),
+          new Date(selectedConversation.lastMessageAt)
+        ) > 24
+      : false;
 
   if (!activeChannel) {
     return (
@@ -1532,191 +1682,259 @@ export default function Inbox() {
     <div className="h-screen flex flex-col">
       <Header title="Team Inbox" />
       <div className="flex-1 flex bg-gray-50 overflow-hidden">
-      
         {/* Conversations List */}
-      <div className={cn(
-        "bg-white border-r border-gray-200 flex flex-col",
-        selectedConversation ? "hidden md:flex md:w-80 lg:w-96" : "w-full x-5 md:w-80 lg:w-96"
-      )}>
-        {/* Search and Filter */}
-        <div className="p-4 border-b border-gray-200">
-          <div className="relative mb-3">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search conversations..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 bg-gray-50"
-            />
-          </div>
-          
-          <Tabs value={filterTab} onValueChange={setFilterTab}>
-            <TabsList className="grid w-full grid-cols-7 gap-x-2 h-9">
-              <TabsTrigger value="all" className="text-xs">All</TabsTrigger>
-              <TabsTrigger value="whatsapp" className="text-xs">Whatsapp</TabsTrigger>
-              <TabsTrigger value="chatbot" className="text-xs">Chatbot</TabsTrigger>
-              <TabsTrigger value="assigned" className="text-xs">Assigned</TabsTrigger>
-              <TabsTrigger value="unread" className="text-xs">Unread</TabsTrigger>
-              <TabsTrigger value="open" className="text-xs">Open</TabsTrigger>
-              <TabsTrigger value="resolved" className="text-xs">Resolved</TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
-
-        {/* Conversations */}
-        <ScrollArea className="flex-1 ">
-          {conversationsLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loading />
-            </div>
-          ) : filteredConversations.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              No conversations found
-            </div>
-          ) : (
-            filteredConversations.map((conversation: Conversation & { contact?: Contact }) => (
-              <ConversationListItem
-                key={conversation.id}
-                conversation={conversation}
-                isSelected={selectedConversation?.id === conversation.id}
-                onClick={() => setSelectedConversation(conversation)}
-                user={user}
-              />
-            ))
+        <div
+          className={cn(
+            "bg-white border-r border-gray-200 flex flex-col",
+            selectedConversation
+              ? "hidden md:flex md:w-80 lg:w-96"
+              : "w-full x-5 md:w-80 lg:w-96"
           )}
-        </ScrollArea>
-      </div>
+        >
+          {/* Search and Filter */}
+          <div className="p-2 sm:p-3 md:p-4 border-b border-gray-200 bg-white">
+            {/* Search Input */}
+            <div className="relative mb-2 sm:mb-3">
+              <Search className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-400 pointer-events-none" />
+              <Input
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-7 sm:pl-9 pr-2 sm:pr-3 bg-gray-50 text-xs sm:text-sm w-full h-8 sm:h-10 rounded-lg"
+              />
+            </div>
+
+            {/* Tabs - Ultra Responsive */}
+            <Tabs value={filterTab} onValueChange={setFilterTab}>
+              <div className="overflow-x-auto -mx-2 sm:-mx-3 md:-mx-4 px-2 sm:px-3 md:px-4 [&::-webkit-scrollbar]:h-[2px] [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full">
+                <TabsList className="inline-flex w-auto h-7 sm:h-9 md:h-10 gap-1 sm:gap-1.5 md:gap-2 bg-gray-100 p-0.5 sm:p-1 rounded-lg">
+                  <TabsTrigger
+                    value="all"
+                    className="text-[11px] sm:text-xs md:text-sm whitespace-nowrap px-2 sm:px-3 md:px-4 h-full rounded-md"
+                  >
+                    All
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="whatsapp"
+                    className="text-[11px] sm:text-xs md:text-sm whitespace-nowrap px-2 sm:px-3 md:px-4 h-full rounded-md"
+                  >
+                    WA
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="chatbot"
+                    className="text-[11px] sm:text-xs md:text-sm whitespace-nowrap px-2 sm:px-3 md:px-4 h-full rounded-md"
+                  >
+                    Bot
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="assigned"
+                    className="text-[11px] sm:text-xs md:text-sm whitespace-nowrap px-2 sm:px-3 md:px-4 h-full rounded-md"
+                  >
+                    Assigned
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="unread"
+                    className="text-[11px] sm:text-xs md:text-sm whitespace-nowrap px-2 sm:px-3 md:px-4 h-full rounded-md"
+                  >
+                    Unread
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="open"
+                    className="text-[11px] sm:text-xs md:text-sm whitespace-nowrap px-2 sm:px-3 md:px-4 h-full rounded-md"
+                  >
+                    Open
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="resolved"
+                    className="text-[11px] sm:text-xs md:text-sm whitespace-nowrap px-2 sm:px-3 md:px-4 h-full rounded-md"
+                  >
+                    Resolved
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+            </Tabs>
+          </div>
+
+          {/* Conversations */}
+          <ScrollArea className="flex-1 ">
+            {conversationsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loading />
+              </div>
+            ) : filteredConversations.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                No conversations found
+              </div>
+            ) : (
+              filteredConversations.map(
+                (conversation: Conversation & { contact?: Contact }) => (
+                  <ConversationListItem
+                    key={conversation.id}
+                    conversation={conversation}
+                    isSelected={selectedConversation?.id === conversation.id}
+                    onClick={() => setSelectedConversation(conversation)}
+                    user={user}
+                  />
+                )
+              )
+            )}
+          </ScrollArea>
+        </div>
 
         {/* Chat Area - Updated with typing indicator */}
         {selectedConversation ? (
           <div className="flex-1 flex flex-col">
-             {/* Chat Header */}
-          <div className="bg-white border-b border-gray-200 px-4 md:px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="md:hidden h-9 w-9"
-                  onClick={() => setSelectedConversation(null)}
-                  data-testid="button-back-conversations"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-                <Avatar className="h-10 w-10">
-                  <AvatarFallback className="bg-gray-200">
-                    {(selectedConversation as any).contactName?.[0]?.toUpperCase() || "?"}
-                  </AvatarFallback>
-                </Avatar>
-                
-                <div>
-                  <div className="flex items-center gap-2">
-                  <h3 className="font-semibold text-gray-900">
-                    {user?.username === 'demouser'
-                      ? (
-                          (selectedConversation?.contactName
-                            ? selectedConversation.contactName.slice(0, -1).replace(/./g, "*") +
+            {/* Chat Header */}
+            <div className="bg-white border-b border-gray-200 px-4 md:px-6 py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="md:hidden h-9 w-9"
+                    onClick={() => setSelectedConversation(null)}
+                    data-testid="button-back-conversations"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                  <Avatar className="h-10 w-10">
+                    <AvatarFallback className="bg-gray-200">
+                      {(
+                        selectedConversation as any
+                      ).contactName?.[0]?.toUpperCase() || "?"}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-gray-900">
+                        {user?.username === "demouser"
+                          ? selectedConversation?.contactName
+                            ? selectedConversation.contactName
+                                .slice(0, -1)
+                                .replace(/./g, "*") +
                               selectedConversation.contactName.slice(-1)
                             : selectedConversation?.contactPhone
-                            ? selectedConversation.contactPhone.slice(0, -4).replace(/\d/g, "*") +
+                            ? selectedConversation.contactPhone
+                                .slice(0, -4)
+                                .replace(/\d/g, "*") +
                               selectedConversation.contactPhone.slice(-4)
-                            : "Unknown")
-                        )
-                      : (
-                          (selectedConversation as any)?.contactName ||
+                            : "Unknown"
+                          : (selectedConversation as any)?.contactName ||
+                            selectedConversation?.contactPhone ||
+                            "Unknown"}
+                      </h3>
+
+                      <Badge
+                        variant={
+                          selectedConversation.status === "resolved"
+                            ? "secondary"
+                            : "default"
+                        }
+                        className="text-xs"
+                      >
+                        {selectedConversation.status || "open"}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-gray-500">
+                      {user?.username === "demouser"
+                        ? selectedConversation?.contact?.phone
+                          ? selectedConversation.contact.phone
+                              .slice(0, -4)
+                              .replace(/\d/g, "*") +
+                            selectedConversation.contact.phone.slice(-4)
+                          : selectedConversation?.contactPhone
+                          ? selectedConversation.contactPhone
+                              .slice(0, -4)
+                              .replace(/\d/g, "*") +
+                            selectedConversation.contactPhone.slice(-4)
+                          : ""
+                        : selectedConversation?.contact?.phone ||
                           selectedConversation?.contactPhone ||
-                          "Unknown"
-                        )}
-                  </h3>
-
-
-                    <Badge 
-                      variant={selectedConversation.status === 'resolved' ? 'secondary' : 'default'}
-                      className="text-xs"
-                    >
-                      {selectedConversation.status || 'open'}
-                    </Badge>
+                          ""}
+                    </p>
                   </div>
-                  <p className="text-sm text-gray-500">
-                    {user?.username === 'demouser'
-                      ? (
-                          selectedConversation?.contact?.phone
-                            ? selectedConversation.contact.phone.slice(0, -4).replace(/\d/g, "*") +
-                              selectedConversation.contact.phone.slice(-4)
-                            : selectedConversation?.contactPhone
-                            ? selectedConversation.contactPhone.slice(0, -4).replace(/\d/g, "*") +
-                              selectedConversation.contactPhone.slice(-4)
-                            : ""
-                        )
-                      : (
-                          selectedConversation?.contact?.phone ||
-                          selectedConversation?.contactPhone ||
-                          ""
-                        )}
-                  </p>
+                </div>
 
+                <div className="flex items-center gap-2">
+                  {user?.username !== "demouser" &&
+                  selectedConversation.assignedTo !== user?.id ? (
+                    <TeamAssignDropdown
+                      conversationId={selectedConversation.id}
+                      currentAssignee={
+                        selectedConversation.assignedTo || undefined
+                      }
+                      currentAssigneeName={
+                        selectedConversation?.assignedToName || undefined
+                      }
+                      onAssign={handleAssignConversation}
+                    />
+                  ) : (
+                    <button
+                      type="button"
+                      className="text-sm text-gray-700 px-4 py-2 w-full text-left hover:bg-gray-100"
+                      disabled
+                    >
+                      Assign to team member
+                    </button>
+                  )}
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-9 w-9">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Status</DropdownMenuLabel>
+                      <DropdownMenuItem
+                        disabled={user?.username === "demouser"}
+                        onClick={() => updateConversationStatus("open")}
+                      >
+                        <MessageCircle className="mr-2 h-4 w-4" />
+                        Mark as Open
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        disabled={user?.username === "demouser"}
+                        onClick={() => updateConversationStatus("resolved")}
+                      >
+                        <Check className="mr-2 h-4 w-4" />
+                        Mark as Resolved
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => handleViewContact()}>
+                        <UserIcon className="mr-2 h-4 w-4" />
+                        View Contact
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        disabled={user?.username === "demouser"}
+                        onClick={() => handleArchiveChat()}
+                      >
+                        <Archive className="mr-2 h-4 w-4" />
+                        Archive Chat
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        disabled={user?.username === "demouser"}
+                        onClick={() => handleBlockContact()}
+                      >
+                        <Ban className="mr-2 h-4 w-4" />
+                        Block Contact
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        disabled={user?.username === "demouser"}
+                        className="text-red-600"
+                        onClick={() => handleDeleteChat()}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete Chat
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
-
-              <div className="flex items-center gap-2">
-              {user?.username !== 'demouser' && selectedConversation.assignedTo !== user?.id ? (
-                <TeamAssignDropdown
-                  conversationId={selectedConversation.id}
-                  currentAssignee={selectedConversation.assignedTo || undefined}
-                  currentAssigneeName={selectedConversation?.assignedToName || undefined}
-                  onAssign={handleAssignConversation}
-                />
-              ) : (
-                <button
-                  type="button"
-                  className="text-sm text-gray-700 px-4 py-2 w-full text-left hover:bg-gray-100"
-                  disabled
-                >
-                  Assign to team member
-                </button>
-              )}
-
-              
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-9 w-9">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Status</DropdownMenuLabel>
-                    <DropdownMenuItem  disabled={user?.username === 'demouser'} onClick={() => updateConversationStatus('open')}>
-                      <MessageCircle className="mr-2 h-4 w-4" />
-                      Mark as Open
-                    </DropdownMenuItem>
-                    <DropdownMenuItem  disabled={user?.username === 'demouser'} onClick={() => updateConversationStatus('resolved')}>
-                      <Check className="mr-2 h-4 w-4" />
-                      Mark as Resolved
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem  onClick={() => handleViewContact()}>
-                      <UserIcon className="mr-2 h-4 w-4" />
-                      View Contact
-                    </DropdownMenuItem>
-                    <DropdownMenuItem   disabled={user?.username === 'demouser'} onClick={() => handleArchiveChat()}>
-                      <Archive className="mr-2 h-4 w-4" />
-                      Archive Chat
-                    </DropdownMenuItem>
-                    <DropdownMenuItem  disabled={user?.username === 'demouser'} onClick={() => handleBlockContact()}>
-                      <Ban className="mr-2 h-4 w-4" />
-                      Block Contact
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem  disabled={user?.username === 'demouser'} className="text-red-600" onClick={() => handleDeleteChat()}>
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete Chat
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
             </div>
-          </div>
-            
+
             {/* Messages Area - Updated */}
             <ScrollArea className="flex-1 p-4 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImEiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PHBhdGggZD0iTTAgMTBoNDBNMTAgMHY0ME0wIDIwaDQwTTIwIDB2NDBNMCAzMGg0ME0zMCAwdjQwIiBmaWxsPSJub25lIiBzdHJva2U9IiNlMGUwZTAiIG9wYWNpdHk9IjAuMiIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNhKSIvPjwvc3ZnPg==')]">
               <div className="min-h-full">
@@ -1731,11 +1949,16 @@ export default function Inbox() {
                 ) : (
                   <div className="space-y-1">
                     {messages.map((message: Message, index: number) => {
-                      const prevMessage = index > 0 ? messages[index - 1] : null;
-                      const showDate = !prevMessage || 
+                      const prevMessage =
+                        index > 0 ? messages[index - 1] : null;
+                      const showDate =
+                        !prevMessage ||
                         !isToday(new Date(message.createdAt || new Date())) ||
-                        (prevMessage && !isToday(new Date(prevMessage.createdAt || new Date())));
-                      
+                        (prevMessage &&
+                          !isToday(
+                            new Date(prevMessage.createdAt || new Date())
+                          ));
+
                       return (
                         <MessageItem
                           key={message.id}
@@ -1744,25 +1967,34 @@ export default function Inbox() {
                         />
                       );
                     })}
-                    
+
                     {/* Typing Indicator */}
                     {isTyping && (
                       <div className="flex items-end gap-2 mb-4">
                         <Avatar className="h-8 w-8">
                           <AvatarFallback className="bg-gray-200 text-xs">
-                            {typingUser[0] || 'V'}
+                            {typingUser[0] || "V"}
                           </AvatarFallback>
                         </Avatar>
                         <div className="bg-gray-100 rounded-2xl rounded-bl-sm px-4 py-3">
                           <div className="flex gap-1">
-                            <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                            <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                            <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                            <span
+                              className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                              style={{ animationDelay: "0ms" }}
+                            ></span>
+                            <span
+                              className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                              style={{ animationDelay: "150ms" }}
+                            ></span>
+                            <span
+                              className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                              style={{ animationDelay: "300ms" }}
+                            ></span>
                           </div>
                         </div>
                       </div>
                     )}
-                    
+
                     <div ref={messagesEndRef} />
                   </div>
                 )}
@@ -1771,31 +2003,36 @@ export default function Inbox() {
 
             {/* Message Input - Updated with typing handler */}
             <div className="bg-white border-t border-gray-200 p-3 md:p-4">
-              {is24HourWindowExpired && selectedConversation.type === 'whatsapp' && (
-                <div className="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <div className="flex items-start gap-2">
-                    <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5" />
-                    <div className="text-sm">
-                      <p className="font-medium text-yellow-800">24-hour window expired</p>
-                      <p className="text-yellow-700">You can only send template messages now</p>
+              {is24HourWindowExpired &&
+                selectedConversation.type === "whatsapp" && (
+                  <div className="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5" />
+                      <div className="text-sm">
+                        <p className="font-medium text-yellow-800">
+                          24-hour window expired
+                        </p>
+                        <p className="text-yellow-700">
+                          You can only send template messages now
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
               <div className="flex items-end gap-1 md:gap-2">
                 <div className="flex gap-1">
-                  {selectedConversation.type === 'whatsapp' && (
+                  {selectedConversation.type === "whatsapp" && (
                     <>
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-8 w-8 md:h-9 md:w-9" 
-                              onClick={handleFileAttachment} 
-                              disabled={user?.username === 'demouser'}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 md:h-9 md:w-9"
+                              onClick={handleFileAttachment}
+                              disabled={user?.username === "demouser"}
                             >
                               <Paperclip className="h-4 w-4" />
                             </Button>
@@ -1803,7 +2040,7 @@ export default function Inbox() {
                           <TooltipContent>Attach File</TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
-                      
+
                       <input
                         ref={fileInputRef}
                         type="file"
@@ -1812,15 +2049,22 @@ export default function Inbox() {
                         accept="image/*,video/*,audio/*,.pdf,.doc,.docx"
                       />
 
-                      {user?.username === 'demouser' ? (
+                      {user?.username === "demouser" ? (
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 md:h-9 md:w-9" disabled>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 md:h-9 md:w-9"
+                                disabled
+                              >
                                 <FileText className="h-4 w-4" />
                               </Button>
                             </TooltipTrigger>
-                            <TooltipContent>Templates disabled for demo user</TooltipContent>
+                            <TooltipContent>
+                              Templates disabled for demo user
+                            </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
                       ) : (
@@ -1835,8 +2079,9 @@ export default function Inbox() {
 
                 <Input
                   placeholder={
-                    is24HourWindowExpired && selectedConversation.type === 'whatsapp' 
-                      ? "Templates only" 
+                    is24HourWindowExpired &&
+                    selectedConversation.type === "whatsapp"
+                      ? "Templates only"
                       : "Type a message..."
                   }
                   value={messageText}
@@ -1848,9 +2093,10 @@ export default function Inbox() {
                     }
                   }}
                   disabled={
-                    user?.username === 'demouser' 
-                      ? true 
-                      : (is24HourWindowExpired && selectedConversation.type === 'whatsapp')
+                    user?.username === "demouser"
+                      ? true
+                      : is24HourWindowExpired &&
+                        selectedConversation.type === "whatsapp"
                   }
                   className="flex-1"
                 />
@@ -1858,11 +2104,12 @@ export default function Inbox() {
                 <Button
                   onClick={handleSendMessage}
                   disabled={
-                    user?.username === 'demouser' 
-                      ? true 
-                      : (!messageText.trim() || 
-                         (is24HourWindowExpired && selectedConversation.type === 'whatsapp') || 
-                         sendMessageMutation.isPending)
+                    user?.username === "demouser"
+                      ? true
+                      : !messageText.trim() ||
+                        (is24HourWindowExpired &&
+                          selectedConversation.type === "whatsapp") ||
+                        sendMessageMutation.isPending
                   }
                   size="icon"
                   className="h-8 w-8 md:h-9 md:w-9 bg-green-600 hover:bg-green-700"
@@ -1877,8 +2124,12 @@ export default function Inbox() {
           <div className="hidden md:flex flex-1 items-center justify-center bg-gray-50">
             <div className="text-center">
               <MessageCircle className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Select a conversation</h3>
-              <p className="text-gray-500">Choose a conversation from the list to start messaging</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Select a conversation
+              </h3>
+              <p className="text-gray-500">
+                Choose a conversation from the list to start messaging
+              </p>
             </div>
           </div>
         )}

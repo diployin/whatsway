@@ -57,11 +57,13 @@ import {
   Clock,
   ChevronDown,
   ChevronRight,
+  ChevronLeft,
 } from "lucide-react";
 import type { User } from "@shared/schema";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/auth-context";
 import Header from "@/components/layout/header";
+import { TeamUserResponse } from "@/types/types";
 
 interface TeamMemberFormData {
   firstName: string;
@@ -108,15 +110,13 @@ export default function TeamPage() {
   const limit = 10; // Number of items per page
 
   // Fetch team members with pagination
-  const { data, isLoading, isError, error } = useQuery({
+  const { data: teamUserRes, isLoading } = useQuery<TeamUserResponse>({
     queryKey: ["teamMembers", page, limit], // query key
     queryFn: () => fetchTeamMembers(page, limit), // query function
-    keepPreviousData: true, // Keep previous data while new data is loading
   });
-
   // Destructure `data` into `teamMembers` with a default empty array
-  const teamMembers = data?.data || [];
-  const totalPages = data?.totalPages || 1; // Total pages from API response
+  const teamMembers = teamUserRes?.data;
+  const totalPages = teamUserRes?.totalPages || 1; // Total pages from API response
 
   // Handle page change
   const handlePageChange = (newPage: number) => {
@@ -275,188 +275,387 @@ export default function TeamPage() {
             Activity Logs
           </TabsTrigger>
         </TabsList>
-
-        <TabsContent value="members" className="mt-6">
+        <TabsContent value="members" className="mt-4 sm:mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>Team Members</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-lg sm:text-xl">Team Members</CardTitle>
+              <CardDescription className="text-sm">
                 Manage team members and their access permissions
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Member</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Last Active</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLoading ? (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8">
-                        Loading team members...
-                      </TableCell>
-                    </TableRow>
-                  ) : teamMembers.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8">
-                        No team members found. Add your first team member.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    teamMembers.map((member) => (
-                      <TableRow key={member.id}>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <div className="relative">
-                              <Avatar>
-                                <AvatarImage src={member.avatar || undefined} />
-                                <AvatarFallback>
+              {isLoading ? (
+                <div className="text-center py-12">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mb-4"></div>
+                  <p className="text-gray-600">Loading team members...</p>
+                </div>
+              ) : !teamMembers || teamMembers.length === 0 ? (
+                <div className="text-center py-12">
+                  <Users className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                  <p className="text-gray-600 mb-2">No team members found</p>
+                  <p className="text-sm text-gray-400">
+                    Add your first team member to get started
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {/* Desktop Table View */}
+                  <div className="hidden lg:block overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Member</TableHead>
+                          <TableHead>Role</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Last Active</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {teamMembers.map((member) => (
+                          <TableRow key={member.id}>
+                            <TableCell>
+                              <div className="flex items-center gap-3">
+                                <div className="relative">
+                                  <Avatar>
+                                    <AvatarImage
+                                      src={member.avatar || undefined}
+                                    />
+                                    <AvatarFallback>
+                                      {`${member.firstName || ""} ${
+                                        member.lastName || ""
+                                      }`
+                                        .split(" ")
+                                        .filter((n) => n)
+                                        .map((n) => n[0])
+                                        .join("")
+                                        .toUpperCase() ||
+                                        member.username.charAt(0).toUpperCase()}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div
+                                    className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white ${getOnlineStatusColor(
+                                      "offline"
+                                    )}`}
+                                  />
+                                </div>
+                                <div>
+                                  <div className="font-medium">
+                                    {`${member.firstName || ""} ${
+                                      member.lastName || ""
+                                    }`.trim() || member.username}
+                                  </div>
+                                  <div className="text-sm text-muted-foreground">
+                                    {user?.username === "demouser"
+                                      ? member.email
+                                          ?.split("@")[0]
+                                          .slice(0, -2)
+                                          .replace(/./g, "*") +
+                                        member.email?.slice(
+                                          member.email.indexOf("@") - 2
+                                        )
+                                      : member.email}
+                                  </div>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={getRoleBadgeVariant(member.role)}>
+                                {member.role}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                variant={
+                                  getStatusBadgeVariant(member.status) ||
+                                  "default"
+                                }
+                              >
+                                {member.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-1">
+                                <Clock className="h-3 w-3 text-muted-foreground" />
+                                <span className="text-sm">
+                                  {member.lastLogin
+                                    ? new Date(
+                                        member.lastLogin
+                                      ).toLocaleDateString()
+                                    : "Never"}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm">
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem
+                                    onClick={() => handleOpenDialog(member)}
+                                  >
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    Edit
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    disabled={user?.username === "demouser"}
+                                    onClick={() =>
+                                      updateStatusMutation.mutate({
+                                        memberId: member.id,
+                                        status:
+                                          member.status === "active"
+                                            ? "inactive"
+                                            : "active",
+                                      })
+                                    }
+                                  >
+                                    <Shield className="mr-2 h-4 w-4" />
+                                    {member.status === "active"
+                                      ? "Deactivate"
+                                      : "Activate"}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    disabled={user?.username === "demouser"}
+                                    className="text-destructive"
+                                    onClick={() => {
+                                      if (
+                                        confirm(
+                                          "Are you sure you want to remove this team member?"
+                                        )
+                                      ) {
+                                        deleteMemberMutation.mutate(member.id);
+                                      }
+                                    }}
+                                  >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Remove
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+
+                  {/* Mobile/Tablet Card View */}
+                  <div className="lg:hidden space-y-4">
+                    {teamMembers.map((member) => (
+                      <Card key={member.id} className="overflow-hidden">
+                        <CardContent className="p-4">
+                          {/* Header */}
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              <div className="relative flex-shrink-0">
+                                <Avatar className="h-12 w-12">
+                                  <AvatarImage
+                                    src={member.avatar || undefined}
+                                  />
+                                  <AvatarFallback>
+                                    {`${member.firstName || ""} ${
+                                      member.lastName || ""
+                                    }`
+                                      .split(" ")
+                                      .filter((n) => n)
+                                      .map((n) => n[0])
+                                      .join("")
+                                      .toUpperCase() ||
+                                      member.username.charAt(0).toUpperCase()}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div
+                                  className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white ${getOnlineStatusColor(
+                                    "offline"
+                                  )}`}
+                                />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-semibold text-gray-900 truncate">
                                   {`${member.firstName || ""} ${
                                     member.lastName || ""
-                                  }`
-                                    .split(" ")
-                                    .filter((n) => n)
-                                    .map((n) => n[0])
-                                    .join("")
-                                    .toUpperCase()}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div
-                                className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white ${getOnlineStatusColor(
-                                  "offline"
-                                )}`}
-                              />
-                            </div>
-                            <div>
-                              <div className="font-medium">
-                                {`${member.firstName || ""} ${
-                                  member.lastName || ""
-                                }`.trim() || member.username}
-                              </div>
-                              <div className="text-sm text-muted-foreground">
-                                {user?.username === "demouser" ? (
-                                  <span className=" px-2 py-1 rounded">
-                                    {member.email
-                                      .split("@")[0]
-                                      .slice(0, -2)
-                                      .replace(/./g, "*") +
-                                      member.email.slice(
+                                  }`.trim() || member.username}
+                                </h3>
+                                <p className="text-sm text-gray-600 truncate">
+                                  {user?.username === "demouser"
+                                    ? member.email
+                                        ?.split("@")[0]
+                                        .slice(0, -2)
+                                        .replace(/./g, "*") +
+                                      member.email?.slice(
                                         member.email.indexOf("@") - 2
-                                      )}
-                                  </span>
-                                ) : (
-                                  member.email
-                                )}
+                                      )
+                                    : member.email}
+                                </p>
                               </div>
                             </div>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="flex-shrink-0 ml-2"
+                                >
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => handleOpenDialog(member)}
+                                >
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  disabled={user?.username === "demouser"}
+                                  onClick={() =>
+                                    updateStatusMutation.mutate({
+                                      memberId: member.id,
+                                      status:
+                                        member.status === "active"
+                                          ? "inactive"
+                                          : "active",
+                                    })
+                                  }
+                                >
+                                  <Shield className="mr-2 h-4 w-4" />
+                                  {member.status === "active"
+                                    ? "Deactivate"
+                                    : "Activate"}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  disabled={user?.username === "demouser"}
+                                  className="text-destructive"
+                                  onClick={() => {
+                                    if (
+                                      confirm(
+                                        "Are you sure you want to remove this team member?"
+                                      )
+                                    ) {
+                                      deleteMemberMutation.mutate(member.id);
+                                    }
+                                  }}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Remove
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={getRoleBadgeVariant(member.role)}>
-                            {member.role}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={
-                              getStatusBadgeVariant(member.status) || "default"
-                            }
-                          >
-                            {member.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Clock className="h-3 w-3 text-muted-foreground" />
-                            <span className="text-sm">
+
+                          {/* Badges */}
+                          <div className="flex flex-wrap gap-2 mb-4">
+                            <Badge variant={getRoleBadgeVariant(member.role)}>
+                              {member.role}
+                            </Badge>
+                            <Badge
+                              variant={
+                                getStatusBadgeVariant(member.status) ||
+                                "default"
+                              }
+                            >
+                              {member.status}
+                            </Badge>
+                          </div>
+
+                          {/* Last Active */}
+                          <div className="flex items-center gap-2 text-sm text-gray-600 pt-3 border-t">
+                            <Clock className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                            <span>
+                              Last active:{" "}
                               {member.lastLogin
-                                ? new Date(member.lastLogin).toLocaleString()
+                                ? new Date(
+                                    member.lastLogin
+                                  ).toLocaleDateString()
                                 : "Never"}
                             </span>
                           </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => handleOpenDialog(member)}
-                              >
-                                <Edit className="mr-2 h-4 w-4" />
-                                Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                disabled={user?.username === "demouser"}
-                                onClick={() =>
-                                  updateStatusMutation.mutate({
-                                    memberId: member.id,
-                                    status:
-                                      member.status === "active"
-                                        ? "inactive"
-                                        : "active",
-                                  })
-                                }
-                              >
-                                <Shield className="mr-2 h-4 w-4" />
-                                {member.status === "active"
-                                  ? "Deactivate"
-                                  : "Activate"}
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                disabled={user?.username === "demouser"}
-                                className="text-destructive"
-                                onClick={() => {
-                                  if (
-                                    confirm(
-                                      "Are you sure you want to remove this team member?"
-                                    )
-                                  ) {
-                                    deleteMemberMutation.mutate(member.id);
-                                  }
-                                }}
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Remove
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
 
-              {/* Pagination Controls */}
-              <div className="flex justify-between items-center mt-4">
-                <button
-                  onClick={() => handlePageChange(page - 1)}
-                  disabled={page === 1}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md"
-                >
-                  Previous
-                </button>
-                <div className="text-sm">
-                  Page {page} of {totalPages}
-                </div>
-                <button
-                  onClick={() => handlePageChange(page + 1)}
-                  disabled={page === totalPages}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md"
-                >
-                  Next
-                </button>
-              </div>
+                  {/* Pagination Controls - Responsive */}
+                  {teamUserRes && (
+                    <div className="mt-6">
+                      {/* Desktop Pagination */}
+                      <div className="hidden sm:flex justify-between items-center">
+                        <Button
+                          variant="outline"
+                          onClick={() => handlePageChange(page - 1)}
+                          disabled={page === 1}
+                        >
+                          <ChevronLeft className="h-4 w-4 mr-2" />
+                          Previous
+                        </Button>
+                        <div className="text-sm text-gray-600">
+                          Page{" "}
+                          <span className="font-medium">
+                            {teamUserRes.page}
+                          </span>{" "}
+                          of{" "}
+                          <span className="font-medium">
+                            {teamUserRes.totalPages}
+                          </span>
+                          {" • "}
+                          <span className="font-medium">
+                            {teamUserRes.total}
+                          </span>{" "}
+                          total members
+                        </div>
+                        <Button
+                          variant="outline"
+                          onClick={() => handlePageChange(page + 1)}
+                          disabled={page >= teamUserRes.totalPages}
+                        >
+                          Next
+                          <ChevronRight className="h-4 w-4 ml-2" />
+                        </Button>
+                      </div>
+
+                      {/* Mobile Pagination */}
+                      <div className="sm:hidden space-y-3">
+                        <div className="text-center text-sm text-gray-600 bg-gray-50 py-2 rounded-lg">
+                          Page{" "}
+                          <span className="font-medium">
+                            {teamUserRes.page}
+                          </span>{" "}
+                          of{" "}
+                          <span className="font-medium">
+                            {teamUserRes.totalPages}
+                          </span>
+                          <div className="text-xs text-gray-500 mt-1">
+                            {teamUserRes.total} total members
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => handlePageChange(page - 1)}
+                            disabled={page === 1}
+                            className="w-full"
+                          >
+                            <ChevronLeft className="h-4 w-4 mr-1" />
+                            Previous
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => handlePageChange(page + 1)}
+                            disabled={page >= teamUserRes.totalPages}
+                            className="w-full"
+                          >
+                            Next
+                            <ChevronRight className="h-4 w-4 ml-1" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -469,59 +668,124 @@ export default function TeamPage() {
                 Track team member activities and actions
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Member</TableHead>
-                    <TableHead>Action</TableHead>
-                    <TableHead>Details</TableHead>
-                    <TableHead>Timestamp</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(activityLogs as any[])?.length === 0 ? (
+            <CardContent className="p-0 sm:p-6">
+              {/* Desktop Table View - Hidden on mobile */}
+              <div className="hidden md:block overflow-x-auto">
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center py-8">
-                        No activity logs found.
-                      </TableCell>
+                      <TableHead>Member</TableHead>
+                      <TableHead>Action</TableHead>
+                      <TableHead>Details</TableHead>
+                      <TableHead>Timestamp</TableHead>
                     </TableRow>
-                  ) : (
-                    (activityLogs as any[]).map((log) => (
-                      <TableRow key={log.id}>
-                        <TableCell>
-                          {" "}
-                          {user?.username === "demouser" ? (
-                            <span className=" px-2 py-1 rounded">
-                              {log.userName.slice(0, -1).replace(/./g, "*") +
-                                log.userName.slice(-1)}
-                            </span>
-                          ) : (
-                            log.userName
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{log.action}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          {user?.username === "demouser" ? (
-                            <span className=" px-2 py-1 rounded">
-                              {"Details hidden for demo user"}
-                            </span>
-                          ) : (
-                            <span>
-                              <DetailsView details={log.details} />
-                            </span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {new Date(log.createdAt).toLocaleString()}
+                  </TableHeader>
+                  <TableBody>
+                    {(activityLogs as any[])?.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center py-8">
+                          No activity logs found.
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+                    ) : (
+                      (activityLogs as any[]).map((log) => (
+                        <TableRow key={log.id}>
+                          <TableCell>
+                            {user?.username === "demouser" ? (
+                              <span className="px-2 py-1 rounded">
+                                {log.userName.slice(0, -1).replace(/./g, "*") +
+                                  log.userName.slice(-1)}
+                              </span>
+                            ) : (
+                              log.userName
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{log.action}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            {user?.username === "demouser" ? (
+                              <span className="px-2 py-1 rounded">
+                                Details hidden for demo user
+                              </span>
+                            ) : (
+                              <span>
+                                <DetailsView details={log.details} />
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            {new Date(log.createdAt).toLocaleString()}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile Card View - Hidden on desktop */}
+              <div className="md:hidden space-y-4 p-4">
+                {(activityLogs as any[])?.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No activity logs found.
+                  </div>
+                ) : (
+                  (activityLogs as any[]).map((log) => (
+                    <div
+                      key={log.id}
+                      className="bg-white border rounded-lg p-4 shadow-sm space-y-3"
+                    >
+                      {/* Member */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-muted-foreground">
+                          Member
+                        </span>
+                        <span className="font-medium">
+                          {user?.username === "demouser"
+                            ? log.userName.slice(0, -1).replace(/./g, "*") +
+                              log.userName.slice(-1)
+                            : log.userName}
+                        </span>
+                      </div>
+
+                      {/* Action */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-muted-foreground">
+                          Action
+                        </span>
+                        <Badge variant="outline">{log.action}</Badge>
+                      </div>
+
+                      {/* Details */}
+                      <div className="space-y-1">
+                        <span className="text-sm font-medium text-muted-foreground block">
+                          Details
+                        </span>
+                        <div className="text-sm">
+                          {user?.username === "demouser" ? (
+                            <span className="text-muted-foreground">
+                              Details hidden for demo user
+                            </span>
+                          ) : (
+                            <DetailsView details={log.details} />
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Timestamp */}
+                      <div className="flex items-center justify-between pt-2 border-t">
+                        <span className="text-sm font-medium text-muted-foreground">
+                          Timestamp
+                        </span>
+                        <span className="text-sm text-muted-foreground">
+                          {new Date(log.createdAt).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

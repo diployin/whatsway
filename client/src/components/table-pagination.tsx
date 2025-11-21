@@ -1,5 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface TablePaginationProps {
@@ -44,15 +50,28 @@ export function TablePagination({
             onPageChange(1); // Reset to first page when changing items per page
           }}
         >
-          <SelectTrigger className="w-[80px]" data-testid="select-items-per-page">
+          <SelectTrigger
+            className="w-[80px]"
+            data-testid="select-items-per-page"
+          >
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="25" data-testid="option-items-per-page-25">25</SelectItem>
-            <SelectItem value="50" data-testid="option-items-per-page-50">50</SelectItem>
-            <SelectItem value="100" data-testid="option-items-per-page-100">100</SelectItem>
-            <SelectItem value="250" data-testid="option-items-per-page-250">250</SelectItem>
-            <SelectItem value="500" data-testid="option-items-per-page-500">500</SelectItem>
+            <SelectItem value="25" data-testid="option-items-per-page-25">
+              25
+            </SelectItem>
+            <SelectItem value="50" data-testid="option-items-per-page-50">
+              50
+            </SelectItem>
+            <SelectItem value="100" data-testid="option-items-per-page-100">
+              100
+            </SelectItem>
+            <SelectItem value="250" data-testid="option-items-per-page-250">
+              250
+            </SelectItem>
+            <SelectItem value="500" data-testid="option-items-per-page-500">
+              500
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -61,7 +80,7 @@ export function TablePagination({
         <span className="text-sm text-muted-foreground">
           {startItem}-{endItem} of {totalItems}
         </span>
-        
+
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
@@ -73,11 +92,11 @@ export function TablePagination({
             <ChevronLeft className="h-4 w-4" />
             Previous
           </Button>
-          
+
           <span className="text-sm">
             Page {totalPages === 0 ? 0 : currentPage} of {totalPages}
           </span>
-          
+
           <Button
             variant="outline"
             size="sm"

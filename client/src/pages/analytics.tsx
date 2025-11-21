@@ -47,20 +47,34 @@ export default function Analytics() {
     },
   });
 
-  // Fetch message analytics
-  const { data: messageAnalytics, isLoading: messageLoading } = useQuery({
-    queryKey: ["/api/analytics/messages", activeChannel?.id, timeRange],
-    queryFn: async () => {
-      const params = new URLSearchParams({
-        days: timeRange.toString(),
-        ...(activeChannel?.id && { channelId: activeChannel.id }),
-      });
-      const response = await fetch(`/api/analytics/messages?${params}`);
-      if (!response.ok) throw new Error("Failed to fetch message analytics");
-      return await response.json();
-    },
-    enabled: !!activeChannel,
-  });
+// Fetch message analytics
+const { data: messageAnalytics, isLoading: messageLoading } = useQuery({
+  queryKey: [
+    "/api/analytics/messages",
+    user?.role === "super_admin" ? null : activeChannel?.id,
+    timeRange,
+  ],
+
+  queryFn: async () => {
+    const baseParams = { days: timeRange.toString() };
+
+    const params = new URLSearchParams(
+      user?.role === "super_admin"
+        ? baseParams
+        : {
+            ...baseParams,
+            ...(activeChannel?.id && { channelId: activeChannel.id }),
+          }
+    );
+
+    const response = await fetch(`/api/analytics/messages?${params}`);
+    if (!response.ok) throw new Error("Failed to fetch message analytics");
+    return await response.json();
+  },
+
+  enabled: user?.role === "super_admin" ? true : !!activeChannel,
+});
+
 
   // Fetch campaign analytics
   const { data: campaignAnalytics, isLoading: campaignLoading } = useQuery({

@@ -87,22 +87,21 @@ export default function WidgetBuilder() {
     },
   });
 
-  console.log(activeChannel)
+  console.log(activeChannel);
 
-  const {
-    data: brandSettings
-  } = useQuery({
+  const { data: brandSettings } = useQuery({
     queryKey: ["/api/brand-settings"],
     queryFn: () =>
       fetch("/api/brand-settings").then((res) => {
         if (!res.ok) throw new Error("Failed to fetch");
         return res.json();
-      })
+      }),
   });
 
   const {
     data: site,
-    isLoading,isSuccess,
+    isLoading,
+    isSuccess,
     error,
   } = useQuery({
     queryKey: ["/api/active-site", activeChannel?.id],
@@ -116,11 +115,10 @@ export default function WidgetBuilder() {
     },
     enabled: !!activeChannel?.id, // <-- IMPORTANT
   });
-  
 
   console.log("site", site, "error", error);
 
-  const selectedSiteId = site?.id
+  const selectedSiteId = site?.id;
 
   const [config, setConfig] = useState({
     // Basic Settings
@@ -332,11 +330,11 @@ export default function WidgetBuilder() {
   // console.log("site", site);
 
   useEffect(() => {
-    console.log(isSuccess, site)
+    console.log(isSuccess, site);
     if (isSuccess && site?.widgetConfig) {
       setConfig((prev) => ({
         ...prev,
-        ...site.widgetConfig,              // merge everything from backend
+        ...site.widgetConfig, // merge everything from backend
         appName: brandSettings?.title || site.widgetConfig.appName,
         tenantId: site.id,
         name: site.name,
@@ -344,7 +342,6 @@ export default function WidgetBuilder() {
       }));
     }
   }, [isSuccess, site]);
-  
 
   useEffect(() => {
     if (brandSettings?.title) {
@@ -429,8 +426,11 @@ export default function WidgetBuilder() {
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Customization Panel */}
           <div className="space-y-6">
-            <Tabs defaultValue="content" className="space-y-7">
-              <TabsList className="grid w-full grid-cols-7">
+            <Tabs
+              defaultValue="content"
+              className="space-y-7 flex flex-col gap-5 "
+            >
+              <TabsList className=" w-full flex flex-wrap items-center justify-start">
                 <TabsTrigger value="content">Content</TabsTrigger>
                 <TabsTrigger value="design">Design</TabsTrigger>
                 <TabsTrigger value="layouts">Layouts</TabsTrigger>
@@ -441,7 +441,7 @@ export default function WidgetBuilder() {
               </TabsList>
 
               {/* Design Tab */}
-              <TabsContent value="design" className="space-y-6">
+              <TabsContent value="design" className="space-y-6  ">
                 <Card>
                   <CardHeader>
                     <CardTitle>Widget Style</CardTitle>
