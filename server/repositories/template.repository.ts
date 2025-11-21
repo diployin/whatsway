@@ -152,13 +152,70 @@ async getAll(page: number = 1, limit: number = 10) {
 }
 
 
-  async getByChannel(channelId: string): Promise<Template[]> {
+  async getByChannelOld(channelId: string): Promise<Template[]> {
     return await db
       .select()
       .from(templates)
       .where(eq(templates.channelId, channelId))
       .orderBy(desc(templates.createdAt));
   }
+
+
+//   async getByChannel(
+//   channelId: string,
+//   page: number = 1,
+//   limit: number = 10
+// ): Promise<{ data: Template[]; total: number }> {
+//   const offset = (page - 1) * limit;
+
+//   // Get total count
+//   const total = await db
+//     .select({ count: templates.id })
+//     .from(templates)
+//     .where(eq(templates.channelId, channelId))
+//     .execute()
+//     .then((res) => Number(res[0].count));
+
+//   // Get paginated data
+//   const data = await db
+//     .select()
+//     .from(templates)
+//     .where(eq(templates.channelId, channelId))
+//     .orderBy(desc(templates.createdAt))
+//     .limit(limit)
+//     .offset(offset);
+
+//   return { data, total };
+// }
+
+
+async getByChannel(
+  channelId: string,
+  page: number = 1,
+  limit: number = 10
+): Promise<{ data: Template[]; total: number }> {
+  const offset = (page - 1) * limit;
+
+  // 1️⃣ Correct way to count rows
+  const [{ count }] = await db
+    .select({ count: sql<number>`COUNT(*)` })
+    .from(templates)
+    .where(eq(templates.channelId, channelId));
+
+  const total = Number(count);
+
+  // 2️⃣ Get paginated data
+  const data = await db
+    .select()
+    .from(templates)
+    .where(eq(templates.channelId, channelId))
+    .orderBy(desc(templates.createdAt))
+    .limit(limit)
+    .offset(offset);
+
+  return { data, total };
+}
+
 
   async getById(id: string): Promise<Template | undefined> {
     const [template] = await db.select().from(templates).where(eq(templates.id, id));

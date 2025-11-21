@@ -35,7 +35,7 @@ export default function Campaigns() {
 
   // Pagination state
   const [page, setPage] = useState(1);
-  const limit = 10;
+  const [limit, setLimit] = useState(10);
 
   const { data: activeChannel } = useQuery({
     queryKey: ["/api/channels/active"],
@@ -250,7 +250,70 @@ export default function Campaigns() {
             />
 
             {/* Pagination */}
-            {campaigns && campaigns.length >= 0 ? (
+
+           <div className="w-full mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+  {/* LEFT → Showing + Limit */}
+  <div className="flex items-center gap-2 text-sm text-gray-700">
+    <span>
+      Showing {(page - 1) * limit + 1} to {Math.min(page * limit, total)} of {total} campaigns
+    </span>
+
+    <select
+      value={limit}
+      onChange={(e) => {
+        setLimit(Number(e.target.value));
+        setPage(1);
+      }}
+      className="border rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+    >
+      {[10, 20, 50, 100].map((l) => (
+        <option key={l} value={l}>
+          {l}
+        </option>
+      ))}
+    </select>
+  </div>
+
+  {/* RIGHT → Pagination Buttons */}
+  <div className="flex items-center gap-2">
+    <button
+      onClick={() => setPage(Math.max(page - 1, 1))}
+      disabled={page === 1}
+      className="px-3 py-1 border rounded-md bg-white hover:bg-gray-50 disabled:opacity-50 transition"
+    >
+      Previous
+    </button>
+
+    {[...Array(totalPages)].map((_, i) => {
+      const pageNumber = i + 1;
+      return (
+        <button
+          key={pageNumber}
+          onClick={() => setPage(pageNumber)}
+          className={`px-3 py-1 border rounded-md ${
+            pageNumber === page
+              ? "bg-green-600 text-white"
+              : "bg-white hover:bg-gray-50"
+          } transition`}
+        >
+          {pageNumber}
+        </button>
+      );
+    })}
+
+    <button
+      onClick={() => setPage(Math.min(page + 1, totalPages))}
+      disabled={page === totalPages}
+      className="px-3 py-1 border rounded-md bg-white hover:bg-gray-50 disabled:opacity-50 transition"
+    >
+      Next
+    </button>
+  </div>
+</div>
+
+
+
+            {/* {campaigns && campaigns.length >= 0 ? (
               <div className="flex justify-between items-center mt-4">
                 <Button
                   variant="outline"
@@ -272,7 +335,7 @@ export default function Campaigns() {
               </div>
             ) : (
               ""
-            )}
+            )} */}
           </CardContent>
         </Card>
       </div>

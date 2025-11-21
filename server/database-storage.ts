@@ -387,9 +387,18 @@ async getTemplatesByChannelAndUser(channelId: string, userId: string): Promise<T
 
   
 
-  async getTemplatesByChannel(channelId: string): Promise<Template[]> {
+  async getTemplatesByChannelOLd(channelId: string): Promise<Template[]> {
     return this.templateRepo.getByChannel(channelId);
   }
+
+  async getTemplatesByChannel(
+  channelId: string,
+  page: number = 1,
+  limit: number = 10
+): Promise<{ data: Template[]; total: number }> {
+  return this.templateRepo.getByChannel(channelId, page, limit);
+}
+
 
   async getTemplatesByName(name: string): Promise<Template[]> {
     const templates = await this.templateRepo.getByName(name);
