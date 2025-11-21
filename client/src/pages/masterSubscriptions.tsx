@@ -66,7 +66,7 @@ interface SubscriptionResponse {
 export default function AllSubscriptionsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const {user} = useAuth();
-  const limit = 10;
+  const [limit, setLimit] = useState(10);
 
   const { data, isLoading, isError, error } = useQuery<SubscriptionResponse>({
     queryKey: ["subscriptions", currentPage],
@@ -169,7 +169,86 @@ export default function AllSubscriptionsPage() {
       </div>
 
       {/* ------------------- PAGINATION ------------------- */}
-      <div className="flex justify-between items-center mt-4">
+
+      {/* Pagination Section */}
+<div className="flex items-center justify-between mt-4 p-4 bg-white border rounded-lg shadow-sm">
+
+  {/* Showing information */}
+  <div className="text-sm text-gray-600">
+    Showing{" "}
+    <span className="font-semibold">
+      {(page - 1) * limit + 1}
+    </span>{" "}
+    to{" "}
+    <span className="font-semibold">
+      {Math.min(page * limit, data?.pagination?.total ?? 0)}
+    </span>{" "}
+    of{" "}
+    <span className="font-semibold">
+      {data?.pagination?.total ?? 0}
+    </span>{" "}
+    subscriptions
+  </div>
+
+  {/* Page size dropdown */}
+  <div className="flex items-center space-x-2">
+    <select
+      className="border rounded-md px-3 py-1 text-sm bg-white shadow-sm"
+      value={limit}
+      onChange={(e) => {
+        setCurrentPage(1);
+        setLimit(Number(e.target.value));
+        // Optional: setLimit(Number(e.target.value));
+      }}
+    >
+      {[10, 20, 50, 100].map((size) => (
+        <option key={size} value={size}>
+          {size}
+        </option>
+      ))}
+    </select>
+  </div>
+
+  {/* Pagination buttons */}
+  <div className="flex items-center space-x-1">
+
+    <button
+      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+      disabled={page === 1}
+      className="px-3 py-1 text-sm border rounded-md bg-gray-100 disabled:opacity-50"
+    >
+      Previous
+    </button>
+
+    {/* Page numbers */}
+    {[...Array(totalPages)].map((_, i) => {
+      const pageNumber = i + 1;
+      return (
+        <button
+          key={pageNumber}
+          onClick={() => setCurrentPage(pageNumber)}
+          className={`px-3 py-1 text-sm border rounded-md ${
+            pageNumber === page
+              ? "bg-green-600 text-white"
+              : "bg-white hover:bg-gray-50"
+          }`}
+        >
+          {pageNumber}
+        </button>
+      );
+    })}
+
+    <button
+      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+      disabled={page === totalPages}
+      className="px-3 py-1 text-sm border rounded-md bg-gray-100 disabled:opacity-50"
+    >
+      Next
+    </button>
+  </div>
+</div>
+
+      {/* <div className="flex justify-between items-center mt-4">
         <button
           onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
           disabled={page <= 1}
@@ -187,7 +266,7 @@ export default function AllSubscriptionsPage() {
         >
           Next
         </button>
-      </div>
+      </div> */}
     </div>
     </>
   );

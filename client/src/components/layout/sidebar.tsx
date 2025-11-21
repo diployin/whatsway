@@ -56,7 +56,7 @@ const navItems: NavItem[] = [
     labelKey: "navigation.dashboard",
     color: "text-green-600",
     alwaysVisible: true,
-    requiredPrefix: "dashboard.",
+    // requiredPrefix: "dashboard.",
     allowedRoles: ["superadmin", "admin", "user", "team"],
   },
   {
@@ -80,7 +80,7 @@ const navItems: NavItem[] = [
     icon: MdGroups,
     labelKey: "Groups",
     color: "text-blue-400",
-    requiredPrefix: "groups.",
+    // requiredPrefix: "groups.",
     allowedRoles: ["admin"],
   },
   {
@@ -203,14 +203,12 @@ const navItems: NavItem[] = [
     icon: GiUpgrade,
     labelKey: "Upgrade Plan",
     color: "text-blue-400",
-    requiredPrefix: "billing.",
     allowedRoles: ["admin"],
   },
   {
     href: "/billing",
     icon: TbInvoice,
     labelKey: "Billing & Credits",
-    requiredPrefix: "billing.",
     color: "text-blue-400",
     allowedRoles: ["admin"],
   }
