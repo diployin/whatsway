@@ -36,7 +36,7 @@ import { useSidebar } from "@/contexts/sidebar-context";
 import { AdminCreditBox } from "../AdminCreditBox";
 import { useQuery } from "@tanstack/react-query";
 
-type Role = "superadmin" | "admin" | "user";
+type Role = "superadmin" | "admin" | "user" | "team";
 
 interface NavItem {
   href: string;
@@ -56,6 +56,7 @@ const navItems: NavItem[] = [
     labelKey: "navigation.dashboard",
     color: "text-green-600",
     alwaysVisible: true,
+    requiredPrefix: "dashboard.",
     allowedRoles: ["superadmin", "admin", "user"],
   },
   {
@@ -63,7 +64,7 @@ const navItems: NavItem[] = [
     icon: MessageSquare,
     labelKey: "navigation.inbox",
     color: "text-blue-400",
-    // requiredPrefix: "notifications.",
+    requiredPrefix: "inbox.",
     allowedRoles: ["admin"],
   },
   {
@@ -79,6 +80,7 @@ const navItems: NavItem[] = [
     icon: MdGroups,
     labelKey: "Groups",
     color: "text-blue-400",
+    requiredPrefix: "groups.",
     allowedRoles: ["admin"],
   },
   {
@@ -118,6 +120,7 @@ const navItems: NavItem[] = [
     icon: BarChart3,
     labelKey: "navigation.analytics",
     color: "text-pink-600",
+    requiredPrefix: "analytics.",
     allowedRoles: ["superadmin", "admin"],
   },
   {
@@ -125,6 +128,7 @@ const navItems: NavItem[] = [
     icon: Bot,
     labelKey: "navigation.widgetBuilder",
     color: "text-teal-600",
+    requiredPrefix: "widgetbuilder.",
     alwaysVisible: true,
     allowedRoles: ["superadmin", "admin", "user"],
   },
@@ -133,6 +137,7 @@ const navItems: NavItem[] = [
     icon: ScrollText,
     labelKey: "navigation.messageLogs",
     color: "text-yellow-600",
+    requiredPrefix: "messagelogs.",
     alwaysVisible: true,
     allowedRoles: ["superadmin", "admin"],
   },
@@ -149,6 +154,7 @@ const navItems: NavItem[] = [
     icon: Settings,
     labelKey: "navigation.settings",
     color: "text-gray-600",
+    requiredPrefix: "settings.",
     alwaysVisible: true,
     allowedRoles: ["superadmin", "admin"],
   },
@@ -165,7 +171,7 @@ const navItems: NavItem[] = [
     icon: Bell,
     labelKey: "navigation.plans",
     color: "text-blue-400",
-    // requiredPrefix: "notifications.",
+    requiredPrefix: "plans.",
     allowedRoles: ["superadmin"],
   },
   {
@@ -173,13 +179,14 @@ const navItems: NavItem[] = [
     icon: Bell,
     labelKey: "navigation.plans",
     color: "text-blue-400",
-    // requiredPrefix: "notifications.",
+    requiredPrefix: "gateway.",
     allowedRoles: ["superadmin"],
   },
   {
     href: "/support-tickets",
     icon: Bell,
     labelKey: "tickets-support",
+    requiredPrefix: "supporttickets.",
     color: "text-blue-400",
     allowedRoles: ["superadmin"],
   },
@@ -187,6 +194,7 @@ const navItems: NavItem[] = [
     href: "/user-support-tickets",
     icon: MdOutlineSupportAgent,
     labelKey: "Tickets Support",
+    requiredPrefix: "usersupporttickets.",
     color: "text-blue-400",
     allowedRoles: ["admin"],
   },
@@ -195,12 +203,14 @@ const navItems: NavItem[] = [
     icon: GiUpgrade,
     labelKey: "Upgrade Plan",
     color: "text-blue-400",
+    requiredPrefix: "billing.",
     allowedRoles: ["admin"],
   },
   {
     href: "/billing",
     icon: TbInvoice,
     labelKey: "Billing & Credits",
+    requiredPrefix: "billing.",
     color: "text-blue-400",
     allowedRoles: ["admin"],
   }
@@ -321,7 +331,54 @@ export default function Sidebar() {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
   const canView = (item: NavItem): boolean => {
+  if (!user) return false;
+
+  const role = user.role as Role;
+
+  // SUPERADMIN sees everything
+  if (role === "superadmin") return true;
+
+  // TEAM role must ONLY use permissions — ignore allowedRoles & alwaysVisible
+  if (role === "team") {
+    if (!item.requiredPrefix) return false;
+    if (!user.permissions) return false;
+
+    const perms = Array.isArray(user.permissions)
+      ? user.permissions
+      : Object.keys(user.permissions);
+
+    const normalize = (str: string) => str.replace(".", ":");
+
+    return perms.some((perm) =>
+      perm.startsWith(normalize(item.requiredPrefix!))
+    );
+  }
+
+  // ---- ADMIN / USER LOGIC ----
+  if (item.allowedRoles && !item.allowedRoles.includes(role)) {
+    return false;
+  }
+
+  if (item.alwaysVisible) return true;
+
+  if (!item.requiredPrefix) return true;
+
+  if (!user.permissions) return false;
+
+  const perms = Array.isArray(user.permissions)
+    ? user.permissions
+    : Object.keys(user.permissions);
+
+  const normalize = (str: string) => str.replace(".", ":");
+
+  return perms.some((perm) =>
+    perm.startsWith(normalize(item.requiredPrefix!))
+  );
+};
+
+  const canViewOld = (item: NavItem): boolean => {
     if (!user) return false;
     if (item.allowedRoles && !item.allowedRoles.includes(user.role as Role)) {
       return false;
@@ -329,6 +386,24 @@ export default function Sidebar() {
     if (user.role === "superadmin") {
       return true;
     }
+
+    // --- TEAM ROLE custom permission-based ---
+  if (user.role === "team") {
+    if (!user.permissions) return false;
+
+    // requiredPrefix must match permission
+    if (!item.requiredPrefix) return false;
+
+    const perms = Array.isArray(user.permissions)
+      ? user.permissions
+      : Object.keys(user.permissions);
+
+    const normalize = (str: string) => str.replace(".", ":");
+
+    return perms.some((perm) =>
+      perm.startsWith(normalize(item.requiredPrefix!))
+    );
+  }
     if (item.alwaysVisible) {
       return true;
     }

@@ -1551,7 +1551,7 @@ export default function Inbox() {
           </div>
           
           <Tabs value={filterTab} onValueChange={setFilterTab}>
-            <TabsList className="grid w-full grid-cols-7 h-9">
+            <TabsList className="grid w-full grid-cols-7 gap-x-2 h-9">
               <TabsTrigger value="all" className="text-xs">All</TabsTrigger>
               <TabsTrigger value="whatsapp" className="text-xs">Whatsapp</TabsTrigger>
               <TabsTrigger value="chatbot" className="text-xs">Chatbot</TabsTrigger>

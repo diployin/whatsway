@@ -233,7 +233,7 @@ export default function GroupsUI() {
     <div className="flex-1 dots-bg min-h-screen">
       <Header
         title={" Groups"}
-        subtitle={"this is short discriptin"}
+        subtitle={"All groups details and management"}
         action={{
           label: "Create Group",
           onClick: () => openCreateDialog(),
