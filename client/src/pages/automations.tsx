@@ -26,6 +26,7 @@ import { TestAutomationModal } from "@/components/TestAutomationModal";
 import { useAuth } from "@/contexts/auth-context";
 import AutomationFlowBuilder from "@/components/automation-flow-builder/AutomationFlowBuilder";
 import Header from "@/components/layout/header";
+import { useTranslation } from "@/lib/i18n";
 
 type Automation = {
   id: string;
@@ -45,6 +46,8 @@ export default function Automations() {
   const [selectedAutomationId, setSelectedAutomationId] = useState<
     string | null
   >(null);
+
+  const { t } = useTranslation();
   const { user } = useAuth();
   const openModal = (id: string) => {
     setSelectedAutomationId(id);
@@ -54,13 +57,12 @@ export default function Automations() {
   const { data: activeChannel } = useQuery({
     queryKey: ["/api/channels/active"],
     queryFn: async () => {
-      const response = await apiRequest("GET" , "/api/channels/active");
+      const response = await apiRequest("GET", "/api/channels/active");
       if (!response.ok) return null;
       return await response.json();
     },
   });
 
-  
   const { data: automations = [], isLoading } = useQuery<Automation[]>({
     queryKey: ["/api/automations", activeChannel?.id], // include channelId here
     queryFn: async () => {
@@ -70,8 +72,7 @@ export default function Automations() {
       return res.json() as Promise<Automation[]>;
     },
     enabled: !!activeChannel?.id, // prevents query from running without channelId
-  });  
-
+  });
 
   const toggleMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -172,28 +173,11 @@ export default function Automations() {
 
   return (
     <div className=" space-y-6">
-      {/* <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Automations</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Create automated workflows to engage with your customers
-          </p>
-        </div>
-        <Button
-          onClick={handleCreateNew}
-          data-testid="button-create-automation"
-          // disabled={user?.username === 'demouser'}
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Create Automation
-        </Button>
-      </div> */}
-
       <Header
-        title={"Automations"}
-        subtitle={"Create automated workflows to engage with your customers"}
+        title={t("automations.title")}
+        subtitle={t("automations.Subtitle")}
         action={{
-          label: " Create Automation",
+          label: t("automations.create_auto"),
           onClick: handleCreateNew,
         }}
       />
@@ -201,17 +185,18 @@ export default function Automations() {
       {automations.length === 0 ? (
         <Card className="p-12 text-center">
           <Bot className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-lg font-medium mb-2">No automations yet</h3>
+          <h3 className="text-lg font-medium mb-2">
+            {t("automations.empityAuto.title")}
+          </h3>
           <p className="text-sm text-muted-foreground mb-4">
-            Create your first automation to start engaging with customers
-            automatically
+            {t("automations.empityAuto.Subtitle")}
           </p>
           <Button
             onClick={handleCreateNew}
             data-testid="button-create-first-automation"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Create Your First Automation
+            {t("automations.empityAuto.buttonTitle")}
           </Button>
         </Card>
       ) : (
@@ -341,15 +326,6 @@ export default function Automations() {
               Create and edit automation workflows
             </DialogDescription>
           </DialogHeader>
-          {/* <AutomationFlowBuilder
-            automation={selectedAutomation}
-            onClose={handleCloseFlowBuilder}
-          /> */}
-          {/* <AutomationFlowBuilderXYFlow
-            automation={selectedAutomation}
-            channelId={activeChannel?.id}
-            onClose={handleCloseFlowBuilder}
-          /> */}
 
           <AutomationFlowBuilder
             automation={selectedAutomation}

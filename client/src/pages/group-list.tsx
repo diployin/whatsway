@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import Header from "@/components/layout/header";
+import { useTranslation } from "@/lib/i18n";
 
 // Loading Skeleton Component
 const GroupSkeleton = () => (
@@ -72,6 +73,7 @@ export default function GroupsUI() {
   const [editId, setEditId] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const { t } = useTranslation();
   const { data: activeChannel } = useQuery({
     queryKey: ["/api/channels/active"],
     queryFn: async () => {
@@ -232,35 +234,15 @@ export default function GroupsUI() {
   return (
     <div className="flex-1 dots-bg min-h-screen">
       <Header
-        title={" Groups"}
-        subtitle={"All groups details and management"}
+        title={t("groups.title")}
+        subtitle={t("groups.subtitle")}
         action={{
-          label: "Create Group",
+          label: t("groups.createButton"),
           onClick: () => openCreateDialog(),
         }}
       />
       <div className="p-6 space-y-6">
         {/* Header */}
-
-        {/* <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-              Groups
-            </h2>
-            <p className="text-sm text-gray-500 mt-1">
-              Manage and organize your contact groups
-            </p>
-          </div>
-
-          {!loading && groups.length > 0 && (
-            <Button
-              className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto"
-              onClick={openCreateDialog}
-            >
-              <Plus className="mr-2" size={16} /> Create Group
-            </Button>
-          )}
-        </div> */}
 
         {/* Content Area */}
         <div className="space-y-4">

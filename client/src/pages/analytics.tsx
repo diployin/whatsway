@@ -33,11 +33,13 @@ import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/contexts/auth-context";
 import { StateDisplay } from "@/components/StateDisplay";
+import { useTranslation } from "@/lib/i18n";
 export default function Analytics() {
   const [timeRange, setTimeRange] = useState<number>(30);
   const [exportLoading, setExportLoading] = useState(false);
   const { user } = useAuth();
 
+  const { t } = useTranslation();
   const { data: activeChannel } = useQuery({
     queryKey: ["/api/channels/active"],
     queryFn: async () => {
@@ -47,34 +49,33 @@ export default function Analytics() {
     },
   });
 
-// Fetch message analytics
-const { data: messageAnalytics, isLoading: messageLoading } = useQuery({
-  queryKey: [
-    "/api/analytics/messages",
-    user?.role === "superadmin" ? null : activeChannel?.id,
-    timeRange,
-  ],
+  // Fetch message analytics
+  const { data: messageAnalytics, isLoading: messageLoading } = useQuery({
+    queryKey: [
+      "/api/analytics/messages",
+      user?.role === "superadmin" ? null : activeChannel?.id,
+      timeRange,
+    ],
 
-  queryFn: async () => {
-    const baseParams = { days: timeRange.toString() };
+    queryFn: async () => {
+      const baseParams = { days: timeRange.toString() };
 
-    const params = new URLSearchParams(
-      user?.role === "superadmin"
-        ? baseParams
-        : {
-            ...baseParams,
-            ...(activeChannel?.id && { channelId: activeChannel.id }),
-          }
-    );
+      const params = new URLSearchParams(
+        user?.role === "superadmin"
+          ? baseParams
+          : {
+              ...baseParams,
+              ...(activeChannel?.id && { channelId: activeChannel.id }),
+            }
+      );
 
-    const response = await fetch(`/api/analytics/messages?${params}`);
-    if (!response.ok) throw new Error("Failed to fetch message analytics");
-    return await response.json();
-  },
+      const response = await fetch(`/api/analytics/messages?${params}`);
+      if (!response.ok) throw new Error("Failed to fetch message analytics");
+      return await response.json();
+    },
 
-  enabled: user?.role === "superadmin" ? true : !!activeChannel,
-});
-
+    enabled: user?.role === "superadmin" ? true : !!activeChannel,
+  });
 
   // Fetch campaign analytics
   const { data: campaignAnalytics, isLoading: campaignLoading } = useQuery({
@@ -187,10 +188,7 @@ const { data: messageAnalytics, isLoading: messageLoading } = useQuery({
 
   return (
     <div className="flex-1 dots-bg min-h-screen">
-      <Header
-        title="Analytics & Reports"
-        subtitle="Track your WhatsApp business performance with real-time data"
-      />
+      <Header title={t("analytics.title")} subtitle={t("analytics.subtitle")} />
 
       <main className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
         {/* Time Range and Export Controls */}
@@ -202,7 +200,7 @@ const { data: messageAnalytics, isLoading: messageLoading } = useQuery({
                 <div className="flex items-center space-x-2 flex-shrink-0">
                   <Calendar className="w-4 h-4 text-gray-500" />
                   <span className="text-xs sm:text-sm font-medium text-gray-700">
-                    Time Range:
+                    {t("analytics.time_range")}:
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -291,7 +289,7 @@ const { data: messageAnalytics, isLoading: messageLoading } = useQuery({
             }
           >
             <TabsTrigger value="overview" className="text-xs sm:text-sm py-2">
-              Overview
+              {t("analytics.OverviewTab.title")}
             </TabsTrigger>
             <TabsTrigger value="messages" className="text-xs sm:text-sm py-2">
               Messages
@@ -315,13 +313,15 @@ const { data: messageAnalytics, isLoading: messageLoading } = useQuery({
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
                       <p className="text-xs sm:text-sm text-gray-600 mb-1">
-                        Total Messages
+                        {t("analytics.OverviewTab.Total_Messages")}
                       </p>
                       <p className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
                         {(messageMetrics.totalMessages || 0).toLocaleString()}
                       </p>
+
                       <p className="text-xs text-gray-500 mt-1">
-                        Last {timeRange} days
+                        {t("analytics.OverviewTab.last")} {timeRange}{" "}
+                        {t("analytics.OverviewTab.days")}
                       </p>
                     </div>
                     <div className="p-2 bg-blue-50 rounded-lg flex-shrink-0 ml-2">
@@ -336,7 +336,7 @@ const { data: messageAnalytics, isLoading: messageLoading } = useQuery({
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
                       <p className="text-xs sm:text-sm text-gray-600 mb-1">
-                        Delivery Rate
+                        {t("analytics.OverviewTab.Delivery")}
                       </p>
                       <p className="text-xl sm:text-2xl font-bold text-green-600">
                         {deliveryRate.toFixed(1)}%
@@ -360,7 +360,7 @@ const { data: messageAnalytics, isLoading: messageLoading } = useQuery({
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
                       <p className="text-xs sm:text-sm text-gray-600 mb-1">
-                        Read Rate
+                        {t("analytics.OverviewTab.read_rate")}
                       </p>
                       <p className="text-xl sm:text-2xl font-bold text-orange-600">
                         {readRate.toFixed(1)}%
@@ -384,7 +384,7 @@ const { data: messageAnalytics, isLoading: messageLoading } = useQuery({
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
                       <p className="text-xs sm:text-sm text-gray-600 mb-1">
-                        Reply Rate
+                        {t("analytics.OverviewTab.reply_rate")}
                       </p>
                       <p className="text-xl sm:text-2xl font-bold text-purple-600">
                         {replyRate.toFixed(1)}%
@@ -408,7 +408,7 @@ const { data: messageAnalytics, isLoading: messageLoading } = useQuery({
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
                       <p className="text-xs sm:text-sm text-gray-600 mb-1">
-                        Failure Rate
+                        {t("analytics.OverviewTab.Failure_rate")}
                       </p>
                       <p className="text-xl sm:text-2xl font-bold text-red-600">
                         {failureRate.toFixed(1)}%
@@ -433,7 +433,7 @@ const { data: messageAnalytics, isLoading: messageLoading } = useQuery({
               <Card className="lg:col-span-2">
                 <CardHeader className="px-4 sm:px-6 py-3 sm:py-4">
                   <CardTitle className="text-base sm:text-lg">
-                    Message Performance Trends
+                    {t("analytics.OverviewTab.Failure_rate")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="px-2 sm:px-6 pb-4">
@@ -458,13 +458,13 @@ const { data: messageAnalytics, isLoading: messageLoading } = useQuery({
               <Card>
                 <CardHeader className="px-4 sm:px-6 py-3 sm:py-4">
                   <CardTitle className="text-base sm:text-lg">
-                    Summary
+                    {t("analytics.OverviewTab.Summary")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3 sm:space-y-4 px-4 sm:px-6">
                   <div className="flex items-center justify-between">
                     <span className="text-xs sm:text-sm text-gray-600">
-                      Active Campaigns
+                      {t("analytics.OverviewTab.Active_Campaigns")}
                     </span>
                     <span className="text-xs sm:text-sm font-medium">
                       {campaignMetrics.activeCampaigns || 0}
@@ -472,7 +472,7 @@ const { data: messageAnalytics, isLoading: messageLoading } = useQuery({
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-xs sm:text-sm text-gray-600">
-                      Total Campaigns
+                      {t("analytics.OverviewTab.Total_Campaigns")}
                     </span>
                     <span className="text-xs sm:text-sm font-medium">
                       {campaignMetrics.totalCampaigns || 0}
@@ -480,7 +480,7 @@ const { data: messageAnalytics, isLoading: messageLoading } = useQuery({
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-xs sm:text-sm text-gray-600">
-                      Unique Contacts
+                      {t("analytics.OverviewTab.Unique_Contacts")}
                     </span>
                     <span className="text-xs sm:text-sm font-medium">
                       {messageMetrics.uniqueContacts || 0}
@@ -488,7 +488,7 @@ const { data: messageAnalytics, isLoading: messageLoading } = useQuery({
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-xs sm:text-sm text-gray-600">
-                      Total Recipients
+                      {t("analytics.OverviewTab.Total_Recipients")}
                     </span>
                     <span className="text-xs sm:text-sm font-medium">
                       {campaignMetrics.totalRecipients || 0}
@@ -506,7 +506,7 @@ const { data: messageAnalytics, isLoading: messageLoading } = useQuery({
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 pt-4">
                   <CardTitle className="text-xs sm:text-sm font-medium">
-                    Outbound Messages
+                    {t("analytics.messageTab.Outbound_Messages")}
                   </CardTitle>
                   <Send className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
@@ -522,7 +522,7 @@ const { data: messageAnalytics, isLoading: messageLoading } = useQuery({
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 pt-4">
                   <CardTitle className="text-xs sm:text-sm font-medium">
-                    Inbound Messages
+                    {t("analytics.messageTab.Inbound_Messages")}
                   </CardTitle>
                   <MessageSquare className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
@@ -538,7 +538,7 @@ const { data: messageAnalytics, isLoading: messageLoading } = useQuery({
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 pt-4">
                   <CardTitle className="text-xs sm:text-sm font-medium">
-                    Average Response Time
+                    {t("analytics.messageTab.Average_Response")}
                   </CardTitle>
                   <Clock className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
@@ -616,7 +616,7 @@ const { data: messageAnalytics, isLoading: messageLoading } = useQuery({
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
                       <CardTitle className="text-xs sm:text-sm font-medium">
-                        Total Sent
+                        {t("analytics.CampaignsTab.Total_Sent")}
                       </CardTitle>
                       <Send className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
                     </CardHeader>
@@ -631,7 +631,7 @@ const { data: messageAnalytics, isLoading: messageLoading } = useQuery({
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
                       <CardTitle className="text-xs sm:text-sm font-medium">
-                        Total Delivered
+                        {t("analytics.CampaignsTab.Total_Delivered")}
                       </CardTitle>
                       <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
                     </CardHeader>
@@ -645,7 +645,7 @@ const { data: messageAnalytics, isLoading: messageLoading } = useQuery({
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
                       <CardTitle className="text-xs sm:text-sm font-medium">
-                        Total Read
+                        {t("analytics.CampaignsTab.Total_Read")}
                       </CardTitle>
                       <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
                     </CardHeader>
@@ -659,7 +659,7 @@ const { data: messageAnalytics, isLoading: messageLoading } = useQuery({
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
                       <CardTitle className="text-xs sm:text-sm font-medium">
-                        Total Failed
+                        {t("analytics.CampaignsTab.Total_Failed")}
                       </CardTitle>
                       <AlertCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
                     </CardHeader>
@@ -675,7 +675,7 @@ const { data: messageAnalytics, isLoading: messageLoading } = useQuery({
                 <Card>
                   <CardHeader className="px-4 sm:px-6 py-3 sm:py-4">
                     <CardTitle className="text-base sm:text-lg">
-                      Campaign Performance
+                      {t("analytics.CampaignsTab.Campaign_Performance")}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-0">

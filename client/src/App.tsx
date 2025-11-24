@@ -77,16 +77,6 @@ const ROUTE_PERMISSIONS: Record<string, string> = {
   "/bot-builder": "",
 };
 
-// function ScrollToTop() {
-//   const [location] = useLocation();
-
-//   useEffect(() => {
-//     window.scrollTo(0, 0);
-//   }, [location]);
-
-//   return null;
-// }
-// Unauthorized component
 function UnauthorizedPage() {
   return (
     <div className="flex items-center justify-center min-h-screen">
