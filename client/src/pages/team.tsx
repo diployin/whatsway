@@ -99,8 +99,9 @@ export default function TeamPage() {
   const { toast } = useToast();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingMember, setEditingMember] = useState<User | null>(null);
-  const [activeTab, setActiveTab] = useState("members");
   const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState(user?.role === 'superadmin' ? 'activity' : 'members');
+
   // Fetch team members
   // const { data: teamMembers = [], isLoading } = useQuery<User[]>({
   //   queryKey: ["/api/team/members"],
@@ -254,7 +255,7 @@ export default function TeamPage() {
   };
 
   return (
-    <div className="container max-w-7xl mx-auto p-6">
+    <div className="container max-w-7xl mx-auto">
       <Header
         title={"Team Management"}
         subtitle={"   Manage your team members, roles, and permissions"}
@@ -266,14 +267,24 @@ export default function TeamPage() {
       <div className="px-4 py-4">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList>
-            <TabsTrigger value="members">
-              <Users className="mr-2 h-4 w-4" />
-              Team Members
-            </TabsTrigger>
-            <TabsTrigger value="activity">
-              <Activity className="mr-2 h-4 w-4" />
-              Activity Logs
-            </TabsTrigger>
+            {user?.role === 'superadmin' ? (
+  <TabsTrigger value="activity">
+    <Activity className="mr-2 h-4 w-4" />
+    Activity Logs
+  </TabsTrigger>
+) : (
+  <>
+    <TabsTrigger value="members">
+      <Users className="mr-2 h-4 w-4" />
+      Team Members
+    </TabsTrigger>
+    <TabsTrigger value="activity">
+      <Activity className="mr-2 h-4 w-4" />
+      Activity Logs
+    </TabsTrigger>
+  </>
+)}
+
           </TabsList>
           <TabsContent value="members" className="mt-4 sm:mt-6">
             <Card>
