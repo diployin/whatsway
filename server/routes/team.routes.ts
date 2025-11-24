@@ -501,86 +501,19 @@ router.delete("/members/:id",requireAuth, async (req, res) => {
   }
 });
 
-// Get team activity logs
-// router.get("/activity-logs", async (req, res) => {
-//   try {
-//     const logs = await db
-//       .select({
-//         id: userActivityLogs.id,
-//         userId: userActivityLogs.userId,
-//         userName: users.username,
-//         userEmail: users.email,
-//         action: userActivityLogs.action,
-//         entityType: userActivityLogs.entityType,
-//         entityId: userActivityLogs.entityId,
-//         details: userActivityLogs.details,
-//         ipAddress: userActivityLogs.ipAddress,
-//         userAgent: userActivityLogs.userAgent,
-//         createdAt: userActivityLogs.createdAt,
-//       })
-//       .from(userActivityLogs)
-//       .leftJoin(users, eq(userActivityLogs.userId, users.id))
-//       .orderBy(desc(userActivityLogs.createdAt))
-//       .limit(100);
 
-//     res.json(logs);
-//   } catch (error) {
-//     console.error("Error fetching activity logs:", error);
-//     res.status(500).json({ error: "Failed to fetch activity logs" });
-//   }
-// });
-
-
-
-// router.get("/activity-logs", async (req, res) => {
-//   try {
-//     // Get the logged-in user's ID from the session or JWT (adjust this according to your authentication method)
-//     const loggedInUserId = req?.session?.user?.id;  // Example using `req.user` for the authenticated user.
-
-//     if (!loggedInUserId) {
-//       return res.status(401).json({ error: "Unauthorized" });
-//     }
-
-//     // Fetch activity logs where the 'created_by' field matches the logged-in user's ID
-//     const logs = await db
-//       .select({
-//         id: userActivityLogs.id,
-//         userId: userActivityLogs.userId,
-//         userName: users.username,
-//         userEmail: users.email,
-//         action: userActivityLogs.action,
-//         entityType: userActivityLogs.entityType,
-//         entityId: userActivityLogs.entityId,
-//         details: userActivityLogs.details,
-//         ipAddress: userActivityLogs.ipAddress,
-//         userAgent: userActivityLogs.userAgent,
-//         createdAt: userActivityLogs.createdAt,
-//       })
-//       .from(userActivityLogs)
-//       .leftJoin(users, eq(userActivityLogs.userId, users.id))
-//       .where(eq(users.createdBy, loggedInUserId)) // Add this line to filter logs by the user who created the team member
-//       .orderBy(desc(userActivityLogs.createdAt))
-//       .limit(100);
-
-//     res.json(logs);
-//   } catch (error) {
-//     console.error("Error fetching activity logs:", error);
-//     res.status(500).json({ error: "Failed to fetch activity logs" });
-//   }
-// });
-
-
-
+// get activity logs
 router.get("/activity-logs", async (req, res) => {
   try {
     const loggedInUserId = req?.session?.user?.id;
+    const role = req?.session?.user?.role;   // <-- Make sure role is stored in session or JWT
 
     if (!loggedInUserId) {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    // Fetch ALL activity logs (No filter)
-    const logs = await db
+    // Base query
+    let query = db
       .select({
         id: userActivityLogs.id,
         userId: userActivityLogs.userId,
@@ -599,13 +532,57 @@ router.get("/activity-logs", async (req, res) => {
       .orderBy(desc(userActivityLogs.createdAt))
       .limit(100);
 
-    res.json(logs);
+    // Apply restriction only if not superadmin
+    if (role !== "superadmin") {
+      query = query.where(eq(users.createdBy, loggedInUserId));
+    }
 
+    const logs = await query;
+
+    res.json(logs);
   } catch (error) {
     console.error("Error fetching activity logs:", error);
     res.status(500).json({ error: "Failed to fetch activity logs" });
   }
 });
+
+
+
+// router.get("/activity-logs", async (req, res) => {
+//   try {
+//     const loggedInUserId = req?.session?.user?.id;
+
+//     if (!loggedInUserId) {
+//       return res.status(401).json({ error: "Unauthorized" });
+//     }
+
+//     // Fetch ALL activity logs (No filter)
+//     const logs = await db
+//       .select({
+//         id: userActivityLogs.id,
+//         userId: userActivityLogs.userId,
+//         userName: users.username,
+//         userEmail: users.email,
+//         action: userActivityLogs.action,
+//         entityType: userActivityLogs.entityType,
+//         entityId: userActivityLogs.entityId,
+//         details: userActivityLogs.details,
+//         ipAddress: userActivityLogs.ipAddress,
+//         userAgent: userActivityLogs.userAgent,
+//         createdAt: userActivityLogs.createdAt,
+//       })
+//       .from(userActivityLogs)
+//       .leftJoin(users, eq(userActivityLogs.userId, users.id))
+//       .orderBy(desc(userActivityLogs.createdAt))
+//       .limit(100);
+
+//     res.json(logs);
+
+//   } catch (error) {
+//     console.error("Error fetching activity logs:", error);
+//     res.status(500).json({ error: "Failed to fetch activity logs" });
+//   }
+// });
 
 
 

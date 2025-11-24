@@ -60,6 +60,35 @@ const MessagesIcon = (
   </svg>
 );
 
+
+const TeamMembersIcon = (
+  <svg
+    className="w-6 h-6"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M17 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"
+    />
+    <circle cx="9" cy="7" r="4" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M23 20v-2a4 4 0 0 0-3-3.87"
+    />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M16 3.13a4 4 0 0 1 0 7.75"
+    />
+  </svg>
+);
+
+
 const UsersIcon = (
   <svg
     className="w-6 h-6"
@@ -119,17 +148,28 @@ const TrendingIcon = (
 export default function AdminStats() {
   const { user } = useAuth();
 
+
+
+  const { data: activeChannel } = useQuery({
+    queryKey: ["/api/channels/active"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/channels/active");
+      if (!response.ok) return null;
+      return await response.json();
+    },
+  });
+
   const { data: stats, isLoading } = useQuery<DashboardStats>({
     queryKey: [
       user?.role === "admin"
-        ? `/api/dashboard/user/statss?channelId=${user.id}`
+        ? `/api/dashboard/user/statss?channelId=${activeChannel?.id}`
         : "/api/dashboard/admin/stats",
     ],
     queryFn: () =>
       apiRequest(
         "GET",
         user?.role === "admin"
-          ? `/api/dashboard/user/statss?channelId=${user.id}`
+          ? `/api/dashboard/user/statss?channelId=${activeChannel?.id}`
           : "/api/dashboard/admin/stats"
       ).then((res) => res.json()),
   });
@@ -200,6 +240,19 @@ export default function AdminStats() {
               label="Total Messages"
               value={stats.totalMessages}
               icon={MessagesIcon}
+              iconClassName="bg-orange-50 text-orange-600"
+              borderColor="border-l-orange-500"
+            />
+          )}
+
+
+          {stats &&
+          stats.totalTeamMembers !== undefined &&
+          stats.totalTeamMembers !== null && (
+            <CardStat
+              label="Total Team Members"
+              value={stats.totalTeamMembers}
+              icon={TeamMembersIcon}
               iconClassName="bg-orange-50 text-orange-600"
               borderColor="border-l-orange-500"
             />
