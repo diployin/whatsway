@@ -19,6 +19,7 @@ import { CreateCampaignDialog } from "@/components/campaigns/CreateCampaignDialo
 import { useTranslation } from "@/lib/i18n";
 import { useAuth } from "@/contexts/auth-context";
 import { api } from "@/lib/api";
+import { CardStat } from "@/components/CardStat";
 
 export default function Campaigns() {
   const { t } = useTranslation();
@@ -234,6 +235,15 @@ export default function Campaigns() {
       <div className="px-4 py-4">
         <CampaignStatistics campaigns={campaigns} />
       </div>
+      {/* <div className="px-4 py-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+        <CardStat
+          label="Total Contacts"
+          value={campaigns.}
+          icon={ContactsIcon}
+          iconClassName="bg-blue-50 text-blue-600"
+          borderColor="border-l-blue-500"
+        />
+      </div> */}
 
       <div className="px-4 py-4">
         <Card>
@@ -251,67 +261,66 @@ export default function Campaigns() {
 
             {/* Pagination */}
 
-           <div className="w-full mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-  {/* LEFT → Showing + Limit */}
-  <div className="flex items-center gap-2 text-sm text-gray-700">
-    <span>
-      Showing {(page - 1) * limit + 1} to {Math.min(page * limit, total)} of {total} campaigns
-    </span>
+            <div className="w-full mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              {/* LEFT → Showing + Limit */}
+              <div className="flex items-center gap-2 text-sm text-gray-700">
+                <span>
+                  Showing {(page - 1) * limit + 1} to{" "}
+                  {Math.min(page * limit, total)} of {total} campaigns
+                </span>
 
-    <select
-      value={limit}
-      onChange={(e) => {
-        setLimit(Number(e.target.value));
-        setPage(1);
-      }}
-      className="border rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-    >
-      {[10, 20, 50, 100].map((l) => (
-        <option key={l} value={l}>
-          {l}
-        </option>
-      ))}
-    </select>
-  </div>
+                <select
+                  value={limit}
+                  onChange={(e) => {
+                    setLimit(Number(e.target.value));
+                    setPage(1);
+                  }}
+                  className="border rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                >
+                  {[10, 20, 50, 100].map((l) => (
+                    <option key={l} value={l}>
+                      {l}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-  {/* RIGHT → Pagination Buttons */}
-  <div className="flex items-center gap-2">
-    <button
-      onClick={() => setPage(Math.max(page - 1, 1))}
-      disabled={page === 1}
-      className="px-3 py-1 border rounded-md bg-white hover:bg-gray-50 disabled:opacity-50 transition"
-    >
-      Previous
-    </button>
+              {/* RIGHT → Pagination Buttons */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setPage(Math.max(page - 1, 1))}
+                  disabled={page === 1}
+                  className="px-3 py-1 border rounded-md bg-white hover:bg-gray-50 disabled:opacity-50 transition"
+                >
+                  Previous
+                </button>
 
-    {[...Array(totalPages)].map((_, i) => {
-      const pageNumber = i + 1;
-      return (
-        <button
-          key={pageNumber}
-          onClick={() => setPage(pageNumber)}
-          className={`px-3 py-1 border rounded-md ${
-            pageNumber === page
-              ? "bg-green-600 text-white"
-              : "bg-white hover:bg-gray-50"
-          } transition`}
-        >
-          {pageNumber}
-        </button>
-      );
-    })}
+                {[...Array(totalPages)].map((_, i) => {
+                  const pageNumber = i + 1;
+                  return (
+                    <button
+                      key={pageNumber}
+                      onClick={() => setPage(pageNumber)}
+                      className={`px-3 py-1 border rounded-md ${
+                        pageNumber === page
+                          ? "bg-green-600 text-white"
+                          : "bg-white hover:bg-gray-50"
+                      } transition`}
+                    >
+                      {pageNumber}
+                    </button>
+                  );
+                })}
 
-    <button
-      onClick={() => setPage(Math.min(page + 1, totalPages))}
-      disabled={page === totalPages}
-      className="px-3 py-1 border rounded-md bg-white hover:bg-gray-50 disabled:opacity-50 transition"
-    >
-      Next
-    </button>
-  </div>
-</div>
-
-
+                <button
+                  onClick={() => setPage(Math.min(page + 1, totalPages))}
+                  disabled={page === totalPages}
+                  className="px-3 py-1 border rounded-md bg-white hover:bg-gray-50 disabled:opacity-50 transition"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
 
             {/* {campaigns && campaigns.length >= 0 ? (
               <div className="flex justify-between items-center mt-4">

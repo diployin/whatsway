@@ -226,10 +226,6 @@ export default function Notifications() {
       <Header
         title={"Notifications"}
         subtitle={"Send notifications to users, admins, or your team."}
-        action={{
-          label: "Create Notification",
-          onClick: () => setShowDialog(true),
-        }}
       />
       <div className="py-8 px-5">
         {/* Header */}
