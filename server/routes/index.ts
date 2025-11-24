@@ -22,6 +22,7 @@ import { registerPlansRoutes } from "./plans.routes";
 import {userRoutes} from "./user.route"
 import teamRoutes from "./team.routes";
 import authRoutes from "./auth.routes";
+import { registerSMTPRoutes } from "./smtp.route";
 
 // Import error handler middleware
 import { errorHandler } from "../middlewares/error.middleware";
@@ -45,6 +46,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerNotificationsRoutes(app);
   registerFirebaseRoutes(app);
   userRoutes(app);
+  registerSMTPRoutes(app);
   registerStorageSettingsRoutes(app);
   registerAISettingsRoutes(app);
   registerChannelRoutes(app);

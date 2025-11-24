@@ -19,6 +19,7 @@ import StorageSettings from "@/components/settings/StorageSettings";
 import AISettings from "@/components/settings/AISettings";
 import { useAuth } from "@/contexts/auth-context";
 import FirebaseSettings from "@/components/settings/FirebaseSettings";
+import SMTPSettings from "@/components/settings/SmtpSettings";
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState("general_setting");
@@ -71,6 +72,14 @@ export default function Settings() {
                   <Database className=" w-3 h-3 md:w-4 md:h-4" />
                   <span className="text-xs sm:text-base">Storage Setting</span>
                 </TabsTrigger>
+
+                <TabsTrigger
+                  value="smtp_setting"
+                  className="flex items-center space-x-2 whitespace-nowrap justify-center sm:justify-start text-xs h-7 rounded-sm px-2 sm:h-9 sm:rounded-md sm:px-3"
+                >
+                  <SettingsIcon className=" w-3 h-3 md:w-4 md:h-4" />
+                  <span className="text-xs sm:text-base">SMTP Setting</span>
+                </TabsTrigger>
               </>
             )}
 
@@ -117,6 +126,10 @@ export default function Settings() {
 
               <TabsContent value="storage_setting">
                 <StorageSettings />
+              </TabsContent>
+
+              <TabsContent value="smtp_setting">
+                <SMTPSettings />
               </TabsContent>
             </>
           )}

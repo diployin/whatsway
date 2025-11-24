@@ -1033,6 +1033,41 @@ export const sites = pgTable("sites", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// SMTP Configuration table
+export const smtpConfig = pgTable("smtp_config", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+
+  host: text("host").notNull(),
+  port: integer("port").notNull(),
+  secure: boolean("secure").default(false),
+  user: text("user").notNull(),
+  password: text("password"),
+  fromName: text("from_name").notNull(),
+  fromEmail: text("from_email").notNull(),
+  logo: text("logo").default("null"), 
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+
+export const otpVerifications = pgTable("otp_verifications", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`), // UUID primary key
+
+  userId: varchar("user_id")
+    .notNull(), 
+
+  otpCode: varchar("otp_code", { length: 6 }).notNull(), // 6-digit OTP
+  expiresAt: timestamp("expires_at").notNull(), 
+  isUsed: boolean("is_used").default(false), 
+
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Permissions type definition
 export const PERMISSIONS = {
   // Dashboard permissions
