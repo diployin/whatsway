@@ -1,32 +1,34 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 
-// Define what state SidebarContext should handle
 interface SidebarContextType {
   isOpen: boolean;
   toggle: () => void;
   open: () => void;
   close: () => void;
   selectedMenu: string | null;
-  setSelectedMenu: (menu: string) => void;
+  setSelectedMenu: (menu: string | null) => void;
   isCollapsed: boolean;
   setCollapsed: (collapsed: boolean) => void;
 }
 
-// Context instance
 const SidebarContext = createContext<SidebarContextType | null>(null);
 
-// Provider implementation
 export function SidebarProvider({ children }: { children: ReactNode }) {
-  if (window.innerWidth >= 1024) {
-  }
-
-  const [isOpen, setOpen] = useState();
+  const [isOpen, setOpen] = useState(false); // <- yahan define karo
   const [isCollapsed, setCollapsed] = useState(false);
   const [selectedMenu, setSelectedMenu] = useState<string | null>(null);
 
   const toggle = () => setOpen((open) => !open);
   const open = () => setOpen(true);
   const close = () => setOpen(false);
+
+  // agar resize logic chahiye to yahan useEffect me likho
 
   return (
     <SidebarContext.Provider
@@ -46,7 +48,6 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// Hook for accessing sidebar context in any child component
 export function useSidebar() {
   const context = useContext(SidebarContext);
   if (!context) {

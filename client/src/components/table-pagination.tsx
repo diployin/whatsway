@@ -40,18 +40,21 @@ export function TablePagination({
   };
 
   return (
-    <div className="flex items-center justify-between gap-4 py-4">
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-muted-foreground">Rows per page:</span>
+    <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
+      {/* Rows per page selector - Full width on mobile, auto on desktop */}
+      <div className="flex items-center justify-between sm:justify-start gap-2">
+        <span className="text-sm text-muted-foreground whitespace-nowrap">
+          Rows per page:
+        </span>
         <Select
           value={itemsPerPage.toString()}
           onValueChange={(value) => {
             onItemsPerPageChange(Number(value));
-            onPageChange(1); // Reset to first page when changing items per page
+            onPageChange(1);
           }}
         >
           <SelectTrigger
-            className="w-[80px]"
+            className="w-[70px] sm:w-[80px]"
             data-testid="select-items-per-page"
           >
             <SelectValue />
@@ -76,24 +79,28 @@ export function TablePagination({
         </Select>
       </div>
 
-      <div className="flex items-center gap-6">
-        <span className="text-sm text-muted-foreground">
+      {/* Pagination controls */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
+        {/* Item count - Centered on mobile */}
+        <span className="text-sm text-muted-foreground text-center sm:text-left">
           {startItem}-{endItem} of {totalItems}
         </span>
 
-        <div className="flex items-center gap-2">
+        {/* Navigation buttons */}
+        <div className="flex items-center justify-center gap-2">
           <Button
             variant="outline"
             size="sm"
             onClick={handlePrevious}
             disabled={currentPage === 1}
             data-testid="button-previous-page"
+            className="flex-1 sm:flex-none"
           >
             <ChevronLeft className="h-4 w-4" />
-            Previous
+            <span className="hidden sm:inline">Previous</span>
           </Button>
 
-          <span className="text-sm">
+          <span className="text-sm whitespace-nowrap px-2">
             Page {totalPages === 0 ? 0 : currentPage} of {totalPages}
           </span>
 
@@ -103,8 +110,9 @@ export function TablePagination({
             onClick={handleNext}
             disabled={currentPage >= totalPages}
             data-testid="button-next-page"
+            className="flex-1 sm:flex-none"
           >
-            Next
+            <span className="hidden sm:inline">Next</span>
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>

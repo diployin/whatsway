@@ -318,18 +318,20 @@ export default function Sidebar() {
   console.log("isOpen", isOpen);
 
   useEffect(() => {
-    function handleResize() {
+    const handleResize = () => {
       if (window.innerWidth >= 1024) {
         setCollapsed(true);
       } else {
+        // Mobile pe sidebar automatically collapse na ho, agar open hai tabhi setCollapsed(false)
         if (isOpen) setCollapsed(false);
       }
-    }
-    handleResize();
+    };
+
+    handleResize(); // Initial check on mount
+
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
+  }, [isOpen, setCollapsed]); // isOpen dependency add karo taaki resize pe updated value mile
   const canView = (item: NavItem): boolean => {
     if (!user) return false;
 
@@ -375,6 +377,9 @@ export default function Sidebar() {
       perm.startsWith(normalize(item.requiredPrefix!))
     );
   };
+
+  console.log("isCollapsed", isCollapsed);
+  console.log("selectedMenu", selectedMenu);
 
   const canViewOld = (item: NavItem): boolean => {
     if (!user) return false;
