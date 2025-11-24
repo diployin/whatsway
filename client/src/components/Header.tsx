@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import LoadingAnimation from "./LoadingAnimation";
 import { useAuth } from "@/contexts/auth-context";
+import useStaticData from "@/hooks/useStaticData";
+import { useTranslation } from "@/lib/i18n";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -35,6 +37,9 @@ const Header = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { isAuthenticated, user, logout } = useAuth();
+
+  const staticData = useStaticData();
+  const { t } = useTranslation();
 
   const username = (user?.firstName || "") + " " + (user?.lastName || "");
 
@@ -65,92 +70,6 @@ const Header = () => {
     setShowResourcesMobile(false);
     closeMegaMenus();
   }, [location]);
-
-  const aboutMenuItems = [
-    {
-      title: "About Us",
-      path: "/about",
-      description: "Learn about our mission and team",
-      icon: Users,
-      image:
-        "https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop",
-    },
-    {
-      title: "Contact",
-      path: "/contact",
-      description: "Get in touch with our team",
-      icon: Mail,
-      image:
-        "https://images.pexels.com/photos/4386466/pexels-photo-4386466.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop",
-    },
-    {
-      title: "Careers",
-      path: "/careers",
-      description: "Join our growing team",
-      icon: Briefcase,
-      image:
-        "https://images.pexels.com/photos/1181675/pexels-photo-1181675.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop",
-    },
-    {
-      title: "Integrations",
-      path: "/integrations",
-      description: "Connect with 1000+ apps",
-      icon: Zap,
-      image:
-        "https://images.pexels.com/photos/267350/pexels-photo-267350.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop",
-    },
-  ];
-
-  const resourcesMenuItems = [
-    {
-      title: "Templates",
-      path: "/templates",
-      description: "Ready-to-use message templates",
-      icon: FileText,
-      image:
-        "https://images.pexels.com/photos/230544/pexels-photo-230544.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop",
-    },
-    {
-      title: "Case Studies",
-      path: "/case-studies",
-      description: "Success stories from our clients",
-      icon: TrendingUp,
-      image:
-        "https://images.pexels.com/photos/1005638/pexels-photo-1005638.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop",
-    },
-    {
-      title: "WhatsApp Guide",
-      path: "/whatsapp-guide",
-      description: "Complete WhatsApp marketing guide",
-      icon: BookOpen,
-      image:
-        "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop",
-    },
-    {
-      title: "API Documentation",
-      path: "/api-docs",
-      description: "Developer resources and API docs",
-      icon: Code,
-      image:
-        "https://images.pexels.com/photos/1181244/pexels-photo-1181244.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop",
-    },
-    {
-      title: "Best Practices",
-      path: "/best-practices",
-      description: "Tips for WhatsApp marketing success",
-      icon: BookOpen,
-      image:
-        "https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop",
-    },
-    {
-      title: "ROI Calculator",
-      path: "/roi-calculator",
-      description: "Calculate your WhatsApp marketing ROI",
-      icon: Calculator,
-      image:
-        "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop",
-    },
-  ];
 
   const handleLogin = () => {
     setLoginLoading(true);
@@ -183,7 +102,7 @@ const Header = () => {
     items,
     isVisible,
   }: {
-    items: typeof aboutMenuItems;
+    items: typeof staticData.header.aboutMenuItems;
     isVisible: boolean;
     title: string;
   }) => (
@@ -234,7 +153,7 @@ const Header = () => {
 
               <div className="flex items-center mt-2 sm:mt-3 text-green-600 opacity-0 group-hover:opacity-100 transition-opacity">
                 <span className="text-xs sm:text-sm font-medium">
-                  Learn more
+                  {t("Landing.header.Learn")}
                 </span>
                 <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 ml-1 transform group-hover:translate-x-1 transition-transform" />
               </div>
@@ -247,10 +166,10 @@ const Header = () => {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-1 sm:mb-2">
-                  Ready to get started?
+                  {t("Landing.header.redystart")}
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
-                  Join thousands of businesses already growing with Whatsway
+                  {t("Landing.header.join")}
                 </p>
               </div>
               <Link
@@ -258,7 +177,7 @@ const Header = () => {
                 className="bg-green-500 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:bg-green-600 transition-colors flex items-center group text-sm sm:text-base whitespace-nowrap"
                 onClick={closeMegaMenus}
               >
-                Start Free Trial
+                {t("Landing.header.start")}
                 <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 ml-2 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
@@ -297,7 +216,7 @@ const Header = () => {
                   location === "/" ? "text-green-600 dark:text-green-500" : ""
                 }`}
               >
-                Home
+                {t("Landing.header.Navlinks.0")}
               </Link>
 
               {/* About Mega Menu */}
@@ -312,7 +231,7 @@ const Header = () => {
                   aria-expanded={showAboutMega}
                   type="button"
                 >
-                  About
+                  {t("Landing.header.Navlinks.1")}
                   <ChevronDown
                     className={`w-4 h-4 ml-1 transition-transform duration-200 ${
                       showAboutMega ? "rotate-180" : ""
@@ -326,7 +245,7 @@ const Header = () => {
                 />
 
                 <MegaMenu
-                  items={aboutMenuItems}
+                  items={staticData.header.aboutMenuItems}
                   isVisible={showAboutMega}
                   title="About"
                 />
@@ -344,7 +263,7 @@ const Header = () => {
                   aria-expanded={showResourcesMega}
                   type="button"
                 >
-                  Resources
+                  {t("Landing.header.Navlinks.2")}
                   <ChevronDown
                     className={`w-4 h-4 ml-1 transition-transform duration-200 ${
                       showResourcesMega ? "rotate-180" : ""
@@ -358,7 +277,7 @@ const Header = () => {
                 />
 
                 <MegaMenu
-                  items={resourcesMenuItems}
+                  items={staticData.header.resourcesMenuItems}
                   isVisible={showResourcesMega}
                   title="Resources"
                 />
@@ -370,13 +289,13 @@ const Header = () => {
                     href="/login"
                     className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-500 transition-colors font-medium"
                   >
-                    Login
+                    {t("Landing.header.Navlinks.3")}
                   </Link>
                   <Link
                     href="/signup"
                     className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-lg hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105 shadow-lg flex items-center group text-sm"
                   >
-                    Get Started Free{" "}
+                    {t("Landing.header.getstart")}
                     <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </>
@@ -388,7 +307,7 @@ const Header = () => {
                     href="/dashboard"
                     className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-500 transition-colors font-medium"
                   >
-                    Dashboard
+                    {t("Landing.header.dash")}
                   </Link>
                   <div className="relative" ref={dropdownRef}>
                     <button
@@ -417,7 +336,8 @@ const Header = () => {
                             setDropdownOpen(false);
                           }}
                         >
-                          <Settings className="w-4 h-4 mr-2" /> Settings
+                          <Settings className="w-4 h-4 mr-2" />
+                          {t("Landing.header.Settings")}
                         </button>
                         <button
                           className="flex items-center w-full px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -426,7 +346,8 @@ const Header = () => {
                             setDropdownOpen(false);
                           }}
                         >
-                          <User className="w-4 h-4 mr-2" /> Account
+                          <User className="w-4 h-4 mr-2" />{" "}
+                          {t("Landing.header.Account")}
                         </button>
                         <button
                           className="flex items-center w-full px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -435,7 +356,8 @@ const Header = () => {
                             setDropdownOpen(false);
                           }}
                         >
-                          <LogOut className="w-4 h-4 mr-2" /> Logout
+                          <LogOut className="w-4 h-4 mr-2" />{" "}
+                          {t("Landing.header.logout")}
                         </button>
                       </div>
                     )}
@@ -474,7 +396,7 @@ const Header = () => {
               }`}
               onClick={() => setIsMenuOpen(false)}
             >
-              Home
+              {t("Landing.header.Navlinks.0")}
             </Link>
 
             {/* About Accordion */}
@@ -484,7 +406,7 @@ const Header = () => {
                 onClick={() => setShowAboutMobile(!showAboutMobile)}
                 aria-expanded={showAboutMobile}
               >
-                <span>About</span>
+                <span> {t("Landing.header.Navlinks.1")}</span>
                 <ChevronDown
                   className={`w-4 h-4 transition-transform duration-200 ${
                     showAboutMobile ? "rotate-180" : ""
@@ -501,7 +423,7 @@ const Header = () => {
               >
                 <div className="overflow-hidden">
                   <div className="space-y-2 pl-4">
-                    {aboutMenuItems.map((item, index) => (
+                    {staticData.header.aboutMenuItems.map((item, index) => (
                       <Link
                         key={`mobile-about-${index}`}
                         href={item.path}
@@ -541,7 +463,7 @@ const Header = () => {
               >
                 <div className="overflow-hidden">
                   <div className="space-y-2 pl-4">
-                    {resourcesMenuItems.map((item, index) => (
+                    {staticData.header.resourcesMenuItems.map((item, index) => (
                       <Link
                         key={`mobile-resources-${index}`}
                         href={item.path}
@@ -586,7 +508,7 @@ const Header = () => {
                     <LoadingAnimation size="sm" color="white" />
                   ) : (
                     <>
-                      Get Started Free
+                      {t("Landing.header.getstart")}
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </>
                   )}
@@ -599,7 +521,7 @@ const Header = () => {
                   className="block py-2 text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-500 font-medium text-sm sm:text-base"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  Dashboard
+                  {t("Landing.header.Navlinks.3")}
                 </Link>
 
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-3 mt-3">
@@ -626,7 +548,8 @@ const Header = () => {
                         setIsMenuOpen(false);
                       }}
                     >
-                      <Settings className="w-4 h-4 mr-2" /> Settings
+                      <Settings className="w-4 h-4 mr-2" />{" "}
+                      {t("Landing.header.Settings")}
                     </button>
                     <button
                       className="flex items-center w-full px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
@@ -635,7 +558,8 @@ const Header = () => {
                         setIsMenuOpen(false);
                       }}
                     >
-                      <User className="w-4 h-4 mr-2" /> Account
+                      <User className="w-4 h-4 mr-2" />{" "}
+                      {t("Landing.header.Account")}
                     </button>
                     <button
                       className="flex items-center w-full px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
@@ -644,7 +568,8 @@ const Header = () => {
                         setIsMenuOpen(false);
                       }}
                     >
-                      <LogOut className="w-4 h-4 mr-2" /> Logout
+                      <LogOut className="w-4 h-4 mr-2" />{" "}
+                      {t("Landing.header.logout")}
                     </button>
                   </div>
                 </div>

@@ -142,7 +142,17 @@
      "apiStatusText": "स्वीकृत",
      "apiStatusUpTime": "API अपटाइम",
     "apiStatus": "स्थिति",
-    "healthDetails": "स्वास्थ्य विवरण"
+    "healthDetails": "स्वास्थ्य विवरण",
+    "dashboardStates": {
+   "Total_Contacts": "कुल संपर्क",
+   "Total_Channels": "कुल चैनल",
+   "Total_Messages": "कुल संदेश",
+   "Total_Users": "कुल उपयोगकर्ता",
+   "Total_Campaigns": "कुल अभियान",
+   "Total_Signups": "कुल पंजीकरण",
+   "Total_Templates": "कुल टेम्प्लेट"
+}
+
   },
   "contacts": {
     "contact": "संपर्क",
@@ -360,26 +370,31 @@
     "rows": "पंक्तियाँ",
     "tabContent": "API अभियान बाहरी अनुप्रयोगों को आपके टेम्पलेट का उपयोग करके संदेश ट्रिगर करने की अनुमति देते हैं। अभियान बनाने के बाद, आपको एक API एंडपॉइंट और कुंजी प्राप्त होगी।"
   },
-  "templates": {
-    "title": "टेम्पलेट",
-    "createTemplate": "टेम्पलेट बनाएं",
-    "templateName": "टेम्पलेट का नाम",
+   "templates": {
+    "title": "टेम्प्लेट्स",
+    "createTemplate": "टेम्प्लेट बनाएं",
+    "superAdminSubTitle": "व्हाट्सएप संदेश टेम्प्लेट प्रबंधित करें",
+    "userSubTitle": "व्हाट्सएप संदेश टेम्प्लेट बनाएं और प्रबंधित करें",
+    "mess_Temp": "संदेश टेम्प्लेट",
+    "sync": "व्हाट्सएप से सिंक करें",
+    "templateName": "टेम्प्लेट का नाम",
+    "apiCampaigns": "एपीआई अभियान",
     "category": "श्रेणी",
     "language": "भाषा",
     "header": "हेडर",
-    "body": "मुख्य भाग",
-    "footer": "फ़ुटर",
+    "body": "शरीर",
+    "footer": "फूटर",
     "buttons": "बटन",
     "media": "मीडिया",
     "preview": "पूर्वावलोकन",
-    "approved": "अनुमोदित",
+    "approved": "स्वीकृत",
     "pending": "लंबित",
     "rejected": "अस्वीकृत",
     "draft": "ड्राफ्ट",
-    "syncTemplates": "टेम्पलेट सिंक करें",
-    "useTemplate": "टेम्पलेट का उपयोग करें",
-    "duplicateTemplate": "टेम्पलेट डुप्लिकेट करें",
-    "deleteTemplate": "टेम्पलेट हटाएँ",
+    "syncTemplates": "टेम्प्लेट सिंक करें",
+    "useTemplate": "टेम्प्लेट का उपयोग करें",
+    "duplicateTemplate": "टेम्प्लेट डुप्लिकेट करें",
+    "deleteTemplate": "टेम्प्लेट हटाएं",
     "variables": "वेरिएबल्स",
     "addVariable": "वेरिएबल जोड़ें",
     "mediaType": "मीडिया प्रकार",
@@ -388,9 +403,9 @@
     "document": "दस्तावेज़",
     "location": "स्थान",
     "quickReply": "त्वरित उत्तर",
-    "callToAction": "कॉल टू एक्शन",
+    "callToAction": "कार्यवाही के लिए कॉल",
     "urlButton": "URL बटन",
-    "phoneButton": "फ़ोन बटन",
+    "phoneButton": "फोन बटन",
     "exampleValues": "उदाहरण मान"
   },
   "inbox": {
@@ -433,44 +448,51 @@
     "endOfConversation": "बातचीत का अंत",
     "businessHoursMessage": "व्यावसायिक घंटों के बाहर - उत्तर में देरी हो सकती है"
   },
-  "automations": {
+"automations": {
     "title": "स्वचालन",
-    "createAutomation": "स्वचालन बनाएं",
+    "create_auto": "स्वचालन बनाएँ",
+    "Subtitle": "अपने ग्राहकों के साथ जुड़ने के लिए स्वचालित वर्कफ़्लो बनाएँ",
+    "empityAuto": {
+        "title": "अभी तक कोई स्वचालन नहीं",
+        "Subtitle": "अपना पहला स्वचालन बनाएँ और ग्राहकों के साथ स्वतः जुड़ना शुरू करें",
+        "buttonTitle": "अपना पहला स्वचालन बनाएँ"
+    },
+    "createAutomation": "स्वचालन बनाएँ",
     "automationName": "स्वचालन का नाम",
     "trigger": "ट्रिगर",
     "conditions": "शर्तें",
-    "actions": "कार्य",
+    "actions": "क्रियाएं",
     "active": "सक्रिय",
     "inactive": "निष्क्रिय",
-    "executions": "निष्पादन",
-    "lastRun": "पिछला रन",
+    "executions": "कार्यान्वयन",
+    "lastRun": "अंतिम रन",
     "enable": "सक्षम करें",
     "disable": "अक्षम करें",
-    "test": "परीक्षण करें",
-    "duplicate": "डुप्लिकेट",
+    "test": "परीक्षण",
+    "duplicate": "प्रतिलिपि बनाएँ",
     "flowBuilder": "फ्लो बिल्डर",
     "addNode": "नोड जोड़ें",
-    "deleteNode": "नोड हटाएँ",
+    "deleteNode": "नोड हटाएं",
     "userReply": "उपयोगकर्ता उत्तर",
     "timeGap": "समय अंतराल",
     "sendTemplate": "टेम्पलेट भेजें",
     "customReply": "कस्टम उत्तर",
-    "keywordCatch": "कीवर्ड पकड़ें",
-    "waitFor": "प्रतीक्षा करें",
+    "keywordCatch": "कीवर्ड पकड़ो",
+    "waitFor": "इंतजार करें",
     "timeout": "समय समाप्त",
     "messageText": "संदेश पाठ",
     "keywords": "कीवर्ड",
-    "dragToReorder": "पुनर्व्यवस्थित करने के लिए खींचें",
+    "dragToReorder": "पुन: क्रमबद्ध करने के लिए घसीटें",
     "saveFlow": "फ्लो सहेजें",
-    "discardChanges": "परिवर्तनDiscard करें",
-    "executionLogs": "निष्पादन लॉग",
+    "discardChanges": "परिवर्तन अस्वीकृत करें",
+    "executionLogs": "कार्यान्वयन लॉग्स",
     "triggerType": "ट्रिगर प्रकार",
     "messageReceived": "संदेश प्राप्त हुआ",
-    "keywordDetected": "कीवर्ड का पता चला",
-    "tagAdded": "टैग जोड़ा गया",
+    "keywordDetected": "कीवर्ड पहचाना गया",
+    "tagAdded": "टैग जोड़ दिया गया",
     "flowCompleted": "फ्लो पूरा हुआ",
-    "flowFailed": "फ्लो विफल"
-  },
+    "flowFailed": "फ्लो विफल हुआ"
+},
   "messageLogs": {
     "title": "संदेश लॉग",
     "messageId": "संदेश ID",
@@ -495,8 +517,15 @@
     "errorMessage": "त्रुटि संदेश"
   },
   "team": {
-    "title": "टीम",
+      "title": "टीम प्रबंधन",
+    "subtitle": "अपनी टीम के सदस्यों, भूमिकाओं और अनुमतियों का प्रबंधन करें",
+    "teamMember": "टीम के सदस्य",
+    "Activity_Logs": "गतिविधि लॉग्स",
     "addMember": "टीम सदस्य जोड़ें",
+    "manage_Team": "टीम के सदस्यों और उनके अभिगम अनुमतियों का प्रबंधन करें",
+    "Activity_LogsTitle": "गतिविधि लॉग्स",
+"Activity_LogsDes": "टीम सदस्यों की गतिविधियों को ट्रैक करें"
+,
     "editMember": "सदस्य संपादित करें",
     "deleteMember": "सदस्य हटाएँ",
     "firstName": "पहला नाम",
@@ -602,5 +631,77 @@
     "copied": "क्लिपबोर्ड पर कॉपी किया गया",
     "uploaded": "सफलतापूर्वक अपलोड किया गया",
     "downloaded": "सफलतापूर्वक डाउनलोड किया गया"
+  },
+  "analytics": {
+    "title": "विश्लेषण और रिपोर्ट",
+    "subtitle": "अपने WhatsApp व्यवसाय के प्रदर्शन को वास्तविक समय डेटा के साथ ट्रैक करें",
+    "time_range": "समय श्रेणी",
+    "MessagesTab": "संदेश",
+    "OverviewTab": {
+        "title": "सारांश",
+        "last": "पिछले",
+        "days": "दिन",
+        "Total_Messages": "कुल संदेश",
+        "Delivery": "डिलिवरी दर",
+        "read_rate": "पढ़ने की दर",
+        "reply_rate": "प्रतिक्रिया दर",
+        "Failure_rate": "विफलता दर",
+        "managePer": "संदेश प्रदर्शन रुझान",
+        "Summary": "सारांश",
+        "Active_Campaigns": "सक्रिय अभियान",
+        "Total_Campaigns": "कुल अभियान",
+        "Unique_Contacts": "अद्वितीय संपर्क",
+        "Total_Recipients": "कुल प्राप्तकर्ता"
+    },
+    "messageTab": {
+        "title": "संदेश",
+        "Outbound_Messages": "आउटबाउंड संदेश",
+        "Inbound_Messages": "इनबाउंड संदेश",
+        "Average_Response": "औसत प्रतिक्रिया समय",
+        "Message_Activity": "घंटेवार संदेश गतिविधि"
+    },
+    "CampaignsTab": {
+        "title": "अभियान",
+        "Total_Sent": "कुल भेजा गया",
+        "Total_Delivered": "कुल डिलीवर हुआ",
+        "Total_Read": "कुल पढ़ा गया",
+        "Total_Failed": "कुल असफल",
+        "Campaign_Performance": "अभियान प्रदर्शन"
+    }
+},
+ "Landing":{
+    "header": {
+      "getstart": "मुफ़्त शुरुआत करें",
+      "redystart": "क्या आप शुरू करने के लिए तैयार हैं?",
+      "join": "पहले से ही Whatsway के साथ बढ़ रही हजारों कंपनियों में शामिल हों",
+      "start": "फ्री ट्रायल शुरू करें",
+      "Learn": "और जानें",
+      "dash": "डैशबोर्ड",
+      "Settings": "सेटिंग्स",
+      "Account": "खाता",
+      "logout": "लॉगआउट",
+      "resourcesMenuItems": [
+        { "title": "टेम्पलेट्स", "description": "तैयार उपयोग के लिए संदेश टेम्पलेट्स" },
+        { "title": "केस स्टडीज", "description": "हमारे ग्राहकों की सफलता कहानियाँ" },
+        { "title": "व्हाट्सएप गाइड", "description": "पूर्ण व्हाट्सएप मार्केटिंग गाइड" },
+        { "title": "एपीआई डॉ큐मेंटेशन", "description": "डेवलपर संसाधन और API डॉक्यूमेंट" },
+        { "title": "सर्वश्रेष्ठ प्रथाएँ", "description": "व्हाट्सएप मार्केटिंग सफलता के लिए सुझाव" },
+        { "title": "ROI कैलकुलेटर", "description": "अपने व्हाट्सएप मार्केटिंग ROI की गणना करें" }
+      ],
+      "aboutMenuItems": [
+        { "title": "हमारे बारे में", "description": "हमारे मिशन और टीम के बारे में जानें" },
+        { "title": "संपर्क करें", "description": "हमारी टीम से संपर्क करें" },
+        { "title": "करियर", "description": "हमारी बढ़ती टीम में शामिल हों" },
+        { "title": "इंटीग्रेशन", "description": "1000+ ऐप्स से जुड़ें" }
+      ],
+      "Navlinks": ["होम", "हमारे बारे में", "संसाधन", "लॉगिन", "डैशबोर्ड"]
+    }
+ 
+  },
+    "groups": {
+    "title": "समूह",
+    "subtitle": "सभी समूहों का विवरण और प्रबंधन",
+    "createButton": "समूह बनाएँ"
   }
+
 }

@@ -140,7 +140,17 @@
       "apiStatusText": "Genehmigt",
        "apiStatusUpTime": "API-Betriebszeit",
        "healthDetails": "Gesundheitsdetails",
-    "apiStatus": "Status"
+    "apiStatus": "Status",
+    "dashboardStates": {
+   "Total_Contacts": "Gesamtkontakte",
+   "Total_Channels": "Gesamtkanäle",
+   "Total_Messages": "Gesamtnachrichten",
+   "Total_Users": "Gesamtbenutzer",
+   "Total_Campaigns": "Gesamtkampagnen",
+   "Total_Signups": "Gesamtanmeldungen",
+   "Total_Templates": "Gesamtvorlagen"
+}
+
   },
   "contacts": {
     "contact": "Kontakt",
@@ -361,11 +371,16 @@
   "templates": {
     "title": "Vorlagen",
     "createTemplate": "Vorlage erstellen",
+    "superAdminSubTitle": "WhatsApp-Nachrichtenvorlagen verwalten",
+    "userSubTitle": "Erstellen und Verwalten von WhatsApp-Nachrichtenvorlagen",
+    "mess_Temp": "Nachrichtenvorlagen",
+    "sync": "Von WhatsApp synchronisieren",
     "templateName": "Vorlagenname",
+    "apiCampaigns": "API-Kampagnen",
     "category": "Kategorie",
     "language": "Sprache",
-    "header": "Kopfzeile",
-    "body": "Textkörper",
+    "header": "Kopf",
+    "body": "Text",
     "footer": "Fußzeile",
     "buttons": "Schaltflächen",
     "media": "Medien",
@@ -385,8 +400,8 @@
     "video": "Video",
     "document": "Dokument",
     "location": "Standort",
-    "quickReply": "Schnellantwort",
-    "callToAction": "Call-to-Action",
+    "quickReply": "Schnelle Antwort",
+    "callToAction": "Handlungsaufforderung",
     "urlButton": "URL-Schaltfläche",
     "phoneButton": "Telefon-Schaltfläche",
     "exampleValues": "Beispielwerte"
@@ -431,8 +446,15 @@
     "endOfConversation": "Ende der Konversation",
     "businessHoursMessage": "Außerhalb der Geschäftszeiten - Antworten können verzögert sein"
   },
-  "automations": {
+ "automations": {
     "title": "Automatisierungen",
+    "create_auto": "Automatisierung erstellen",
+    "Subtitle": "Erstellen Sie automatisierte Workflows, um mit Ihren Kunden in Kontakt zu treten",
+    "empityAuto": {
+        "title": "Noch keine Automatisierungen",
+        "Subtitle": "Erstellen Sie Ihre erste Automatisierung und beginnen Sie automatisch mit der Kundeninteraktion",
+        "buttonTitle": "Erstellen Sie Ihre erste Automatisierung"
+    },
     "createAutomation": "Automatisierung erstellen",
     "automationName": "Name der Automatisierung",
     "trigger": "Auslöser",
@@ -450,10 +472,10 @@
     "addNode": "Knoten hinzufügen",
     "deleteNode": "Knoten löschen",
     "userReply": "Benutzerantwort",
-    "timeGap": "Zeitlücke",
+    "timeGap": "Zeitspanne",
     "sendTemplate": "Vorlage senden",
     "customReply": "Benutzerdefinierte Antwort",
-    "keywordCatch": "Schlüsselwort-Erkennung",
+    "keywordCatch": "Schlüsselwort erfassen",
     "waitFor": "Warten auf",
     "timeout": "Zeitüberschreitung",
     "messageText": "Nachrichtentext",
@@ -468,7 +490,8 @@
     "tagAdded": "Tag hinzugefügt",
     "flowCompleted": "Flow abgeschlossen",
     "flowFailed": "Flow fehlgeschlagen"
-  },
+}
+,
   "messageLogs": {
     "title": "Nachrichtenprotokolle",
     "messageId": "Nachrichten-ID",
@@ -492,9 +515,16 @@
     "errorCode": "Fehlercode",
     "errorMessage": "Fehlermeldung"
   },
-  "team": {
-    "title": "Team",
+"team": {
+    "title": "Teamverwaltung",
+    "subtitle": "Verwalten Sie Ihre Teammitglieder, Rollen und Berechtigungen",
+    "teamMember": "Teammitglieder",
+    "Activity_Logs": "Aktivitätsprotokolle",
     "addMember": "Teammitglied hinzufügen",
+    "manage_Team": "Teammitglieder und deren Zugriffsberechtigungen verwalten",
+    "Activity_LogsTitle": "سجلات النشاط",
+"Activity_LogsDes": "تتبع أنشطة أعضاء الفريق"
+,
     "editMember": "Mitglied bearbeiten",
     "deleteMember": "Mitglied löschen",
     "firstName": "Vorname",
@@ -600,5 +630,76 @@
     "copied": "In die Zwischenablage kopiert",
     "uploaded": "Erfolgreich hochgeladen",
     "downloaded": "Erfolgreich heruntergeladen"
+  },
+  "analytics": {
+    "title": "Analysen & Berichte",
+    "subtitle": "Verfolgen Sie die Leistung Ihres WhatsApp-Geschäfts mit Echtzeitdaten",
+    "time_range": "Zeitraum",
+    "MessagesTab": "Nachrichten",
+    "OverviewTab": {
+        "title": "Übersicht",
+        "last": "Letzte",
+        "days": "Tage",
+        "Total_Messages": "Gesamtnachrichten",
+        "Delivery": "Lieferquote",
+        "read_rate": "Leserate",
+        "reply_rate": "Antwortquote",
+        "Failure_rate": "Fehlerrate",
+        "managePer": "Nachrichtenleistungs-Trends",
+        "Summary": "Zusammenfassung",
+        "Active_Campaigns": "Aktive Kampagnen",
+        "Total_Campaigns": "Gesamtkampagnen",
+        "Unique_Contacts": "Einzigartige Kontakte",
+        "Total_Recipients": "Gesamtempfänger"
+    },
+    "messageTab": {
+        "title": "Nachrichten",
+        "Outbound_Messages": "Ausgehende Nachrichten",
+        "Inbound_Messages": "Eingehende Nachrichten",
+        "Average_Response": "Durchschnittliche Reaktionszeit",
+        "Message_Activity": "Nachrichtenaktivität nach Stunde"
+    },
+    "CampaignsTab": {
+        "title": "Kampagnen",
+        "Total_Sent": "Gesamt gesendet",
+        "Total_Delivered": "Gesamt zugestellt",
+        "Total_Read": "Gesamt gelesen",
+        "Total_Failed": "Gesamt fehlgeschlagen",
+        "Campaign_Performance": "Kampagnenleistung"
+    }
+},
+ "Landing": {
+    "header": {
+      "getstart": "Kostenlos starten",
+      "redystart": "Bereit loszulegen?",
+      "join": "Tausende Unternehmen wachsen bereits mit Whatsway",
+      "start": "Starte kostenlose Testversion",
+      "Learn": "Mehr erfahren",
+      "dash": "Dashboard",
+      "Settings": "Einstellungen",
+      "Account": "Konto",
+      "logout": "Abmelden",
+      "resourcesMenuItems": [
+        { "title": "Vorlagen", "description": "Fertige Nachrichtenvorlagen" },
+        { "title": "Fallstudien", "description": "Erfolgsgeschichten unserer Kunden" },
+        { "title": "WhatsApp Anleitung", "description": "Umfassender WhatsApp Marketing Leitfaden" },
+        { "title": "API Dokumentation", "description": "Entwicklerressourcen und API-Dokumente" },
+        { "title": "Beste Praktiken", "description": "Tipps für erfolgreichen WhatsApp Marketing" },
+        { "title": "ROI Rechner", "description": "Berechnen Sie Ihren WhatsApp Marketing ROI" }
+      ],
+      "aboutMenuItems": [
+        { "title": "Über uns", "description": "Erfahren Sie mehr über unsere Mission und unser Team" },
+        { "title": "Kontakt", "description": "Nehmen Sie Kontakt mit unserem Team auf" },
+        { "title": "Karriere", "description": "Werden Sie Teil unseres wachsenden Teams" },
+        { "title": "Integrationen", "description": "Verbinden Sie sich mit über 1000 Apps" }
+      ],
+      "Navlinks": ["Startseite", "Über", "Ressourcen", "Anmelden", "Dashboard"]
+    }
+  },
+   "groups": {
+    "title": "Gruppen",
+    "subtitle": "Alle Gruppendetails und Verwaltung",
+    "createButton": "Gruppe erstellen"
   }
+
 }

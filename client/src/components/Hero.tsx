@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ArrowRight, Play, Users, TrendingUp, Zap } from "lucide-react";
 import LoadingAnimation from "./LoadingAnimation";
+import { useTranslation } from "@/lib/i18n";
 
 const Hero = () => {
   const [currentStat, setCurrentStat] = useState(0);
@@ -9,29 +10,31 @@ const Hero = () => {
     delivery: 0,
     engagement: 0,
   });
+  const { t } = useTranslation();
   const [startTrialLoading, setStartTrialLoading] = useState(false);
 
   const stats = [
     {
       icon: Users,
       value: 50000,
-      label: "Active Users",
+      label: t("Landing.heroSec.stats.0.label"),
+      suffix: t("Landing.heroSec.stats.0.suffix"),
       color: "text-blue-600",
       bg: "bg-blue-100",
     },
     {
       icon: TrendingUp,
       value: 98,
-      label: "Delivery Rate",
-      suffix: "%",
+      label: t("Landing.heroSec.stats.1.label"),
+      suffix: t("Landing.heroSec.stats.1.suffix"),
       color: "text-green-600",
       bg: "bg-green-100",
     },
     {
       icon: Zap,
       value: 5,
-      label: "Higher Engagement",
-      suffix: "x",
+      label: t("Landing.heroSec.stats.2.label"),
+      suffix: t("Landing.heroSec.stats.2.suffix"),
       color: "text-purple-600",
       bg: "bg-purple-100",
     },

@@ -58,12 +58,15 @@ import {
   ChevronDown,
   ChevronRight,
   ChevronLeft,
+  Database,
 } from "lucide-react";
 import type { User } from "@shared/schema";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/auth-context";
 import Header from "@/components/layout/header";
 import { TeamUserResponse } from "@/types/types";
+import { useTranslation } from "@/lib/i18n";
+import { StateDisplay } from "@/components/StateDisplay";
 
 interface TeamMemberFormData {
   firstName: string;
@@ -101,6 +104,8 @@ export default function TeamPage() {
   const [editingMember, setEditingMember] = useState<User | null>(null);
   const [activeTab, setActiveTab] = useState("members");
   const { user } = useAuth();
+
+  const { t } = useTranslation();
   // Fetch team members
   // const { data: teamMembers = [], isLoading } = useQuery<User[]>({
   //   queryKey: ["/api/team/members"],
@@ -254,35 +259,35 @@ export default function TeamPage() {
   };
 
   return (
-    <div className="container max-w-7xl mx-auto p-6">
+    <div className="container max-w-7xl mx-auto ">
       <Header
-        title={"Team Management"}
-        subtitle={"   Manage your team members, roles, and permissions"}
+        title={t("team.title")}
+        subtitle={t("team.subtitle")}
         action={{
-          label: "Add Team Member",
+          label: t("team.addMember"),
           onClick: () => handleOpenDialog(),
         }}
       />
-      <div className="px-4 py-4">
+      <div className="px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList>
             <TabsTrigger value="members">
               <Users className="mr-2 h-4 w-4" />
-              Team Members
+              {t("team.teamMember")}
             </TabsTrigger>
             <TabsTrigger value="activity">
               <Activity className="mr-2 h-4 w-4" />
-              Activity Logs
+              {t("team.Activity_Logs")}
             </TabsTrigger>
           </TabsList>
           <TabsContent value="members" className="mt-4 sm:mt-6">
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg sm:text-xl">
-                  Team Members
+                  {t("team.teamMember")}
                 </CardTitle>
                 <CardDescription className="text-sm">
-                  Manage team members and their access permissions
+                  {t("team.manage_Team")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -292,13 +297,11 @@ export default function TeamPage() {
                     <p className="text-gray-600">Loading team members...</p>
                   </div>
                 ) : !teamMembers || teamMembers.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Users className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                    <p className="text-gray-600 mb-2">No team members found</p>
-                    <p className="text-sm text-gray-400">
-                      Add your first team member to get started
-                    </p>
-                  </div>
+                  <StateDisplay
+                    title="No team members found"
+                    description="Add your first team member to get started"
+                    icon={Database}
+                  />
                 ) : (
                   <>
                     {/* Desktop Table View */}
@@ -673,10 +676,8 @@ export default function TeamPage() {
           <TabsContent value="activity" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Activity Logs</CardTitle>
-                <CardDescription>
-                  Track team member activities and actions
-                </CardDescription>
+                <CardTitle>{t("team.Activity_LogsTitle")} </CardTitle>
+                <CardDescription>{t("team.Activity_LogsDes")}</CardDescription>
               </CardHeader>
               <CardContent className="p-0 sm:p-6">
                 {/* Desktop Table View - Hidden on mobile */}

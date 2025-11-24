@@ -140,7 +140,18 @@
      "apiStatusText": "موافَق عليه",
      "apiStatusUpTime": "وقت تشغيل API",
      "healthDetails": "تفاصيل الصحة",
-    "apiStatus": "الحالة"
+    "apiStatus": "الحالة",
+"dashboardStates": {
+   "Total_Contacts": "إجمالي جهات الاتصال",
+   "Total_Channels": "إجمالي القنوات",
+   "Total_Messages": "إجمالي الرسائل",
+   "Total_Users": "إجمالي المستخدمين",
+   "Total_Campaigns": "إجمالي الحملات",
+   "Total_Signups": "إجمالي الاشتراكات",
+   "Total_Templates": "إجمالي القوالب"
+}
+
+
   },
   "contacts": {
     "contact": "جهة الاتصال",
@@ -358,19 +369,24 @@
     "rows": "صفوف",
     "tabContent": "تسمح حملات API للتطبيقات الخارجية بتشغيل الرسائل باستخدام القوالب الخاصة بك. بعد إنشاء الحملة، ستتلقى نقطة نهاية API ومفتاح."
   },
-  "templates": {
+   "templates": {
     "title": "القوالب",
     "createTemplate": "إنشاء قالب",
+    "superAdminSubTitle": "إدارة قوالب رسائل WhatsApp",
+    "userSubTitle": "إنشاء وإدارة قوالب رسائل WhatsApp",
+    "mess_Temp": "قوالب الرسائل",
+    "sync": "مزامنة من WhatsApp",
     "templateName": "اسم القالب",
+    "apiCampaigns": "حملات API",
     "category": "الفئة",
     "language": "اللغة",
-    "header": "الرأس",
-    "body": "النص الأساسي",
-    "footer": "التذييل",
+    "header": "رأس",
+    "body": "المحتوى",
+    "footer": "تذييل",
     "buttons": "الأزرار",
     "media": "الوسائط",
     "preview": "معاينة",
-    "approved": "موافق عليه",
+    "approved": "معتمد",
     "pending": "قيد الانتظار",
     "rejected": "مرفوض",
     "draft": "مسودة",
@@ -383,13 +399,13 @@
     "mediaType": "نوع الوسائط",
     "image": "صورة",
     "video": "فيديو",
-    "document": "مستند",
+    "document": "وثيقة",
     "location": "موقع",
     "quickReply": "رد سريع",
-    "callToAction": "دعوة للعمل",
+    "callToAction": "نداء للعمل",
     "urlButton": "زر URL",
     "phoneButton": "زر الهاتف",
-    "exampleValues": "قيم أمثلة"
+    "exampleValues": "قيم المثال"
   },
   "inbox": {
     "title": "صندوق الوارد للفريق",
@@ -431,18 +447,25 @@
     "endOfConversation": "نهاية المحادثة",
     "businessHoursMessage": "خارج ساعات العمل - قد يتأخر الرد"
   },
-  "automations": {
+ "automations": {
     "title": "الأتمتة",
+    "create_auto": "إنشاء أتمتة",
+    "Subtitle": "إنشاء سير عمل آلي للتفاعل مع عملائك",
+    "empityAuto": {
+        "title": "لا توجد أتمتة بعد",
+        "Subtitle": "أنشئ أول أتمتة لك وابدأ التفاعل مع العملاء تلقائيًا",
+        "buttonTitle": "أنشئ أول أتمتة لك"
+    },
     "createAutomation": "إنشاء أتمتة",
     "automationName": "اسم الأتمتة",
-    "trigger": "المشغل",
+    "trigger": "مُشغل",
     "conditions": "الشروط",
     "actions": "الإجراءات",
-    "active": "نشطة",
-    "inactive": "غير نشطة",
+    "active": "نشط",
+    "inactive": "غير نشط",
     "executions": "التنفيذات",
     "lastRun": "آخر تشغيل",
-    "enable": "تفعيل",
+    "enable": "تمكين",
     "disable": "تعطيل",
     "test": "اختبار",
     "duplicate": "تكرار",
@@ -450,25 +473,26 @@
     "addNode": "إضافة عقدة",
     "deleteNode": "حذف عقدة",
     "userReply": "رد المستخدم",
-    "timeGap": "فجوة زمنية",
+    "timeGap": "الفاصل الزمني",
     "sendTemplate": "إرسال قالب",
     "customReply": "رد مخصص",
-    "keywordCatch": "التقاط الكلمة المفتاحية",
-    "waitFor": "انتظار",
-    "timeout": "انتهاء المهلة",
+    "keywordCatch": "التقاط كلمة مفتاحية",
+    "waitFor": "انتظر",
+    "timeout": "انتهاء الوقت",
     "messageText": "نص الرسالة",
     "keywords": "الكلمات المفتاحية",
     "dragToReorder": "اسحب لإعادة الترتيب",
     "saveFlow": "حفظ التدفق",
     "discardChanges": "تجاهل التغييرات",
     "executionLogs": "سجلات التنفيذ",
-    "triggerType": "نوع المشغل",
-    "messageReceived": "تم استلام رسالة",
-    "keywordDetected": "تم اكتشاف كلمة مفتاحية",
-    "tagAdded": "تمت إضافة علامة",
-    "flowCompleted": "تم اكتمال التدفق",
+    "triggerType": "نوع المُشغل",
+    "messageReceived": "تم استلام الرسالة",
+    "keywordDetected": "تم الكشف عن كلمة مفتاحية",
+    "tagAdded": "تمت إضافة الوسم",
+    "flowCompleted": "اكتمل التدفق",
     "flowFailed": "فشل التدفق"
-  },
+}
+,
   "messageLogs": {
     "title": "سجلات الرسائل",
     "messageId": "معرّف الرسالة",
@@ -492,9 +516,16 @@
     "errorCode": "رمز الخطأ",
     "errorMessage": "رسالة الخطأ"
   },
-  "team": {
-    "title": "الفريق",
-    "addMember": "إضافة عضو فريق",
+"team": {
+    "title": "إدارة الفريق",
+    "subtitle": "إدارة أعضاء فريقك، والأدوار، والصلاحيات",
+    "teamMember": "أعضاء الفريق",
+    "Activity_Logs": "سجلات الأنشطة",
+    "addMember": "إضافة عضو للفريق",
+    "manage_Team": "إدارة أعضاء الفريق وصلاحيات الوصول الخاصة بهم",
+    "Activity_LogsTitle": "سجلات النشاط",
+"Activity_LogsDes": "تتبع أنشطة أعضاء الفريق"
+,
     "editMember": "تعديل عضو",
     "deleteMember": "حذف عضو",
     "firstName": "الاسم الأول",
@@ -600,5 +631,76 @@
     "copied": "تم النسخ إلى الحافظة",
     "uploaded": "تم التحميل بنجاح",
     "downloaded": "تم التنزيل بنجاح"
+  },
+  "analytics": {
+    "title": "التحليلات والتقارير",
+    "subtitle": "تابع أداء أعمال WhatsApp الخاص بك ببيانات الوقت الحقيقي",
+    "time_range": "نطاق الوقت",
+    "MessagesTab": "الرسائل",
+    "OverviewTab": {
+        "title": "نظرة عامة",
+        "last": "آخر",
+        "days": "أيام",
+        "Total_Messages": "إجمالي الرسائل",
+        "Delivery": "معدل التسليم",
+        "read_rate": "معدل القراءة",
+        "reply_rate": "معدل الرد",
+        "Failure_rate": "معدل الفشل",
+        "managePer": "اتجاهات أداء الرسائل",
+        "Summary": "ملخص",
+        "Active_Campaigns": "الحملات النشطة",
+        "Total_Campaigns": "إجمالي الحملات",
+        "Unique_Contacts": "جهات اتصال فريدة",
+        "Total_Recipients": "إجمالي المستلمين"
+    },
+    "messageTab": {
+        "title": "الرسائل",
+        "Outbound_Messages": "الرسائل الصادرة",
+        "Inbound_Messages": "الرسائل الواردة",
+        "Average_Response": "متوسط وقت الاستجابة",
+        "Message_Activity": "نشاط الرسائل حسب الساعة"
+    },
+    "CampaignsTab": {
+        "title": "الحملات",
+        "Total_Sent": "إجمالي المرسلات",
+        "Total_Delivered": "إجمالي المرسلة بنجاح",
+        "Total_Read": "إجمالي المقروءة",
+        "Total_Failed": "إجمالي الفاشلة",
+        "Campaign_Performance": "أداء الحملة"
+    }
+},
+"Landing": {
+    "header": {
+      "getstart": "ابدأ مجانًا",
+      "redystart": "هل أنت مستعد للبدء؟",
+      "join": "انضم إلى آلاف الشركات التي تنمو بالفعل مع Whatsway",
+      "start": "ابدأ الفترة التجريبية المجانية",
+      "Learn": "تعلم المزيد",
+      "dash": "لوحة التحكم",
+      "Settings": "الإعدادات",
+      "Account": "الحساب",
+      "logout": "تسجيل الخروج",
+      "resourcesMenuItems": [
+        { "title": "القوالب", "description": "نماذج رسائل جاهزة للاستخدام" },
+        { "title": "دراسات الحالة", "description": "قصص نجاح من عملائنا" },
+        { "title": "دليل WhatsApp", "description": "دليل كامل لتسويق WhatsApp" },
+        { "title": "توثيق API", "description": "موارد المطورين ووثائق API" },
+        { "title": "أفضل الممارسات", "description": "نصائح لنجاح تسويق WhatsApp" },
+        { "title": "حاسبة العائد على الاستثمار", "description": "احسب عائد تسويق WhatsApp الخاص بك" }
+      ],
+      "aboutMenuItems": [
+        { "title": "عنا", "description": "تعرف على مهمتنا وفريقنا" },
+        { "title": "اتصل بنا", "description": "تواصل مع فريقنا" },
+        { "title": "وظائف", "description": "انضم إلى فريقنا المتنامي" },
+        { "title": "التكاملات", "description": "اتصل بأكثر من 1000 تطبيق" }
+      ],
+      "Navlinks": ["الرئيسية", "عنا", "الموارد", "تسجيل الدخول", "لوحة التحكم"]
+    }
+  },
+    "groups": {
+    "title": "المجموعات",
+    "subtitle": "تفاصيل وإدارة جميع المجموعات",
+    "createButton": "إنشاء مجموعة"
   }
+
 }

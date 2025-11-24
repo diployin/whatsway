@@ -140,7 +140,17 @@
       "apiStatusText": "已批准",
        "apiStatusUpTime": "API 正常运行时间",
        "healthDetails": "健康详情",
-    "apiStatus": "状态"
+    "apiStatus": "状态",
+    "dashboardStates": {
+   "Total_Contacts": "总联系人",
+   "Total_Channels": "总渠道",
+   "Total_Messages": "总消息",
+   "Total_Users": "总用户",
+   "Total_Campaigns": "总活动",
+   "Total_Signups": "总注册",
+   "Total_Templates": "总模板"
+}
+
   },
   "contacts": {
     "contact": "联系人",
@@ -361,7 +371,12 @@
   "templates": {
     "title": "模板",
     "createTemplate": "创建模板",
+    "superAdminSubTitle": "管理 WhatsApp 消息模板",
+    "userSubTitle": "创建和管理 WhatsApp 消息模板",
+    "mess_Temp": "消息模板",
+    "sync": "从 WhatsApp 同步",
     "templateName": "模板名称",
+    "apiCampaigns": "API 活动",
     "category": "类别",
     "language": "语言",
     "header": "页眉",
@@ -371,7 +386,7 @@
     "media": "媒体",
     "preview": "预览",
     "approved": "已批准",
-    "pending": "待处理",
+    "pending": "待定",
     "rejected": "已拒绝",
     "draft": "草稿",
     "syncTemplates": "同步模板",
@@ -386,8 +401,8 @@
     "document": "文档",
     "location": "位置",
     "quickReply": "快速回复",
-    "callToAction": "号召性用语",
-    "urlButton": "URL 按钮",
+    "callToAction": "号召性用语按钮",
+    "urlButton": "网址按钮",
     "phoneButton": "电话按钮",
     "exampleValues": "示例值"
   },
@@ -433,15 +448,22 @@
   },
   "automations": {
     "title": "自动化",
+    "create_auto": "创建自动化",
+    "Subtitle": "创建自动工作流程以与您的客户互动",
+    "empityAuto": {
+        "title": "尚无自动化",
+        "Subtitle": "创建第一个自动化并开始自动与客户互动",
+        "buttonTitle": "创建您的第一个自动化"
+    },
     "createAutomation": "创建自动化",
     "automationName": "自动化名称",
     "trigger": "触发器",
     "conditions": "条件",
     "actions": "操作",
-    "active": "活跃",
-    "inactive": "不活跃",
-    "executions": "执行次数",
-    "lastRun": "最后一次运行",
+    "active": "激活",
+    "inactive": "未激活",
+    "executions": "执行",
+    "lastRun": "上次运行",
     "enable": "启用",
     "disable": "禁用",
     "test": "测试",
@@ -453,22 +475,23 @@
     "timeGap": "时间间隔",
     "sendTemplate": "发送模板",
     "customReply": "自定义回复",
-    "keywordCatch": "关键词捕获",
+    "keywordCatch": "关键字捕捉",
     "waitFor": "等待",
     "timeout": "超时",
     "messageText": "消息文本",
-    "keywords": "关键词",
-    "dragToReorder": "拖动以重新排序",
+    "keywords": "关键字",
+    "dragToReorder": "拖动重新排序",
     "saveFlow": "保存流程",
     "discardChanges": "放弃更改",
     "executionLogs": "执行日志",
-    "triggerType": "触发器类型",
-    "messageReceived": "收到消息",
-    "keywordDetected": "检测到关键词",
-    "tagAdded": "已添加标签",
-    "flowCompleted": "流程已完成",
+    "triggerType": "触发类型",
+    "messageReceived": "消息已接收",
+    "keywordDetected": "关键字已检测",
+    "tagAdded": "标签已添加",
+    "flowCompleted": "流程完成",
     "flowFailed": "流程失败"
-  },
+}
+,
   "messageLogs": {
     "title": "消息日志",
     "messageId": "消息 ID",
@@ -493,8 +516,15 @@
     "errorMessage": "错误消息"
   },
   "team": {
-    "title": "团队",
+    "title": "团队管理",
+    "subtitle": "管理你的团队成员、角色和权限",
+    "teamMember": "团队成员",
+    "Activity_Logs": "活动日志",
     "addMember": "添加团队成员",
+    "manage_Team": "管理团队成员及其访问权限",
+    "Activity_LogsTitle": "活动日志",
+"Activity_LogsDes": "跟踪团队成员的活动"
+,
     "editMember": "编辑成员",
     "deleteMember": "删除成员",
     "firstName": "名字",
@@ -600,5 +630,76 @@
     "copied": "已复制到剪贴板",
     "uploaded": "上传成功",
     "downloaded": "下载成功"
+  },
+  "analytics": {
+    "title": "分析与报告",
+    "subtitle": "使用实时数据跟踪您的 WhatsApp 业务表现",
+    "time_range": "时间范围",
+    "MessagesTab": "消息",
+    "OverviewTab": {
+        "title": "概述",
+        "last": "最近",
+        "days": "天",
+        "Total_Messages": "消息总数",
+        "Delivery": "投递率",
+        "read_rate": "阅读率",
+        "reply_rate": "回复率",
+        "Failure_rate": "失败率",
+        "managePer": "消息性能趋势",
+        "Summary": "摘要",
+        "Active_Campaigns": "活跃活动",
+        "Total_Campaigns": "总活动",
+        "Unique_Contacts": "唯一联系人",
+        "Total_Recipients": "总接收者"
+    },
+    "messageTab": {
+        "title": "消息",
+        "Outbound_Messages": "发送消息",
+        "Inbound_Messages": "接收消息",
+        "Average_Response": "平均响应时间",
+        "Message_Activity": "按小时的消息活动"
+    },
+    "CampaignsTab": {
+        "title": "活动",
+        "Total_Sent": "发送总数",
+        "Total_Delivered": "成功发送总数",
+        "Total_Read": "已读总数",
+        "Total_Failed": "失败总数",
+        "Campaign_Performance": "活动表现"
+    }
+},
+ "Landing": {
+    "header": {
+      "getstart": "免费开始",
+      "redystart": "准备好开始了吗？",
+      "join": "加入数千个正在使用Whatsway成长的企业",
+      "start": "开始免费试用",
+      "Learn": "了解更多",
+      "dash": "仪表盘",
+      "Settings": "设置",
+      "Account": "账户",
+      "logout": "登出",
+      "resourcesMenuItems": [
+        { "title": "模板", "description": "即用型消息模板" },
+        { "title": "案例研究", "description": "来自我们客户的成功故事" },
+        { "title": "WhatsApp指南", "description": "完整的WhatsApp营销指南" },
+        { "title": "API文档", "description": "开发者资源和API文档" },
+        { "title": "最佳实践", "description": "WhatsApp营销成功的技巧" },
+        { "title": "ROI计算器", "description": "计算您的WhatsApp营销投资回报率" }
+      ],
+      "aboutMenuItems": [
+        { "title": "关于我们", "description": "了解我们的使命和团队" },
+        { "title": "联系方式", "description": "联系我们的团队" },
+        { "title": "职业", "description": "加入我们不断壮大的团队" },
+        { "title": "集成", "description": "与1000多个应用连接" }
+      ],
+      "Navlinks": ["首页", "关于", "资源", "登录", "仪表盘"]
+    }
+  },
+    "groups": {
+    "title": "组",
+    "subtitle": "所有组的详细信息和管理",
+    "createButton": "创建组"
   }
+
 }
