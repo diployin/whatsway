@@ -49,7 +49,6 @@ interface NavItem {
   allowedRoles?: Role[];
 }
 
-
 function getNavItems(role: string): NavItem[] {
   console.log("User role in sidebar:", role);
 
@@ -80,7 +79,7 @@ function getNavItems(role: string): NavItem[] {
       {
         href: "/groups",
         icon: MdGroups,
-        labelKey: "Groups",
+        labelKey: "navigation.groups",
         color: "text-blue-400",
         allowedRoles: ["admin"],
       },
@@ -98,7 +97,7 @@ function getNavItems(role: string): NavItem[] {
         color: "text-purple-600",
         allowedRoles: ["superadmin", "admin"],
       },
-      
+
       {
         href: "/automation",
         icon: Zap,
@@ -132,7 +131,7 @@ function getNavItems(role: string): NavItem[] {
       {
         href: "/team",
         icon: UsersRound,
-        labelKey: "Team",
+        labelKey: "navigation.team",
         color: "text-teal-600",
         allowedRoles: ["superadmin", "admin"],
       },
@@ -144,7 +143,7 @@ function getNavItems(role: string): NavItem[] {
         alwaysVisible: true,
         allowedRoles: ["superadmin", "admin"],
       },
-      
+
       {
         href: "/plans",
         icon: Bell,
@@ -162,28 +161,28 @@ function getNavItems(role: string): NavItem[] {
       {
         href: "/support-tickets",
         icon: Bell,
-        labelKey: "tickets-support",
+        labelKey: "navigation.tickets_support",
         color: "text-blue-400",
         allowedRoles: ["superadmin"],
       },
       {
         href: "/user-support-tickets",
         icon: MdOutlineSupportAgent,
-        labelKey: "Tickets Support",
+        labelKey: "navigation.tickets_support",
         color: "text-blue-400",
         allowedRoles: ["admin"],
       },
       {
         href: "/plan-upgrade",
         icon: GiUpgrade,
-        labelKey: "Upgrade Plan",
+        labelKey: "navigation.plan-upgrade",
         color: "text-blue-400",
         allowedRoles: ["admin"],
       },
       {
         href: "/billing",
         icon: TbInvoice,
-        labelKey: "Billing & Credits",
+        labelKey: "navigation.billing",
         color: "text-blue-400",
         allowedRoles: ["admin"],
       },
@@ -239,7 +238,7 @@ function getNavItems(role: string): NavItem[] {
         requiredPrefix: "templates.",
         allowedRoles: ["team"],
       },
-      
+
       {
         href: "/automation",
         icon: Zap,
@@ -291,7 +290,7 @@ function getNavItems(role: string): NavItem[] {
         requiredPrefix: "settings.",
         allowedRoles: ["team"],
       },
-      
+
       {
         href: "/plans",
         icon: Bell,
@@ -342,9 +341,6 @@ function getNavItems(role: string): NavItem[] {
     ];
   }
 }
-
-
-
 
 const sidebarItemsCategories = [
   {
@@ -436,7 +432,7 @@ export default function Sidebar() {
   const isSuper = user?.role === "superadmin";
   const isAdmin = user?.role === "admin";
 
-   const navItems = getNavItems(user?.role || "");
+  const navItems = getNavItems(user?.role || "");
 
   const {
     isOpen,
@@ -511,9 +507,6 @@ export default function Sidebar() {
       perm.startsWith(normalize(item.requiredPrefix!))
     );
   };
-
-  console.log("isCollapsed", isCollapsed);
-  console.log("selectedMenu", selectedMenu);
 
   const canViewOld = (item: NavItem): boolean => {
     if (!user) return false;
@@ -682,13 +675,13 @@ export default function Sidebar() {
                   )}
           </nav>
 
-          {isAdmin ? (
-            <div className="w-[180px] px-6 py-3 border-t border-gray-100">
-              <LanguageSelector />
-            </div>
+          <div className="w-[180px] px-6 py-3 border-t border-gray-100">
+            <LanguageSelector />
+          </div>
+          {/* {isAdmin ? (
           ) : (
             ""
-          )}
+          )} */}
 
           {isAdmin && (
             <div className="px-6 py-3">

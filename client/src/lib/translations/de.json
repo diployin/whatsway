@@ -36,9 +36,9 @@
     "logout": "Abmelden",
     "profile": "Profil",
     "settings": "Einstellungen",
-    "active":"Aktiv",
-    "aiAssistant":"KI-Assistent",
-    "myAccount":"Mein Konto"
+    "active": "Aktiv",
+    "aiAssistant": "KI-Assistent",
+    "myAccount": "Mein Konto"
   },
   "auth": {
     "login": "Anmelden",
@@ -63,16 +63,21 @@
     "analytics": "Analysen",
     "settings": "Einstellungen",
     "team": "Team",
+    "groups": "Gruppen",
     "channels": "Kanäle",
+    "webhooks": "Webhooks",
     "account": "Konto",
     "chatbotBuilder": "Chatbot-Builder",
     "widgetBuilder": "Widget-Builder",
-    "website": "Website"
+    "website": "Website",
+    "tickets_support": "Ticket-Support",
+    "plan-upgrade": "Plan Upgraden",
+    "billing": "Abrechnung & Guthaben"
   },
-  "widget":{
-    "title":"Widget-Builder",
-    "subtitle":"Erstellen und passen Sie Ihr WhatsApp-Chat-Widget für Ihre Website an"
-    },
+  "widget": {
+    "title": "Widget-Builder",
+    "subtitle": "Erstellen und passen Sie Ihr WhatsApp-Chat-Widget für Ihre Website an"
+  },
   "dashboard": {
     "uploadCSV": "CSV hochladen",
     "createAutomation": "Automatisierung erstellen",
@@ -135,164 +140,163 @@
     "apiUptime": "API-Betriebszeit",
     "avgResponse": "Durchschnittliche Antwortzeit",
     "dailyMessageLimit": "Tägliches Nachrichtenlimit",
-    "totalCampaigns":"Totaal aantal campagnes",
-     "textLead": "Neue Leads",
-      "apiStatusText": "Genehmigt",
-       "apiStatusUpTime": "API-Betriebszeit",
-       "healthDetails": "Gesundheitsdetails",
+    "totalCampaigns": "Totaal aantal campagnes",
+    "textLead": "Neue Leads",
+    "apiStatusText": "Genehmigt",
+    "apiStatusUpTime": "API-Betriebszeit",
+    "healthDetails": "Gesundheitsdetails",
     "apiStatus": "Status",
     "dashboardStates": {
-   "Total_Contacts": "Gesamtkontakte",
-   "Total_Channels": "Gesamtkanäle",
-   "Total_Messages": "Gesamtnachrichten",
-   "Total_Users": "Gesamtbenutzer",
-   "Total_Campaigns": "Gesamtkampagnen",
-   "Total_Signups": "Gesamtanmeldungen",
-   "Total_Templates": "Gesamtvorlagen"
-}
-
+      "Total_Contacts": "Gesamtkontakte",
+      "Total_Channels": "Gesamtkanäle",
+      "Total_Messages": "Gesamtnachrichten",
+      "Total_Users": "Gesamtbenutzer",
+      "Total_Campaigns": "Gesamtkampagnen",
+      "Total_Signups": "Gesamtanmeldungen",
+      "Total_Templates": "Gesamtvorlagen"
+    }
   },
   "contacts": {
     "contact": "Kontakt",
-  "contacts": "Kontakte",
-  "selected": "ausgewählt",
-  "title": "Kontaktverwaltung",
-  "subtitle": "Verwalten Sie Ihre WhatsApp-Kontakte und -Gruppen",
-  "importContacts": "Kontakte importieren",
-  "downloadSampleExcel": "Beispiel-Excel herunterladen",
-  "exportContacts": "Kontakte exportieren",
-  "exportSelected": "Ausgewählte exportieren",
-  "deleteSelected": "Ausgewählte löschen",
-  "phoneNumber": "Telefonnummer",
-  "email": "E-Mail",
-  "firstName": "Vorname",
-  "lastName": "Nachname",
-  "active": "Aktiv",
-  "delete": "Löschen",
-  "blocked": "Blockiert",
-  "exportAllContacts": "Alle Kontakte exportieren",
-  "tags": "Tags",
-  "groups": "Gruppen",
-  "allGroups": "Alle Gruppen",
-  "allStatuses": "Alle Status",
-  "availableGroups": "Verfügbare Gruppen",
-  "createdAt": "Erstellt am",
-  "lastMessageAt": "Letzte Nachricht",
-  "noContacts": "Keine Kontakte gefunden",
-  "searchContacts": "Kontakte suchen...",
-  "deleteConfirm": "Möchten Sie diesen Kontakt wirklich löschen?",
-  "importSuccess": "Kontakte erfolgreich importiert",
-  "importError": "Fehler beim Importieren der Kontakte",
-  "duplicatesFound": "Dubletten gefunden",
-  "contactsAdded": "Kontakte hinzugefügt",
-  "selectFile": "Datei auswählen",
-  "downloadTemplate": "Vorlage herunterladen",
-  "importFromCSV": "Aus CSV importieren",
-  "manualEntry": "Manuelle Eingabe",
-  "contactDetails": "Kontaktdetails",
-  "conversationHistory": "Verlauf der Konversation",
-  "addToGroup": "Zur Gruppe hinzufügen",
-  "removeFromGroup": "Aus Gruppe entfernen",
-  "addTag": "Tag hinzufügen",
-  "removeTag": "Tag entfernen",
-  "uploadCSV": "CSV-Datei hochladen",
-  "newTemplate": "Neue Vorlage",
-  "createMessageTemplate": "Nachrichtenvorlage erstellen",
-  "buildFlow": "Flow erstellen",
-  "createAutomation": "Automatisierung erstellen",
-  "viewReports": "Berichte anzeigen",
-  "detailedAnalytics": "Detaillierte Analysen",
-  "apiStatusConnection": "API-Status & Verbindung",
-  "whatsAppCloudAPI": "WhatsApp Cloud API",
-  "twoWayMessaging": "Zwei-Wege-Kommunikation & Support",
-  "connected": "Verbunden",
-  "warning": "Warnung",
-  "error": "Fehler",
-  "noChannel": "Kein Kanal",
-  "blockContact": "Kontakt blockieren",
-  "unblockContact": "Kontakt freigeben",
-  "showing": "Zeige {{from}} bis {{to}} von {{total}} Kontakten",
-  "previous": "Zurück",
-  "next": "Weiter",
-  "phone": "Telefon",
-  "status": "Status",
-  "lastContact": "Letzter Kontakt",
-  "actions": "Aktionen",
-  "noGroups": "Keine Gruppen",
-  "notAvailable": "N/V",
-  "noChannelSelected": "Kein Kanal ausgewählt",
-  "noContactsFound": "Keine Kontakte gefunden",
-  "noFilters": "Keine Kontakte entsprechen Ihren aktuellen Filtern. Passen Sie die Suchkriterien an.",
-  "noContactsYet": "Sie haben noch keine Kontakte hinzugefügt. Importieren Sie Kontakte oder fügen Sie sie manuell hinzu.",
-  "channelQuality": "Kanalqualität",
-  "addFirstContact": "Ersten Kontakt hinzufügen",
-  "clearFilters": "Filter löschen",
-  "rating": "Bewertung",
-  "tier": "Stufe",
-  "apiUptime": "API-Betriebszeit",
-  "avgResponse": "Durchschn. Antwort",
-  "dailyMessageLimit": "Tägliches Nachrichtenlimit",
-  "newCampaign": "Neue Kampagne",
-  "addContact": {
-    "title": "Neuen Kontakt hinzufügen",
-    "description": "Fügen Sie einen neuen WhatsApp-Kontakt zu Ihrer Liste hinzu.",
-    "name": "Name",
-    "nameDesc": "Vollständiger Name des Kontakts",
-    "phone": "Telefonnummer",
-    "phoneDesc": "WhatsApp-Nummer mit Ländervorwahl",
-    "email": "E-Mail (Optional)",
-    "cancel": "Abbrechen",
-    "submit": "Kontakt hinzufügen",
-    "submitting": "Wird hinzugefügt..."
-  },
-  "sendMessage": {
-    "title": "WhatsApp-Nachricht senden",
-    "description": "Nachricht senden an",
-    "activeChannel": "Aktiver Kanal:",
-    "noChannel": "Kein aktiver Kanal ausgewählt. Bitte wählen Sie einen Kanal aus, um Nachrichten zu senden.",
-    "messageType": "Nachrichtentyp",
-    "textMessage": "Normale Textnachricht",
-    "templateMessage": "WhatsApp-Vorlage",
-    "selectTemplate": "Vorlage auswählen",
-    "templateVariables": "Vorlagenvariablen",
-    "message": "Nachricht",
-    "messagePlaceholder": "Geben Sie hier Ihre Nachricht ein...",
-    "send": "Nachricht senden",
-    "sending": "Senden..."
-  },
-  "deleteContact": {
-    "title": "Kontakt löschen",
-    "description": "Möchten Sie diesen Kontakt wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
-    "deleting": "Wird gelöscht..."
-  },
-  "deleteContacts": {
-    "title": "Kontakte löschen",
-    "description": "Sie sind dabei zu löschen",
-    "confirmation": "Diese Aktion kann nicht rückgängig gemacht werden.",
-    "deleting": "Wird gelöscht..."
-  },
-  "editContact": {
-    "title": "Kontakt bearbeiten",
-    "description": "Kontaktinformationen aktualisieren",
-    "successTitle": "Kontakt aktualisiert",
-    "updating": "Wird aktualisiert...",
-    "groupsPlaceholder":"Geben Sie Gruppen durch Kommas getrennt ein",
-    "successDesc": "Der Kontakt wurde erfolgreich aktualisiert."
-  },
-  "createGroup": {
-    "title": "Kontaktgruppe erstellen",
-    "description": "Erstellen Sie eine neue Gruppe, um Ihre Kontakte zu organisieren",
-    "groupName": "Gruppenname",
-    "groupNamePlaceholder": "z. B. VIP-Kunden, Marketing-Liste",
-    "groupDescription": "Beschreibung (Optional)",
-    "groupDescriptionPlaceholder": "Beschreiben Sie den Zweck dieser Gruppe...",
-    "cancel": "Abbrechen",
-    "create": "Gruppe erstellen",
-    "successTitle": "Gruppe erstellt",
-    "successDesc": "Gruppe wurde erstellt. Sie können nun Kontakte hinzufügen.",
-    "errorTitle": "Fehler",
-    "errorDesc": "Bitte geben Sie einen Gruppennamen ein"
-  }
+    "contacts": "Kontakte",
+    "selected": "ausgewählt",
+    "title": "Kontaktverwaltung",
+    "subtitle": "Verwalten Sie Ihre WhatsApp-Kontakte und -Gruppen",
+    "importContacts": "Kontakte importieren",
+    "downloadSampleExcel": "Beispiel-Excel herunterladen",
+    "exportContacts": "Kontakte exportieren",
+    "exportSelected": "Ausgewählte exportieren",
+    "deleteSelected": "Ausgewählte löschen",
+    "phoneNumber": "Telefonnummer",
+    "email": "E-Mail",
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "active": "Aktiv",
+    "delete": "Löschen",
+    "blocked": "Blockiert",
+    "exportAllContacts": "Alle Kontakte exportieren",
+    "tags": "Tags",
+    "groups": "Gruppen",
+    "allGroups": "Alle Gruppen",
+    "allStatuses": "Alle Status",
+    "availableGroups": "Verfügbare Gruppen",
+    "createdAt": "Erstellt am",
+    "lastMessageAt": "Letzte Nachricht",
+    "noContacts": "Keine Kontakte gefunden",
+    "searchContacts": "Kontakte suchen...",
+    "deleteConfirm": "Möchten Sie diesen Kontakt wirklich löschen?",
+    "importSuccess": "Kontakte erfolgreich importiert",
+    "importError": "Fehler beim Importieren der Kontakte",
+    "duplicatesFound": "Dubletten gefunden",
+    "contactsAdded": "Kontakte hinzugefügt",
+    "selectFile": "Datei auswählen",
+    "downloadTemplate": "Vorlage herunterladen",
+    "importFromCSV": "Aus CSV importieren",
+    "manualEntry": "Manuelle Eingabe",
+    "contactDetails": "Kontaktdetails",
+    "conversationHistory": "Verlauf der Konversation",
+    "addToGroup": "Zur Gruppe hinzufügen",
+    "removeFromGroup": "Aus Gruppe entfernen",
+    "addTag": "Tag hinzufügen",
+    "removeTag": "Tag entfernen",
+    "uploadCSV": "CSV-Datei hochladen",
+    "newTemplate": "Neue Vorlage",
+    "createMessageTemplate": "Nachrichtenvorlage erstellen",
+    "buildFlow": "Flow erstellen",
+    "createAutomation": "Automatisierung erstellen",
+    "viewReports": "Berichte anzeigen",
+    "detailedAnalytics": "Detaillierte Analysen",
+    "apiStatusConnection": "API-Status & Verbindung",
+    "whatsAppCloudAPI": "WhatsApp Cloud API",
+    "twoWayMessaging": "Zwei-Wege-Kommunikation & Support",
+    "connected": "Verbunden",
+    "warning": "Warnung",
+    "error": "Fehler",
+    "noChannel": "Kein Kanal",
+    "blockContact": "Kontakt blockieren",
+    "unblockContact": "Kontakt freigeben",
+    "showing": "Zeige {{from}} bis {{to}} von {{total}} Kontakten",
+    "previous": "Zurück",
+    "next": "Weiter",
+    "phone": "Telefon",
+    "status": "Status",
+    "lastContact": "Letzter Kontakt",
+    "actions": "Aktionen",
+    "noGroups": "Keine Gruppen",
+    "notAvailable": "N/V",
+    "noChannelSelected": "Kein Kanal ausgewählt",
+    "noContactsFound": "Keine Kontakte gefunden",
+    "noFilters": "Keine Kontakte entsprechen Ihren aktuellen Filtern. Passen Sie die Suchkriterien an.",
+    "noContactsYet": "Sie haben noch keine Kontakte hinzugefügt. Importieren Sie Kontakte oder fügen Sie sie manuell hinzu.",
+    "channelQuality": "Kanalqualität",
+    "addFirstContact": "Ersten Kontakt hinzufügen",
+    "clearFilters": "Filter löschen",
+    "rating": "Bewertung",
+    "tier": "Stufe",
+    "apiUptime": "API-Betriebszeit",
+    "avgResponse": "Durchschn. Antwort",
+    "dailyMessageLimit": "Tägliches Nachrichtenlimit",
+    "newCampaign": "Neue Kampagne",
+    "addContact": {
+      "title": "Neuen Kontakt hinzufügen",
+      "description": "Fügen Sie einen neuen WhatsApp-Kontakt zu Ihrer Liste hinzu.",
+      "name": "Name",
+      "nameDesc": "Vollständiger Name des Kontakts",
+      "phone": "Telefonnummer",
+      "phoneDesc": "WhatsApp-Nummer mit Ländervorwahl",
+      "email": "E-Mail (Optional)",
+      "cancel": "Abbrechen",
+      "submit": "Kontakt hinzufügen",
+      "submitting": "Wird hinzugefügt..."
+    },
+    "sendMessage": {
+      "title": "WhatsApp-Nachricht senden",
+      "description": "Nachricht senden an",
+      "activeChannel": "Aktiver Kanal:",
+      "noChannel": "Kein aktiver Kanal ausgewählt. Bitte wählen Sie einen Kanal aus, um Nachrichten zu senden.",
+      "messageType": "Nachrichtentyp",
+      "textMessage": "Normale Textnachricht",
+      "templateMessage": "WhatsApp-Vorlage",
+      "selectTemplate": "Vorlage auswählen",
+      "templateVariables": "Vorlagenvariablen",
+      "message": "Nachricht",
+      "messagePlaceholder": "Geben Sie hier Ihre Nachricht ein...",
+      "send": "Nachricht senden",
+      "sending": "Senden..."
+    },
+    "deleteContact": {
+      "title": "Kontakt löschen",
+      "description": "Möchten Sie diesen Kontakt wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+      "deleting": "Wird gelöscht..."
+    },
+    "deleteContacts": {
+      "title": "Kontakte löschen",
+      "description": "Sie sind dabei zu löschen",
+      "confirmation": "Diese Aktion kann nicht rückgängig gemacht werden.",
+      "deleting": "Wird gelöscht..."
+    },
+    "editContact": {
+      "title": "Kontakt bearbeiten",
+      "description": "Kontaktinformationen aktualisieren",
+      "successTitle": "Kontakt aktualisiert",
+      "updating": "Wird aktualisiert...",
+      "groupsPlaceholder": "Geben Sie Gruppen durch Kommas getrennt ein",
+      "successDesc": "Der Kontakt wurde erfolgreich aktualisiert."
+    },
+    "createGroup": {
+      "title": "Kontaktgruppe erstellen",
+      "description": "Erstellen Sie eine neue Gruppe, um Ihre Kontakte zu organisieren",
+      "groupName": "Gruppenname",
+      "groupNamePlaceholder": "z. B. VIP-Kunden, Marketing-Liste",
+      "groupDescription": "Beschreibung (Optional)",
+      "groupDescriptionPlaceholder": "Beschreiben Sie den Zweck dieser Gruppe...",
+      "cancel": "Abbrechen",
+      "create": "Gruppe erstellen",
+      "successTitle": "Gruppe erstellt",
+      "successDesc": "Gruppe wurde erstellt. Sie können nun Kontakte hinzufügen.",
+      "errorTitle": "Fehler",
+      "errorDesc": "Bitte geben Sie einen Gruppennamen ein"
+    }
   },
   "campaigns": {
     "title": "Kampagnen",
@@ -446,14 +450,14 @@
     "endOfConversation": "Ende der Konversation",
     "businessHoursMessage": "Außerhalb der Geschäftszeiten - Antworten können verzögert sein"
   },
- "automations": {
+  "automations": {
     "title": "Automatisierungen",
     "create_auto": "Automatisierung erstellen",
     "Subtitle": "Erstellen Sie automatisierte Workflows, um mit Ihren Kunden in Kontakt zu treten",
     "empityAuto": {
-        "title": "Noch keine Automatisierungen",
-        "Subtitle": "Erstellen Sie Ihre erste Automatisierung und beginnen Sie automatisch mit der Kundeninteraktion",
-        "buttonTitle": "Erstellen Sie Ihre erste Automatisierung"
+      "title": "Noch keine Automatisierungen",
+      "Subtitle": "Erstellen Sie Ihre erste Automatisierung und beginnen Sie automatisch mit der Kundeninteraktion",
+      "buttonTitle": "Erstellen Sie Ihre erste Automatisierung"
     },
     "createAutomation": "Automatisierung erstellen",
     "automationName": "Name der Automatisierung",
@@ -490,8 +494,7 @@
     "tagAdded": "Tag hinzugefügt",
     "flowCompleted": "Flow abgeschlossen",
     "flowFailed": "Flow fehlgeschlagen"
-}
-,
+  },
   "messageLogs": {
     "title": "Nachrichtenprotokolle",
     "messageId": "Nachrichten-ID",
@@ -515,7 +518,7 @@
     "errorCode": "Fehlercode",
     "errorMessage": "Fehlermeldung"
   },
-"team": {
+  "team": {
     "title": "Teamverwaltung",
     "subtitle": "Verwalten Sie Ihre Teammitglieder, Rollen und Berechtigungen",
     "teamMember": "Teammitglieder",
@@ -523,8 +526,7 @@
     "addMember": "Teammitglied hinzufügen",
     "manage_Team": "Teammitglieder und deren Zugriffsberechtigungen verwalten",
     "Activity_LogsTitle": "سجلات النشاط",
-"Activity_LogsDes": "تتبع أنشطة أعضاء الفريق"
-,
+    "Activity_LogsDes": "تتبع أنشطة أعضاء الفريق",
     "editMember": "Mitglied bearbeiten",
     "deleteMember": "Mitglied löschen",
     "firstName": "Vorname",
@@ -563,14 +565,14 @@
     "security": "Sicherheit",
     "channelName": "Kanalname",
     "phoneNumber": "Telefonnummer",
-    "accessToken": "Zugriffstoken",
+    "accessToken": "Zugangstoken",
     "webhookUrl": "Webhook-URL",
     "webhookSecret": "Webhook-Geheimnis",
     "testConnection": "Verbindung testen",
     "saveSettings": "Einstellungen speichern",
     "generateApiKey": "API-Schlüssel generieren",
     "revokeApiKey": "API-Schlüssel widerrufen",
-    "apiKeyName": "API-Schlüssel-Name",
+    "apiKeyName": "API-Schlüsselname",
     "createdAt": "Erstellt am",
     "lastUsed": "Zuletzt verwendet",
     "changePassword": "Passwort ändern",
@@ -585,7 +587,324 @@
     "dateFormat": "Datumsformat",
     "theme": "Design",
     "light": "Hell",
-    "dark": "Dunkel"
+    "dark": "Dunkel",
+    "headTitle": "Einstellungen",
+    "subTitle": "Verwalten Sie Ihre WhatsApp Business-Konfiguration",
+    "general_setting": {
+      "tabName": "Allgemeine Einstellungen",
+      "title": "Allgemeine Konfiguration",
+      "description": "Verwalten Sie die Markenidentität und das Erscheinungsbild Ihrer Anwendung",
+      "loadingText": "Einstellungen werden geladen...",
+      "connectionIssueTitle": "Verbindungsproblem",
+      "connectionIssueDesc": "Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+      "refreshedTitle": "Aktualisiert",
+      "refreshedDesc": "Einstellungen wurden erfolgreich aktualisiert.",
+      "refreshFailedTitle": "Aktualisierung fehlgeschlagen",
+      "refreshFailedDesc": "Einstellungen konnten nicht aktualisiert werden. Bitte versuchen Sie es erneut.",
+      "connectionErrorTitle": "Verbindungsfehler",
+      "connectionErrorDesc": "Einstellungen konnten nicht vom Server geladen werden. Beispieldaten werden angezeigt. Bitte überprüfen Sie Ihre Verbindung und versuchen Sie eine Aktualisierung.",
+      "offline": "Offline",
+      "online": "Online",
+      "refreshing": "Wird aktualisiert...",
+      "refresh": "Aktualisieren",
+      "editSettings": "Einstellungen bearbeiten",
+      "brandIdentity": "Markenidentität",
+      "dataTypeSample": "Beispieldaten",
+      "dataTypeLive": "Live-Daten",
+      "dataTypeLabel": "Datentyp:",
+      "unknownTime": "Unbekannt",
+      "justNow": "Gerade eben",
+      "minuteAgo": "Vor einer Minute",
+      "minutesAgo": "Vor Minuten",
+      "hourAgo": "Vor einer Stunde",
+      "hoursAgo": "Vor Stunden",
+      "applicationTitle": "Anwendungstitel",
+      "notConfigured": "Nicht konfiguriert",
+      "applicationTitleHelper": "Klicken Sie auf \"Einstellungen bearbeiten\", um Ihren App-Titel zu konfigurieren",
+      "tagline": "Slogan",
+      "taglineHelper": "Fügen Sie einen überzeugenden Slogan für Ihre Marke hinzu",
+      "logo": "Logo",
+      "logoUploaded": "Logo hochgeladen",
+      "logoHelper": "Logo ist bereit zur Anzeige",
+      "logoMissing": "Kein Logo hochgeladen",
+      "logoMissingHelper": "Laden Sie ein Logo hoch, um Ihre Marke zu verbessern",
+      "favicon": "Favicon",
+      "faviconUploaded": "Favicon hochgeladen",
+      "faviconHelper": "Favicon wird in Browser-Tabs angezeigt",
+      "faviconMissing": "Kein Favicon hochgeladen",
+      "faviconMissingHelper": "Fügen Sie ein Favicon für das Browser-Tab-Symbol hinzu",
+      "country": "Land",
+      "countryHelper": "Fügen Sie ein überzeugendes Land für Ihre Marke hinzu",
+      "currency": "Währung",
+      "currencyHelper": "Fügen Sie eine überzeugende Währung für Ihre Marke hinzu",
+      "configurationStatusLabel": "Konfigurationsstatus:",
+      "configurationStatusComplete": "Vollständig",
+      "configurationStatusPartial": "Teilweise",
+      "configurationStatusIncomplete": "Unvollständig",
+      "lastUpdated": "Zuletzt aktualisiert",
+      "brandPreviewTitle": "Markenvorschau",
+      "brandPreviewDesc": "So wird Ihre Marke in der Anwendung angezeigt",
+      "brandLogoAlt": "Markenlogo",
+      "logoAlt": "Logo",
+      "faviconAlt": "Favicon"
+    },
+    "storage_setting": {
+      "tabName": "Speichereinstellungen",
+      "title": "Speicherkonfiguration",
+      "description": "Verwalten Sie Ihre Dateispeicher-Integration und Anmeldeinformationen",
+      "loadingText": "Speicherkonfiguration wird geladen...",
+      "connectionIssueTitle": "Verbindungsproblem",
+      "connectionIssueDesc": "Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+      "refreshedTitle": "Aktualisiert",
+      "refreshedDesc": "Speicherkonfiguration erfolgreich aktualisiert.",
+      "refreshFailedTitle": "Aktualisierung fehlgeschlagen",
+      "refreshFailedDesc": "Speichereinstellungen konnten nicht aktualisiert werden.",
+      "connectionErrorTitle": "Verbindungsfehler",
+      "connectionErrorDesc": "Speichereinstellungen konnten nicht vom Server geladen werden. Zwischengespeicherte Daten werden angezeigt.",
+      "offline": "Offline",
+      "online": "Online",
+      "refreshing": "Wird aktualisiert...",
+      "refresh": "Aktualisieren",
+      "editStorage": "Speicher bearbeiten",
+      "storageDetails": "Speicherdetails",
+      "active": "Aktiv",
+      "inactive": "Inaktiv",
+      "unknownTime": "Unbekannt",
+      "justNow": "Gerade eben",
+      "minuteAgo": "Vor einer Minute",
+      "minutesAgo": "Vor Minuten",
+      "hourAgo": "Vor einer Stunde",
+      "hoursAgo": "Vor Stunden",
+      "spaceName": "Space-Name",
+      "spaceNamePlaceholder": "Nicht konfiguriert",
+      "endpoint": "Endpunkt",
+      "endpointPlaceholder": "Kein Endpunkt angegeben",
+      "region": "Region",
+      "regionPlaceholder": "Nicht angegeben",
+      "accessKey": "Zugangsschlüssel",
+      "accessKeyPlaceholder": "Nicht konfiguriert",
+      "accessKeyMasked": "********",
+      "secretKey": "Geheimschlüssel",
+      "secretKeyPlaceholder": "Nicht konfiguriert",
+      "secretKeyMasked": "********",
+      "configurationStatusLabel": "Konfigurationsstatus:",
+      "configurationStatusComplete": "Vollständig",
+      "configurationStatusPartial": "Teilweise",
+      "configurationStatusIncomplete": "Unvollständig",
+      "lastUpdated": "Zuletzt aktualisiert"
+    },
+    "ai_setting": {
+      "tabName": "KI-Einstellungen",
+      "title": "KI-Konfiguration",
+      "description": "Verwalten Sie Ihren KI-Modellanbieter, Anmeldeinformationen und Laufzeitparameter.",
+      "loadingText": "KI-Konfiguration wird geladen...",
+      "loadingError": "KI-Einstellungen konnten nicht geladen werden.",
+      "refreshedTitle": "Aktualisiert",
+      "refreshedDesc": "KI-Konfiguration erfolgreich aktualisiert.",
+      "refreshFailedTitle": "Aktualisierung fehlgeschlagen",
+      "refreshFailedDesc": "KI-Einstellungen konnten nicht aktualisiert werden.",
+      "active": "Aktiv",
+      "inactive": "Inaktiv",
+      "refreshing": "Wird aktualisiert...",
+      "refresh": "Aktualisieren",
+      "edit": "Bearbeiten",
+      "provider": "Anbieter",
+      "providerPlaceholder": "Nicht festgelegt",
+      "apiKey": "API-Schlüssel",
+      "apiKeyMasked": "***************",
+      "apiKeyPlaceholder": "Nicht konfiguriert",
+      "model": "Modell",
+      "modelPlaceholder": "Nicht festgelegt",
+      "endpoint": "Endpunkt",
+      "endpointPlaceholder": "Nicht festgelegt",
+      "temperature": "Temperatur",
+      "temperaturePlaceholder": "Nicht festgelegt",
+      "maxTokens": "Max. Tokens",
+      "maxTokensPlaceholder": "Nicht festgelegt",
+      "triggerWords": "Auslösewörter",
+      "triggerWordsPlaceholder": "Keine Auslösewörter definiert",
+      "notSet": "Nicht festgelegt"
+    },
+    "channel_setting": {
+      "tabName": "Kanaleinstellungen",
+      "title": "WhatsApp-Kanäle",
+      "description": "Konfigurieren Sie Ihre WhatsApp Business API-Kanäle für Cloud API und MM Lite",
+      "addChannel": "Kanal hinzufügen",
+      "noChannels": "Noch keine WhatsApp-Kanäle konfiguriert",
+      "addFirstChannel": "Fügen Sie Ihren ersten Kanal hinzu",
+      "active": "Aktiv",
+      "mmLite": "MM Lite",
+      "phone": "Telefon:",
+      "phoneNumberId": "Telefonnummer-ID:",
+      "businessAccountId": "Geschäftskonto-ID:",
+      "notSet": "Nicht festgelegt",
+      "channelHealth": "Kanalzustand",
+      "test": "Testen",
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "channelDeleted": "Kanal gelöscht",
+      "channelDeletedDesc": "Der Kanal wurde erfolgreich entfernt.",
+      "error": "Fehler",
+      "deleteConfirm": "Sind Sie sicher, dass Sie diesen Kanal löschen möchten?",
+      "checkingHealth": "Zustand wird überprüft...",
+      "verifyingConnection": "Kanalverbindung und Status werden überprüft",
+      "channelHealthy": "Kanal ist gesund",
+      "channelHealthyDesc": "Der WhatsApp-Kanal funktioniert ordnungsgemäß",
+      "channelWarnings": "Kanal hat Warnungen",
+      "channelWarningsDesc": "Überprüfen Sie die Zustandsdetails für weitere Informationen",
+      "channelIssues": "Kanal hat Probleme",
+      "channelIssuesDesc": "Der Kanal benötigt Aufmerksamkeit",
+      "healthCheckFailed": "Zustandsprüfung fehlgeschlagen",
+      "healthCheckFailedDesc": "Kanalstatus konnte nicht überprüft werden",
+      "healthStatus": {
+        "healthy": "Gesund",
+        "warning": "Warnung",
+        "error": "Fehler",
+        "unknown": "Unbekannt"
+      },
+      "healthDetails": {
+        "accountMode": "Kontomodus",
+        "qualityRating": "Qualitätsbewertung",
+        "messagingLimit": "Messaging-Limit",
+        "throughput": "Durchsatz",
+        "verification": "Verifizierung",
+        "nameStatus": "Namenstatus",
+        "errorLabel": "Fehler:",
+        "errorCode": "Fehlercode:",
+        "errorType": "Fehlertyp:"
+      },
+      "lastChecked": "Zuletzt überprüft:",
+      "refresh": "Aktualisieren"
+    },
+    "webhook_setting": {
+      "tabName": "Webhook-Einstellungen",
+      "title": "Webhook-Konfiguration",
+      "description": "Webhooks konfigurieren, um WhatsApp-Ereignisse in Echtzeit zu empfangen",
+      "refresh": "Aktualisieren",
+      "configureWebhook": "Webhook konfigurieren",
+      "noWebhooks": "Noch keine Webhooks konfiguriert",
+      "configureFirst": "Konfigurieren Sie Ihren ersten Webhook",
+      "channelWebhook": "Kanal-Webhook",
+      "globalWebhook": "Globaler Webhook",
+      "webhookUrl": "Webhook-URL:",
+      "events": "Ereignisse:",
+      "lastEvent": "Letztes Ereignis:",
+      "test": "Testen",
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "webhookDeleted": "Webhook gelöscht",
+      "webhookDeletedDesc": "Die Webhook-Konfiguration wurde entfernt.",
+      "error": "Fehler",
+      "deleteConfirm": "Sind Sie sicher, dass Sie diese Webhook-Konfiguration löschen möchten?",
+      "testSent": "Test-Webhook gesendet",
+      "testSentDesc": "Überprüfen Sie Ihren Webhook-Endpunkt auf die Testnachricht.",
+      "testFailed": "Test fehlgeschlagen",
+      "copied": "Kopiert!",
+      "copiedDesc": "Webhook-URL in Zwischenablage kopiert",
+      "status": {
+        "noEvents": "Keine Ereignisse empfangen",
+        "active": "Aktiv",
+        "inactive": "Inaktiv"
+      },
+      "howItWorks": {
+        "title": "Wie Webhooks funktionieren",
+        "description": "Den Webhook-Ablauf für WhatsApp Business API verstehen"
+      },
+      "setupInstructions": {
+        "title": "Einrichtungsanweisungen",
+        "step1": {
+          "title": "1. Webhook in Meta-App konfigurieren",
+          "description": "Gehen Sie zu Ihrem Meta App Dashboard → WhatsApp → Konfiguration → Webhook"
+        },
+        "step2": {
+          "title": "2. Webhook-URL festlegen",
+          "description": "Kopieren Sie die Webhook-URL von oben und fügen Sie sie in das Webhook-URL-Feld der Meta-App ein"
+        },
+        "step3": {
+          "title": "3. Verifizierungstoken eingeben",
+          "description": "Verwenden Sie das in Ihrer Webhook-Konfiguration angezeigte Verifizierungstoken"
+        },
+        "step4": {
+          "title": "4. Ereignisse abonnieren",
+          "description": "Abonnieren Sie messages, message_status und andere erforderliche Webhook-Felder"
+        }
+      }
+    },
+    "api_key_setting": {
+      "tabName": "API-Schlüssel-Einstellungen",
+      "title": "API-Schlüssel",
+      "description": "API-Schlüssel für die Integration mit externen Systemen verwalten",
+      "createApiKey": "API-Schlüssel erstellen",
+      "noApiKeys": "Noch keine API-Schlüssel erstellt",
+      "createFirst": "Erstellen Sie Ihren ersten API-Schlüssel",
+      "active": "aktiv",
+      "revoked": "widerrufen",
+      "created": "Erstellt:",
+      "lastUsed": "Zuletzt verwendet:",
+      "revoke": "Widerrufen",
+      "apiKeyCreated": "API-Schlüssel erstellt",
+      "apiKeyCreatedDesc": "Ihr neuer API-Schlüssel wurde erstellt. Kopieren Sie ihn jetzt, da er nicht erneut angezeigt wird.",
+      "error": "Fehler",
+      "apiKeyRevoked": "API-Schlüssel widerrufen",
+      "apiKeyRevokedDesc": "Der API-Schlüssel wurde widerrufen und kann nicht mehr verwendet werden.",
+      "revokeConfirm": "Sind Sie sicher, dass Sie diesen API-Schlüssel widerrufen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
+      "copied": "Kopiert!",
+      "copiedDesc": "API-Schlüssel in Zwischenablage kopiert",
+      "nameRequired": "Name erforderlich",
+      "nameRequiredDesc": "Bitte geben Sie einen Namen für den API-Schlüssel ein",
+      "createForm": {
+        "title": "Neuen API-Schlüssel erstellen",
+        "keyName": "Schlüsselname",
+        "keyNamePlaceholder": "Produktions-API-Schlüssel",
+        "keyNameHelper": "Ein beschreibender Name zur Identifizierung dieses API-Schlüssels",
+        "creating": "Wird erstellt...",
+        "createKey": "Schlüssel erstellen",
+        "cancel": "Abbrechen"
+      },
+      "documentation": {
+        "title": "API-Dokumentation",
+        "description": "Erfahren Sie, wie Sie die WhatsWay-API verwenden",
+        "baseUrl": "Basis-URL",
+        "authentication": "Authentifizierung",
+        "authDesc": "Fügen Sie Ihren API-Schlüssel in den Authorization-Header ein:",
+        "exampleRequest": "Beispielanfrage",
+        "viewDocs": "Vollständige Dokumentation anzeigen"
+      }
+    },
+    "firebase": {
+      "tabName": "Firebase-Einstellungen",
+      "title": "Firebase-Einstellungen",
+      "description": "Verwalten Sie die Firebase-Konfiguration für Authentifizierung und Push-Benachrichtigungen.",
+      "editButton": "Bearbeiten",
+      "loading": "Lädt...",
+      "fields": {
+        "apiKey": "API-Schlüssel",
+        "authDomain": "Auth-Domain",
+        "projectId": "Projekt-ID",
+        "storageBucket": "Speicher-Bucket",
+        "messagingSenderId": "Messaging-Sender-ID",
+        "appId": "App-ID",
+        "measurementId": "Mess-ID",
+        "privateKey": "Privater Schlüssel",
+        "clientEmail": "Client-E-Mail",
+        "vapidKey": "Vapid-Schlüssel"
+      },
+      "notConfigured": "Nicht konfiguriert",
+      "status": {
+        "active": "Firebase-Konfiguration aktiv",
+        "notFound": "Keine Firebase-Einstellungen gefunden"
+      },
+      "modal": {
+        "title": "Firebase-Einstellungen aktualisieren",
+        "cancel": "Abbrechen",
+        "save": "Speichern"
+      },
+      "toast": {
+        "success": "Firebase-Einstellungen erfolgreich gespeichert!",
+        "error": "Fehler",
+        "errorDescription": "Firebase-Einstellungen konnten nicht gespeichert werden"
+      }
+    }
   },
   "errors": {
     "genericError": "Etwas ist schiefgelaufen",
@@ -637,69 +956,1195 @@
     "time_range": "Zeitraum",
     "MessagesTab": "Nachrichten",
     "OverviewTab": {
-        "title": "Übersicht",
-        "last": "Letzte",
-        "days": "Tage",
-        "Total_Messages": "Gesamtnachrichten",
-        "Delivery": "Lieferquote",
-        "read_rate": "Leserate",
-        "reply_rate": "Antwortquote",
-        "Failure_rate": "Fehlerrate",
-        "managePer": "Nachrichtenleistungs-Trends",
-        "Summary": "Zusammenfassung",
-        "Active_Campaigns": "Aktive Kampagnen",
-        "Total_Campaigns": "Gesamtkampagnen",
-        "Unique_Contacts": "Einzigartige Kontakte",
-        "Total_Recipients": "Gesamtempfänger"
+      "title": "Übersicht",
+      "last": "Letzte",
+      "days": "Tage",
+      "Total_Messages": "Gesamtnachrichten",
+      "Delivery": "Lieferquote",
+      "read_rate": "Leserate",
+      "reply_rate": "Antwortquote",
+      "Failure_rate": "Fehlerrate",
+      "managePer": "Nachrichtenleistungs-Trends",
+      "Summary": "Zusammenfassung",
+      "Active_Campaigns": "Aktive Kampagnen",
+      "Total_Campaigns": "Gesamtkampagnen",
+      "Unique_Contacts": "Einzigartige Kontakte",
+      "Total_Recipients": "Gesamtempfänger"
     },
     "messageTab": {
-        "title": "Nachrichten",
-        "Outbound_Messages": "Ausgehende Nachrichten",
-        "Inbound_Messages": "Eingehende Nachrichten",
-        "Average_Response": "Durchschnittliche Reaktionszeit",
-        "Message_Activity": "Nachrichtenaktivität nach Stunde"
+      "title": "Nachrichten",
+      "Outbound_Messages": "Ausgehende Nachrichten",
+      "Inbound_Messages": "Eingehende Nachrichten",
+      "Average_Response": "Durchschnittliche Reaktionszeit",
+      "Message_Activity": "Nachrichtenaktivität nach Stunde"
     },
     "CampaignsTab": {
-        "title": "Kampagnen",
-        "Total_Sent": "Gesamt gesendet",
-        "Total_Delivered": "Gesamt zugestellt",
-        "Total_Read": "Gesamt gelesen",
-        "Total_Failed": "Gesamt fehlgeschlagen",
-        "Campaign_Performance": "Kampagnenleistung"
+      "title": "Kampagnen",
+      "Total_Sent": "Gesamt gesendet",
+      "Total_Delivered": "Gesamt zugestellt",
+      "Total_Read": "Gesamt gelesen",
+      "Total_Failed": "Gesamt fehlgeschlagen",
+      "Campaign_Performance": "Kampagnenleistung"
     }
-},
- "Landing": {
+  },
+  "Landing": {
     "header": {
-      "getstart": "Kostenlos starten",
+      "getstart": "Kostenlos Starten",
       "redystart": "Bereit loszulegen?",
-      "join": "Tausende Unternehmen wachsen bereits mit Whatsway",
-      "start": "Starte kostenlose Testversion",
-      "Learn": "Mehr erfahren",
+      "join": "Schließen Sie sich Tausenden von Unternehmen an, die bereits mit Whatsway wachsen",
+      "start": "Kostenlose Testversion Starten",
+      "Learn": "Mehr Erfahren",
       "dash": "Dashboard",
       "Settings": "Einstellungen",
       "Account": "Konto",
       "logout": "Abmelden",
       "resourcesMenuItems": [
-        { "title": "Vorlagen", "description": "Fertige Nachrichtenvorlagen" },
-        { "title": "Fallstudien", "description": "Erfolgsgeschichten unserer Kunden" },
-        { "title": "WhatsApp Anleitung", "description": "Umfassender WhatsApp Marketing Leitfaden" },
-        { "title": "API Dokumentation", "description": "Entwicklerressourcen und API-Dokumente" },
-        { "title": "Beste Praktiken", "description": "Tipps für erfolgreichen WhatsApp Marketing" },
-        { "title": "ROI Rechner", "description": "Berechnen Sie Ihren WhatsApp Marketing ROI" }
+        {
+          "title": "Vorlagen",
+          "description": "Sofort einsatzbereite Nachrichtenvorlagen"
+        },
+        {
+          "title": "Fallstudien",
+          "description": "Erfolgsgeschichten unserer Kunden"
+        },
+        {
+          "title": "WhatsApp-Leitfaden",
+          "description": "Vollständiger WhatsApp-Marketing-Leitfaden"
+        },
+        {
+          "title": "API-Dokumentation",
+          "description": "Entwicklerressourcen und API-Dokumentation"
+        },
+        {
+          "title": "Best Practices",
+          "description": "Tipps für erfolgreiches WhatsApp-Marketing"
+        },
+        {
+          "title": "ROI-Rechner",
+          "description": "Berechnen Sie Ihren WhatsApp-Marketing-ROI"
+        }
       ],
       "aboutMenuItems": [
-        { "title": "Über uns", "description": "Erfahren Sie mehr über unsere Mission und unser Team" },
-        { "title": "Kontakt", "description": "Nehmen Sie Kontakt mit unserem Team auf" },
-        { "title": "Karriere", "description": "Werden Sie Teil unseres wachsenden Teams" },
-        { "title": "Integrationen", "description": "Verbinden Sie sich mit über 1000 Apps" }
+        {
+          "title": "Über Uns",
+          "description": "Erfahren Sie mehr über unsere Mission und unser Team"
+        },
+        {
+          "title": "Kontakt",
+          "description": "Nehmen Sie Kontakt mit unserem Team auf"
+        },
+        {
+          "title": "Karriere",
+          "description": "Werden Sie Teil unseres wachsenden Teams"
+        },
+        {
+          "title": "Integrationen",
+          "description": "Verbinden Sie sich mit über 1000 Apps"
+        }
       ],
-      "Navlinks": ["Startseite", "Über", "Ressourcen", "Anmelden", "Dashboard"]
+      "Navlinks": [
+        "Startseite",
+        "Über",
+        "Ressourcen",
+        "Anmelden",
+        "Dashboard"
+      ]
+    },
+    "heroSec": {
+      "animatedBgGreenText": "Kostenlose WhatsApp-Marketing-Plattform - Bringen Sie Ihre eigene API mit",
+      "headline": "Skalieren Sie Ihr Geschäft mit",
+      "highlightText": "WhatsApp-Marketing",
+      "subHeadline": "Verbinden Sie Ihre Meta WhatsApp Business API und nutzen Sie leistungsstarke Automatisierung, Massennachrichten und erweiterte Analysen. Starten Sie kostenlos, skalieren Sie unbegrenzt.",
+      "startTrialButton": "Kostenlose Testversion Starten",
+      "watchDemoButton": "2-Min-Demo Ansehen",
+      "trustedByText": "Vertraut von über 10.000 Unternehmen weltweit",
+      "brands": [
+        "Shopify",
+        "WooCommerce",
+        "Salesforce",
+        "HubSpot",
+        "Zapier"
+      ],
+      "stats": [
+        {
+          "label": "Aktive Benutzer",
+          "suffix": "+"
+        },
+        {
+          "label": "Zustellrate",
+          "suffix": "%"
+        },
+        {
+          "label": "Höheres Engagement",
+          "suffix": "x"
+        }
+      ],
+      "animationDelays": {
+        "delay1": "animation-delay-2000",
+        "delay2": "animation-delay-4000"
+      }
+    },
+    "featuresSec": {
+      "introTagline": "Leistungsstarke WhatsApp-Marketing-Funktionen",
+      "headlinePre": "Alles, was Sie brauchen, um",
+      "headlineHighlight": "Ihr Geschäft zu skalieren",
+      "subHeadline": "Von Massennachrichten bis zu KI-Chatbots bietet unsere Plattform alle Tools, die Sie für erfolgreiche WhatsApp-Marketingkampagnen benötigen",
+      "featureTabs": [
+        {
+          "title": "Massennachrichten",
+          "description": "Senden Sie personalisierte Nachrichten sofort an Tausende von Kontakten mit intelligenter Zustellungsoptimierung",
+          "demo": {
+            "title": "Broadcast-Kampagne",
+            "stats": "10.000 Nachrichten in 2 Minuten gesendet",
+            "features": [
+              "Personalisierte Vorlagen",
+              "Intelligente Planung",
+              "Zustellungsoptimierung"
+            ]
+          }
+        },
+        {
+          "title": "Automatisierungs-Workflows",
+          "description": "Erstellen Sie intelligente automatisierte Sequenzen, die Leads pflegen und Kunden rund um die Uhr ansprechen",
+          "demo": {
+            "title": "Willkommenssequenz",
+            "stats": "85% Engagement-Rate",
+            "features": [
+              "Trigger-basierte Abläufe",
+              "Bedingte Logik",
+              "Mehrstufige Journeys"
+            ]
+          }
+        },
+        {
+          "title": "Erweiterte Analysen",
+          "description": "Verfolgen Sie die Leistung mit Echtzeit-Einblicken, Zustellungsberichten und Engagement-Metriken",
+          "demo": {
+            "title": "Kampagnen-Analysen",
+            "stats": "98% Zustellrate",
+            "features": [
+              "Echtzeit-Tracking",
+              "ROI-Analyse",
+              "Benutzerdefinierte Berichte"
+            ]
+          }
+        },
+        {
+          "title": "Kontaktverwaltung",
+          "description": "Organisieren und segmentieren Sie Ihr Publikum mit intelligentem Tagging und erweiterter Filterung",
+          "demo": {
+            "title": "Intelligente Segmentierung",
+            "stats": "50+ benutzerdefinierte Felder",
+            "features": [
+              "Auto-Tagging",
+              "Verhaltenssegmente",
+              "Import/Export"
+            ]
+          }
+        },
+        {
+          "title": "KI-Chatbots",
+          "description": "Setzen Sie intelligente Chatbots ein, die Kundenanfragen bearbeiten und Leads automatisch qualifizieren",
+          "demo": {
+            "title": "Kundensupport-Bot",
+            "stats": "24/7 Verfügbarkeit",
+            "features": [
+              "Natürliche Sprache",
+              "Lead-Qualifizierung",
+              "Übergabe an Menschen"
+            ]
+          }
+        },
+        {
+          "title": "Kampagnen-Planer",
+          "description": "Planen und terminieren Sie Kampagnen über Zeitzonen hinweg mit optimalem Zustellungszeitpunkt",
+          "demo": {
+            "title": "Globale Kampagnen",
+            "stats": "Multi-Zeitzonen-Unterstützung",
+            "features": [
+              "Intelligentes Timing",
+              "Wiederkehrende Kampagnen",
+              "A/B-Tests"
+            ]
+          }
+        }
+      ],
+      "additionalFeatures": [
+        {
+          "title": "Mehrsprachige Unterstützung",
+          "desc": "Erreichen Sie globale Zielgruppen in ihrer Muttersprache"
+        },
+        {
+          "title": "Intelligentes Targeting",
+          "desc": "Präzises Targeting basierend auf Verhalten und Demografie"
+        },
+        {
+          "title": "API-Integration",
+          "desc": "Nahtlose Integration mit Ihren bestehenden Tools und CRM"
+        }
+      ]
+    },
+    "howItWorksSec": {
+      "introTagline": "Einfacher 4-Schritte-Prozess",
+      "headlinePre": "Loslegen in",
+      "headlineHighlight": "unter 5 Minuten",
+      "subHeadline": "Unser optimierter Onboarding-Prozess bringt Sie schneller zum WhatsApp-Marketing als jede andere Plattform",
+      "steps": [
+        {
+          "title": "Verbinden Sie Ihre Meta-API",
+          "description": "Bringen Sie Ihre eigene WhatsApp Business API von Meta mit und verbinden Sie sie in Sekunden mit unserer Plattform",
+          "details": [
+            "Sichere API-Integration",
+            "Ein-Klick-Setup-Prozess",
+            "Keine technischen Kenntnisse erforderlich",
+            "Vollständige Dateneigentümerschaft"
+          ]
+        },
+        {
+          "title": "Importieren Sie Ihre Kontakte",
+          "description": "Laden Sie Ihre Kundendatenbank hoch oder synchronisieren Sie direkt von Ihrem CRM und bestehenden Tools",
+          "details": [
+            "CSV/Excel-Import-Unterstützung",
+            "CRM-Integrationen verfügbar",
+            "Intelligente Duplikaterkennung",
+            "Automatische Datenvalidierung"
+          ]
+        },
+        {
+          "title": "Kampagnen erstellen & starten",
+          "description": "Gestalten Sie schöne Nachrichten mit unserem Drag-and-Drop-Builder und starten Sie gezielte Kampagnen",
+          "details": [
+            "Visueller Kampagnen-Builder",
+            "Vorgefertigte Vorlagen",
+            "Personalisierungsoptionen",
+            "A/B-Test-Funktionen"
+          ]
+        },
+        {
+          "title": "Verfolgen & Optimieren",
+          "description": "Überwachen Sie die Leistung in Echtzeit und optimieren Sie Ihre Kampagnen für bessere Ergebnisse",
+          "details": [
+            "Echtzeit-Analysen",
+            "Zustellungsverfolgung",
+            "Engagement-Metriken",
+            "ROI-Berechnungen"
+          ]
+        }
+      ],
+      "progressBar": {
+        "previous": "Zurück",
+        "nextStep": "Nächster Schritt"
+      },
+      "visualDemo": {
+        "whatsAppBusinessDashboard": "WhatsApp Business Dashboard"
+      },
+      "cta": {
+        "readyToGetStarted": "Bereit loszulegen?",
+        "joinText": "Schließen Sie sich Tausenden von Unternehmen an, die bereits unsere Plattform nutzen, um ihr WhatsApp-Marketing zu skalieren",
+        "startFreeTrial": "Starten Sie Ihre kostenlose Testversion"
+      }
+    },
+    "useCasesSec": {
+      "introTagline": "Branchenlösungen",
+      "headlinePre": "Perfekt für jede",
+      "headlineHighlight": "Branche & Unternehmen",
+      "subHeadline": "Entdecken Sie, wie Unternehmen aus verschiedenen Branchen WhatsApp-Marketing nutzen, um Wachstum zu fördern und Kundenengagement zu verbessern",
+      "useCases": [
+        {
+          "icon": "ShoppingCart",
+          "title": "E-Commerce",
+          "description": "Steigern Sie den Umsatz mit Warenkorbwiederherstellung, Bestellaktualisierungen und personalisierten Produktempfehlungen",
+          "color": "from-green-500 to-green-600",
+          "bgColor": "bg-green-50",
+          "stats": {
+            "increase": "300%",
+            "metric": "Umsatzwiederherstellung"
+          },
+          "features": [
+            "Warenkorbwiederherstellung",
+            "Bestellstatus-Updates",
+            "Produktempfehlungen",
+            "Flash-Sale-Benachrichtigungen"
+          ]
+        },
+        {
+          "icon": "GraduationCap",
+          "title": "Bildung",
+          "description": "Binden Sie Schüler und Eltern mit Kursankündigungen, Hausaufgabenerinnerungen und Bildungsinhalten ein",
+          "color": "from-blue-500 to-blue-600",
+          "bgColor": "bg-blue-50",
+          "stats": {
+            "increase": "85%",
+            "metric": "Schülerengagement"
+          },
+          "features": [
+            "Hausaufgabenerinnerungen",
+            "Kursankündigungen",
+            "Elternkommunikation",
+            "Lernmaterialien teilen"
+          ]
+        },
+        {
+          "icon": "Heart",
+          "title": "Gesundheitswesen",
+          "description": "Verbessern Sie die Patientenversorgung mit Terminerinnerungen, Gesundheitstipps und Medikamentenwarnungen",
+          "color": "from-red-500 to-red-600",
+          "bgColor": "bg-red-50",
+          "stats": {
+            "increase": "60%",
+            "metric": "Terminwahrnehmung"
+          },
+          "features": [
+            "Terminerinnerungen",
+            "Medikamentenwarnungen",
+            "Gesundheitstipps",
+            "Testergebnisbenachrichtigungen"
+          ]
+        },
+        {
+          "icon": "Building",
+          "title": "Immobilien",
+          "description": "Verbinden Sie sich mit Interessenten durch Immobilienwarnungen, virtuelle Besichtigungen und Marktupdates",
+          "color": "from-purple-500 to-purple-600",
+          "bgColor": "bg-purple-50",
+          "stats": {
+            "increase": "45%",
+            "metric": "Lead-Konvertierung"
+          },
+          "features": [
+            "Immobilienwarnungen",
+            "Virtuelle Besichtigungsplanung",
+            "Marktupdates",
+            "Lead-Qualifizierung"
+          ]
+        },
+        {
+          "icon": "Utensils",
+          "title": "Restaurants",
+          "description": "Steigern Sie Bestellungen mit Menüupdates, Sonderangeboten und Reservierungsbestätigungen",
+          "color": "from-orange-500 to-orange-600",
+          "bgColor": "bg-orange-50",
+          "stats": {
+            "increase": "120%",
+            "metric": "Bestellvolumen"
+          },
+          "features": [
+            "Menüupdates",
+            "Sonderangebote",
+            "Reservierungsbestätigungen",
+            "Treueprogramme"
+          ]
+        },
+        {
+          "icon": "Car",
+          "title": "Automobil",
+          "description": "Verbessern Sie den Kundenservice mit Serviceerinnerungen, Terminbuchungen und Fahrzeug-Updates",
+          "color": "from-indigo-500 to-indigo-600",
+          "bgColor": "bg-indigo-50",
+          "stats": {
+            "increase": "75%",
+            "metric": "Service-Buchungen"
+          },
+          "features": [
+            "Serviceerinnerungen",
+            "Terminbuchung",
+            "Fahrzeug-Updates",
+            "Wartungstipps"
+          ]
+        }
+      ],
+      "cta": {
+        "viewCaseStudyButton": "Fallstudie ansehen",
+        "customerSuccessQuote": "WhatsApp Pro hat uns geholfen, unser {industry}-Engagement um {increase} zu steigern. Die Automatisierungsfunktionen sparten uns unzählige Stunden und verbesserten gleichzeitig die Kundenzufriedenheit.",
+        "testimonialName": "Sarah Johnson",
+        "testimonialPosition": "Marketing-Direktorin"
+      },
+      "quickStats": [
+        {
+          "value": "98%",
+          "label": "Zustellrate"
+        },
+        {
+          "value": "5x",
+          "label": "Höheres Engagement"
+        },
+        {
+          "value": "24/7",
+          "label": "Automatisierung"
+        },
+        {
+          "value": "50%",
+          "label": "Kostensenkung"
+        }
+      ]
+    },
+    "testimonialsSec": {
+      "introTagline": "Kundenerfolgsgeschichten",
+      "headlinePre": "Geliebt von",
+      "headlineHighlight": "10.000+ Unternehmen",
+      "subHeadline": "Sehen Sie, wie Unternehmen aus verschiedenen Branchen mit unserer WhatsApp-Marketing-Plattform bemerkenswerte Ergebnisse erzielen",
+      "testimonials": [
+        {
+          "name": "Sarah Chen",
+          "role": "E-Commerce-Direktorin",
+          "company": "Fashion Forward",
+          "image": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
+          "rating": 5,
+          "text": "WhatsApp Pro hat unser Kundenengagement transformiert. Wir sahen eine Steigerung der Warenkorbwiederherstellungsraten um 300% und unsere Kunden lieben die personalisierte Erfahrung.",
+          "results": "300% Steigerung bei Warenkorbwiederherstellung"
+        },
+        {
+          "name": "Michael Rodriguez",
+          "role": "Marketing-Manager",
+          "company": "TechStart Solutions",
+          "image": "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
+          "rating": 5,
+          "text": "Die Automatisierungs-Workflows sind unglaublich. Wir können jetzt Leads rund um die Uhr pflegen ohne manuelle Eingriffe. Unsere Konversionsraten waren noch nie so hoch.",
+          "results": "85% Verbesserung bei Lead-Konvertierung"
+        },
+        {
+          "name": "Emily Johnson",
+          "role": "Kundenerfolgsleiterin",
+          "company": "HealthCare Plus",
+          "image": "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
+          "rating": 5,
+          "text": "Die Patiententerminwahrnehmung verbesserte sich nach Implementierung von WhatsApp-Erinnerungen dramatisch. Die Plattform ist intuitiv und unser Team hat sie schnell übernommen.",
+          "results": "60% Reduzierung der Nichterscheinungen"
+        },
+        {
+          "name": "David Park",
+          "role": "Restaurantbesitzer",
+          "company": "Gourmet Bistro",
+          "image": "https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
+          "rating": 5,
+          "text": "Unser Reservierungssystem ist jetzt nahtlos. Kunden erhalten sofortige Bestätigungen und wir können ihnen Sonderangebote senden. Der Umsatz stieg in nur 3 Monaten um 40%.",
+          "results": "40% Umsatzsteigerung"
+        },
+        {
+          "name": "Lisa Thompson",
+          "role": "Bildungskoordinatorin",
+          "company": "Bright Future Academy",
+          "image": "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
+          "rating": 5,
+          "text": "Das Elternengagement war noch nie besser. Wir können sofort Updates über ihre Kinder teilen und wichtige Schulankündigungen erreichen alle.",
+          "results": "90% Elternengagement-Rate"
+        }
+      ],
+      "navButtons": {
+        "previous": "Zurück",
+        "next": "Weiter"
+      },
+      "statsGrid": [
+        {
+          "number": "10.000+",
+          "label": "Zufriedene Kunden"
+        },
+        {
+          "number": "98%",
+          "label": "Zufriedenheitsrate"
+        },
+        {
+          "number": "5M+",
+          "label": "Gesendete Nachrichten"
+        },
+        {
+          "number": "24/7",
+          "label": "Support Verfügbar"
+        }
+      ]
+    },
+    "ctaSec": {
+      "introTagline": "Schließen Sie sich über 10.000 wachsenden Unternehmen an",
+      "headline": "Bereit, Ihr Geschäft mit WhatsApp-Marketing zu skalieren?",
+      "subHeadline": "Starten Sie heute Ihre kostenlose Testversion. Keine Kreditkarte erforderlich. Verbinden Sie Ihre Meta-API und beginnen Sie in unter 5 Minuten mit dem Versenden von Kampagnen.",
+      "buttons": {
+        "startTrial": "Kostenlose Testversion Starten",
+        "scheduleDemo": "Demo Planen"
+      },
+      "trustIndicators": [
+        {
+          "title": "Sofortige Einrichtung",
+          "desc": "In 5 Minuten loslegen"
+        },
+        {
+          "title": "Sicher & Konform",
+          "desc": "Sicherheit auf Unternehmensniveau"
+        },
+        {
+          "title": "24/7 Support",
+          "desc": "Immer für Sie da"
+        },
+        {
+          "title": "Für Immer Kostenlos",
+          "desc": "Keine versteckten Kosten"
+        }
+      ],
+      "stats": [
+        {
+          "number": "10.000+",
+          "label": "Aktive Benutzer"
+        },
+        {
+          "number": "98%",
+          "label": "Zustellrate"
+        },
+        {
+          "number": "5M+",
+          "label": "Gesendete Nachrichten"
+        },
+        {
+          "number": "24/7",
+          "label": "Support"
+        }
+      ]
+    },
+    "pricingSec": {
+      "introTagline": "Einfache, transparente Preise",
+      "headlinePre": "Wählen Sie Ihren",
+      "headlineHighlight": "perfekten Plan",
+      "subHeadline": "Starten Sie kostenlos und skalieren Sie mit Ihrem Wachstum. Alle Pläne umfassen Ihre eigene Meta-API-Integration und unbegrenzten Nachrichtenversand.",
+      "billingToggle": {
+        "monthly": "Monatlich",
+        "annual": "Jährlich",
+        "saveLabel": "20% sparen"
+      },
+      "planCTA": {
+        "freeButton": "Kostenlos starten",
+        "paidButton": "Kostenlose Testversion starten"
+      },
+      "pricing": {
+        "month": "Monat",
+        "year": "Jahr",
+        "upTo": "Bis zu",
+        "contacts": "Kontakte",
+        "channels": "WhatsApp-Kanäle",
+        "automation": "Automatisierung"
+      },
+      "loading": "Pläne werden geladen...",
+      "noPlans": {
+        "title": "Keine Pläne verfügbar",
+        "description": "Bitte schauen Sie später wieder vorbei für Preisoptionen."
+      },
+      "authRequired": {
+        "title": "Authentifizierung erforderlich",
+        "description": "Bitte melden Sie sich an, bevor Sie einen Plan kaufen"
+      },
+      "faq": {
+        "title": "Häufig gestellte Fragen",
+        "questions": [
+          {
+            "q": "Benötige ich meine eigene WhatsApp Business API?",
+            "a": "Ja, Sie müssen Ihre eigene Meta WhatsApp Business API mitbringen. Dies stellt sicher, dass Sie die volle Kontrolle über Ihre Daten und Nachrichten haben."
+          },
+          {
+            "q": "Gibt es eine Einrichtungsgebühr?",
+            "a": "Keine Einrichtungsgebühren! Sie können unsere Plattform sofort nach der Verbindung Ihrer API nutzen."
+          },
+          {
+            "q": "Kann ich Pläne jederzeit ändern?",
+            "a": "Absolut! Sie können Ihren Plan jederzeit upgraden oder downgraden. Änderungen werden sofort wirksam."
+          },
+          {
+            "q": "Was passiert, wenn ich mein Kontaktlimit überschreite?",
+            "a": "Wir benachrichtigen Sie, bevor Sie Ihr Limit erreichen. Sie können Ihren Plan upgraden oder zusätzliche Kontakte kaufen."
+          }
+        ]
+      },
+      "enterprise": {
+        "title": "Benötigen Sie eine maßgeschneiderte Lösung?",
+        "description": "Kontaktieren Sie unser Enterprise-Team für individuelle Preise, dedizierten Support und maßgeschneiderte Funktionen",
+        "button": "Vertrieb kontaktieren"
+      }
+    },
+    "footerSec": {
+      "newsletter": {
+        "heading": "Bleiben Sie mit WhatsApp-Marketing-Tipps auf dem Laufenden",
+        "description": "Erhalten Sie die neuesten Strategien, Fallstudien und Plattform-Updates in Ihrem Posteingang.",
+        "emailPlaceholder": "Geben Sie Ihre E-Mail-Adresse ein",
+        "subscribeButton": "Abonnieren"
+      },
+      "brandSection": {
+        "brandNames": [
+          "WPSaaS",
+          "Whatsway"
+        ],
+        "description": "Die leistungsstärkste WhatsApp-Marketing-Plattform. Skalieren Sie Ihr Geschäft mit automatisierten Kampagnen, erweiterten Analysen und nahtloser API-Integration."
+      },
+      "socialLinks": {
+        "twitter": "Twitter",
+        "linkedin": "LinkedIn",
+        "github": "GitHub",
+        "mail": "E-Mail"
+      },
+      "links": {
+        "product": [
+          "Funktionen",
+          "Wie es funktioniert",
+          "Anwendungsfälle",
+          "Preise",
+          "API-Dokumentation"
+        ],
+        "company": [
+          "Über uns",
+          "Kontakt",
+          "Karriere",
+          "Pressekit",
+          "Integrationen"
+        ],
+        "support": [
+          "Hilfecenter",
+          "Community",
+          "Status",
+          "Sicherheit"
+        ],
+        "resources": [
+          "Vorlagen",
+          "Fallstudien",
+          "WhatsApp-Leitfaden",
+          "Best Practices",
+          "ROI-Rechner"
+        ],
+        "legal": [
+          "Datenschutzrichtlinie",
+          "Nutzungsbedingungen",
+          "Cookie-Richtlinie",
+          "DSGVO"
+        ]
+      },
+      "bottomBar": {
+        "copyrightText": "© 2025 Whatsway. Alle Rechte vorbehalten.",
+        "termsLink": "Nutzungsbedingungen",
+        "privacyLink": "Datenschutzrichtlinie",
+        "cookieLink": "Cookie-Richtlinie"
+      }
     }
   },
-   "groups": {
+  "groups": {
     "title": "Gruppen",
     "subtitle": "Alle Gruppendetails und Verwaltung",
     "createButton": "Gruppe erstellen"
+  },
+  "users": {
+    "title": "المستخدمون",
+    "subtitle": "إدارة جميع المستخدمين المسجلين",
+    "search": {
+      "placeholder": "البحث باسم المستخدم أو البريد الإلكتروني...",
+      "button": "بحث",
+      "clear": "مسح"
+    },
+    "stats": {
+      "showing": "عرض",
+      "of": "من",
+      "users": "مستخدمين"
+    },
+    "table": {
+      "contact": "جهة الاتصال",
+      "phone": "الهاتف",
+      "groups": "المجموعات",
+      "status": "الحالة",
+      "lastLogin": "آخر تسجيل دخول",
+      "actions": "الإجراءات",
+      "noGroups": "لا توجد مجموعات"
+    },
+    "card": {
+      "phone": "الهاتف:",
+      "groups": "المجموعات:",
+      "status": "الحالة:",
+      "lastLogin": "آخر تسجيل دخول:"
+    },
+    "loading": "جاري تحميل المستخدمين...",
+    "noUsers": "لم يتم العثور على مستخدمين",
+    "lastLoginNever": "أبداً",
+    "phonePlaceholder": "—",
+    "actions": {
+      "blockUser": "حظر المستخدم",
+      "activateUser": "تفعيل المستخدم"
+    },
+    "pagination": {
+      "showing": "عرض",
+      "to": "إلى",
+      "of": "من",
+      "users": "مستخدمين",
+      "previous": "السابق",
+      "next": "التالي"
+    },
+    "toast": {
+      "success": "نجح",
+      "statusUpdated": "تم تحديث حالة المستخدم إلى",
+      "error": "خطأ",
+      "statusUpdateFailed": "فشل تحديث الحالة",
+      "fetchFailed": "فشل في جلب المستخدمين",
+      "somethingWrong": "حدث خطأ ما"
+    }
+  },
+  "notifications": {
+    "title": "Benachrichtigungen",
+    "subtitle": "Sende Benachrichtigungen an Benutzer, Admins oder dein Team.",
+    "refresh": "Aktualisieren",
+    "createNotification": "Benachrichtigung erstellen",
+    "stats": {
+      "totalSent": "Insgesamt gesendet",
+      "allNotifications": "Alle Benachrichtigungen",
+      "userTarget": "Ziel: Benutzer",
+      "usersOnly": "Nur Benutzer",
+      "adminTeam": "Admin / Team",
+      "staffNotifications": "Mitarbeiter-Benachrichtigungen"
+    },
+    "table": {
+      "title": "Alle Benachrichtigungen",
+      "total": "Gesamt",
+      "id": "ID",
+      "titleColumn": "Titel",
+      "message": "Nachricht",
+      "target": "Ziel",
+      "status": "Status",
+      "sentAt": "Gesendet am",
+      "action": "Aktion",
+      "send": "Senden",
+      "sent": "Gesendet"
+    },
+    "loading": "Benachrichtigungen werden geladen...",
+    "empty": {
+      "title": "Keine Benachrichtigungen gefunden",
+      "description": "Erstelle deine erste Benachrichtigung, um zu starten",
+      "button": "Benachrichtigung erstellen"
+    },
+    "card": {
+      "sentAt": "Gesendet am:"
+    },
+    "dialog": {
+      "title": "Benachrichtigung erstellen & senden",
+      "description": "Die Benachrichtigung wird sofort an die Empfänger gesendet.",
+      "titleLabel": "Titel",
+      "titlePlaceholder": "Benachrichtigungstitel eingeben",
+      "messageLabel": "Nachricht",
+      "messagePlaceholder": "Benachrichtigungsnachricht eingeben",
+      "targetLabel": "Zielgruppe",
+      "targetOptions": {
+        "all": "Alle Benutzer",
+        "users": "Nur Benutzer",
+        "admins": "Nur Admins",
+        "team": "Nur Team",
+        "specific": "Bestimmte Benutzer (IDs)"
+      },
+      "userIdsLabel": "Benutzer-IDs (kommagetrennt)",
+      "userIdsPlaceholder": "user1,user2,user3",
+      "cancel": "Abbrechen",
+      "sendNow": "Jetzt senden",
+      "sending": "Senden...",
+      "required": "*"
+    },
+    "toast": {
+      "error": "Fehler",
+      "errorLoading": "Fehler beim Laden der Benachrichtigungen",
+      "success": "Erfolg",
+      "notificationSent": "Benachrichtigung erfolgreich gesendet!",
+      "notificationSentShort": "Gesendet!",
+      "refreshing": "Aktualisieren",
+      "refreshingDesc": "Lade aktuelle Benachrichtigungen..."
+    },
+    "validation": {
+      "titleRequired": "Titel ist erforderlich",
+      "messageRequired": "Nachricht ist erforderlich"
+    }
+  },
+  "plans": {
+    "title": "Preispläne",
+    "subtitle": "Erstelle und verwalte deine Preispläne",
+    "stats": {
+      "totalPlans": "Gesamt-Pläne",
+      "featured": "Hervorgehoben",
+      "active": "Aktiv",
+      "billing": "Abrechnung",
+      "annual": "Jährlich",
+      "monthly": "Monatlich"
+    },
+    "billingToggle": {
+      "monthly": "Monatlich",
+      "annual": "Jährlich",
+      "discount": "-20%"
+    },
+    "buttons": {
+      "createPlan": "Plan erstellen",
+      "cancel": "Abbrechen",
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "save": "Speichern",
+      "updatePlan": "Plan aktualisieren",
+      "addFeature": "Feature hinzufügen",
+      "getStartedFree": "Kostenlos starten",
+      "startFreeTrial": "Kostenlose Testversion starten"
+    },
+    "form": {
+      "createTitle": "Neuen Plan erstellen",
+      "editTitle": "Plan bearbeiten",
+      "planName": "Planname *",
+      "planNamePlaceholder": "z.B. Professional",
+      "icon": "Symbol",
+      "iconOptions": {
+        "zap": "⚡ Blitz",
+        "crown": "👑 Krone",
+        "rocket": "🚀 Rakete",
+        "star": "⭐ Stern"
+      },
+      "description": "Beschreibung",
+      "descriptionPlaceholder": "Perfekt für wachsende Teams...",
+      "monthlyPrice": "Monatlicher Preis",
+      "monthlyPricePlaceholder": "29.99",
+      "annualPrice": "Jährlicher Preis",
+      "annualPricePlaceholder": "299.99",
+      "badgeText": "Badge-Text",
+      "badgePlaceholder": "Am beliebtesten",
+      "borderColor": "Rahmenfarbe",
+      "borderOptions": {
+        "gray": "Standard-Grau",
+        "blue": "Blau",
+        "purple": "Lila",
+        "green": "Grün",
+        "pink": "Pink"
+      },
+      "permissions": {
+        "channels": "Kanäle",
+        "channelsPlaceholder": "5",
+        "contacts": "Kontakte",
+        "contactsPlaceholder": "10.000",
+        "automation": "Automatisierung",
+        "automationPlaceholder": "Erweitert",
+        "campaign": "Kampagne",
+        "campaignPlaceholder": "Erweitert"
+      },
+      "popularToggle": "Als beliebten Plan markieren",
+      "features": "Features",
+      "featureName": "Feature-Name",
+      "featureIncluded": "Enthalten",
+      "noFeatures": "Noch keine Features hinzugefügt"
+    },
+    "empty": {
+      "title": "Noch keine Pläne erstellt",
+      "description": "Beginne mit der Erstellung deines ersten Preisplans",
+      "button": "Erstelle deinen ersten Plan"
+    },
+    "card": {
+      "perMonth": "Monat",
+      "perYear": "Jahr"
+    },
+    "toast": {
+      "authRequired": "Authentifizierung erforderlich",
+      "authRequiredDesc": "Bitte melde dich an, bevor du einen Plan kaufst",
+      "error": "Fehler",
+      "fetchError": "Fehler beim Laden der Pläne",
+      "planCreated": "Plan erstellt",
+      "planCreatedDesc": "Dein Plan wurde erfolgreich erstellt.",
+      "planUpdated": "Plan aktualisiert",
+      "planUpdatedDesc": "Dein Plan wurde erfolgreich aktualisiert.",
+      "saveError": "Fehler beim Speichern des Plans",
+      "planDeleted": "Plan gelöscht",
+      "planDeletedDesc": "Der Plan wurde erfolgreich gelöscht.",
+      "deleteError": "Fehler beim Löschen des Plans",
+      "deleteConfirm": "Bist du sicher, dass du diesen Plan löschen möchtest?"
+    }
+  },
+  "transactions": {
+    "title": "Transaktionen",
+    "subtitle": "Verwalte und überwache alle Zahlungstransaktionen",
+    "stats": {
+      "totalRevenue": "Gesamtumsatz",
+      "completed": "Abgeschlossen",
+      "pending": "Ausstehend",
+      "failed": "Fehlgeschlagen"
+    },
+    "search": {
+      "placeholder": "Transaktionen durchsuchen...",
+      "filters": "Filter",
+      "export": "Exportieren"
+    },
+    "filters": {
+      "title": "Erweiterte Filter",
+      "status": "Status",
+      "allStatuses": "Alle Status",
+      "statusOptions": {
+        "pending": "Ausstehend",
+        "completed": "Abgeschlossen",
+        "failed": "Fehlgeschlagen",
+        "refunded": "Erstattet",
+        "cancelled": "Storniert"
+      },
+      "paymentMethod": "Zahlungsmethode",
+      "allMethods": "Alle Methoden",
+      "paymentOptions": {
+        "card": "Karte",
+        "upi": "UPI",
+        "wallet": "Wallet",
+        "netbanking": "Online-Banking"
+      },
+      "billingCycle": "Abrechnungszyklus",
+      "allCycles": "Alle Zyklen",
+      "cycleOptions": {
+        "monthly": "Monatlich",
+        "annual": "Jährlich"
+      },
+      "startDate": "Startdatum",
+      "endDate": "Enddatum",
+      "minAmount": "Mindestbetrag",
+      "minAmountPlaceholder": "0.00",
+      "maxAmount": "Höchstbetrag",
+      "maxAmountPlaceholder": "0.00",
+      "clearFilters": "Filter löschen"
+    },
+    "table": {
+      "transactionId": "Transaktions-ID",
+      "user": "Benutzer",
+      "plan": "Plan",
+      "amount": "Betrag",
+      "status": "Status",
+      "paymentBy": "Bezahlt mit",
+      "date": "Datum"
+    },
+    "card": {
+      "user": "Benutzer:",
+      "plan": "Plan:",
+      "cycle": "Zyklus:",
+      "amount": "Betrag:",
+      "payment": "Zahlung:",
+      "date": "Datum:"
+    },
+    "status": {
+      "completed": "abgeschlossen",
+      "failed": "fehlgeschlagen",
+      "pending": "ausstehend",
+      "refunded": "erstattet",
+      "cancelled": "storniert"
+    },
+    "loading": "Transaktionen werden geladen...",
+    "empty": {
+      "title": "Keine Transaktionen gefunden",
+      "description": "Versuche die Filter anzupassen"
+    },
+    "pagination": {
+      "showing": "Anzeige",
+      "to": "bis",
+      "of": "von",
+      "perPage": "/Seite",
+      "previous": "Zurück",
+      "next": "Weiter"
+    }
+  },
+  "support": {
+    "title": "Support-Tickets",
+    "subtitleAdmin": "Alle Support-Tickets von Benutzern und Zuhörern verwalten",
+    "subtitleUser": "Ihre Support-Tickets anzeigen und verwalten",
+    "createTicket": "Ticket erstellen",
+    "stats": {
+      "totalTickets": "Gesamt-Tickets",
+      "openTickets": "Offene Tickets",
+      "inProgress": "In Bearbeitung",
+      "resolved": "Gelöst"
+    },
+    "search": {
+      "placeholder": "Tickets durchsuchen...",
+      "allStatus": "Alle Status",
+      "allPriority": "Alle Prioritäten",
+      "status": {
+        "open": "Offen",
+        "inProgress": "In Bearbeitung",
+        "resolved": "Gelöst",
+        "closed": "Geschlossen"
+      },
+      "priority": {
+        "low": "Niedrig",
+        "medium": "Mittel",
+        "high": "Hoch",
+        "urgent": "Dringend"
+      }
+    },
+    "ticket": {
+      "updated": "Aktualisiert",
+      "creator": "Ersteller:",
+      "contact": "Kontakt:",
+      "details": "Details:",
+      "status": "Status",
+      "priority": "Priorität",
+      "assignTo": "Zuweisen an",
+      "unassigned": "Nicht zugewiesen",
+      "description": "Beschreibung:",
+      "conversation": "Konversation",
+      "noMessages": "Noch keine Nachrichten",
+      "internal": "Intern",
+      "typeReply": "Ihre Antwort eingeben...",
+      "internalNote": "Interne Notiz (nicht sichtbar für",
+      "resolveTicket": "Ticket lösen"
+    },
+    "creatorType": {
+      "user": "Benutzer",
+      "admin": "Admin",
+      "superadmin": "Super Admin",
+      "listener": "Zuhörer"
+    },
+    "empty": {
+      "noTickets": "Keine Tickets gefunden",
+      "adjustFilters": "Versuche deine Such- oder Filterkriterien anzupassen",
+      "allResolved": "Alle Support-Tickets wurden gelöst!",
+      "noSelection": "Kein Ticket ausgewählt",
+      "selectTicket": "Wähle ein Ticket aus der Liste, um Details anzuzeigen und zu antworten"
+    },
+    "loading": "Tickets werden geladen...",
+    "pagination": {
+      "page": "Seite",
+      "of": "von",
+      "previous": "Zurück",
+      "next": "Weiter"
+    }
+  },
+  "gateway": {
+    "title": "Gateway-Einstellungen",
+    "subtitle": "Zahlungs-Gateway für Ihre Anwendung konfigurieren",
+    "loading": "Lädt...",
+    "stats": {
+      "activeProvider": "Aktiver Anbieter",
+      "none": "Keine",
+      "provider": "Anbieter",
+      "environment": "Umgebung",
+      "live": "Live",
+      "test": "Test",
+      "status": "Status",
+      "active": "Aktiv",
+      "inactive": "Inaktiv"
+    },
+    "card": {
+      "title": "Zahlungs-Gateway Konfiguration",
+      "configured": "Konfiguriert"
+    },
+    "form": {
+      "providerLabel": "Zahlungsanbieter *",
+      "selectProvider": "Anbieter auswählen",
+      "razorpay": "Razorpay",
+      "stripe": "Stripe",
+      "environmentLabel": "Umgebungsmodus *",
+      "testMode": "Testmodus",
+      "liveMode": "Live-Modus",
+      "testModeSafe": "Testmodus ist sicher für Entwicklung und Tests",
+      "liveModeWarning": "⚠️ Live-Modus verarbeitet echte Zahlungen",
+      "testCredentials": "Test-Zugangsdaten",
+      "liveCredentials": "Live-Zugangsdaten",
+      "testApiKey": "Test-API-Schlüssel *",
+      "testApiKeyPlaceholderRazorpay": "rzp_test_xxxxxxxxxxxxx",
+      "testApiKeyPlaceholderStripe": "pk_test_xxxxxxxxxxxxx",
+      "testApiSecret": "Test-API-Secret *",
+      "testApiSecretPlaceholder": "Test-Secret-Key eingeben",
+      "liveApiKey": "Live-API-Schlüssel *",
+      "liveApiKeyPlaceholderRazorpay": "rzp_live_xxxxxxxxxxxxx",
+      "liveApiKeyPlaceholderStripe": "pk_live_xxxxxxxxxxxxx",
+      "liveApiSecret": "Live-API-Secret *",
+      "liveApiSecretPlaceholder": "Live-Secret-Key eingeben",
+      "enableGateway": "Zahlungs-Gateway aktivieren",
+      "enableGatewayDesc": "Zahlungsverarbeitung für Ihre Anwendung aktivieren",
+      "saving": "Speichern...",
+      "updateSettings": "Einstellungen aktualisieren",
+      "saveSettings": "Einstellungen speichern"
+    },
+    "razorpay": {
+      "title": "Razorpay-Konfiguration",
+      "description": "Holen Sie sich Ihre Razorpay-Zugangsdaten vom Razorpay-Dashboard. Sie benötigen sowohl Test- als auch Live-Zugangsdaten.",
+      "testKeyInfo": "Test-Schlüssel beginnen mit",
+      "liveKeyInfo": "Live-Schlüssel beginnen mit",
+      "getKeys": "Razorpay API-Schlüssel erhalten →"
+    },
+    "stripe": {
+      "title": "Stripe-Konfiguration",
+      "description": "Holen Sie sich Ihre Stripe-Zugangsdaten vom Stripe-Dashboard. Sie benötigen sowohl Test- als auch Live-Zugangsdaten.",
+      "testKeyInfo": "Test-Schlüssel beginnen mit",
+      "testKeyInfoOr": "oder",
+      "liveKeyInfo": "Live-Schlüssel beginnen mit",
+      "liveKeyInfoOr": "oder",
+      "getKeys": "Stripe API-Schlüssel erhalten →"
+    },
+    "toast": {
+      "updated": "Zahlungs-Gateway aktualisiert",
+      "created": "Zahlungs-Gateway erstellt",
+      "successDesc": "Zahlungsanbieter-Einstellungen wurden erfolgreich gespeichert.",
+      "error": "Fehler",
+      "errorDesc": "Fehler beim Speichern des Anbieters"
+    },
+    "validation": {
+      "providerRequired": "Zahlungsanbieter ist erforderlich",
+      "apiKeyRequired": "Live-API-Schlüssel ist erforderlich",
+      "apiSecretRequired": "Live-API-Secret ist erforderlich",
+      "testApiKeyRequired": "Test-API-Schlüssel ist erforderlich",
+      "testApiSecretRequired": "Test-API-Secret ist erforderlich"
+    }
+  },
+  "subscriptions": {
+    "title": "Master-Abonnements",
+    "subtitle": "Alle Abonnements verwalten",
+    "allSubscriptions": "Alle Abonnements",
+    "totalSubscriptions": "Gesamt",
+    "subscription": "Abonnement",
+    "subscriptions": "Abonnements",
+    "loading": "Abonnements werden geladen...",
+    "error": {
+      "title": "Fehler beim Laden der Daten",
+      "message": "Abonnements konnten nicht geladen werden"
+    },
+    "table": {
+      "username": "Benutzername",
+      "plan": "Plan",
+      "price": "Preis",
+      "status": "Status",
+      "startDate": "Startdatum",
+      "endDate": "Enddatum",
+      "autoRenew": "Auto-Verlängerung",
+      "yes": "Ja",
+      "no": "Nein"
+    },
+    "card": {
+      "price": "Preis:",
+      "startDate": "Startdatum:",
+      "endDate": "Enddatum:",
+      "autoRenew": "Auto-Verlängerung:"
+    },
+    "pagination": {
+      "showing": "Anzeige",
+      "to": "bis",
+      "of": "von",
+      "perPage": "pro Seite",
+      "previous": "Zurück",
+      "next": "Weiter",
+      "page": "Seite",
+      "pageOf": "von"
+    }
+  },
+  "support_tickets": {
+    "headTitle": "Support-Tickets",
+    "headTitleAdmin": "Alle Support-Tickets von Benutzern und Zuhörern verwalten",
+    "headTitleuser": "Ihre Support-Tickets anzeigen und verwalten"
+  },
+  "messageLog": {
+    "headerTitle": "Nachrichtenprotokolle",
+    "headerSubTitle": "Alle gesendeten Nachrichten und deren Zustellungsstatus verfolgen",
+    "messageHis": {
+      "title": "Nachrichtenverlauf",
+      "subtitle": "Detaillierte Protokolle aller Nachrichten anzeigen"
+    },
+    "Refresh": "Aktualisieren"
+  },
+  "billing_subscription": {
+    "title": "Abrechnung & Abonnement",
+    "subtitle": "Verwalten Sie Ihr Abonnement, Ihre Guthaben und Abrechnung",
+    "loading": "Abonnements werden geladen...",
+    "noSubscription": {
+      "title": "Kein aktives Abonnement",
+      "description": "Sie haben derzeit kein aktives Abonnement.",
+      "upgradePlan": "Plan upgraden"
+    },
+    "card": {
+      "billing": "Abrechnung:",
+      "starts": "Beginnt:",
+      "renews": "Erneuert:",
+      "pricing": "Preisgestaltung",
+      "monthly": "Monatlich:",
+      "annual": "Jährlich:",
+      "details": "Details",
+      "features": "Funktionen"
+    }
   }
-
 }

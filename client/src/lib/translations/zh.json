@@ -36,9 +36,9 @@
     "logout": "退出登录",
     "profile": "个人资料",
     "settings": "设置",
-    "active":"活跃",
-    "aiAssistant":"人工智能助手",
-    "myAccount":"我的账户"
+    "active": "活跃",
+    "aiAssistant": "人工智能助手",
+    "myAccount": "我的账户"
   },
   "auth": {
     "login": "登录",
@@ -63,16 +63,21 @@
     "analytics": "分析",
     "settings": "设置",
     "team": "团队",
-    "channels": "渠道",
+    "groups": "群组",
+    "channels": "频道",
+    "webhooks": "Webhooks",
     "account": "账户",
     "chatbotBuilder": "聊天机器人构建器",
     "widgetBuilder": "小部件构建器",
-    "website": "网站"
+    "website": "网站",
+    "tickets_support": "工单支持",
+    "plan-upgrade": "升级计划",
+    "billing": "账单和积分"
   },
-  "widget":{
-    "title":"小部件构建器",
-    "subtitle":"为您的网站创建自定义 WhatsApp 聊天小部件"
-    },
+  "widget": {
+    "title": "小部件构建器",
+    "subtitle": "为您的网站创建自定义 WhatsApp 聊天小部件"
+  },
   "dashboard": {
     "uploadCSV": "上传 CSV",
     "createAutomation": "创建自动化",
@@ -135,22 +140,21 @@
     "apiUptime": "API 正常运行时间",
     "avgResponse": "平均响应时间",
     "dailyMessageLimit": "每日消息限制",
-     "totalCampaigns": "总活动",
-     "textLead": "新线索",
-      "apiStatusText": "已批准",
-       "apiStatusUpTime": "API 正常运行时间",
-       "healthDetails": "健康详情",
+    "totalCampaigns": "总活动",
+    "textLead": "新线索",
+    "apiStatusText": "已批准",
+    "apiStatusUpTime": "API 正常运行时间",
+    "healthDetails": "健康详情",
     "apiStatus": "状态",
     "dashboardStates": {
-   "Total_Contacts": "总联系人",
-   "Total_Channels": "总渠道",
-   "Total_Messages": "总消息",
-   "Total_Users": "总用户",
-   "Total_Campaigns": "总活动",
-   "Total_Signups": "总注册",
-   "Total_Templates": "总模板"
-}
-
+      "Total_Contacts": "总联系人",
+      "Total_Channels": "总渠道",
+      "Total_Messages": "总消息",
+      "Total_Users": "总用户",
+      "Total_Campaigns": "总活动",
+      "Total_Signups": "总注册",
+      "Total_Templates": "总模板"
+    }
   },
   "contacts": {
     "contact": "联系人",
@@ -276,7 +280,7 @@
       "description": "更新联系人信息",
       "successTitle": "联系人已更新",
       "updating": "正在更新...",
-      "groupsPlaceholder":"输入以逗号分隔的群组",
+      "groupsPlaceholder": "输入以逗号分隔的群组",
       "successDesc": "联系人已成功更新。"
     },
     "createGroup": {
@@ -451,9 +455,9 @@
     "create_auto": "创建自动化",
     "Subtitle": "创建自动工作流程以与您的客户互动",
     "empityAuto": {
-        "title": "尚无自动化",
-        "Subtitle": "创建第一个自动化并开始自动与客户互动",
-        "buttonTitle": "创建您的第一个自动化"
+      "title": "尚无自动化",
+      "Subtitle": "创建第一个自动化并开始自动与客户互动",
+      "buttonTitle": "创建您的第一个自动化"
     },
     "createAutomation": "创建自动化",
     "automationName": "自动化名称",
@@ -490,8 +494,7 @@
     "tagAdded": "标签已添加",
     "flowCompleted": "流程完成",
     "flowFailed": "流程失败"
-}
-,
+  },
   "messageLogs": {
     "title": "消息日志",
     "messageId": "消息 ID",
@@ -523,8 +526,7 @@
     "addMember": "添加团队成员",
     "manage_Team": "管理团队成员及其访问权限",
     "Activity_LogsTitle": "活动日志",
-"Activity_LogsDes": "跟踪团队成员的活动"
-,
+    "Activity_LogsDes": "跟踪团队成员的活动",
     "editMember": "编辑成员",
     "deleteMember": "删除成员",
     "firstName": "名字",
@@ -553,15 +555,15 @@
   },
   "settings": {
     "title": "设置",
-    "general": "通用",
-    "channels": "渠道",
+    "general": "常规",
+    "channels": "频道",
     "webhooks": "Webhooks",
     "apiKeys": "API 密钥",
     "account": "账户",
     "billing": "账单",
     "notifications": "通知",
     "security": "安全",
-    "channelName": "渠道名称",
+    "channelName": "频道名称",
     "phoneNumber": "电话号码",
     "accessToken": "访问令牌",
     "webhookUrl": "Webhook URL",
@@ -572,12 +574,12 @@
     "revokeApiKey": "撤销 API 密钥",
     "apiKeyName": "API 密钥名称",
     "createdAt": "创建于",
-    "lastUsed": "上次使用",
+    "lastUsed": "最后使用",
     "changePassword": "更改密码",
-    "twoFactorAuth": "双重身份验证",
+    "twoFactorAuth": "双因素认证",
     "enable": "启用",
     "disable": "禁用",
-    "emailNotifications": "电子邮件通知",
+    "emailNotifications": "邮件通知",
     "smsNotifications": "短信通知",
     "webhookNotifications": "Webhook 通知",
     "language": "语言",
@@ -585,7 +587,324 @@
     "dateFormat": "日期格式",
     "theme": "主题",
     "light": "浅色",
-    "dark": "深色"
+    "dark": "深色",
+    "headTitle": "设置",
+    "subTitle": "管理您的 WhatsApp 商业配置",
+    "general_setting": {
+      "tabName": "常规设置",
+      "title": "常规配置",
+      "description": "管理您应用程序的品牌标识和外观",
+      "loadingText": "正在加载设置...",
+      "connectionIssueTitle": "连接问题",
+      "connectionIssueDesc": "请检查您的连接并重试。",
+      "refreshedTitle": "已刷新",
+      "refreshedDesc": "设置已成功刷新。",
+      "refreshFailedTitle": "刷新失败",
+      "refreshFailedDesc": "无法刷新设置。请重试。",
+      "connectionErrorTitle": "连接错误",
+      "connectionErrorDesc": "无法从服务器加载设置。显示示例数据。请检查您的连接并尝试刷新。",
+      "offline": "离线",
+      "online": "在线",
+      "refreshing": "正在刷新...",
+      "refresh": "刷新",
+      "editSettings": "编辑设置",
+      "brandIdentity": "品牌标识",
+      "dataTypeSample": "示例数据",
+      "dataTypeLive": "实时数据",
+      "dataTypeLabel": "数据类型：",
+      "unknownTime": "未知",
+      "justNow": "刚刚",
+      "minuteAgo": "分钟前",
+      "minutesAgo": "分钟前",
+      "hourAgo": "小时前",
+      "hoursAgo": "小时前",
+      "applicationTitle": "应用程序标题",
+      "notConfigured": "未配置",
+      "applicationTitleHelper": "点击编辑设置以配置您的应用标题",
+      "tagline": "标语",
+      "taglineHelper": "为您的品牌添加引人注目的标语",
+      "logo": "徽标",
+      "logoUploaded": "徽标已上传",
+      "logoHelper": "徽标已准备好显示",
+      "logoMissing": "未上传徽标",
+      "logoMissingHelper": "上传徽标以增强您的品牌",
+      "favicon": "网站图标",
+      "faviconUploaded": "网站图标已上传",
+      "faviconHelper": "网站图标将出现在浏览器标签中",
+      "faviconMissing": "未上传网站图标",
+      "faviconMissingHelper": "添加网站图标作为浏览器标签图标",
+      "country": "国家",
+      "countryHelper": "为您的品牌添加引人注目的国家",
+      "currency": "货币",
+      "currencyHelper": "为您的品牌添加引人注目的货币",
+      "configurationStatusLabel": "配置状态：",
+      "configurationStatusComplete": "完成",
+      "configurationStatusPartial": "部分",
+      "configurationStatusIncomplete": "未完成",
+      "lastUpdated": "最后更新",
+      "brandPreviewTitle": "品牌预览",
+      "brandPreviewDesc": "您的品牌在应用程序中的显示方式",
+      "brandLogoAlt": "品牌徽标",
+      "logoAlt": "徽标",
+      "faviconAlt": "网站图标"
+    },
+    "storage_setting": {
+      "tabName": "存储设置",
+      "title": "存储配置",
+      "description": "管理您的文件存储集成和凭证",
+      "loadingText": "正在加载存储配置...",
+      "connectionIssueTitle": "连接问题",
+      "connectionIssueDesc": "请检查您的连接并重试。",
+      "refreshedTitle": "已刷新",
+      "refreshedDesc": "存储配置已成功刷新。",
+      "refreshFailedTitle": "刷新失败",
+      "refreshFailedDesc": "无法刷新存储设置。",
+      "connectionErrorTitle": "连接错误",
+      "connectionErrorDesc": "无法从服务器加载存储设置。显示缓存数据。",
+      "offline": "离线",
+      "online": "在线",
+      "refreshing": "正在刷新...",
+      "refresh": "刷新",
+      "editStorage": "编辑存储",
+      "storageDetails": "存储详情",
+      "active": "活跃",
+      "inactive": "不活跃",
+      "unknownTime": "未知",
+      "justNow": "刚刚",
+      "minuteAgo": "分钟前",
+      "minutesAgo": "分钟前",
+      "hourAgo": "小时前",
+      "hoursAgo": "小时前",
+      "spaceName": "空间名称",
+      "spaceNamePlaceholder": "未配置",
+      "endpoint": "端点",
+      "endpointPlaceholder": "未提供端点",
+      "region": "区域",
+      "regionPlaceholder": "未指定",
+      "accessKey": "访问密钥",
+      "accessKeyPlaceholder": "未配置",
+      "accessKeyMasked": "********",
+      "secretKey": "密钥",
+      "secretKeyPlaceholder": "未配置",
+      "secretKeyMasked": "********",
+      "configurationStatusLabel": "配置状态：",
+      "configurationStatusComplete": "完成",
+      "configurationStatusPartial": "部分",
+      "configurationStatusIncomplete": "未完成",
+      "lastUpdated": "最后更新"
+    },
+    "ai_setting": {
+      "tabName": "AI 设置",
+      "title": "AI 配置",
+      "description": "管理您的 AI 模型提供商、凭证和运行时参数。",
+      "loadingText": "正在加载 AI 配置...",
+      "loadingError": "加载 AI 设置失败。",
+      "refreshedTitle": "已刷新",
+      "refreshedDesc": "AI 配置已成功刷新。",
+      "refreshFailedTitle": "刷新失败",
+      "refreshFailedDesc": "无法刷新 AI 设置。",
+      "active": "活跃",
+      "inactive": "不活跃",
+      "refreshing": "正在刷新...",
+      "refresh": "刷新",
+      "edit": "编辑",
+      "provider": "提供商",
+      "providerPlaceholder": "未设置",
+      "apiKey": "API 密钥",
+      "apiKeyMasked": "***************",
+      "apiKeyPlaceholder": "未配置",
+      "model": "模型",
+      "modelPlaceholder": "未设置",
+      "endpoint": "端点",
+      "endpointPlaceholder": "未设置",
+      "temperature": "温度",
+      "temperaturePlaceholder": "未设置",
+      "maxTokens": "最大令牌数",
+      "maxTokensPlaceholder": "未设置",
+      "triggerWords": "触发词",
+      "triggerWordsPlaceholder": "未定义触发词",
+      "notSet": "未设置"
+    },
+    "channel_setting": {
+      "tabName": "频道设置",
+      "title": "WhatsApp 频道",
+      "description": "为 Cloud API 和 MM Lite 配置您的 WhatsApp 商业 API 频道",
+      "addChannel": "添加频道",
+      "noChannels": "尚未配置 WhatsApp 频道",
+      "addFirstChannel": "添加您的第一个频道",
+      "active": "活跃",
+      "mmLite": "MM Lite",
+      "phone": "电话：",
+      "phoneNumberId": "电话号码 ID：",
+      "businessAccountId": "商业账户 ID：",
+      "notSet": "未设置",
+      "channelHealth": "频道健康状况",
+      "test": "测试",
+      "edit": "编辑",
+      "delete": "删除",
+      "channelDeleted": "频道已删除",
+      "channelDeletedDesc": "频道已成功移除。",
+      "error": "错误",
+      "deleteConfirm": "您确定要删除此频道吗？",
+      "checkingHealth": "正在检查健康状况...",
+      "verifyingConnection": "正在验证频道连接和状态",
+      "channelHealthy": "频道健康",
+      "channelHealthyDesc": "WhatsApp 频道运行正常",
+      "channelWarnings": "频道有警告",
+      "channelWarningsDesc": "查看健康详情以获取更多信息",
+      "channelIssues": "频道有问题",
+      "channelIssuesDesc": "频道需要关注",
+      "healthCheckFailed": "健康检查失败",
+      "healthCheckFailedDesc": "无法验证频道状态",
+      "healthStatus": {
+        "healthy": "健康",
+        "warning": "警告",
+        "error": "错误",
+        "unknown": "未知"
+      },
+      "healthDetails": {
+        "accountMode": "账户模式",
+        "qualityRating": "质量评级",
+        "messagingLimit": "消息限制",
+        "throughput": "吞吐量",
+        "verification": "验证",
+        "nameStatus": "名称状态",
+        "errorLabel": "错误：",
+        "errorCode": "错误代码：",
+        "errorType": "错误类型："
+      },
+      "lastChecked": "最后检查：",
+      "refresh": "刷新"
+    },
+    "webhook_setting": {
+      "tabName": "Webhook 设置",
+      "title": "Webhook 配置",
+      "description": "配置 webhooks 以接收实时 WhatsApp 事件",
+      "refresh": "刷新",
+      "configureWebhook": "配置 Webhook",
+      "noWebhooks": "尚未配置 webhooks",
+      "configureFirst": "配置您的第一个 Webhook",
+      "channelWebhook": "频道 Webhook",
+      "globalWebhook": "全局 Webhook",
+      "webhookUrl": "Webhook URL：",
+      "events": "事件：",
+      "lastEvent": "最后事件：",
+      "test": "测试",
+      "edit": "编辑",
+      "delete": "删除",
+      "webhookDeleted": "Webhook 已删除",
+      "webhookDeletedDesc": "webhook 配置已移除。",
+      "error": "错误",
+      "deleteConfirm": "您确定要删除此 webhook 配置吗？",
+      "testSent": "测试 webhook 已发送",
+      "testSentDesc": "请检查您的 webhook 端点以获取测试消息。",
+      "testFailed": "测试失败",
+      "copied": "已复制！",
+      "copiedDesc": "Webhook URL 已复制到剪贴板",
+      "status": {
+        "noEvents": "未收到事件",
+        "active": "活跃",
+        "inactive": "不活跃"
+      },
+      "howItWorks": {
+        "title": "Webhooks 如何工作",
+        "description": "了解 WhatsApp 商业 API 的 webhook 流程"
+      },
+      "setupInstructions": {
+        "title": "设置说明",
+        "step1": {
+          "title": "1. 在 Meta 应用中配置 Webhook",
+          "description": "转到您的 Meta 应用仪表板 → WhatsApp → 配置 → Webhook"
+        },
+        "step2": {
+          "title": "2. 设置 Webhook URL",
+          "description": "从上面复制 webhook URL 并粘贴到 Meta 应用 webhook URL 字段中"
+        },
+        "step3": {
+          "title": "3. 输入验证令牌",
+          "description": "使用您的 webhook 配置中显示的验证令牌"
+        },
+        "step4": {
+          "title": "4. 订阅事件",
+          "description": "订阅 messages、message_status 和其他必需的 webhook 字段"
+        }
+      }
+    },
+    "api_key_setting": {
+      "tabName": "API 密钥设置",
+      "title": "API 密钥",
+      "description": "管理用于与外部系统集成的 API 密钥",
+      "createApiKey": "创建 API 密钥",
+      "noApiKeys": "尚未创建 API 密钥",
+      "createFirst": "创建您的第一个 API 密钥",
+      "active": "活跃",
+      "revoked": "已撤销",
+      "created": "创建于：",
+      "lastUsed": "最后使用：",
+      "revoke": "撤销",
+      "apiKeyCreated": "API 密钥已创建",
+      "apiKeyCreatedDesc": "您的新 API 密钥已创建。请确保现在复制它，因为它不会再次显示。",
+      "error": "错误",
+      "apiKeyRevoked": "API 密钥已撤销",
+      "apiKeyRevokedDesc": "API 密钥已被撤销，无法再使用。",
+      "revokeConfirm": "您确定要撤销此 API 密钥吗？此操作无法撤消。",
+      "copied": "已复制！",
+      "copiedDesc": "API 密钥已复制到剪贴板",
+      "nameRequired": "需要名称",
+      "nameRequiredDesc": "请输入 API 密钥的名称",
+      "createForm": {
+        "title": "创建新的 API 密钥",
+        "keyName": "密钥名称",
+        "keyNamePlaceholder": "生产 API 密钥",
+        "keyNameHelper": "用于识别此 API 密钥的描述性名称",
+        "creating": "正在创建...",
+        "createKey": "创建密钥",
+        "cancel": "取消"
+      },
+      "documentation": {
+        "title": "API 文档",
+        "description": "学习如何使用 WhatsWay API",
+        "baseUrl": "基础 URL",
+        "authentication": "认证",
+        "authDesc": "在授权标头中包含您的 API 密钥：",
+        "exampleRequest": "示例请求",
+        "viewDocs": "查看完整文档"
+      }
+    },
+    "firebase": {
+      "tabName": "Firebase 设置",
+      "title": "Firebase 设置",
+      "description": "管理用于身份验证和推送通知的 Firebase 配置。",
+      "editButton": "编辑",
+      "loading": "加载中...",
+      "fields": {
+        "apiKey": "API 密钥",
+        "authDomain": "认证域",
+        "projectId": "项目 ID",
+        "storageBucket": "存储桶",
+        "messagingSenderId": "消息发送者 ID",
+        "appId": "应用 ID",
+        "measurementId": "计量 ID",
+        "privateKey": "私钥",
+        "clientEmail": "客户端邮箱",
+        "vapidKey": "Vapid 密钥"
+      },
+      "notConfigured": "未配置",
+      "status": {
+        "active": "Firebase 配置已激活",
+        "notFound": "未找到 Firebase 设置"
+      },
+      "modal": {
+        "title": "更新 Firebase 设置",
+        "cancel": "取消",
+        "save": "保存"
+      },
+      "toast": {
+        "success": "Firebase 设置保存成功！",
+        "error": "错误",
+        "errorDescription": "保存 Firebase 设置失败"
+      }
+    }
   },
   "errors": {
     "genericError": "发生了一些错误",
@@ -637,69 +956,1195 @@
     "time_range": "时间范围",
     "MessagesTab": "消息",
     "OverviewTab": {
-        "title": "概述",
-        "last": "最近",
-        "days": "天",
-        "Total_Messages": "消息总数",
-        "Delivery": "投递率",
-        "read_rate": "阅读率",
-        "reply_rate": "回复率",
-        "Failure_rate": "失败率",
-        "managePer": "消息性能趋势",
-        "Summary": "摘要",
-        "Active_Campaigns": "活跃活动",
-        "Total_Campaigns": "总活动",
-        "Unique_Contacts": "唯一联系人",
-        "Total_Recipients": "总接收者"
+      "title": "概述",
+      "last": "最近",
+      "days": "天",
+      "Total_Messages": "消息总数",
+      "Delivery": "投递率",
+      "read_rate": "阅读率",
+      "reply_rate": "回复率",
+      "Failure_rate": "失败率",
+      "managePer": "消息性能趋势",
+      "Summary": "摘要",
+      "Active_Campaigns": "活跃活动",
+      "Total_Campaigns": "总活动",
+      "Unique_Contacts": "唯一联系人",
+      "Total_Recipients": "总接收者"
     },
     "messageTab": {
-        "title": "消息",
-        "Outbound_Messages": "发送消息",
-        "Inbound_Messages": "接收消息",
-        "Average_Response": "平均响应时间",
-        "Message_Activity": "按小时的消息活动"
+      "title": "消息",
+      "Outbound_Messages": "发送消息",
+      "Inbound_Messages": "接收消息",
+      "Average_Response": "平均响应时间",
+      "Message_Activity": "按小时的消息活动"
     },
     "CampaignsTab": {
-        "title": "活动",
-        "Total_Sent": "发送总数",
-        "Total_Delivered": "成功发送总数",
-        "Total_Read": "已读总数",
-        "Total_Failed": "失败总数",
-        "Campaign_Performance": "活动表现"
+      "title": "活动",
+      "Total_Sent": "发送总数",
+      "Total_Delivered": "成功发送总数",
+      "Total_Read": "已读总数",
+      "Total_Failed": "失败总数",
+      "Campaign_Performance": "活动表现"
     }
-},
- "Landing": {
+  },
+  "Landing": {
     "header": {
       "getstart": "免费开始",
       "redystart": "准备好开始了吗？",
-      "join": "加入数千个正在使用Whatsway成长的企业",
+      "join": "加入已经与 Whatsway 一起成长的数千家企业",
       "start": "开始免费试用",
       "Learn": "了解更多",
-      "dash": "仪表盘",
+      "dash": "仪表板",
       "Settings": "设置",
       "Account": "账户",
-      "logout": "登出",
+      "logout": "退出登录",
       "resourcesMenuItems": [
-        { "title": "模板", "description": "即用型消息模板" },
-        { "title": "案例研究", "description": "来自我们客户的成功故事" },
-        { "title": "WhatsApp指南", "description": "完整的WhatsApp营销指南" },
-        { "title": "API文档", "description": "开发者资源和API文档" },
-        { "title": "最佳实践", "description": "WhatsApp营销成功的技巧" },
-        { "title": "ROI计算器", "description": "计算您的WhatsApp营销投资回报率" }
+        {
+          "title": "模板",
+          "description": "即用型消息模板"
+        },
+        {
+          "title": "案例研究",
+          "description": "客户成功案例"
+        },
+        {
+          "title": "WhatsApp 指南",
+          "description": "完整的 WhatsApp 营销指南"
+        },
+        {
+          "title": "API 文档",
+          "description": "开发者资源和 API 文档"
+        },
+        {
+          "title": "最佳实践",
+          "description": "WhatsApp 营销成功技巧"
+        },
+        {
+          "title": "ROI 计算器",
+          "description": "计算您的 WhatsApp 营销投资回报率"
+        }
       ],
       "aboutMenuItems": [
-        { "title": "关于我们", "description": "了解我们的使命和团队" },
-        { "title": "联系方式", "description": "联系我们的团队" },
-        { "title": "职业", "description": "加入我们不断壮大的团队" },
-        { "title": "集成", "description": "与1000多个应用连接" }
+        {
+          "title": "关于我们",
+          "description": "了解我们的使命和团队"
+        },
+        {
+          "title": "联系我们",
+          "description": "与我们的团队取得联系"
+        },
+        {
+          "title": "招聘",
+          "description": "加入我们不断壮大的团队"
+        },
+        {
+          "title": "集成",
+          "description": "连接 1000 多个应用"
+        }
       ],
-      "Navlinks": ["首页", "关于", "资源", "登录", "仪表盘"]
+      "Navlinks": [
+        "首页",
+        "关于",
+        "资源",
+        "登录",
+        "仪表板"
+      ]
+    },
+    "heroSec": {
+      "animatedBgGreenText": "免费 WhatsApp 营销平台 - 自带 API",
+      "headline": "通过以下方式扩展您的业务",
+      "highlightText": "WhatsApp 营销",
+      "subHeadline": "连接您的 Meta WhatsApp Business API，解锁强大的自动化、批量消息和高级分析。免费开始，无限扩展。",
+      "startTrialButton": "开始免费试用",
+      "watchDemoButton": "观看 2 分钟演示",
+      "trustedByText": "受到全球 10,000 多家企业的信赖",
+      "brands": [
+        "Shopify",
+        "WooCommerce",
+        "Salesforce",
+        "HubSpot",
+        "Zapier"
+      ],
+      "stats": [
+        {
+          "label": "活跃用户",
+          "suffix": "+"
+        },
+        {
+          "label": "送达率",
+          "suffix": "%"
+        },
+        {
+          "label": "更高参与度",
+          "suffix": "x"
+        }
+      ],
+      "animationDelays": {
+        "delay1": "animation-delay-2000",
+        "delay2": "animation-delay-4000"
+      }
+    },
+    "featuresSec": {
+      "introTagline": "强大的 WhatsApp 营销功能",
+      "headlinePre": "您需要的一切来",
+      "headlineHighlight": "扩展您的业务",
+      "subHeadline": "从批量消息到 AI 聊天机器人，我们的平台提供创建成功的 WhatsApp 营销活动所需的所有工具",
+      "featureTabs": [
+        {
+          "title": "批量消息",
+          "description": "通过智能交付优化立即向数千个联系人发送个性化消息",
+          "demo": {
+            "title": "广播活动",
+            "stats": "2 分钟内发送 10,000 条消息",
+            "features": [
+              "个性化模板",
+              "智能调度",
+              "交付优化"
+            ]
+          }
+        },
+        {
+          "title": "自动化工作流",
+          "description": "创建智能自动化序列，培养潜在客户并全天候吸引客户",
+          "demo": {
+            "title": "欢迎序列",
+            "stats": "85% 的参与率",
+            "features": [
+              "基于触发器的流程",
+              "条件逻辑",
+              "多步骤旅程"
+            ]
+          }
+        },
+        {
+          "title": "高级分析",
+          "description": "通过实时洞察、交付报告和参与度指标跟踪性能",
+          "demo": {
+            "title": "活动分析",
+            "stats": "98% 的交付率",
+            "features": [
+              "实时跟踪",
+              "ROI 分析",
+              "自定义报告"
+            ]
+          }
+        },
+        {
+          "title": "联系人管理",
+          "description": "通过智能标记和高级过滤组织和细分您的受众",
+          "demo": {
+            "title": "智能细分",
+            "stats": "50 多个自定义字段",
+            "features": [
+              "自动标记",
+              "行为细分",
+              "导入/导出"
+            ]
+          }
+        },
+        {
+          "title": "AI 聊天机器人",
+          "description": "部署智能聊天机器人，自动处理客户查询并自动筛选潜在客户",
+          "demo": {
+            "title": "客户支持机器人",
+            "stats": "24/7 可用性",
+            "features": [
+              "自然语言",
+              "潜在客户资格",
+              "转接给人工"
+            ]
+          }
+        },
+        {
+          "title": "活动调度器",
+          "description": "跨时区规划和调度活动，具有最佳交付时间",
+          "demo": {
+            "title": "全球活动",
+            "stats": "多时区支持",
+            "features": [
+              "智能时间",
+              "定期活动",
+              "A/B 测试"
+            ]
+          }
+        }
+      ],
+      "additionalFeatures": [
+        {
+          "title": "多语言支持",
+          "desc": "以母语触达全球受众"
+        },
+        {
+          "title": "智能定位",
+          "desc": "基于行为和人口统计的精准定位"
+        },
+        {
+          "title": "API 集成",
+          "desc": "与您现有的工具和 CRM 无缝集成"
+        }
+      ]
+    },
+    "howItWorksSec": {
+      "introTagline": "简单的 4 步流程",
+      "headlinePre": "开始于",
+      "headlineHighlight": "不到 5 分钟",
+      "subHeadline": "我们简化的入门流程让您比任何其他平台更快地启动 WhatsApp 营销",
+      "steps": [
+        {
+          "title": "连接您的 Meta API",
+          "description": "从 Meta 带来您自己的 WhatsApp Business API，并在几秒钟内将其连接到我们的平台",
+          "details": [
+            "安全的 API 集成",
+            "一键设置流程",
+            "无需技术知识",
+            "完全数据所有权"
+          ]
+        },
+        {
+          "title": "导入您的联系人",
+          "description": "上传您的客户数据库或直接从您的 CRM 和现有工具同步",
+          "details": [
+            "支持 CSV/Excel 导入",
+            "可用 CRM 集成",
+            "智能重复检测",
+            "自动数据验证"
+          ]
+        },
+        {
+          "title": "创建和启动活动",
+          "description": "使用我们的拖放构建器设计精美的消息并启动目标活动",
+          "details": [
+            "可视化活动构建器",
+            "预构建模板",
+            "个性化选项",
+            "A/B 测试功能"
+          ]
+        },
+        {
+          "title": "跟踪和优化",
+          "description": "实时监控性能并优化您的活动以获得更好的结果",
+          "details": [
+            "实时分析",
+            "交付跟踪",
+            "参与度指标",
+            "ROI 计算"
+          ]
+        }
+      ],
+      "progressBar": {
+        "previous": "上一步",
+        "nextStep": "下一步"
+      },
+      "visualDemo": {
+        "whatsAppBusinessDashboard": "WhatsApp 业务仪表板"
+      },
+      "cta": {
+        "readyToGetStarted": "准备好开始了吗？",
+        "joinText": "加入已经使用我们平台扩展其 WhatsApp 营销的数千家企业",
+        "startFreeTrial": "开始您的免费试用"
+      }
+    },
+    "useCasesSec": {
+      "introTagline": "行业解决方案",
+      "headlinePre": "适合每个",
+      "headlineHighlight": "行业和企业",
+      "subHeadline": "了解不同行业的企业如何使用 WhatsApp 营销来推动增长并改善客户参与度",
+      "useCases": [
+        {
+          "icon": "ShoppingCart",
+          "title": "电子商务",
+          "description": "通过弃购恢复、订单更新和个性化产品推荐提升销售额",
+          "color": "from-green-500 to-green-600",
+          "bgColor": "bg-green-50",
+          "stats": {
+            "increase": "300%",
+            "metric": "销售恢复"
+          },
+          "features": [
+            "弃购恢复",
+            "订单状态更新",
+            "产品推荐",
+            "限时抢购通知"
+          ]
+        },
+        {
+          "icon": "GraduationCap",
+          "title": "教育",
+          "description": "通过课程更新、作业提醒和教育内容吸引学生和家长",
+          "color": "from-blue-500 to-blue-600",
+          "bgColor": "bg-blue-50",
+          "stats": {
+            "increase": "85%",
+            "metric": "学生参与度"
+          },
+          "features": [
+            "作业提醒",
+            "课程公告",
+            "家长沟通",
+            "学习材料分享"
+          ]
+        },
+        {
+          "icon": "Heart",
+          "title": "医疗保健",
+          "description": "通过预约提醒、健康提示和用药提醒改善患者护理",
+          "color": "from-red-500 to-red-600",
+          "bgColor": "bg-red-50",
+          "stats": {
+            "increase": "60%",
+            "metric": "预约出席率"
+          },
+          "features": [
+            "预约提醒",
+            "用药提醒",
+            "健康提示传递",
+            "检测结果通知"
+          ]
+        },
+        {
+          "icon": "Building",
+          "title": "房地产",
+          "description": "通过房产提醒、虚拟看房和市场更新与潜在客户建立联系",
+          "color": "from-purple-500 to-purple-600",
+          "bgColor": "bg-purple-50",
+          "stats": {
+            "increase": "45%",
+            "metric": "潜在客户转化"
+          },
+          "features": [
+            "房产提醒",
+            "虚拟看房安排",
+            "市场更新",
+            "潜在客户筛选"
+          ]
+        },
+        {
+          "icon": "Utensils",
+          "title": "餐厅",
+          "description": "通过菜单更新、特别优惠和预订确认增加订单",
+          "color": "from-orange-500 to-orange-600",
+          "bgColor": "bg-orange-50",
+          "stats": {
+            "increase": "120%",
+            "metric": "订单量"
+          },
+          "features": [
+            "菜单更新",
+            "特别优惠",
+            "预订确认",
+            "忠诚度计划"
+          ]
+        },
+        {
+          "icon": "Car",
+          "title": "汽车",
+          "description": "通过服务提醒、预约预订和车辆更新增强客户服务",
+          "color": "from-indigo-500 to-indigo-600",
+          "bgColor": "bg-indigo-50",
+          "stats": {
+            "increase": "75%",
+            "metric": "服务预订"
+          },
+          "features": [
+            "服务提醒",
+            "预约预订",
+            "车辆更新",
+            "维护提示"
+          ]
+        }
+      ],
+      "cta": {
+        "viewCaseStudyButton": "查看案例研究",
+        "customerSuccessQuote": "WhatsApp Pro 帮助我们将 {industry} 参与度提高了 {increase}。自动化功能节省了无数小时，同时提高了客户满意度。",
+        "testimonialName": "Sarah Johnson",
+        "testimonialPosition": "营销总监"
+      },
+      "quickStats": [
+        {
+          "value": "98%",
+          "label": "送达率"
+        },
+        {
+          "value": "5x",
+          "label": "更高参与度"
+        },
+        {
+          "value": "24/7",
+          "label": "自动化"
+        },
+        {
+          "value": "50%",
+          "label": "成本降低"
+        }
+      ]
+    },
+    "testimonialsSec": {
+      "introTagline": "客户成功案例",
+      "headlinePre": "深受",
+      "headlineHighlight": "10,000+ 家企业喜爱",
+      "subHeadline": "了解各行业的企业如何通过我们的 WhatsApp 营销平台取得卓越成果",
+      "testimonials": [
+        {
+          "name": "Sarah Chen",
+          "role": "电子商务总监",
+          "company": "Fashion Forward",
+          "image": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
+          "rating": 5,
+          "text": "WhatsApp Pro 改变了我们的客户参与方式。我们看到购物车恢复率提高了 300%，客户喜欢个性化体验。",
+          "results": "购物车恢复增加 300%"
+        },
+        {
+          "name": "Michael Rodriguez",
+          "role": "营销经理",
+          "company": "TechStart Solutions",
+          "image": "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
+          "rating": 5,
+          "text": "自动化工作流程非常出色。我们现在可以全天候培养潜在客户，无需任何人工干预。我们的转化率从未如此之高。",
+          "results": "潜在客户转化提高 85%"
+        },
+        {
+          "name": "Emily Johnson",
+          "role": "客户成功主管",
+          "company": "HealthCare Plus",
+          "image": "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
+          "rating": 5,
+          "text": "实施 WhatsApp 提醒后，患者预约出席率显著提高。该平台直观，我们的团队很快就采用了它。",
+          "results": "缺席率降低 60%"
+        },
+        {
+          "name": "David Park",
+          "role": "餐厅老板",
+          "company": "Gourmet Bistro",
+          "image": "https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
+          "rating": 5,
+          "text": "我们的预订系统现在无缝运行。客户可以立即获得确认，我们可以向他们发送特别优惠。仅 3 个月收入就增长了 40%。",
+          "results": "收入增长 40%"
+        },
+        {
+          "name": "Lisa Thompson",
+          "role": "教育协调员",
+          "company": "Bright Future Academy",
+          "image": "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
+          "rating": 5,
+          "text": "家长参与度从未如此之高。我们可以即时分享关于孩子的更新，重要的学校公告能触达每个人。",
+          "results": "90% 的家长参与率"
+        }
+      ],
+      "navButtons": {
+        "previous": "上一个",
+        "next": "下一个"
+      },
+      "statsGrid": [
+        {
+          "number": "10,000+",
+          "label": "满意客户"
+        },
+        {
+          "number": "98%",
+          "label": "满意度"
+        },
+        {
+          "number": "5M+",
+          "label": "已发送消息"
+        },
+        {
+          "number": "24/7",
+          "label": "支持可用"
+        }
+      ]
+    },
+    "ctaSec": {
+      "introTagline": "加入已经在增长的 10,000+ 家企业",
+      "headline": "准备好通过 WhatsApp 营销扩展您的业务了吗？",
+      "subHeadline": "今天就开始免费试用。无需信用卡。连接您的 Meta API，在 5 分钟内开始发送活动。",
+      "buttons": {
+        "startTrial": "开始免费试用",
+        "scheduleDemo": "安排演示"
+      },
+      "trustIndicators": [
+        {
+          "title": "即时设置",
+          "desc": "5 分钟内开始"
+        },
+        {
+          "title": "安全合规",
+          "desc": "企业级安全性"
+        },
+        {
+          "title": "24/7 支持",
+          "desc": "随时为您提供帮助"
+        },
+        {
+          "title": "永久免费",
+          "desc": "无隐藏费用"
+        }
+      ],
+      "stats": [
+        {
+          "number": "10,000+",
+          "label": "活跃用户"
+        },
+        {
+          "number": "98%",
+          "label": "送达率"
+        },
+        {
+          "number": "5M+",
+          "label": "已发送消息"
+        },
+        {
+          "number": "24/7",
+          "label": "支持"
+        }
+      ]
+    },
+    "pricingSec": {
+      "introTagline": "简单透明的定价",
+      "headlinePre": "选择您的",
+      "headlineHighlight": "完美计划",
+      "subHeadline": "免费开始，随着您的成长而扩展。所有计划都包括您自己的 Meta API 集成和无限消息发送。",
+      "billingToggle": {
+        "monthly": "月付",
+        "annual": "年付",
+        "saveLabel": "节省 20%"
+      },
+      "planCTA": {
+        "freeButton": "免费开始",
+        "paidButton": "开始免费试用"
+      },
+      "pricing": {
+        "month": "月",
+        "year": "年",
+        "upTo": "最多",
+        "contacts": "联系人",
+        "channels": "WhatsApp 频道",
+        "automation": "自动化"
+      },
+      "loading": "正在加载计划...",
+      "noPlans": {
+        "title": "没有可用的计划",
+        "description": "请稍后再查看定价选项。"
+      },
+      "authRequired": {
+        "title": "需要身份验证",
+        "description": "请在购买计划前登录"
+      },
+      "faq": {
+        "title": "常见问题",
+        "questions": [
+          {
+            "q": "我需要自己的 WhatsApp Business API 吗？",
+            "a": "是的，您需要自带 Meta WhatsApp Business API。这确保您对数据和消息拥有完全控制权。"
+          },
+          {
+            "q": "有设置费用吗？",
+            "a": "没有设置费用！连接 API 后即可立即开始使用我们的平台。"
+          },
+          {
+            "q": "我可以随时更改计划吗？",
+            "a": "当然可以！您可以随时升级或降级计划。更改立即生效。"
+          },
+          {
+            "q": "如果超过联系人限制会怎样？",
+            "a": "我们会在您达到限制之前通知您。您可以升级计划或购买额外的联系人。"
+          }
+        ]
+      },
+      "enterprise": {
+        "title": "需要定制解决方案？",
+        "description": "联系我们的企业团队获取定制定价、专属支持和量身定制的功能",
+        "button": "联系销售"
+      }
+    },
+    "footerSec": {
+      "newsletter": {
+        "heading": "及时了解 WhatsApp 营销技巧",
+        "description": "在您的收件箱中获取最新的策略、案例研究和平台更新。",
+        "emailPlaceholder": "输入您的电子邮件地址",
+        "subscribeButton": "订阅"
+      },
+      "brandSection": {
+        "brandNames": [
+          "WPSaaS",
+          "Whatsway"
+        ],
+        "description": "最强大的 WhatsApp 营销平台。通过自动化活动、高级分析和无缝 API 集成扩展您的业务。"
+      },
+      "socialLinks": {
+        "twitter": "Twitter",
+        "linkedin": "LinkedIn",
+        "github": "GitHub",
+        "mail": "邮件"
+      },
+      "links": {
+        "product": [
+          "功能",
+          "工作原理",
+          "用例",
+          "定价",
+          "API 文档"
+        ],
+        "company": [
+          "关于我们",
+          "联系我们",
+          "招聘",
+          "新闻资料",
+          "集成"
+        ],
+        "support": [
+          "帮助中心",
+          "社区",
+          "状态",
+          "安全"
+        ],
+        "resources": [
+          "模板",
+          "案例研究",
+          "WhatsApp 指南",
+          "最佳实践",
+          "ROI 计算器"
+        ],
+        "legal": [
+          "隐私政策",
+          "服务条款",
+          "Cookie 政策",
+          "GDPR"
+        ]
+      },
+      "bottomBar": {
+        "copyrightText": "© 2025 Whatsway. 保留所有权利。",
+        "termsLink": "服务条款",
+        "privacyLink": "隐私政策",
+        "cookieLink": "Cookie 政策"
+      }
     }
   },
-    "groups": {
+  "groups": {
     "title": "组",
     "subtitle": "所有组的详细信息和管理",
     "createButton": "创建组"
+  },
+  "users": {
+    "title": "用户",
+    "subtitle": "管理所有注册用户",
+    "search": {
+      "placeholder": "按用户名或邮箱搜索...",
+      "button": "搜索",
+      "clear": "清除"
+    },
+    "stats": {
+      "showing": "显示",
+      "of": "共",
+      "users": "用户"
+    },
+    "table": {
+      "contact": "联系方式",
+      "phone": "电话",
+      "groups": "群组",
+      "status": "状态",
+      "lastLogin": "最后登录",
+      "actions": "操作",
+      "noGroups": "无群组"
+    },
+    "card": {
+      "phone": "电话:",
+      "groups": "群组:",
+      "status": "状态:",
+      "lastLogin": "最后登录:"
+    },
+    "loading": "加载用户中...",
+    "noUsers": "未找到用户",
+    "lastLoginNever": "从未",
+    "phonePlaceholder": "—",
+    "actions": {
+      "blockUser": "封禁用户",
+      "activateUser": "激活用户"
+    },
+    "pagination": {
+      "showing": "显示",
+      "to": "至",
+      "of": "共",
+      "users": "用户",
+      "previous": "上一页",
+      "next": "下一页"
+    },
+    "toast": {
+      "success": "成功",
+      "statusUpdated": "用户状态已更新为",
+      "error": "错误",
+      "statusUpdateFailed": "更新状态失败",
+      "fetchFailed": "获取用户失败",
+      "somethingWrong": "出现错误"
+    }
+  },
+  "notifications": {
+    "title": "通知",
+    "subtitle": "向用户、管理员或您的团队发送通知。",
+    "refresh": "刷新",
+    "createNotification": "创建通知",
+    "stats": {
+      "totalSent": "已发送总数",
+      "allNotifications": "所有通知",
+      "userTarget": "用户目标",
+      "usersOnly": "仅限用户",
+      "adminTeam": "管理员/团队",
+      "staffNotifications": "员工通知"
+    },
+    "table": {
+      "title": "所有通知",
+      "total": "共",
+      "id": "ID",
+      "titleColumn": "标题",
+      "message": "消息",
+      "target": "目标",
+      "status": "状态",
+      "sentAt": "发送时间",
+      "action": "操作",
+      "send": "发送",
+      "sent": "已发送"
+    },
+    "loading": "正在加载通知...",
+    "empty": {
+      "title": "未找到通知",
+      "description": "创建你的第一条通知以开始",
+      "button": "创建通知"
+    },
+    "card": {
+      "sentAt": "发送时间:"
+    },
+    "dialog": {
+      "title": "创建并发送通知",
+      "description": "通知将立即发送给所选接收人。",
+      "titleLabel": "标题",
+      "titlePlaceholder": "输入通知标题",
+      "messageLabel": "消息",
+      "messagePlaceholder": "输入通知消息",
+      "targetLabel": "目标受众",
+      "targetOptions": {
+        "all": "所有用户",
+        "users": "仅限用户",
+        "admins": "仅限管理员",
+        "team": "仅限团队",
+        "specific": "指定用户（ID）"
+      },
+      "userIdsLabel": "用户ID（逗号分隔）",
+      "userIdsPlaceholder": "user1,user2,user3",
+      "cancel": "取消",
+      "sendNow": "立即发送",
+      "sending": "正在发送...",
+      "required": "*"
+    },
+    "toast": {
+      "error": "错误",
+      "errorLoading": "加载通知失败",
+      "success": "成功",
+      "notificationSent": "通知发送成功！",
+      "notificationSentShort": "已发送！",
+      "refreshing": "正在刷新",
+      "refreshingDesc": "正在加载最新通知..."
+    },
+    "validation": {
+      "titleRequired": "标题为必填项",
+      "messageRequired": "消息为必填项"
+    }
+  },
+  "plans": {
+    "title": "价格方案",
+    "subtitle": "创建和管理你的价格方案",
+    "stats": {
+      "totalPlans": "总方案数",
+      "featured": "特色",
+      "active": "活跃",
+      "billing": "账单",
+      "annual": "年度",
+      "monthly": "月度"
+    },
+    "billingToggle": {
+      "monthly": "月度",
+      "annual": "年度",
+      "discount": "-20%"
+    },
+    "buttons": {
+      "createPlan": "创建方案",
+      "cancel": "取消",
+      "edit": "编辑",
+      "delete": "删除",
+      "save": "保存",
+      "updatePlan": "更新方案",
+      "addFeature": "添加功能",
+      "getStartedFree": "免费开始",
+      "startFreeTrial": "开始免费试用"
+    },
+    "form": {
+      "createTitle": "创建新方案",
+      "editTitle": "编辑方案",
+      "planName": "方案名称 *",
+      "planNamePlaceholder": "例如，专业版",
+      "icon": "图标",
+      "iconOptions": {
+        "zap": "⚡ 闪电",
+        "crown": "👑 皇冠",
+        "rocket": "🚀 火箭",
+        "star": "⭐ 星星"
+      },
+      "description": "描述",
+      "descriptionPlaceholder": "适合成长中的团队...",
+      "monthlyPrice": "月度价格",
+      "monthlyPricePlaceholder": "29.99",
+      "annualPrice": "年度价格",
+      "annualPricePlaceholder": "299.99",
+      "badgeText": "徽章文本",
+      "badgePlaceholder": "最受欢迎",
+      "borderColor": "边框颜色",
+      "borderOptions": {
+        "gray": "默认灰色",
+        "blue": "蓝色",
+        "purple": "紫色",
+        "green": "绿色",
+        "pink": "粉色"
+      },
+      "permissions": {
+        "channels": "频道",
+        "channelsPlaceholder": "5",
+        "contacts": "联系人",
+        "contactsPlaceholder": "10,000",
+        "automation": "自动化",
+        "automationPlaceholder": "高级",
+        "campaign": "营销活动",
+        "campaignPlaceholder": "高级"
+      },
+      "popularToggle": "标记为热门方案",
+      "features": "功能",
+      "featureName": "功能名称",
+      "featureIncluded": "包含",
+      "noFeatures": "尚未添加功能"
+    },
+    "empty": {
+      "title": "尚未创建方案",
+      "description": "开始创建你的第一个价格方案",
+      "button": "创建你的第一个方案"
+    },
+    "card": {
+      "perMonth": "月",
+      "perYear": "年"
+    },
+    "toast": {
+      "authRequired": "需要身份验证",
+      "authRequiredDesc": "购买方案前请先登录",
+      "error": "错误",
+      "fetchError": "获取方案失败",
+      "planCreated": "方案已创建",
+      "planCreatedDesc": "您的方案已成功创建。",
+      "planUpdated": "方案已更新",
+      "planUpdatedDesc": "您的方案已成功更新。",
+      "saveError": "保存方案失败",
+      "planDeleted": "方案已删除",
+      "planDeletedDesc": "方案已成功删除。",
+      "deleteError": "删除方案失败",
+      "deleteConfirm": "确定要删除此方案吗？"
+    }
+  },
+  "transactions": {
+    "title": "交易",
+    "subtitle": "管理和监控所有支付交易",
+    "stats": {
+      "totalRevenue": "总收入",
+      "completed": "已完成",
+      "pending": "待处理",
+      "failed": "失败"
+    },
+    "search": {
+      "placeholder": "搜索交易...",
+      "filters": "筛选",
+      "export": "导出"
+    },
+    "filters": {
+      "title": "高级筛选",
+      "status": "状态",
+      "allStatuses": "所有状态",
+      "statusOptions": {
+        "pending": "待处理",
+        "completed": "已完成",
+        "failed": "失败",
+        "refunded": "已退款",
+        "cancelled": "已取消"
+      },
+      "paymentMethod": "支付方式",
+      "allMethods": "所有方式",
+      "paymentOptions": {
+        "card": "卡",
+        "upi": "UPI",
+        "wallet": "钱包",
+        "netbanking": "网上银行"
+      },
+      "billingCycle": "账单周期",
+      "allCycles": "所有周期",
+      "cycleOptions": {
+        "monthly": "月度",
+        "annual": "年度"
+      },
+      "startDate": "开始日期",
+      "endDate": "结束日期",
+      "minAmount": "最小金额",
+      "minAmountPlaceholder": "0.00",
+      "maxAmount": "最大金额",
+      "maxAmountPlaceholder": "0.00",
+      "clearFilters": "清除筛选"
+    },
+    "table": {
+      "transactionId": "交易ID",
+      "user": "用户",
+      "plan": "方案",
+      "amount": "金额",
+      "status": "状态",
+      "paymentBy": "支付方式",
+      "date": "日期"
+    },
+    "card": {
+      "user": "用户:",
+      "plan": "方案:",
+      "cycle": "周期:",
+      "amount": "金额:",
+      "payment": "支付:",
+      "date": "日期:"
+    },
+    "status": {
+      "completed": "已完成",
+      "failed": "失败",
+      "pending": "待处理",
+      "refunded": "已退款",
+      "cancelled": "已取消"
+    },
+    "loading": "正在加载交易...",
+    "empty": {
+      "title": "未找到交易",
+      "description": "尝试调整你的筛选条件"
+    },
+    "pagination": {
+      "showing": "显示",
+      "to": "至",
+      "of": "共",
+      "perPage": "/页",
+      "previous": "上一页",
+      "next": "下一页"
+    }
+  },
+  "support": {
+    "title": "支持工单",
+    "subtitleAdmin": "管理用户和听众的所有支持工单",
+    "subtitleUser": "查看和管理您的支持工单",
+    "createTicket": "创建工单",
+    "stats": {
+      "totalTickets": "工单总数",
+      "openTickets": "待处理工单",
+      "inProgress": "处理中",
+      "resolved": "已解决"
+    },
+    "search": {
+      "placeholder": "搜索工单...",
+      "allStatus": "所有状态",
+      "allPriority": "所有优先级",
+      "status": {
+        "open": "待处理",
+        "inProgress": "处理中",
+        "resolved": "已解决",
+        "closed": "已关闭"
+      },
+      "priority": {
+        "low": "低",
+        "medium": "中",
+        "high": "高",
+        "urgent": "紧急"
+      }
+    },
+    "ticket": {
+      "updated": "已更新",
+      "creator": "创建者：",
+      "contact": "联系方式：",
+      "details": "详细信息：",
+      "status": "状态",
+      "priority": "优先级",
+      "assignTo": "指派给",
+      "unassigned": "未指派",
+      "description": "描述：",
+      "conversation": "对话",
+      "noMessages": "暂无消息",
+      "internal": "内部",
+      "typeReply": "输入您的回复...",
+      "internalNote": "内部备注（对方不可见",
+      "resolveTicket": "解决工单"
+    },
+    "creatorType": {
+      "user": "用户",
+      "admin": "管理员",
+      "superadmin": "超级管理员",
+      "listener": "听众"
+    },
+    "empty": {
+      "noTickets": "未找到工单",
+      "adjustFilters": "尝试调整您的搜索或筛选条件",
+      "allResolved": "所有支持工单都已解决！",
+      "noSelection": "未选择工单",
+      "selectTicket": "从列表选择一个工单以查看详情和回复"
+    },
+    "loading": "正在加载工单...",
+    "pagination": {
+      "page": "页",
+      "of": "共",
+      "previous": "上一页",
+      "next": "下一页"
+    }
+  },
+  "gateway": {
+    "title": "网关设置",
+    "subtitle": "为您的应用程序配置支付网关",
+    "loading": "加载中...",
+    "stats": {
+      "activeProvider": "激活的提供商",
+      "none": "无",
+      "provider": "提供商",
+      "environment": "环境",
+      "live": "正式",
+      "test": "测试",
+      "status": "状态",
+      "active": "激活",
+      "inactive": "未激活"
+    },
+    "card": {
+      "title": "支付网关配置",
+      "configured": "已配置"
+    },
+    "form": {
+      "providerLabel": "支付服务商 *",
+      "selectProvider": "选择服务商",
+      "razorpay": "Razorpay",
+      "stripe": "Stripe",
+      "environmentLabel": "环境模式 *",
+      "testMode": "测试模式",
+      "liveMode": "正式模式",
+      "testModeSafe": "测试模式适合开发和测试",
+      "liveModeWarning": "⚠️ 正式模式将处理真实支付",
+      "testCredentials": "测试凭证",
+      "liveCredentials": "正式凭证",
+      "testApiKey": "测试 API Key *",
+      "testApiKeyPlaceholderRazorpay": "rzp_test_xxxxxxxxxxxxx",
+      "testApiKeyPlaceholderStripe": "pk_test_xxxxxxxxxxxxx",
+      "testApiSecret": "测试 API Secret *",
+      "testApiSecretPlaceholder": "输入测试密钥",
+      "liveApiKey": "正式 API Key *",
+      "liveApiKeyPlaceholderRazorpay": "rzp_live_xxxxxxxxxxxxx",
+      "liveApiKeyPlaceholderStripe": "pk_live_xxxxxxxxxxxxx",
+      "liveApiSecret": "正式 API Secret *",
+      "liveApiSecretPlaceholder": "输入正式密钥",
+      "enableGateway": "启用支付网关",
+      "enableGatewayDesc": "为您的应用程序启用支付处理",
+      "saving": "正在保存...",
+      "updateSettings": "更新设置",
+      "saveSettings": "保存设置"
+    },
+    "razorpay": {
+      "title": "Razorpay 配置",
+      "description": "在 Razorpay 控制台获取您的凭证。您需要提供测试和正式凭证。",
+      "testKeyInfo": "测试密钥前缀为",
+      "liveKeyInfo": "正式密钥前缀为",
+      "getKeys": "获取 Razorpay API 密钥 →"
+    },
+    "stripe": {
+      "title": "Stripe 配置",
+      "description": "在 Stripe 控制台获取您的凭证。您需要提供测试和正式凭证。",
+      "testKeyInfo": "测试密钥前缀为",
+      "testKeyInfoOr": "或",
+      "liveKeyInfo": "正式密钥前缀为",
+      "liveKeyInfoOr": "或",
+      "getKeys": "获取 Stripe API 密钥 →"
+    },
+    "toast": {
+      "updated": "支付网关已更新",
+      "created": "支付网关已创建",
+      "successDesc": "支付服务商设置已成功保存。",
+      "error": "错误",
+      "errorDesc": "保存服务商失败"
+    },
+    "validation": {
+      "providerRequired": "支付服务商为必填项",
+      "apiKeyRequired": "正式 API Key 为必填项",
+      "apiSecretRequired": "正式 API Secret 为必填项",
+      "testApiKeyRequired": "测试 API Key 为必填项",
+      "testApiSecretRequired": "测试 API Secret 为必填项"
+    }
+  },
+  "subscriptions": {
+    "title": "主订阅管理",
+    "subtitle": "管理所有订阅",
+    "allSubscriptions": "所有订阅",
+    "totalSubscriptions": "总计",
+    "subscription": "订阅",
+    "subscriptions": "订阅",
+    "loading": "正在加载订阅...",
+    "error": {
+      "title": "加载数据错误",
+      "message": "加载订阅失败"
+    },
+    "table": {
+      "username": "用户名",
+      "plan": "方案",
+      "price": "价格",
+      "status": "状态",
+      "startDate": "开始日期",
+      "endDate": "结束日期",
+      "autoRenew": "自动续订",
+      "yes": "是",
+      "no": "否"
+    },
+    "card": {
+      "price": "价格：",
+      "startDate": "开始日期：",
+      "endDate": "结束日期：",
+      "autoRenew": "自动续订："
+    },
+    "pagination": {
+      "showing": "显示",
+      "to": "至",
+      "of": "共",
+      "perPage": "每页",
+      "previous": "上一页",
+      "next": "下一页",
+      "page": "页",
+      "pageOf": "共"
+    }
+  },
+  "support_tickets": {
+    "headTitle": "支持工单",
+    "headTitleAdmin": "管理来自用户和听众的所有支持工单",
+    "headTitleuser": "查看和管理您的支持工单"
+  },
+  "messageLog": {
+    "headerTitle": "Logs de mensagens",
+    "headerSubTitle": "Rastreie todas as mensagens enviadas e seu status de entrega",
+    "messageHis": {
+      "title": "Histórico de mensagens",
+      "subtitle": "Visualizar logs detalhados de todas as mensagens"
+    },
+    "Refresh": "Atualizar"
+  },
+  "billing_subscription": {
+    "title": "账单和订阅",
+    "subtitle": "管理您的订阅、积分和账单",
+    "loading": "正在加载订阅...",
+    "noSubscription": {
+      "title": "无活动订阅",
+      "description": "您目前没有任何已激活的订阅。",
+      "upgradePlan": "升级计划"
+    },
+    "card": {
+      "billing": "账单：",
+      "starts": "开始：",
+      "renews": "续订：",
+      "pricing": "定价",
+      "monthly": "每月：",
+      "annual": "每年：",
+      "details": "详情",
+      "features": "功能"
+    }
   }
-
 }

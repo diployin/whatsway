@@ -23,6 +23,7 @@ import LoadingAnimation from "./LoadingAnimation";
 import { useAuth } from "@/contexts/auth-context";
 import useStaticData from "@/hooks/useStaticData";
 import { useTranslation } from "@/lib/i18n";
+import { LanguageSelector } from "./language-selector";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -282,6 +283,7 @@ const Header = () => {
                   title="Resources"
                 />
               </div>
+              <LanguageSelector />
 
               {!isAuthenticated && (
                 <>
