@@ -318,7 +318,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                   />
                   <span className="text-sm text-gray-600">
                     I agree to the{' '}
-                    <Link to="/terms-of-service" className="text-green-600 hover:text-green-700">Terms of Service</Link>{' '}
+                    <Link to="/terms" className="text-green-600 hover:text-green-700">Terms of Service</Link>{' '}
                     and{' '}
                     <Link to="/privacy-policy" className="text-green-600 hover:text-green-700">Privacy Policy</Link>
                   </span>
