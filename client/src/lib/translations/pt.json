@@ -56,7 +56,9 @@
     "dashboard": "Painel",
     "contacts": "Contatos",
     "campaigns": "Campanhas",
+    "master_campaigns": "Campanhas principais",
     "templates": "Modelos",
+    "master_templates": "Modelos principais",
     "inbox": "Caixa de entrada da equipe",
     "automations": "Automações",
     "messageLogs": "Logs de mensagens",
@@ -72,7 +74,15 @@
     "website": "Site",
     "tickets_support": "Suporte de tickets",
     "plan-upgrade": "Atualizar plano",
-    "billing": "Faturamento e créditos"
+    "billing": "Faturamento e créditos",
+    "users": "Usuários",
+    "master_contacts": "Contatos principais",
+    "notifications": "Notificações",
+    "subscription_plans": "Planos de assinatura",
+    "transactions_logs": "Logs de transações",
+    "payment_gateway": "Gateway de pagamento",
+    "support_tickets": "Tickets de suporte",
+    "master_subscriptions": "Assinaturas principais"
   },
   "widget": {
     "title": "Construtor de Widget de Chat WhatsApp",

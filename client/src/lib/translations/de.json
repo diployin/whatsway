@@ -56,7 +56,9 @@
     "dashboard": "Dashboard",
     "contacts": "Kontakte",
     "campaigns": "Kampagnen",
+    "master_campaigns": "Master-Kampagnen",
     "templates": "Vorlagen",
+    "master_templates": "Master-Vorlagen",
     "inbox": "Team-Posteingang",
     "automations": "Automatisierungen",
     "messageLogs": "Nachrichtenprotokolle",
@@ -71,8 +73,16 @@
     "widgetBuilder": "Widget-Builder",
     "website": "Website",
     "tickets_support": "Ticket-Support",
-    "plan-upgrade": "Plan Upgraden",
-    "billing": "Abrechnung & Guthaben"
+    "plan-upgrade": "Plan upgraden",
+    "billing": "Abrechnung & Guthaben",
+    "users": "Benutzer",
+    "master_contacts": "Master-Kontakte",
+    "notifications": "Benachrichtigungen",
+    "subscription_plans": "Abonnementpläne",
+    "transactions_logs": "Transaktionsprotokolle",
+    "payment_gateway": "Zahlungsgateway",
+    "support_tickets": "Support-Tickets",
+    "master_subscriptions": "Master-Abonnements"
   },
   "widget": {
     "title": "Widget-Builder",
