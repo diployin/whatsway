@@ -683,19 +683,45 @@ export default function SupportTicketsNew() {
                         {selectedTicket.status.replace("_", " ")}
                       </span>
                     </div>
-                    {isAdmin && (
+                    <div className="flex items-center space-x-2">
+                      {/* 🔄 Refresh Button */}
                       <button
-                        onClick={() =>
-                          handleDeleteTicket(
-                            selectedTicket.id,
-                            selectedTicket.title
-                          )
-                        }
-                        className="p-2 text-red-400 hover:text-red-600 rounded-lg hover:bg-red-50"
+                        onClick={() => refetchTicketDetails()}
+                        className="flex items-center space-x-2 border border-gray-300 rounded-md px-4 py-2 hover:bg-gray-100 transition"
+                        title="Refresh"
                       >
-                        <MoreVertical className="w-5 h-5" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 text-gray-600"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M4 4v5h.582M20 20v-5h-.581M4.582 9A8 8 0 0119.5 12.18M19.5 15a8 8 0 01-14.918 1.818"
+                          />
+                        </svg>
+                        <span className="text-gray-700 font-medium">
+                          Refresh
+                        </span>
                       </button>
-                    )}
+                      {isAdmin && (
+                        <button
+                          onClick={() =>
+                            handleDeleteTicket(
+                              selectedTicket.id,
+                              selectedTicket.title
+                            )
+                          }
+                          className="p-2 text-red-400 hover:text-red-600 rounded-lg hover:bg-red-50"
+                        >
+                          <MoreVertical className="w-5 h-5" />
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
