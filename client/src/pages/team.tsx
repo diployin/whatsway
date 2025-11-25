@@ -865,8 +865,9 @@ function DetailsView({ details }: { details?: any }) {
           <strong>Name:</strong> {firstName} {lastName}
         </div>
         <div>
-          <strong>Permissions:</strong> {permissions.join(", ")}
-        </div>
+  <strong>Permissions:</strong> {permissions?.length ? permissions.join(", ") : "No permissions"}
+</div>
+
       </>
     );
   }
