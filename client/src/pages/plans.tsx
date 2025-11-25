@@ -1853,7 +1853,7 @@ export default function Plans() {
                             >
                               {Number.parseFloat(plan.monthlyPrice) === 0
                                 ? t("plans.buttons.getStartedFree")
-                                : t("plans.buttons.startFreeTrial")}
+                                : t("plans.buttons.buy")}
                             </button>
                           )}
                           {isSuper && (

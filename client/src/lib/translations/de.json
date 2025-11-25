@@ -1783,7 +1783,8 @@
       "updatePlan": "Plan aktualisieren",
       "addFeature": "Feature hinzufügen",
       "getStartedFree": "Kostenlos starten",
-      "startFreeTrial": "Kostenlose Testversion starten"
+      "startFreeTrial": "Kostenlose Testversion starten",
+      "buy": "Kaufen"
     },
     "form": {
       "createTitle": "Neuen Plan erstellen",

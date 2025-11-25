@@ -31,43 +31,64 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { 
-  Type, 
-  Image, 
-  Video, 
-  FileText, 
-  Plus, 
+import {
+  Type,
+  Image,
+  Video,
+  FileText,
+  Plus,
   Trash2,
   MessageSquare,
   Hash,
   Link,
   Phone,
-  Smartphone
+  Smartphone,
 } from "lucide-react";
 import type { Template } from "@shared/schema";
 import { useAuth } from "@/contexts/auth-context";
 
 // Template form schema
 const templateFormSchema = z.object({
-  name: z.string()
+  name: z
+    .string()
     .min(1, "Template name is required")
     .max(512, "Template name must be less than 512 characters")
-    .regex(/^[a-z0-9_]+$/, "Only lowercase letters, numbers, and underscores allowed"),
+    .regex(
+      /^[a-z0-9_]+$/,
+      "Only lowercase letters, numbers, and underscores allowed"
+    ),
   category: z.enum(["MARKETING", "UTILITY", "AUTHENTICATION"]),
   language: z.string().default("en_US"),
   mediaType: z.enum(["text", "image", "video", "document"]).default("text"),
   mediaUrl: z.string().optional(),
-  header: z.string().max(60, "Header must be less than 60 characters").optional().default(""),
-  body: z.string()
+  header: z
+    .string()
+    .max(60, "Header must be less than 60 characters")
+    .optional()
+    .default(""),
+  body: z
+    .string()
     .min(1, "Message body is required")
     .max(1024, "Body must be less than 1024 characters"),
-  footer: z.string().max(60, "Footer must be less than 60 characters").optional().default(""),
-  buttons: z.array(z.object({
-    type: z.enum(["QUICK_REPLY", "URL", "PHONE_NUMBER"]),
-    text: z.string().min(1).max(20, "Button text must be less than 20 characters"),
-    url: z.string().optional(),
-    phoneNumber: z.string().optional(),
-  })).max(3, "Maximum 3 buttons allowed").default([]),
+  footer: z
+    .string()
+    .max(60, "Footer must be less than 60 characters")
+    .optional()
+    .default(""),
+  buttons: z
+    .array(
+      z.object({
+        type: z.enum(["QUICK_REPLY", "URL", "PHONE_NUMBER"]),
+        text: z
+          .string()
+          .min(1)
+          .max(20, "Button text must be less than 20 characters"),
+        url: z.string().optional(),
+        phoneNumber: z.string().optional(),
+      })
+    )
+    .max(3, "Maximum 3 buttons allowed")
+    .default([]),
   variables: z.array(z.string()).default([]),
 });
 
@@ -88,7 +109,7 @@ export function TemplateDialog({
   onSubmit,
   isSubmitting = false,
 }: TemplateDialogProps) {
-  const {user} = useAuth()
+  const { user } = useAuth();
   const form = useForm<TemplateFormData>({
     resolver: zodResolver(templateFormSchema),
     defaultValues: {
@@ -105,7 +126,11 @@ export function TemplateDialog({
     },
   });
 
-  const { fields: buttonFields, append: appendButton, remove: removeButton } = useFieldArray({
+  const {
+    fields: buttonFields,
+    append: appendButton,
+    remove: removeButton,
+  } = useFieldArray({
     control: form.control,
     name: "buttons",
   });
@@ -113,28 +138,43 @@ export function TemplateDialog({
   useEffect(() => {
     if (template) {
       // Extract data from template components if available
-      const headerComponent = template.components?.find(c => c.type === "HEADER");
-      const bodyComponent = template.components?.find(c => c.type === "BODY");
-      const footerComponent = template.components?.find(c => c.type === "FOOTER");
-      const buttonComponent = template.components?.find(c => c.type === "BUTTONS");
+      const headerComponent = template.components?.find(
+        (c) => c.type === "HEADER"
+      );
+      const bodyComponent = template.components?.find((c) => c.type === "BODY");
+      const footerComponent = template.components?.find(
+        (c) => c.type === "FOOTER"
+      );
+      const buttonComponent = template.components?.find(
+        (c) => c.type === "BUTTONS"
+      );
 
       form.reset({
         name: template.name,
         category: template.category as any,
         language: template.language || "en_US",
-        mediaType: headerComponent?.format === "IMAGE" ? "image" : 
-                   headerComponent?.format === "VIDEO" ? "video" : 
-                   headerComponent?.format === "DOCUMENT" ? "document" : "text",
+        mediaType:
+          headerComponent?.format === "IMAGE"
+            ? "image"
+            : headerComponent?.format === "VIDEO"
+            ? "video"
+            : headerComponent?.format === "DOCUMENT"
+            ? "document"
+            : "text",
         mediaUrl: "",
-        header: headerComponent?.format === "TEXT" ? (headerComponent.text || template.header || "") : "",
+        header:
+          headerComponent?.format === "TEXT"
+            ? headerComponent.text || template.header || ""
+            : "",
         body: bodyComponent?.text || template.body,
         footer: footerComponent?.text || template.footer || "",
-        buttons: buttonComponent?.buttons?.map((btn: any) => ({
-          type: btn.type,
-          text: btn.text,
-          url: btn.url || "",
-          phoneNumber: btn.phone_number || "",
-        })) || [],
+        buttons:
+          buttonComponent?.buttons?.map((btn: any) => ({
+            type: btn.type,
+            text: btn.text,
+            url: btn.url || "",
+            phoneNumber: btn.phone_number || "",
+          })) || [],
         variables: [],
       });
     } else {
@@ -155,7 +195,9 @@ export function TemplateDialog({
 
   const extractVariables = (text: string) => {
     const regex = /\{\{(\d+)\}\}/g;
-    const matches = [...new Set([...text.matchAll(regex)].map(match => match[1]))];
+    const matches = [
+      ...new Set([...text.matchAll(regex)].map((match) => match[1])),
+    ];
     return matches;
   };
 
@@ -192,19 +234,25 @@ export function TemplateDialog({
             {template ? "Edit Template" : "Create New Template"}
           </DialogTitle>
           <DialogDescription>
-            Create WhatsApp message templates for marketing, utility, or authentication purposes.
+            Create WhatsApp message templates for marketing, utility, or
+            authentication purposes.
           </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+          >
             <div className="grid grid-cols-2 gap-6">
               {/* Left side - Form */}
               <div className="overflow-y-auto max-h-[calc(90vh-200px)] pr-4 space-y-4">
                 {/* Basic Info */}
                 <div className="space-y-4">
-                  <h3 className="font-medium text-sm text-gray-700">Basic Information</h3>
-                  
+                  <h3 className="font-medium text-sm text-gray-700">
+                    Basic Information
+                  </h3>
+
                   <FormField
                     control={form.control}
                     name="name"
@@ -212,9 +260,9 @@ export function TemplateDialog({
                       <FormItem>
                         <FormLabel>Template Name</FormLabel>
                         <FormControl>
-                          <Input 
-                            placeholder="welcome_message" 
-                            {...field} 
+                          <Input
+                            placeholder="welcome_message"
+                            {...field}
                             disabled={!!template}
                           />
                         </FormControl>
@@ -233,8 +281,8 @@ export function TemplateDialog({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Category</FormLabel>
-                          <Select 
-                            onValueChange={field.onChange} 
+                          <Select
+                            onValueChange={field.onChange}
                             defaultValue={field.value}
                             disabled={!!template}
                           >
@@ -244,9 +292,13 @@ export function TemplateDialog({
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="MARKETING">Marketing</SelectItem>
+                              <SelectItem value="MARKETING">
+                                Marketing
+                              </SelectItem>
                               <SelectItem value="UTILITY">Utility</SelectItem>
-                              <SelectItem value="AUTHENTICATION">Authentication</SelectItem>
+                              <SelectItem value="AUTHENTICATION">
+                                Authentication
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -260,8 +312,8 @@ export function TemplateDialog({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Language</FormLabel>
-                          <Select 
-                            onValueChange={field.onChange} 
+                          <Select
+                            onValueChange={field.onChange}
                             defaultValue={field.value}
                             disabled={!!template}
                           >
@@ -271,11 +323,17 @@ export function TemplateDialog({
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="en_US">English (US)</SelectItem>
-                              <SelectItem value="en_GB">English (UK)</SelectItem>
+                              <SelectItem value="en_US">
+                                English (US)
+                              </SelectItem>
+                              <SelectItem value="en_GB">
+                                English (UK)
+                              </SelectItem>
                               <SelectItem value="es">Spanish</SelectItem>
                               <SelectItem value="fr">French</SelectItem>
-                              <SelectItem value="pt_BR">Portuguese (BR)</SelectItem>
+                              <SelectItem value="pt_BR">
+                                Portuguese (BR)
+                              </SelectItem>
                               <SelectItem value="hi">Hindi</SelectItem>
                               <SelectItem value="ar">Arabic</SelectItem>
                             </SelectContent>
@@ -289,15 +347,20 @@ export function TemplateDialog({
 
                 {/* Content */}
                 <div className="space-y-4">
-                  <h3 className="font-medium text-sm text-gray-700">Template Content</h3>
-                  
+                  <h3 className="font-medium text-sm text-gray-700">
+                    Template Content
+                  </h3>
+
                   <FormField
                     control={form.control}
                     name="mediaType"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Media Type</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue />
@@ -343,7 +406,10 @@ export function TemplateDialog({
                         <FormItem>
                           <FormLabel>Sample Media URL (Optional)</FormLabel>
                           <FormControl>
-                            <Input placeholder="https://example.com/image.jpg" {...field} />
+                            <Input
+                              placeholder="https://example.com/image.jpg"
+                              {...field}
+                            />
                           </FormControl>
                           <FormDescription>
                             Provide a sample URL for preview purposes
@@ -361,11 +427,12 @@ export function TemplateDialog({
                       <FormItem>
                         <FormLabel>Header (Optional)</FormLabel>
                         <FormControl>
-                          <Input placeholder="Welcome to our service!" {...field} />
+                          <Input
+                            placeholder="Welcome to our service!"
+                            {...field}
+                          />
                         </FormControl>
-                        <FormDescription>
-                          Max 60 characters
-                        </FormDescription>
+                        <FormDescription>Max 60 characters</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -378,14 +445,15 @@ export function TemplateDialog({
                       <FormItem>
                         <FormLabel>Body</FormLabel>
                         <FormControl>
-                          <Textarea 
+                          <Textarea
                             placeholder="Hi {{1}}, welcome to our service! Your account has been created successfully."
                             rows={5}
                             {...field}
                           />
                         </FormControl>
                         <FormDescription>
-                          Use {"{{1}}"}, {"{{2}}"}, etc. for variables. Max 1024 characters.
+                          Use {"{{1}}"}, {"{{2}}"}, etc. for variables. Max 1024
+                          characters.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -399,35 +467,59 @@ export function TemplateDialog({
                       <FormItem>
                         <FormLabel>Footer (Optional)</FormLabel>
                         <FormControl>
-                          <Input placeholder="Reply STOP to unsubscribe" {...field} />
+                          <div className="relative">
+                            <Input
+                              placeholder="Reply STOP to unsubscribe"
+                              {...field}
+                            />
+
+                            {/* LIVE COUNT */}
+                            <span
+                              className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs ${
+                                (field.value?.length || 0) > 60
+                                  ? "text-red-500"
+                                  : "text-gray-400"
+                              }`}
+                            >
+                              {field.value?.length || 0} / 60
+                            </span>
+                          </div>
                         </FormControl>
-                        <FormDescription>
-                          Max 60 characters
-                        </FormDescription>
+
+                        {/* Optional description */}
+                        <FormDescription>Max 60 characters</FormDescription>
+
                         <FormMessage />
                       </FormItem>
                     )}
                   />
 
-                  {watchedValues.body && extractVariables(watchedValues.body).length > 0 && (
-                    <div>
-                      <Label className="text-sm font-medium">Detected Variables</Label>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {extractVariables(watchedValues.body).map((variable) => (
-                          <Badge key={variable} variant="secondary">
-                            <Hash className="w-3 h-3 mr-1" />
-                            Variable {variable}
-                          </Badge>
-                        ))}
+                  {watchedValues.body &&
+                    extractVariables(watchedValues.body).length > 0 && (
+                      <div>
+                        <Label className="text-sm font-medium">
+                          Detected Variables
+                        </Label>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {extractVariables(watchedValues.body).map(
+                            (variable) => (
+                              <Badge key={variable} variant="secondary">
+                                <Hash className="w-3 h-3 mr-1" />
+                                Variable {variable}
+                              </Badge>
+                            )
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
                 </div>
 
                 {/* Buttons */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-medium text-sm text-gray-700">Action Buttons</h3>
+                    <h3 className="font-medium text-sm text-gray-700">
+                      Action Buttons
+                    </h3>
                     <Button
                       type="button"
                       variant="outline"
@@ -442,12 +534,16 @@ export function TemplateDialog({
 
                   {buttonFields.length === 0 ? (
                     <p className="text-sm text-gray-500 text-center py-4">
-                      No buttons added. Click "Add Button" to create action buttons.
+                      No buttons added. Click "Add Button" to create action
+                      buttons.
                     </p>
                   ) : (
                     <div className="space-y-4">
                       {buttonFields.map((field, index) => (
-                        <div key={field.id} className="border rounded-lg p-4 space-y-4">
+                        <div
+                          key={field.id}
+                          className="border rounded-lg p-4 space-y-4"
+                        >
                           <div className="flex items-center justify-between">
                             <Label>Button {index + 1}</Label>
                             <Button
@@ -466,7 +562,10 @@ export function TemplateDialog({
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Button Type</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                >
                                   <FormControl>
                                     <SelectTrigger>
                                       <SelectValue />
@@ -523,7 +622,10 @@ export function TemplateDialog({
                                 <FormItem>
                                   <FormLabel>URL</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="https://example.com/{{1}}" {...field} />
+                                    <Input
+                                      placeholder="https://example.com/{{1}}"
+                                      {...field}
+                                    />
                                   </FormControl>
                                   <FormDescription>
                                     You can use variables like {"{{1}}"} in URLs
@@ -534,7 +636,8 @@ export function TemplateDialog({
                             />
                           )}
 
-                          {watchedValues.buttons?.[index]?.type === "PHONE_NUMBER" && (
+                          {watchedValues.buttons?.[index]?.type ===
+                            "PHONE_NUMBER" && (
                             <FormField
                               control={form.control}
                               name={`buttons.${index}.phoneNumber`}
@@ -542,7 +645,10 @@ export function TemplateDialog({
                                 <FormItem>
                                   <FormLabel>Phone Number</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="+1234567890" {...field} />
+                                    <Input
+                                      placeholder="+1234567890"
+                                      {...field}
+                                    />
                                   </FormControl>
                                   <FormDescription>
                                     Include country code
@@ -585,7 +691,8 @@ export function TemplateDialog({
 
                     {/* Body */}
                     <p className="text-sm whitespace-pre-wrap">
-                      {watchedValues.body || "Template body will appear here..."}
+                      {watchedValues.body ||
+                        "Template body will appear here..."}
                     </p>
 
                     {/* Footer */}
@@ -596,41 +703,51 @@ export function TemplateDialog({
                     )}
 
                     {/* Buttons */}
-                    {watchedValues.buttons && watchedValues.buttons.length > 0 && (
-                      <div className="pt-3 space-y-2">
-                        {watchedValues.buttons.map((button, idx) => (
-                          <button
-                            key={idx}
-                            className="w-full py-2 px-4 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 transition-colors"
-                          >
-                            {button.text || "Button text"}
-                            {button.type === "URL" && " →"}
-                            {button.type === "PHONE_NUMBER" && " 📞"}
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                    {watchedValues.buttons &&
+                      watchedValues.buttons.length > 0 && (
+                        <div className="pt-3 space-y-2">
+                          {watchedValues.buttons.map((button, idx) => (
+                            <button
+                              key={idx}
+                              className="w-full py-2 px-4 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 transition-colors"
+                            >
+                              {button.text || "Button text"}
+                              {button.type === "URL" && " →"}
+                              {button.type === "PHONE_NUMBER" && " 📞"}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                   </div>
                 </div>
 
                 {/* Additional Info */}
                 <div className="mt-6 space-y-4">
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <h4 className="text-sm font-medium text-blue-900 mb-2">Template Guidelines</h4>
+                    <h4 className="text-sm font-medium text-blue-900 mb-2">
+                      Template Guidelines
+                    </h4>
                     <ul className="text-xs text-blue-800 space-y-1">
                       <li>• Template names must be unique and lowercase</li>
                       <li>• Marketing templates require explicit opt-in</li>
-                      <li>• Variables are replaced with actual values when sending</li>
-                      <li>• Templates must be approved by WhatsApp before use</li>
+                      <li>
+                        • Variables are replaced with actual values when sending
+                      </li>
+                      <li>
+                        • Templates must be approved by WhatsApp before use
+                      </li>
                     </ul>
                   </div>
 
                   {watchedValues.category === "MARKETING" && (
                     <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                      <h4 className="text-sm font-medium text-amber-900 mb-2">Marketing Template Notice</h4>
+                      <h4 className="text-sm font-medium text-amber-900 mb-2">
+                        Marketing Template Notice
+                      </h4>
                       <p className="text-xs text-amber-800">
-                        Marketing templates can only be sent to users who have opted in to receive promotional messages.
-                        Ensure you have proper consent before sending.
+                        Marketing templates can only be sent to users who have
+                        opted in to receive promotional messages. Ensure you
+                        have proper consent before sending.
                       </p>
                     </div>
                   )}
@@ -647,8 +764,15 @@ export function TemplateDialog({
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={user?.username === 'demouser'? true : isSubmitting}>
-                {isSubmitting ? "Submitting..." : template ? "Update Template" : "Create Template"}
+              <Button
+                type="submit"
+                disabled={user?.username === "demouser" ? true : isSubmitting}
+              >
+                {isSubmitting
+                  ? "Submitting..."
+                  : template
+                  ? "Update Template"
+                  : "Create Template"}
               </Button>
             </DialogFooter>
           </form>

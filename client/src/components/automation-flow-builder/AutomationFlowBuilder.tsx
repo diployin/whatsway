@@ -90,12 +90,12 @@ export default function AutomationFlowBuilder({
     setSelectedId(builderNode.id);
   }, []);
 
-  const { data: templateData } = useQuery({
+  const { data: templateDataOld } = useQuery({
     queryKey: ["/api/templates"],
     queryFn: () =>
       apiRequest("GET", "/api/templates").then((res) => res.json()),
   });
-
+  const templateData: Template[] = templateDataOld?.data || [];
   const templates =
     templateData?.filter((t: Template) => t.status === "APPROVED") || [];
 
