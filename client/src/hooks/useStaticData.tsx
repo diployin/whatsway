@@ -21,7 +21,7 @@ const useStaticData = () => {
       resourcesMenuItems: [
         {
           title: t("Landing.header.resourcesMenuItems.0.title"),
-          path: "/templates",
+          path: "/privacy-policy",
           description: t("Landing.header.resourcesMenuItems.0.description"),
           icon: FileText,
           image:
@@ -29,7 +29,7 @@ const useStaticData = () => {
         },
         {
           title: t("Landing.header.resourcesMenuItems.1.title"),
-          path: "/case-studies",
+          path: "/terms",
           description: t("Landing.header.resourcesMenuItems.0.description"),
           icon: TrendingUp,
           image:
@@ -44,14 +44,6 @@ const useStaticData = () => {
           icon: Users,
           image:
             "https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop",
-        },
-        {
-          title: t("Landing.header.aboutMenuItems.1.title"),
-          path: "/contact",
-          description: t("Landing.header.aboutMenuItems.1.description"),
-          icon: Mail,
-          image:
-            "https://images.pexels.com/photos/4386466/pexels-photo-4386466.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop",
         },
       ],
     },
