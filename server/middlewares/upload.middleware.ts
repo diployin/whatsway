@@ -5,6 +5,8 @@ import { Request, Response, NextFunction } from "express";
 import { createDOClient } from "../config/digitalOceanConfig";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 
+
+
 const allowedTypes = [
   "image/jpeg", "image/png", "image/gif", "image/webp", "image/jpg",
   "image/x-icon", "image/vnd.microsoft.icon",
