@@ -65,6 +65,7 @@
     "analytics": "Analytics",
     "settings": "Settings",
     "team": "Team",
+    "groups":"Groups",
     "channels": "Channels",
     "webhooks": "Webhooks",
     "account": "Account",
@@ -74,10 +75,38 @@
   },
   "widget":{
   "title":"Widget Builder",
-  "subtitle":"Create and customize your WhatsApp chat widget for your website."
+  "subtitle":"Create and customize your WhatsApp chat widget for your website.",
+  "Content":{
+    "messagetitle":"Welcome Messages",
+    "messageSubtitle":"Customize your greeting text",
+    "Installation":{
+      "title":"Installation Code",
+      "subtitle":"Copy and paste this code into your website"
+    },
+    "Live_Preview":{
+       "title":"Live Preview",
+      "subtitle":"Interactive widget preview"
+    }
+  },
+  "Design":{
+    "Widget":{
+      "title":"Widget Style",
+      "subtitle":"Choose your widget appearance"
+    },
+    "Home_Screen":{
+      "title":"Home Screen Layout",
+      "subtitle":" Choose the default view when widget opens"
+    },
+    "Copy_and_paste ":{
+      "title":"Copy and paste",
+      "subtitle":"Copy and paste this code into your website"
+    }
+   
+  }
+
   },
   "dashboard": {
-    "uploadCSV": "Upload CSV",
+    "uploadCSV": "Upload CSV", 
     "createAutomation": "Create automation",
     "detailedAnalytics": "Detailed analytics",
     "createMessageTemplate": "Create message template",
@@ -143,7 +172,16 @@
     "apiStatusText": "Approved",
      "apiStatusUpTime": "API Uptime",
      "healthDetails": "Health Details",
-    "apiStatus": "Status"
+    "apiStatus": "Status",
+    "dashboardStates":{
+       "Total_Contacts":"Total Contacts",
+       "Total_Channels":"Total Channels",
+       "Total_Messages":"Total Messages",
+       "Total_Users":"Total Users" ,
+       "Total_Campaigns":"Total Campaigns" ,
+       "Total_Signups":"Total Signups" ,
+       "Total_Templates":"Total Templates" 
+         }
   },
   "contacts": {
     "contact": "Contact",
@@ -364,6 +402,10 @@
   "templates": {
     "title": "Templates",
     "createTemplate": "Create Template",
+    "superAdminSubTitle":"manage WhatsApp message templates",
+    "userSubTitle":"Create and manage WhatsApp message templates",
+    "mess_Temp":" Message Templates",
+    "sync":" Sync from WhatsApp",
     "templateName": "Template Name",
     "apiCampaigns": "API Campaigns",
     "category": "Category",
@@ -437,6 +479,13 @@
   },
   "automations": {
     "title": "Automations",
+    "create_auto":"Create Automation",
+    "Subtitle": "Create automated workflows to engage with your customers",
+    "empityAuto":{
+      "title":"No automations yet",
+      "Subtitle":"Create your first automati start engaging with customers            automatically",
+      "buttonTitle":" Create Your First Automation"
+    },
     "createAutomation": "Create Automation",
     "automationName": "Automation Name",
     "trigger": "Trigger",
@@ -497,8 +546,14 @@
     "errorMessage": "Error Message"
   },
   "team": {
-    "title": "Team",
+    "title": "Team Management",
+    "subtitle":"Manage your team members, roles, and permissions",
+    "teamMember":"Team Members",
+    "Activity_Logs":"Team Members",
     "addMember": "Add Team Member",
+    "manage_Team":"Manage team members and their access permissions",
+      "Activity_LogsTitle":"Activity Logs",
+      "Activity_LogsDes":"Track team member activities and actions",
     "editMember": "Edit Member",
     "deleteMember": "Delete Member",
     "firstName": "First Name",
@@ -604,5 +659,146 @@
     "copied": "Copied to clipboard",
     "uploaded": "Uploaded successfully",
     "downloaded": "Downloaded successfully"
-  }
+  },
+  "analytics":{
+    "title":"Analytics & Reports",
+    "subtitle":"Track your WhatsApp business performance with real-time data",
+    "time_range":"Time Range",
+    "MessagesTab":"Messages",
+    "OverviewTab":{
+      "title":"Overview",
+       "last": "Last",
+       "days": "days",
+       "Total_Messages":"  Total Messages",
+       "Delivery":"Delivery Rate",
+       "read_rate":"Read Rate",
+       "reply_rate":"Reply Rate",
+       "Failure_rate":"Failure Rate",
+       "managePer":"Message Performance Trends",
+       "Summary":"Summary",
+       "Active_Campaigns":"Active Campaigns",
+       "Total_Campaigns":"Total Campaigns",
+       "Unique_Contacts":"Unique Contacts",
+       "Total_Recipients":"Total Recipients"
+
+    },
+    "messageTab":{
+      "title":"Messages",
+      "Outbound_Messages":"Outbound Messages",
+      "Inbound_Messages":"Inbound Messages",
+      "Average_Response":"Average Response Time",
+      "Message_Activity":"Message Activity by Hour"
+    },
+    "CampaignsTab":{
+      "title":"Campaigns",
+      "Total_Sent":"Total Sent",
+      "Total_Delivered":"Total Delivered",
+      "Total_Read":"Total Read",
+      "Total_Failed":"Total Failed",
+      "Campaign_Performance":"Campaign Performance"
+    }
+
+  },
+  "Landing": {
+    "header": {
+      "getstart":"Get Started Free",
+      "redystart":"Ready to get started?",
+      "join":"Join thousands of businesses already growing with Whatsway",
+      "start":" Start Free Trial",
+      "Learn":" Learn more",
+      "dash":"Dashboard",
+      "Settings":"Settings",
+      "Account":"Account",
+      "logout":"Logout",
+      "resourcesMenuItems": [
+        {
+          "title": "Templates",
+          "description": "Ready-to-use message templates"
+        },
+        {
+          "title": "Case Studies",
+          "description": "Success stories from our clients"
+        },
+        {
+          "title": "WhatsApp Guide",
+          "description": "Complete WhatsApp marketing guide"
+        },
+        {
+          "title": "API Documentation",
+          "description": "Developer resources and API docs"
+        },
+        {
+          "title": "Best Practices",
+          "description": "Tips for WhatsApp marketing success"
+        },
+        {
+          "title": "ROI Calculator",
+          "description": "Calculate your WhatsApp marketing ROI"
+        }
+      ],
+       "aboutMenuItems": [
+        {
+          "title": "About Us",
+          "description": "Learn about our mission and team"
+        },
+        {
+          "title": "Contact",
+          "description": "Get in touch with our team"
+        },
+        {
+          "title": "Careers",
+          "description": "Join our growing team"
+        },
+        {
+          "title": "Integrations",
+          "description": "Connect with 1000+ apps"
+        }
+      ],
+      "Navlinks":[
+            "Home",
+            "About",
+            "Resources",
+            "Login",
+            "Dashboard"
+      ]
+    },
+        "heroSec": {
+      "freeTrialButton": "Start Free Trial",
+      "watchDemo": "Watch 2-min Demo",
+      "stats": [
+        {
+          "label": "Active Users",
+          "suffix": "+"
+        },
+        {
+          "label": "Delivery Rate",
+          "suffix": "%"
+        },
+        {
+          "label": "Higher Engagement",
+          "suffix": "x"
+        }
+      ],
+      "trustedText": "Trusted by 10,000+ businesses worldwide",
+      "brands": ["Shopify", "WooCommerce", "Salesforce", "HubSpot", "Zapier"],
+      "marketingTag": "Free WhatsApp Marketing Platform - Bring Your Own API",
+      "headline": "Scale Your Business with",
+      "highlightText": "WhatsApp Marketing",
+      "subHeadline": "Connect your Meta WhatsApp Business API and unlock powerful automation, bulk messaging, and advanced analytics. Start free, scale unlimited."
+    }
+  },
+   "groups":{
+    "title":"Groups",
+    "subtitle":"All groups details and management",
+    "createButton":"Create Group"
+   },
+   "messageLog":{
+     "headerTitle":"Message Logs",
+     "headerSubTitle":"Track all sent messages and their delivery status",
+      "messageHis":{
+        "title":"Message History",
+        "subtitle":"View detailed logs of all messages"
+      },
+      "Refresh":"Refresh"
+   }
 }

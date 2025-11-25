@@ -444,9 +444,9 @@ export default function WidgetBuilder() {
               <TabsContent value="design" className="space-y-6  ">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Widget Style</CardTitle>
+                    <CardTitle>{t("widget.Design.Widget.title")}</CardTitle>
                     <CardDescription>
-                      Choose your widget appearance
+                      {t("widget.Design.Widget.subtitle")}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -568,9 +568,11 @@ export default function WidgetBuilder() {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Home Screen Layout</CardTitle>
+                    <CardTitle>
+                      {t("widget.Design.Home_Screen.title")}
+                    </CardTitle>
                     <CardDescription>
-                      Choose the default view when widget opens
+                      {t("widget.Design.Home_Screen.subtitle")}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -1126,9 +1128,9 @@ export default function WidgetBuilder() {
               <TabsContent value="content" className="space-y-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Welcome Messages</CardTitle>
+                    <CardTitle>{t("widget.Content.messagetitle")}</CardTitle>
                     <CardDescription>
-                      Customize your greeting text
+                      {t("widget.Content.messageSubtitle")}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -1607,12 +1609,11 @@ export default function WidgetBuilder() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Installation Code</CardTitle>
+                <CardTitle>{t("widget.Content.Installation.title")}</CardTitle>
                 <CardDescription>
-                  Copy and paste this code into your website
+                  {t("widget.Content.Installation.subtitle")}
                 </CardDescription>
               </CardHeader>
-
               <CardContent className="space-y-4">
                 {site ? (
                   <div className="relative">
@@ -1649,8 +1650,11 @@ export default function WidgetBuilder() {
           <div className="space-y-6">
             <Card className="sticky top-2">
               <CardHeader>
-                <CardTitle>Live Preview</CardTitle>
-                <CardDescription>Interactive widget preview</CardDescription>
+                <CardTitle> {t("widget.Content.Live_Preview.title")}</CardTitle>
+                <CardDescription>
+                  {" "}
+                  {t("widget.Content.Live_Preview.subtitle")}
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="relative h-[680px] bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg border overflow-hidden">

@@ -140,7 +140,17 @@
       "apiStatusText": "Approuvé",
       "apiStatusUpTime": "Disponibilité de l'API",
       "healthDetails": "Détails de la santé",
-    "apiStatus": "Statut"
+    "apiStatus": "Statut",
+    "dashboardStates": {
+   "Total_Contacts": "Total des contacts",
+   "Total_Channels": "Total des canaux",
+   "Total_Messages": "Total des messages",
+   "Total_Users": "Total des utilisateurs",
+   "Total_Campaigns": "Total des campagnes",
+   "Total_Signups": "Total des inscriptions",
+   "Total_Templates": "Total des modèles"
+}
+
   },
   "contacts": {
     "contact": "Contact",
@@ -358,17 +368,22 @@
     "rows": "lignes",
     "tabContent": "Les campagnes API permettent aux applications externes de déclencher des messages en utilisant vos modèles. Après la création de la campagne, vous recevrez un endpoint API et une clé."
   },
-  "templates": {
+   "templates": {
     "title": "Modèles",
     "createTemplate": "Créer un modèle",
+    "superAdminSubTitle": "Gérer les modèles de messages WhatsApp",
+    "userSubTitle": "Créer et gérer les modèles de messages WhatsApp",
+    "mess_Temp": "Modèles de message",
+    "sync": "Synchroniser depuis WhatsApp",
     "templateName": "Nom du modèle",
+    "apiCampaigns": "Campagnes API",
     "category": "Catégorie",
     "language": "Langue",
     "header": "En-tête",
     "body": "Corps",
     "footer": "Pied de page",
     "buttons": "Boutons",
-    "media": "Média",
+    "media": "Médias",
     "preview": "Aperçu",
     "approved": "Approuvé",
     "pending": "En attente",
@@ -384,12 +399,12 @@
     "image": "Image",
     "video": "Vidéo",
     "document": "Document",
-    "location": "Localisation",
+    "location": "Emplacement",
     "quickReply": "Réponse rapide",
     "callToAction": "Appel à l'action",
     "urlButton": "Bouton URL",
-    "phoneButton": "Bouton Téléphone",
-    "exampleValues": "Exemples de valeurs"
+    "phoneButton": "Bouton téléphone",
+    "exampleValues": "Valeurs d'exemple"
   },
   "inbox": {
     "title": "Boîte de réception d'équipe",
@@ -431,8 +446,15 @@
     "endOfConversation": "Fin de la conversation",
     "businessHoursMessage": "En dehors des heures de bureau - les réponses peuvent être retardées"
   },
-  "automations": {
+"automations": {
     "title": "Automatisations",
+    "create_auto": "Créer une automatisation",
+    "Subtitle": "Créez des workflows automatisés pour interagir avec vos clients",
+    "empityAuto": {
+        "title": "Pas encore d'automatisations",
+        "Subtitle": "Créez votre première automatisation et commencez à interagir automatiquement avec les clients",
+        "buttonTitle": "Créez votre première automatisation"
+    },
     "createAutomation": "Créer une automatisation",
     "automationName": "Nom de l'automatisation",
     "trigger": "Déclencheur",
@@ -448,14 +470,14 @@
     "duplicate": "Dupliquer",
     "flowBuilder": "Constructeur de flux",
     "addNode": "Ajouter un nœud",
-    "deleteNode": "Supprimer le nœud",
-    "userReply": "Réponse de l'utilisateur",
+    "deleteNode": "Supprimer un nœud",
+    "userReply": "Réponse utilisateur",
     "timeGap": "Intervalle de temps",
-    "sendTemplate": "Envoyer le modèle",
+    "sendTemplate": "Envoyer un modèle",
     "customReply": "Réponse personnalisée",
     "keywordCatch": "Capture de mot-clé",
     "waitFor": "Attendre",
-    "timeout": "Délai d'attente",
+    "timeout": "Expiration",
     "messageText": "Texte du message",
     "keywords": "Mots-clés",
     "dragToReorder": "Glisser pour réorganiser",
@@ -465,10 +487,11 @@
     "triggerType": "Type de déclencheur",
     "messageReceived": "Message reçu",
     "keywordDetected": "Mot-clé détecté",
-    "tagAdded": "Étiquette ajoutée",
+    "tagAdded": "Tag ajouté",
     "flowCompleted": "Flux terminé",
     "flowFailed": "Flux échoué"
-  },
+}
+,
   "messageLogs": {
     "title": "Journaux des messages",
     "messageId": "ID du message",
@@ -493,8 +516,15 @@
     "errorMessage": "Message d'erreur"
   },
   "team": {
-    "title": "Équipe",
-    "addMember": "Ajouter un membre d'équipe",
+    "title": "Gestion d'équipe",
+    "subtitle": "Gérez les membres de votre équipe, les rôles et les autorisations",
+    "teamMember": "Membres de l'équipe",
+    "Activity_Logs": "Journaux d'activité",
+    "addMember": "Ajouter un membre à l'équipe",
+    "manage_Team": "Gérez les membres de l’équipe et leurs autorisations d’accès",
+    "Activity_LogsTitle": "Journaux d'activité",
+"Activity_LogsDes": "Suivez les activités des membres de l'équipe"
+,
     "editMember": "Modifier le membre",
     "deleteMember": "Supprimer le membre",
     "firstName": "Prénom",
@@ -600,5 +630,76 @@
     "copied": "Copié dans le presse-papiers",
     "uploaded": "Téléchargé avec succès",
     "downloaded": "Téléchargé avec succès"
+  },
+  "analytics": {
+    "title": "Analyses et rapports",
+    "subtitle": "Suivez la performance de votre entreprise WhatsApp avec des données en temps réel",
+    "time_range": "Plage de temps",
+    "MessagesTab": "Messages",
+    "OverviewTab": {
+        "title": "Vue d'ensemble",
+        "last": "Derniers",
+        "days": "jours",
+        "Total_Messages": "Total des messages",
+        "Delivery": "Taux de livraison",
+        "read_rate": "Taux de lecture",
+        "reply_rate": "Taux de réponse",
+        "Failure_rate": "Taux d'échec",
+        "managePer": "Tendances des performances des messages",
+        "Summary": "Résumé",
+        "Active_Campaigns": "Campagnes actives",
+        "Total_Campaigns": "Total des campagnes",
+        "Unique_Contacts": "Contacts uniques",
+        "Total_Recipients": "Total des destinataires"
+    },
+    "messageTab": {
+        "title": "Messages",
+        "Outbound_Messages": "Messages sortants",
+        "Inbound_Messages": "Messages entrants",
+        "Average_Response": "Temps de réponse moyen",
+        "Message_Activity": "Activité des messages par heure"
+    },
+    "CampaignsTab": {
+        "title": "Campagnes",
+        "Total_Sent": "Total envoyé",
+        "Total_Delivered": "Total livré",
+        "Total_Read": "Total lu",
+        "Total_Failed": "Total échoué",
+        "Campaign_Performance": "Performance de la campagne"
+    }
+},
+  "Landing": {
+    "header": {
+      "getstart": "Commencez gratuitement",
+      "redystart": "Prêt à commencer ?",
+      "join": "Rejoignez des milliers d'entreprises qui croissent déjà avec Whatsway",
+      "start": "Commencez votre essai gratuit",
+      "Learn": "En savoir plus",
+      "dash": "Tableau de bord",
+      "Settings": "Paramètres",
+      "Account": "Compte",
+      "logout": "Déconnexion",
+      "resourcesMenuItems": [
+        { "title": "Modèles", "description": "Modèles de messages prêts à l'emploi" },
+        { "title": "Études de cas", "description": "Histoires à succès de nos clients" },
+        { "title": "Guide WhatsApp", "description": "Guide complet de marketing WhatsApp" },
+        { "title": "Documentation API", "description": "Ressources développeurs et documentation API" },
+        { "title": "Meilleures pratiques", "description": "Conseils pour réussir le marketing WhatsApp" },
+        { "title": "Calculatrice ROI", "description": "Calculez votre ROI marketing WhatsApp" }
+      ],
+      "aboutMenuItems": [
+        { "title": "À propos", "description": "En savoir plus sur notre mission et équipe" },
+        { "title": "Contact", "description": "Contactez notre équipe" },
+        { "title": "Carrières", "description": "Rejoignez notre équipe en pleine croissance" },
+        { "title": "Intégrations", "description": "Connectez-vous avec plus de 1000 applications" }
+      ],
+      "Navlinks": ["Accueil", "À propos", "Ressources", "Connexion", "Tableau de bord"]
+    }
+  },
+    "groups": {
+    "title": "Groupes",
+    "subtitle": "Tous les détails et la gestion des groupes",
+    "createButton": "Créer un groupe"
   }
+
 }

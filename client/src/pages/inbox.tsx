@@ -16,7 +16,6 @@ import {
   DialogDescription,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -81,6 +80,7 @@ import { cn } from "@/lib/utils";
 import type { Conversation, Contact, User } from "@shared/schema";
 import { useAuth } from "@/contexts/auth-context";
 import { io, Socket } from "socket.io-client";
+import { useTranslation } from "@/lib/i18n";
 
 // Helper functions
 const formatLastSeen = (date: Date | string | null) => {
@@ -999,6 +999,8 @@ export default function Inbox() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
+  const { t } = useTranslation();
+
   // Socket.io state
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isTyping, setIsTyping] = useState(false);
@@ -1666,7 +1668,7 @@ export default function Inbox() {
   if (!activeChannel) {
     return (
       <div className="h-screen flex flex-col">
-        <Header title="Team Inbox" />
+        <Header title={t("inbox.title")} />
         <div className="flex-1 flex items-center justify-center">
           <EmptyState
             icon={MessageCircle}
@@ -1680,7 +1682,7 @@ export default function Inbox() {
 
   return (
     <div className="h-screen flex flex-col">
-      <Header title="Team Inbox" />
+      <Header title={t("inbox.title")} />
       <div className="flex-1 flex bg-gray-50 overflow-hidden">
         {/* Conversations List */}
         <div

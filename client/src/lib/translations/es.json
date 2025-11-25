@@ -151,7 +151,18 @@
     "textLead": "Nuevos Clientes Potenciales",
      "apiStatusText": "Aprobado",
      "apiStatusUpTime": "Tiempo de actividad de la API",
-    "apiStatus": "Estado"
+    "apiStatus": "Estado",
+    "dashboardStates": {
+   "Total_Contacts": "Total de contactos",
+   "Total_Channels": "Total de canales",
+   "Total_Messages": "Total de mensajes",
+   "Total_Users": "Total de usuarios",
+   "Total_Campaigns": "Total de campañas",
+   "Total_Signups": "Total de registros",
+   "Total_Templates": "Total de plantillas"
+}
+
+ 
   },
   "contacts": {
     "contact": "Contacto",
@@ -369,17 +380,22 @@
     "rows": "filas",
     "tabContent": " Las campañas API permiten que aplicaciones externas activen mensajes utilizando tus plantillas. Después de crear la campaña, recibirás un endpoint y una clave de API."
   },
-  "templates": {
+   "templates": {
     "title": "Plantillas",
     "createTemplate": "Crear plantilla",
-    "templateName": "Nombre de plantilla",
+    "superAdminSubTitle": "Gestionar plantillas de mensajes de WhatsApp",
+    "userSubTitle": "Crear y gestionar plantillas de mensajes de WhatsApp",
+    "mess_Temp": "Plantillas de mensajes",
+    "sync": "Sincronizar desde WhatsApp",
+    "templateName": "Nombre de la plantilla",
+    "apiCampaigns": "Campañas API",
     "category": "Categoría",
     "language": "Idioma",
     "header": "Encabezado",
     "body": "Cuerpo",
     "footer": "Pie de página",
     "buttons": "Botones",
-    "media": "Media",
+    "media": "Medios",
     "preview": "Vista previa",
     "approved": "Aprobado",
     "pending": "Pendiente",
@@ -391,13 +407,13 @@
     "deleteTemplate": "Eliminar plantilla",
     "variables": "Variables",
     "addVariable": "Agregar variable",
-    "mediaType": "Tipo de media",
+    "mediaType": "Tipo de medio",
     "image": "Imagen",
     "video": "Video",
     "document": "Documento",
     "location": "Ubicación",
     "quickReply": "Respuesta rápida",
-    "callToAction": "Llamada a la acción",
+    "callToAction": "Llamado a la acción",
     "urlButton": "Botón URL",
     "phoneButton": "Botón de teléfono",
     "exampleValues": "Valores de ejemplo"
@@ -442,10 +458,17 @@
     "endOfConversation": "Fin de la conversación",
     "businessHoursMessage": "Fuera del horario comercial - las respuestas pueden demorar"
   },
-  "automations": {
+ "automations": {
     "title": "Automatizaciones",
+    "create_auto": "Crear automatización",
+    "Subtitle": "Cree flujos de trabajo automatizados para interactuar con sus clientes",
+    "empityAuto": {
+        "title": "Aún no hay automatizaciones",
+        "Subtitle": "Cree su primera automatización y comience a interactuar automáticamente con los clientes",
+        "buttonTitle": "Cree su primera automatización"
+    },
     "createAutomation": "Crear automatización",
-    "automationName": "Nombre de automatización",
+    "automationName": "Nombre de la automatización",
     "trigger": "Disparador",
     "conditions": "Condiciones",
     "actions": "Acciones",
@@ -469,17 +492,18 @@
     "timeout": "Tiempo de espera",
     "messageText": "Texto del mensaje",
     "keywords": "Palabras clave",
-    "dragToReorder": "Arrastra para reordenar",
+    "dragToReorder": "Arrastrar para reordenar",
     "saveFlow": "Guardar flujo",
     "discardChanges": "Descartar cambios",
     "executionLogs": "Registros de ejecución",
     "triggerType": "Tipo de disparador",
     "messageReceived": "Mensaje recibido",
     "keywordDetected": "Palabra clave detectada",
-    "tagAdded": "Etiqueta agregada",
+    "tagAdded": "Etiqueta añadida",
     "flowCompleted": "Flujo completado",
     "flowFailed": "Flujo fallido"
-  },
+}
+,
   "messageLogs": {
     "title": "Registros de mensajes",
     "messageId": "ID de mensaje",
@@ -504,8 +528,15 @@
     "errorMessage": "Mensaje de error"
   },
   "team": {
-    "title": "Equipo",
+      "title": "Gestión de equipo",
+    "subtitle": "Gestiona a los miembros de tu equipo, roles y permisos",
+    "teamMember": "Miembros del equipo",
+    "Activity_Logs": "Registros de actividad",
     "addMember": "Agregar miembro del equipo",
+    "manage_Team": "Gestiona los miembros del equipo y sus permisos de acceso",
+    "Activity_LogsTitle": "Registros de actividad",
+"Activity_LogsDes": "Rastrea las actividades de los miembros del equipo"
+,
     "editMember": "Editar miembro",
     "deleteMember": "Eliminar miembro",
     "firstName": "Nombre",
@@ -611,5 +642,76 @@
     "copied": "Copiado al portapapeles",
     "uploaded": "Cargado exitosamente",
     "downloaded": "Descargado exitosamente"
+  },
+  "analytics": {
+    "title": "Analíticas y reportes",
+    "subtitle": "Realiza seguimiento del rendimiento de tu negocio en WhatsApp con datos en tiempo real",
+    "time_range": "Rango de tiempo",
+    "MessagesTab": "Mensajes",
+    "OverviewTab": {
+        "title": "Resumen",
+        "last": "Últimos",
+        "days": "días",
+        "Total_Messages": "Total de mensajes",
+        "Delivery": "Tasa de entrega",
+        "read_rate": "Tasa de lectura",
+        "reply_rate": "Tasa de respuesta",
+        "Failure_rate": "Tasa de fallo",
+        "managePer": "Tendencias de rendimiento de mensajes",
+        "Summary": "Resumen",
+        "Active_Campaigns": "Campañas activas",
+        "Total_Campaigns": "Total de campañas",
+        "Unique_Contacts": "Contactos únicos",
+        "Total_Recipients": "Total de destinatarios"
+    },
+    "messageTab": {
+        "title": "Mensajes",
+        "Outbound_Messages": "Mensajes salientes",
+        "Inbound_Messages": "Mensajes entrantes",
+        "Average_Response": "Tiempo promedio de respuesta",
+        "Message_Activity": "Actividad de mensajes por hora"
+    },
+    "CampaignsTab": {
+        "title": "Campañas",
+        "Total_Sent": "Total enviado",
+        "Total_Delivered": "Total entregado",
+        "Total_Read": "Total leído",
+        "Total_Failed": "Total fallido",
+        "Campaign_Performance": "Rendimiento de campaña"
+    }
+},
+ "Landing": {
+    "header": {
+      "getstart": "Comienza Gratis",
+      "redystart": "¿Listo para empezar?",
+      "join": "Únete a miles de negocios que ya crecen con Whatsway",
+      "start": "Comienza la prueba gratis",
+      "Learn": "Aprende más",
+      "dash": "Tablero",
+      "Settings": "Configuración",
+      "Account": "Cuenta",
+      "logout": "Cerrar sesión",
+      "resourcesMenuItems": [
+        { "title": "Plantillas", "description": "Plantillas de mensajes listas para usar" },
+        { "title": "Estudios de caso", "description": "Historias de éxito de nuestros clientes" },
+        { "title": "Guía de WhatsApp", "description": "Guía completa de marketing en WhatsApp" },
+        { "title": "Documentación API", "description": "Recursos para desarrolladores y documentación de API" },
+        { "title": "Mejores prácticas", "description": "Consejos para el éxito en marketing de WhatsApp" },
+        { "title": "Calculadora ROI", "description": "Calcula tu ROI de marketing en WhatsApp" }
+      ],
+      "aboutMenuItems": [
+        { "title": "Acerca de", "description": "Conoce nuestra misión y equipo" },
+        { "title": "Contacto", "description": "Contacta con nuestro equipo" },
+        { "title": "Carreras", "description": "Únete a nuestro equipo en crecimiento" },
+        { "title": "Integraciones", "description": "Conecta con más de 1000 apps" }
+      ],
+      "Navlinks": ["Inicio", "Acerca de", "Recursos", "Iniciar sesión", "Tablero"]
+    }
+  },
+    "groups": {
+    "title": "Grupos",
+    "subtitle": "Detalles y gestión de todos los grupos",
+    "createButton": "Crear grupo"
   }
+
 }
