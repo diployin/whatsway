@@ -51,8 +51,10 @@ export function CreateCampaignForm({
     onSubmit(campaignData);
   };
 
-  // const activeTemplates = templates.filter((t: any) => t.status === "pending");
-  const activeTemplates = templates.filter((t: any) => t.status === "approved");
+  
+  const activeTemplates = templates.filter(
+  (t: any) => t.status?.toLowerCase() === "approved"
+);
 
   const {user} = useAuth()
 
