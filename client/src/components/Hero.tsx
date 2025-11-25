@@ -92,20 +92,17 @@ const Hero = () => {
         <div className="text-center mb-16">
           <div className="inline-flex items-center bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium mb-8 animate-bounce">
             <Zap className="w-4 h-4 mr-2" />
-            Free WhatsApp Marketing Platform - Bring Your Own API
+            {t("Landing.heroSec.animatedBgGreenText")}
           </div>
 
           <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
-            Scale Your Business with{" "}
+            {t("Landing.heroSec.headline")}{" "}
             <span className="block bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mt-2">
-              WhatsApp Marketing
+              {t("Landing.heroSec.highlightText")}
             </span>
           </h1>
-
           <p className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto mb-12 leading-relaxed">
-            Connect your Meta WhatsApp Business API and unlock powerful
-            automation, bulk messaging, and advanced analytics. Start free,
-            scale unlimited.
+            {t("Landing.heroSec.subHeadline")}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
@@ -118,7 +115,7 @@ const Hero = () => {
                 <LoadingAnimation size="md" color="white" />
               ) : (
                 <>
-                  Start Free Trial
+                  {t("Landing.heroSec.startTrialButton")}
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </>
               )}
@@ -127,7 +124,7 @@ const Hero = () => {
               <div className="bg-white p-3 rounded-full shadow-lg mr-3 group-hover:shadow-xl transition-shadow">
                 <Play className="w-6 h-6 text-green-600" />
               </div>
-              Watch 2-min Demo
+              {t("Landing.heroSec.watchDemoButton")}
             </button>
           </div>
 
@@ -165,7 +162,7 @@ const Hero = () => {
         {/* Trust indicators */}
         <div className="text-center">
           <p className="text-gray-500 mb-8 font-medium">
-            Trusted by 10,000+ businesses worldwide
+            {t("Landing.heroSec.trustedByText")}
           </p>
           <div className="flex flex-wrap justify-center items-center gap-8 opacity-60">
             {["Shopify", "WooCommerce", "Salesforce", "HubSpot", "Zapier"].map(

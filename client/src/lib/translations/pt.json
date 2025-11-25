@@ -36,9 +36,9 @@
     "logout": "Sair",
     "profile": "Perfil",
     "settings": "Configurações",
-    "active":"Ativa",
-    "aiAssistant":"Assistente de IA",
-    "myAccount":"Minha Conta"
+    "active": "Ativa",
+    "aiAssistant": "Assistente de IA",
+    "myAccount": "Minha Conta"
   },
   "auth": {
     "login": "Login",
@@ -57,21 +57,27 @@
     "contacts": "Contatos",
     "campaigns": "Campanhas",
     "templates": "Modelos",
-    "inbox": "Caixa de Entrada da Equipe",
+    "inbox": "Caixa de entrada da equipe",
     "automations": "Automações",
-    "messageLogs": "Registros de Mensagens",
-    "analytics": "Análise",
+    "messageLogs": "Logs de mensagens",
+    "analytics": "Análises",
     "settings": "Configurações",
     "team": "Equipe",
+    "groups": "Grupos",
     "channels": "Canais",
-    "chatbotBuilder": "Construtor de Chatbot",
-    "widgetBuilder": "Construtor de Widget",
-    "website": "Site"
+    "webhooks": "Webhooks",
+    "account": "Conta",
+    "chatbotBuilder": "Construtor de chatbot",
+    "widgetBuilder": "Construtor de widgets",
+    "website": "Site",
+    "tickets_support": "Suporte de tickets",
+    "plan-upgrade": "Atualizar plano",
+    "billing": "Faturamento e créditos"
   },
-  "widget":{
-    "title":"Construtor de Widget de Chat WhatsApp",
-    "subtitle":"Crie e personalize seu widget de chat do WhatsApp para engajar visitantes do site"
-    },
+  "widget": {
+    "title": "Construtor de Widget de Chat WhatsApp",
+    "subtitle": "Crie e personalize seu widget de chat do WhatsApp para engajar visitantes do site"
+  },
   "dashboard": {
     "uploadCSV": "Carregar CSV",
     "createAutomation": "Criar automação",
@@ -140,15 +146,14 @@
     "healthDetails": "Detalhes de Saúde",
     "apiStatus": "Status",
     "dashboardStates": {
-   "Total_Contacts": "Total de contatos",
-   "Total_Channels": "Total de canais",
-   "Total_Messages": "Total de mensagens",
-   "Total_Users": "Total de usuários",
-   "Total_Campaigns": "Total de campanhas",
-   "Total_Signups": "Total de inscrições",
-   "Total_Templates": "Total de modelos"
-}
-
+      "Total_Contacts": "Total de contatos",
+      "Total_Channels": "Total de canais",
+      "Total_Messages": "Total de mensagens",
+      "Total_Users": "Total de usuários",
+      "Total_Campaigns": "Total de campanhas",
+      "Total_Signups": "Total de inscrições",
+      "Total_Templates": "Total de modelos"
+    }
   },
   "contacts": {
     "contact": "Contato",
@@ -366,7 +371,7 @@
     "rows": "linhas",
     "tabContent": "As campanhas API permitem que aplicativos externos acionem mensagens usando seus modelos. Após criar a campanha, você receberá um endpoint API e uma chave."
   },
-   "templates": {
+  "templates": {
     "title": "Modelos",
     "createTemplate": "Criar modelo",
     "superAdminSubTitle": "Gerenciar modelos de mensagem do WhatsApp",
@@ -444,14 +449,14 @@
     "endOfConversation": "Fim da conversa",
     "businessHoursMessage": "Fora do horário comercial - as respostas podem atrasar"
   },
- "automations": {
+  "automations": {
     "title": "Automações",
     "create_auto": "Criar automação",
     "Subtitle": "Crie fluxos de trabalho automatizados para interagir com seus clientes",
     "empityAuto": {
-        "title": "Ainda não há automações",
-        "Subtitle": "Crie sua primeira automação e comece a interagir automaticamente com os clientes",
-        "buttonTitle": "Crie sua primeira automação"
+      "title": "Ainda não há automações",
+      "Subtitle": "Crie sua primeira automação e comece a interagir automaticamente com os clientes",
+      "buttonTitle": "Crie sua primeira automação"
     },
     "createAutomation": "Criar automação",
     "automationName": "Nome da automação",
@@ -488,8 +493,7 @@
     "tagAdded": "Tag adicionada",
     "flowCompleted": "Fluxo concluído",
     "flowFailed": "Fluxo falhou"
-}
-,
+  },
   "messageLogs": {
     "title": "Registros de Mensagens",
     "messageId": "ID da Mensagem",
@@ -514,15 +518,14 @@
     "errorMessage": "Mensagem de Erro"
   },
   "team": {
-      "title": "Gestão de equipe",
+    "title": "Gestão de equipe",
     "subtitle": "Gerencie os membros de sua equipe, funções e permissões",
     "teamMember": "Membros da equipe",
     "Activity_Logs": "Registros de atividades",
     "addMember": "Adicionar membro da equipe",
     "manage_Team": "Gerencie membros da equipe e suas permissões de acesso",
     "Activity_LogsTitle": "Registros de atividades",
-"Activity_LogsDes": "Acompanhe as atividades dos membros da equipe"
-,
+    "Activity_LogsDes": "Acompanhe as atividades dos membros da equipe",
     "editMember": "Editar Membro",
     "deleteMember": "Excluir Membro",
     "firstName": "Nome",
@@ -554,9 +557,9 @@
     "general": "Geral",
     "channels": "Canais",
     "webhooks": "Webhooks",
-    "apiKeys": "Chaves de API",
+    "apiKeys": "Chaves API",
     "account": "Conta",
-    "billing": "Cobrança",
+    "billing": "Faturamento",
     "notifications": "Notificações",
     "security": "Segurança",
     "channelName": "Nome do Canal",
@@ -566,24 +569,341 @@
     "webhookSecret": "Segredo do Webhook",
     "testConnection": "Testar Conexão",
     "saveSettings": "Salvar Configurações",
-    "generateApiKey": "Gerar Chave de API",
-    "revokeApiKey": "Revogar Chave de API",
-    "apiKeyName": "Nome da Chave de API",
+    "generateApiKey": "Gerar Chave API",
+    "revokeApiKey": "Revogar Chave API",
+    "apiKeyName": "Nome da Chave API",
     "createdAt": "Criado em",
-    "lastUsed": "Última Utilização",
-    "changePassword": "Mudar Senha",
+    "lastUsed": "Último uso",
+    "changePassword": "Alterar Senha",
     "twoFactorAuth": "Autenticação de Dois Fatores",
     "enable": "Ativar",
     "disable": "Desativar",
-    "emailNotifications": "Notificações por E-mail",
+    "emailNotifications": "Notificações por Email",
     "smsNotifications": "Notificações por SMS",
     "webhookNotifications": "Notificações por Webhook",
     "language": "Idioma",
     "timezone": "Fuso Horário",
-    "dateFormat": "Formato da Data",
+    "dateFormat": "Formato de Data",
     "theme": "Tema",
     "light": "Claro",
-    "dark": "Escuro"
+    "dark": "Escuro",
+    "headTitle": "Configurações",
+    "subTitle": "Gerencie sua configuração do WhatsApp Business",
+    "general_setting": {
+      "tabName": "Configurações Gerais",
+      "title": "Configuração Geral",
+      "description": "Gerencie a identidade da marca e a aparência do seu aplicativo",
+      "loadingText": "Carregando configurações...",
+      "connectionIssueTitle": "Problema de Conexão",
+      "connectionIssueDesc": "Por favor, verifique sua conexão e tente novamente.",
+      "refreshedTitle": "Atualizado",
+      "refreshedDesc": "As configurações foram atualizadas com sucesso.",
+      "refreshFailedTitle": "Atualização Falhou",
+      "refreshFailedDesc": "Não foi possível atualizar as configurações. Tente novamente.",
+      "connectionErrorTitle": "Erro de Conexão",
+      "connectionErrorDesc": "Não foi possível carregar as configurações do servidor. Exibindo dados de exemplo. Verifique sua conexão e tente atualizar.",
+      "offline": "Offline",
+      "online": "Online",
+      "refreshing": "Atualizando...",
+      "refresh": "Atualizar",
+      "editSettings": "Editar Configurações",
+      "brandIdentity": "Identidade da Marca",
+      "dataTypeSample": "Dados de Exemplo",
+      "dataTypeLive": "Dados ao Vivo",
+      "dataTypeLabel": "Tipo de dados:",
+      "unknownTime": "Desconhecido",
+      "justNow": "Agora mesmo",
+      "minuteAgo": "há um minuto",
+      "minutesAgo": "há minutos",
+      "hourAgo": "há uma hora",
+      "hoursAgo": "há horas",
+      "applicationTitle": "Título do Aplicativo",
+      "notConfigured": "Não configurado",
+      "applicationTitleHelper": "Clique em \"Editar Configurações\" para configurar o título do seu app",
+      "tagline": "Slogan",
+      "taglineHelper": "Adicione um slogan atraente para sua marca",
+      "logo": "Logo",
+      "logoUploaded": "Logo carregado",
+      "logoHelper": "Logo pronto para exibir",
+      "logoMissing": "Nenhum logo carregado",
+      "logoMissingHelper": "Carregue um logo para melhorar sua marca",
+      "favicon": "Favicon",
+      "faviconUploaded": "Favicon carregado",
+      "faviconHelper": "O favicon aparecerá nas abas do navegador",
+      "faviconMissing": "Nenhum favicon carregado",
+      "faviconMissingHelper": "Adicione um favicon para o ícone da aba do navegador",
+      "country": "País",
+      "countryHelper": "Adicione um país atraente para sua marca",
+      "currency": "Moeda",
+      "currencyHelper": "Adicione uma moeda atraente para sua marca",
+      "configurationStatusLabel": "Status da Configuração:",
+      "configurationStatusComplete": "Completo",
+      "configurationStatusPartial": "Parcial",
+      "configurationStatusIncomplete": "Incompleto",
+      "lastUpdated": "Última atualização",
+      "brandPreviewTitle": "Prévia da Marca",
+      "brandPreviewDesc": "Como sua marca aparecerá no aplicativo",
+      "brandLogoAlt": "Logo da Marca",
+      "logoAlt": "Logo",
+      "faviconAlt": "Favicon"
+    },
+    "storage_setting": {
+      "tabName": "Configurações de Armazenamento",
+      "title": "Configuração de Armazenamento",
+      "description": "Gerencie sua integração de armazenamento de arquivos e credenciais",
+      "loadingText": "Carregando configuração de armazenamento...",
+      "connectionIssueTitle": "Problema de Conexão",
+      "connectionIssueDesc": "Por favor, verifique sua conexão e tente novamente.",
+      "refreshedTitle": "Atualizado",
+      "refreshedDesc": "Configuração de armazenamento atualizada com sucesso.",
+      "refreshFailedTitle": "Atualização Falhou",
+      "refreshFailedDesc": "Não foi possível atualizar as configurações de armazenamento.",
+      "connectionErrorTitle": "Erro de Conexão",
+      "connectionErrorDesc": "Não foi possível carregar as configurações de armazenamento do servidor. Exibindo dados em cache.",
+      "offline": "Offline",
+      "online": "Online",
+      "refreshing": "Atualizando...",
+      "refresh": "Atualizar",
+      "editStorage": "Editar Armazenamento",
+      "storageDetails": "Detalhes do Armazenamento",
+      "active": "Ativo",
+      "inactive": "Inativo",
+      "unknownTime": "Desconhecido",
+      "justNow": "Agora mesmo",
+      "minuteAgo": "há um minuto",
+      "minutesAgo": "há minutos",
+      "hourAgo": "há uma hora",
+      "hoursAgo": "há horas",
+      "spaceName": "Nome do Espaço",
+      "spaceNamePlaceholder": "Não configurado",
+      "endpoint": "Endpoint",
+      "endpointPlaceholder": "Nenhum endpoint fornecido",
+      "region": "Região",
+      "regionPlaceholder": "Não especificado",
+      "accessKey": "Chave de Acesso",
+      "accessKeyPlaceholder": "Não configurado",
+      "accessKeyMasked": "********",
+      "secretKey": "Chave Secreta",
+      "secretKeyPlaceholder": "Não configurado",
+      "secretKeyMasked": "********",
+      "configurationStatusLabel": "Status da Configuração:",
+      "configurationStatusComplete": "Completo",
+      "configurationStatusPartial": "Parcial",
+      "configurationStatusIncomplete": "Incompleto",
+      "lastUpdated": "Última atualização"
+    },
+    "ai_setting": {
+      "tabName": "Configurações de IA",
+      "title": "Configuração de IA",
+      "description": "Gerencie seu provedor de modelo de IA, credenciais e parâmetros de execução.",
+      "loadingText": "Carregando configuração de IA...",
+      "loadingError": "Falha ao carregar configurações de IA.",
+      "refreshedTitle": "Atualizado",
+      "refreshedDesc": "Configuração de IA atualizada com sucesso.",
+      "refreshFailedTitle": "Atualização Falhou",
+      "refreshFailedDesc": "Não foi possível atualizar as configurações de IA.",
+      "active": "Ativo",
+      "inactive": "Inativo",
+      "refreshing": "Atualizando...",
+      "refresh": "Atualizar",
+      "edit": "Editar",
+      "provider": "Provedor",
+      "providerPlaceholder": "Não definido",
+      "apiKey": "Chave API",
+      "apiKeyMasked": "***************",
+      "apiKeyPlaceholder": "Não configurado",
+      "model": "Modelo",
+      "modelPlaceholder": "Não definido",
+      "endpoint": "Endpoint",
+      "endpointPlaceholder": "Não definido",
+      "temperature": "Temperatura",
+      "temperaturePlaceholder": "Não definido",
+      "maxTokens": "Tokens Máximos",
+      "maxTokensPlaceholder": "Não definido",
+      "triggerWords": "Palavras-gatilho",
+      "triggerWordsPlaceholder": "Nenhuma palavra-gatilho definida",
+      "notSet": "Não definido"
+    },
+    "channel_setting": {
+      "tabName": "Configurações de Canais",
+      "title": "Canais WhatsApp",
+      "description": "Configure seus canais WhatsApp Business API para Cloud API e MM Lite",
+      "addChannel": "Adicionar Canal",
+      "noChannels": "Nenhum canal WhatsApp configurado ainda",
+      "addFirstChannel": "Adicione Seu Primeiro Canal",
+      "active": "Ativo",
+      "mmLite": "MM Lite",
+      "phone": "Telefone:",
+      "phoneNumberId": "ID do Número de Telefone:",
+      "businessAccountId": "ID da Conta Empresarial:",
+      "notSet": "Não definido",
+      "channelHealth": "Saúde do Canal",
+      "test": "Testar",
+      "edit": "Editar",
+      "delete": "Excluir",
+      "channelDeleted": "Canal excluído",
+      "channelDeletedDesc": "O canal foi removido com sucesso.",
+      "error": "Erro",
+      "deleteConfirm": "Tem certeza de que deseja excluir este canal?",
+      "checkingHealth": "Verificando saúde...",
+      "verifyingConnection": "Verificando conexão e status do canal",
+      "channelHealthy": "Canal está saudável",
+      "channelHealthyDesc": "O canal WhatsApp está funcionando corretamente",
+      "channelWarnings": "Canal tem avisos",
+      "channelWarningsDesc": "Verifique os detalhes de saúde para mais informações",
+      "channelIssues": "Canal tem problemas",
+      "channelIssuesDesc": "O canal precisa de atenção",
+      "healthCheckFailed": "Verificação de saúde falhou",
+      "healthCheckFailedDesc": "Não foi possível verificar o status do canal",
+      "healthStatus": {
+        "healthy": "Saudável",
+        "warning": "Aviso",
+        "error": "Erro",
+        "unknown": "Desconhecido"
+      },
+      "healthDetails": {
+        "accountMode": "Modo da Conta",
+        "qualityRating": "Classificação de Qualidade",
+        "messagingLimit": "Limite de Mensagens",
+        "throughput": "Taxa de Transferência",
+        "verification": "Verificação",
+        "nameStatus": "Status do Nome",
+        "errorLabel": "Erro:",
+        "errorCode": "Código de Erro:",
+        "errorType": "Tipo de Erro:"
+      },
+      "lastChecked": "Última verificação:",
+      "refresh": "Atualizar"
+    },
+    "webhook_setting": {
+      "tabName": "Configurações de Webhook",
+      "title": "Configuração de Webhooks",
+      "description": "Configure webhooks para receber eventos do WhatsApp em tempo real",
+      "refresh": "Atualizar",
+      "configureWebhook": "Configurar Webhook",
+      "noWebhooks": "Nenhum webhook configurado ainda",
+      "configureFirst": "Configure Seu Primeiro Webhook",
+      "channelWebhook": "Webhook do Canal",
+      "globalWebhook": "Webhook Global",
+      "webhookUrl": "URL do Webhook:",
+      "events": "Eventos:",
+      "lastEvent": "Último evento:",
+      "test": "Testar",
+      "edit": "Editar",
+      "delete": "Excluir",
+      "webhookDeleted": "Webhook excluído",
+      "webhookDeletedDesc": "A configuração do webhook foi removida.",
+      "error": "Erro",
+      "deleteConfirm": "Tem certeza de que deseja excluir esta configuração de webhook?",
+      "testSent": "Webhook de teste enviado",
+      "testSentDesc": "Verifique seu endpoint de webhook para a mensagem de teste.",
+      "testFailed": "Teste falhou",
+      "copied": "Copiado!",
+      "copiedDesc": "URL do webhook copiada para a área de transferência",
+      "status": {
+        "noEvents": "Nenhum evento recebido",
+        "active": "Ativo",
+        "inactive": "Inativo"
+      },
+      "howItWorks": {
+        "title": "Como os Webhooks Funcionam",
+        "description": "Entenda o fluxo de webhook para WhatsApp Business API"
+      },
+      "setupInstructions": {
+        "title": "Instruções de Configuração",
+        "step1": {
+          "title": "1. Configurar Webhook no App Meta",
+          "description": "Vá para o Painel do seu App Meta → WhatsApp → Configuração → Webhook"
+        },
+        "step2": {
+          "title": "2. Definir URL do Webhook",
+          "description": "Copie a URL do webhook acima e cole no campo de URL do webhook do App Meta"
+        },
+        "step3": {
+          "title": "3. Inserir Token de Verificação",
+          "description": "Use o token de verificação mostrado na sua configuração de webhook"
+        },
+        "step4": {
+          "title": "4. Inscrever-se nos Eventos",
+          "description": "Inscreva-se em messages, message_status e outros campos de webhook necessários"
+        }
+      }
+    },
+    "api_key_setting": {
+      "tabName": "Configurações de Chave API",
+      "title": "Chaves API",
+      "description": "Gerencie chaves API para integração com sistemas externos",
+      "createApiKey": "Criar Chave API",
+      "noApiKeys": "Nenhuma chave API criada ainda",
+      "createFirst": "Crie Sua Primeira Chave API",
+      "active": "ativo",
+      "revoked": "revogado",
+      "created": "Criado:",
+      "lastUsed": "Último uso:",
+      "revoke": "Revogar",
+      "apiKeyCreated": "Chave API criada",
+      "apiKeyCreatedDesc": "Sua nova chave API foi criada. Certifique-se de copiá-la agora, pois ela não será mostrada novamente.",
+      "error": "Erro",
+      "apiKeyRevoked": "Chave API revogada",
+      "apiKeyRevokedDesc": "A chave API foi revogada e não pode mais ser usada.",
+      "revokeConfirm": "Tem certeza de que deseja revogar esta chave API? Esta ação não pode ser desfeita.",
+      "copied": "Copiado!",
+      "copiedDesc": "Chave API copiada para a área de transferência",
+      "nameRequired": "Nome obrigatório",
+      "nameRequiredDesc": "Por favor, insira um nome para a chave API",
+      "createForm": {
+        "title": "Criar Nova Chave API",
+        "keyName": "Nome da Chave",
+        "keyNamePlaceholder": "Chave API de Produção",
+        "keyNameHelper": "Um nome descritivo para identificar esta chave API",
+        "creating": "Criando...",
+        "createKey": "Criar Chave",
+        "cancel": "Cancelar"
+      },
+      "documentation": {
+        "title": "Documentação da API",
+        "description": "Aprenda como usar a API WhatsWay",
+        "baseUrl": "URL Base",
+        "authentication": "Autenticação",
+        "authDesc": "Inclua sua chave API no cabeçalho de Autorização:",
+        "exampleRequest": "Exemplo de Requisição",
+        "viewDocs": "Ver Documentação Completa"
+      }
+    },
+    "firebase": {
+      "tabName": "Configuração do Firebase",
+      "title": "Configurações do Firebase",
+      "description": "Gerencie a configuração do Firebase usada para autenticação e notificações push.",
+      "editButton": "Editar",
+      "loading": "Carregando...",
+      "fields": {
+        "apiKey": "Chave API",
+        "authDomain": "Domínio de Autenticação",
+        "projectId": "ID do Projeto",
+        "storageBucket": "Bucket de Armazenamento",
+        "messagingSenderId": "ID do Remetente de Mensagens",
+        "appId": "ID do Aplicativo",
+        "measurementId": "ID de Medição",
+        "privateKey": "Chave Privada",
+        "clientEmail": "Email do Cliente",
+        "vapidKey": "Chave Vapid"
+      },
+      "notConfigured": "Não configurado",
+      "status": {
+        "active": "Configuração do Firebase ativa",
+        "notFound": "Nenhuma configuração do Firebase encontrada"
+      },
+      "modal": {
+        "title": "Atualizar configurações do Firebase",
+        "cancel": "Cancelar",
+        "save": "Salvar"
+      },
+      "toast": {
+        "success": "Configurações do Firebase salvas com sucesso!",
+        "error": "Erro",
+        "errorDescription": "Falha ao salvar configurações do Firebase"
+      }
+    }
   },
   "errors": {
     "genericError": "Algo deu errado",
@@ -635,69 +955,1195 @@
     "time_range": "Intervalo de tempo",
     "MessagesTab": "Mensagens",
     "OverviewTab": {
-        "title": "Visão geral",
-        "last": "Últimos",
-        "days": "dias",
-        "Total_Messages": "Total de mensagens",
-        "Delivery": "Taxa de entrega",
-        "read_rate": "Taxa de leitura",
-        "reply_rate": "Taxa de resposta",
-        "Failure_rate": "Taxa de falhas",
-        "managePer": "Tendências de desempenho de mensagens",
-        "Summary": "Resumo",
-        "Active_Campaigns": "Campanhas ativas",
-        "Total_Campaigns": "Total de campanhas",
-        "Unique_Contacts": "Contatos únicos",
-        "Total_Recipients": "Total de destinatários"
+      "title": "Visão geral",
+      "last": "Últimos",
+      "days": "dias",
+      "Total_Messages": "Total de mensagens",
+      "Delivery": "Taxa de entrega",
+      "read_rate": "Taxa de leitura",
+      "reply_rate": "Taxa de resposta",
+      "Failure_rate": "Taxa de falhas",
+      "managePer": "Tendências de desempenho de mensagens",
+      "Summary": "Resumo",
+      "Active_Campaigns": "Campanhas ativas",
+      "Total_Campaigns": "Total de campanhas",
+      "Unique_Contacts": "Contatos únicos",
+      "Total_Recipients": "Total de destinatários"
     },
     "messageTab": {
-        "title": "Mensagens",
-        "Outbound_Messages": "Mensagens enviadas",
-        "Inbound_Messages": "Mensagens recebidas",
-        "Average_Response": "Tempo médio de resposta",
-        "Message_Activity": "Atividade de mensagens por hora"
+      "title": "Mensagens",
+      "Outbound_Messages": "Mensagens enviadas",
+      "Inbound_Messages": "Mensagens recebidas",
+      "Average_Response": "Tempo médio de resposta",
+      "Message_Activity": "Atividade de mensagens por hora"
     },
     "CampaignsTab": {
-        "title": "Campanhas",
-        "Total_Sent": "Total enviado",
-        "Total_Delivered": "Total entregue",
-        "Total_Read": "Total lido",
-        "Total_Failed": "Total falhado",
-        "Campaign_Performance": "Desempenho da campanha"
+      "title": "Campanhas",
+      "Total_Sent": "Total enviado",
+      "Total_Delivered": "Total entregue",
+      "Total_Read": "Total lido",
+      "Total_Failed": "Total falhado",
+      "Campaign_Performance": "Desempenho da campanha"
     }
-},
-"Landing": {
+  },
+  "Landing": {
     "header": {
-      "getstart": "Comece grátis",
+      "getstart": "Começar Grátis",
       "redystart": "Pronto para começar?",
-      "join": "Junte-se a milhares de negócios que já estão crescendo com o Whatsway",
-      "start": "Iniciar avaliação gratuita",
-      "Learn": "Saiba mais",
+      "join": "Junte-se a milhares de empresas que já estão crescendo com a Whatsway",
+      "start": "Iniciar Teste Gratuito",
+      "Learn": "Saiba Mais",
       "dash": "Painel",
       "Settings": "Configurações",
       "Account": "Conta",
       "logout": "Sair",
       "resourcesMenuItems": [
-        { "title": "Modelos", "description": "Modelos de mensagens prontos para usar" },
-        { "title": "Estudos de caso", "description": "Histórias de sucesso dos nossos clientes" },
-        { "title": "Guia do WhatsApp", "description": "Guia completo de marketing WhatsApp" },
-        { "title": "Documentação de API", "description": "Recursos para desenvolvedores e documentação de API" },
-        { "title": "Melhores práticas", "description": "Dicas para o sucesso no marketing do WhatsApp" },
-        { "title": "Calculadora de ROI", "description": "Calcule seu ROI de marketing no WhatsApp" }
+        {
+          "title": "Modelos",
+          "description": "Modelos de mensagens prontos para usar"
+        },
+        {
+          "title": "Estudos de Caso",
+          "description": "Histórias de sucesso de nossos clientes"
+        },
+        {
+          "title": "Guia WhatsApp",
+          "description": "Guia completo de marketing WhatsApp"
+        },
+        {
+          "title": "Documentação API",
+          "description": "Recursos para desenvolvedores e documentação API"
+        },
+        {
+          "title": "Melhores Práticas",
+          "description": "Dicas para o sucesso do marketing WhatsApp"
+        },
+        {
+          "title": "Calculadora de ROI",
+          "description": "Calcule seu ROI de marketing WhatsApp"
+        }
       ],
       "aboutMenuItems": [
-        { "title": "Sobre nós", "description": "Conheça nossa missão e equipe" },
-        { "title": "Contato", "description": "Entre em contato com nossa equipe" },
-        { "title": "Carreiras", "description": "Junte-se à nossa equipe em crescimento" },
-        { "title": "Integrações", "description": "Conecte-se com mais de 1000 apps" }
+        {
+          "title": "Sobre Nós",
+          "description": "Conheça nossa missão e equipe"
+        },
+        {
+          "title": "Contato",
+          "description": "Entre em contato com nossa equipe"
+        },
+        {
+          "title": "Carreiras",
+          "description": "Junte-se à nossa equipe em crescimento"
+        },
+        {
+          "title": "Integrações",
+          "description": "Conecte-se com mais de 1000 aplicativos"
+        }
       ],
-      "Navlinks": ["Início", "Sobre", "Recursos", "Entrar", "Painel"]
+      "Navlinks": [
+        "Início",
+        "Sobre",
+        "Recursos",
+        "Login",
+        "Painel"
+      ]
+    },
+    "heroSec": {
+      "animatedBgGreenText": "Plataforma de Marketing WhatsApp Gratuita - Traga Sua Própria API",
+      "headline": "Escale Seu Negócio com",
+      "highlightText": "Marketing WhatsApp",
+      "subHeadline": "Conecte sua API Meta WhatsApp Business e desbloqueie automação poderosa, mensagens em massa e análises avançadas. Comece grátis, escale ilimitadamente.",
+      "startTrialButton": "Iniciar Teste Gratuito",
+      "watchDemoButton": "Ver Demo de 2 Min",
+      "trustedByText": "Confiado por mais de 10.000 empresas em todo o mundo",
+      "brands": [
+        "Shopify",
+        "WooCommerce",
+        "Salesforce",
+        "HubSpot",
+        "Zapier"
+      ],
+      "stats": [
+        {
+          "label": "Usuários Ativos",
+          "suffix": "+"
+        },
+        {
+          "label": "Taxa de Entrega",
+          "suffix": "%"
+        },
+        {
+          "label": "Maior Engajamento",
+          "suffix": "x"
+        }
+      ],
+      "animationDelays": {
+        "delay1": "animation-delay-2000",
+        "delay2": "animation-delay-4000"
+      }
+    },
+    "featuresSec": {
+      "introTagline": "Recursos poderosos de marketing do WhatsApp",
+      "headlinePre": "Tudo o que você precisa para",
+      "headlineHighlight": "escalar seu negócio",
+      "subHeadline": "De mensagens em massa a chatbots de IA, nossa plataforma fornece todas as ferramentas necessárias para criar campanhas de marketing bem-sucedidas no WhatsApp",
+      "featureTabs": [
+        {
+          "title": "Mensagens em Massa",
+          "description": "Envie mensagens personalizadas para milhares de contatos instantaneamente com otimização inteligente de entrega",
+          "demo": {
+            "title": "Campanha de Transmissão",
+            "stats": "10.000 mensagens enviadas em 2 minutos",
+            "features": [
+              "Modelos personalizados",
+              "Agendamento inteligente",
+              "Otimização de entrega"
+            ]
+          }
+        },
+        {
+          "title": "Fluxos de Automação",
+          "description": "Crie sequências automatizadas inteligentes que nutrem leads e engajam clientes 24 horas por dia, 7 dias por semana",
+          "demo": {
+            "title": "Sequência de Boas-vindas",
+            "stats": "Taxa de engajamento de 85%",
+            "features": [
+              "Fluxos baseados em gatilhos",
+              "Lógica condicional",
+              "Jornadas de várias etapas"
+            ]
+          }
+        },
+        {
+          "title": "Análises Avançadas",
+          "description": "Acompanhe o desempenho com insights em tempo real, relatórios de entrega e métricas de engajamento",
+          "demo": {
+            "title": "Análises de Campanha",
+            "stats": "Taxa de entrega de 98%",
+            "features": [
+              "Rastreamento em tempo real",
+              "Análise de ROI",
+              "Relatórios personalizados"
+            ]
+          }
+        },
+        {
+          "title": "Gestão de Contatos",
+          "description": "Organize e segmente seu público com marcação inteligente e filtragem avançada",
+          "demo": {
+            "title": "Segmentação Inteligente",
+            "stats": "Mais de 50 campos personalizados",
+            "features": [
+              "Marcação automática",
+              "Segmentos comportamentais",
+              "Importar/Exportar"
+            ]
+          }
+        },
+        {
+          "title": "Chatbots de IA",
+          "description": "Implante chatbots inteligentes que lidam com consultas de clientes e qualificam leads automaticamente",
+          "demo": {
+            "title": "Bot de Suporte ao Cliente",
+            "stats": "Disponibilidade 24/7",
+            "features": [
+              "Linguagem natural",
+              "Qualificação de leads",
+              "Transferência para humanos"
+            ]
+          }
+        },
+        {
+          "title": "Agendador de Campanhas",
+          "description": "Planeje e agende campanhas em diferentes fusos horários com tempo de entrega ideal",
+          "demo": {
+            "title": "Campanhas Globais",
+            "stats": "Suporte a múltiplos fusos horários",
+            "features": [
+              "Timing inteligente",
+              "Campanhas recorrentes",
+              "Testes A/B"
+            ]
+          }
+        }
+      ],
+      "additionalFeatures": [
+        {
+          "title": "Suporte Multilíngue",
+          "desc": "Alcance públicos globais em seu idioma nativo"
+        },
+        {
+          "title": "Segmentação Inteligente",
+          "desc": "Segmentação precisa baseada em comportamento e demografia"
+        },
+        {
+          "title": "Integração de API",
+          "desc": "Integração perfeita com suas ferramentas existentes e CRM"
+        }
+      ]
+    },
+    "howItWorksSec": {
+      "introTagline": "Processo simples de 4 etapas",
+      "headlinePre": "Comece em",
+      "headlineHighlight": "menos de 5 minutos",
+      "subHeadline": "Nosso processo de integração simplificado coloca você em funcionamento com marketing do WhatsApp mais rápido do que qualquer outra plataforma",
+      "steps": [
+        {
+          "title": "Conecte sua API Meta",
+          "description": "Traga sua própria API do WhatsApp Business da Meta e conecte-a à nossa plataforma em segundos",
+          "details": [
+            "Integração de API segura",
+            "Processo de configuração com um clique",
+            "Nenhum conhecimento técnico necessário",
+            "Propriedade total dos dados"
+          ]
+        },
+        {
+          "title": "Importe seus Contatos",
+          "description": "Carregue seu banco de dados de clientes ou sincronize diretamente do seu CRM e ferramentas existentes",
+          "details": [
+            "Suporte de importação CSV/Excel",
+            "Integrações de CRM disponíveis",
+            "Detecção inteligente de duplicatas",
+            "Validação automática de dados"
+          ]
+        },
+        {
+          "title": "Crie e Lance Campanhas",
+          "description": "Projete mensagens bonitas com nosso construtor de arrastar e soltar e lance campanhas direcionadas",
+          "details": [
+            "Construtor de campanha visual",
+            "Modelos pré-construídos",
+            "Opções de personalização",
+            "Capacidades de testes A/B"
+          ]
+        },
+        {
+          "title": "Rastreie e Otimize",
+          "description": "Monitore o desempenho em tempo real e otimize suas campanhas para melhores resultados",
+          "details": [
+            "Análises em tempo real",
+            "Rastreamento de entrega",
+            "Métricas de engajamento",
+            "Cálculos de ROI"
+          ]
+        }
+      ],
+      "progressBar": {
+        "previous": "Anterior",
+        "nextStep": "Próximo Passo"
+      },
+      "visualDemo": {
+        "whatsAppBusinessDashboard": "Painel do WhatsApp Business"
+      },
+      "cta": {
+        "readyToGetStarted": "Pronto para começar?",
+        "joinText": "Junte-se a milhares de empresas que já usam nossa plataforma para escalar seu marketing do WhatsApp",
+        "startFreeTrial": "Inicie Seu Teste Gratuito"
+      }
+    },
+    "useCasesSec": {
+      "introTagline": "Soluções por Setor",
+      "headlinePre": "Perfeito para cada",
+      "headlineHighlight": "setor e negócio",
+      "subHeadline": "Descubra como empresas de diferentes setores estão usando marketing do WhatsApp para impulsionar o crescimento e melhorar o engajamento do cliente",
+      "useCases": [
+        {
+          "icon": "ShoppingCart",
+          "title": "E-commerce",
+          "description": "Aumente as vendas com recuperação de carrinho abandonado, atualizações de pedidos e recomendações personalizadas de produtos",
+          "color": "from-green-500 to-green-600",
+          "bgColor": "bg-green-50",
+          "stats": {
+            "increase": "300%",
+            "metric": "Recuperação de Vendas"
+          },
+          "features": [
+            "Recuperação de carrinho abandonado",
+            "Atualizações de status de pedido",
+            "Recomendações de produtos",
+            "Notificações de ofertas relâmpago"
+          ]
+        },
+        {
+          "icon": "GraduationCap",
+          "title": "Educação",
+          "description": "Envolva alunos e pais com atualizações de cursos, lembretes de tarefas e conteúdo educacional",
+          "color": "from-blue-500 to-blue-600",
+          "bgColor": "bg-blue-50",
+          "stats": {
+            "increase": "85%",
+            "metric": "Engajamento de Alunos"
+          },
+          "features": [
+            "Lembretes de tarefas",
+            "Anúncios de cursos",
+            "Comunicação com pais",
+            "Compartilhamento de material de estudo"
+          ]
+        },
+        {
+          "icon": "Heart",
+          "title": "Saúde",
+          "description": "Melhore o atendimento ao paciente com lembretes de consultas, dicas de saúde e alertas de medicamentos",
+          "color": "from-red-500 to-red-600",
+          "bgColor": "bg-red-50",
+          "stats": {
+            "increase": "60%",
+            "metric": "Presença em Consultas"
+          },
+          "features": [
+            "Lembretes de consultas",
+            "Alertas de medicamentos",
+            "Entrega de dicas de saúde",
+            "Notificações de resultados de exames"
+          ]
+        },
+        {
+          "icon": "Building",
+          "title": "Imóveis",
+          "description": "Conecte-se com prospects através de alertas de propriedades, tours virtuais e atualizações de mercado",
+          "color": "from-purple-500 to-purple-600",
+          "bgColor": "bg-purple-50",
+          "stats": {
+            "increase": "45%",
+            "metric": "Conversão de Leads"
+          },
+          "features": [
+            "Alertas de propriedades",
+            "Agendamento de tours virtuais",
+            "Atualizações de mercado",
+            "Qualificação de leads"
+          ]
+        },
+        {
+          "icon": "Utensils",
+          "title": "Restaurantes",
+          "description": "Aumente pedidos com atualizações de cardápio, ofertas especiais e confirmações de reserva",
+          "color": "from-orange-500 to-orange-600",
+          "bgColor": "bg-orange-50",
+          "stats": {
+            "increase": "120%",
+            "metric": "Volume de Pedidos"
+          },
+          "features": [
+            "Atualizações de cardápio",
+            "Ofertas especiais",
+            "Confirmações de reserva",
+            "Programas de fidelidade"
+          ]
+        },
+        {
+          "icon": "Car",
+          "title": "Automotivo",
+          "description": "Melhore o atendimento ao cliente com lembretes de serviço, agendamento de consultas e atualizações de veículos",
+          "color": "from-indigo-500 to-indigo-600",
+          "bgColor": "bg-indigo-50",
+          "stats": {
+            "increase": "75%",
+            "metric": "Agendamentos de Serviço"
+          },
+          "features": [
+            "Lembretes de serviço",
+            "Agendamento de consultas",
+            "Atualizações de veículos",
+            "Dicas de manutenção"
+          ]
+        }
+      ],
+      "cta": {
+        "viewCaseStudyButton": "Ver Estudo de Caso",
+        "customerSuccessQuote": "O WhatsApp Pro nos ajudou a aumentar nosso engajamento em {industry} em {increase}. Os recursos de automação economizaram inúmeras horas enquanto melhoravam a satisfação do cliente.",
+        "testimonialName": "Sarah Johnson",
+        "testimonialPosition": "Diretora de Marketing"
+      },
+      "quickStats": [
+        {
+          "value": "98%",
+          "label": "Taxa de Entrega"
+        },
+        {
+          "value": "5x",
+          "label": "Maior Engajamento"
+        },
+        {
+          "value": "24/7",
+          "label": "Automação"
+        },
+        {
+          "value": "50%",
+          "label": "Redução de Custos"
+        }
+      ]
+    },
+    "testimonialsSec": {
+      "introTagline": "Histórias de Sucesso do Cliente",
+      "headlinePre": "Amado por",
+      "headlineHighlight": "10.000+ empresas",
+      "subHeadline": "Veja como empresas de diversos setores estão alcançando resultados notáveis com nossa plataforma de marketing do WhatsApp",
+      "testimonials": [
+        {
+          "name": "Sarah Chen",
+          "role": "Diretora de E-commerce",
+          "company": "Fashion Forward",
+          "image": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
+          "rating": 5,
+          "text": "O WhatsApp Pro transformou nosso engajamento com o cliente. Vimos um aumento de 300% nas taxas de recuperação de carrinho e nossos clientes adoram a experiência personalizada.",
+          "results": "Aumento de 300% na recuperação de carrinho"
+        },
+        {
+          "name": "Michael Rodriguez",
+          "role": "Gerente de Marketing",
+          "company": "TechStart Solutions",
+          "image": "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
+          "rating": 5,
+          "text": "Os fluxos de automação são incríveis. Agora podemos nutrir leads 24 horas por dia, 7 dias por semana, sem qualquer intervenção manual. Nossas taxas de conversão nunca foram tão altas.",
+          "results": "Melhoria de 85% na conversão de leads"
+        },
+        {
+          "name": "Emily Johnson",
+          "role": "Líder de Sucesso do Cliente",
+          "company": "HealthCare Plus",
+          "image": "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
+          "rating": 5,
+          "text": "A presença em consultas de pacientes melhorou dramaticamente após implementar lembretes do WhatsApp. A plataforma é intuitiva e nossa equipe a adotou rapidamente.",
+          "results": "60% de redução em faltas"
+        },
+        {
+          "name": "David Park",
+          "role": "Proprietário de Restaurante",
+          "company": "Gourmet Bistro",
+          "image": "https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
+          "rating": 5,
+          "text": "Nosso sistema de reservas agora é perfeito. Os clientes recebem confirmações instantâneas e podemos enviar ofertas especiais. A receita aumentou 40% em apenas 3 meses.",
+          "results": "Aumento de 40% na receita"
+        },
+        {
+          "name": "Lisa Thompson",
+          "role": "Coordenadora de Educação",
+          "company": "Bright Future Academy",
+          "image": "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
+          "rating": 5,
+          "text": "O engajamento dos pais nunca foi tão bom. Podemos compartilhar atualizações instantâneas sobre seus filhos e anúncios escolares importantes alcançam todos.",
+          "results": "90% de taxa de engajamento dos pais"
+        }
+      ],
+      "navButtons": {
+        "previous": "Anterior",
+        "next": "Próximo"
+      },
+      "statsGrid": [
+        {
+          "number": "10.000+",
+          "label": "Clientes Satisfeitos"
+        },
+        {
+          "number": "98%",
+          "label": "Taxa de Satisfação"
+        },
+        {
+          "number": "5M+",
+          "label": "Mensagens Enviadas"
+        },
+        {
+          "number": "24/7",
+          "label": "Suporte Disponível"
+        }
+      ]
+    },
+    "ctaSec": {
+      "introTagline": "Junte-se a mais de 10.000 empresas que já estão crescendo",
+      "headline": "Pronto para escalar seu negócio com marketing do WhatsApp?",
+      "subHeadline": "Comece seu teste gratuito hoje. Não é necessário cartão de crédito. Conecte sua API Meta e comece a enviar campanhas em menos de 5 minutos.",
+      "buttons": {
+        "startTrial": "Iniciar Teste Gratuito",
+        "scheduleDemo": "Agendar Demo"
+      },
+      "trustIndicators": [
+        {
+          "title": "Configuração Instantânea",
+          "desc": "Comece em 5 minutos"
+        },
+        {
+          "title": "Seguro e Conforme",
+          "desc": "Segurança de nível empresarial"
+        },
+        {
+          "title": "Suporte 24/7",
+          "desc": "Sempre aqui para ajudar"
+        },
+        {
+          "title": "Grátis Para Sempre",
+          "desc": "Sem custos ocultos"
+        }
+      ],
+      "stats": [
+        {
+          "number": "10.000+",
+          "label": "Usuários Ativos"
+        },
+        {
+          "number": "98%",
+          "label": "Taxa de Entrega"
+        },
+        {
+          "number": "5M+",
+          "label": "Mensagens Enviadas"
+        },
+        {
+          "number": "24/7",
+          "label": "Suporte"
+        }
+      ]
+    },
+    "pricingSec": {
+      "introTagline": "Preços simples e transparentes",
+      "headlinePre": "Escolha seu",
+      "headlineHighlight": "plano perfeito",
+      "subHeadline": "Comece grátis e escale conforme você cresce. Todos os planos incluem sua própria integração de API Meta e envio ilimitado de mensagens.",
+      "billingToggle": {
+        "monthly": "Mensal",
+        "annual": "Anual",
+        "saveLabel": "Economize 20%"
+      },
+      "planCTA": {
+        "freeButton": "Começar grátis",
+        "paidButton": "Iniciar teste gratuito"
+      },
+      "pricing": {
+        "month": "mês",
+        "year": "ano",
+        "upTo": "Até",
+        "contacts": "contatos",
+        "channels": "canais WhatsApp",
+        "automation": "automação"
+      },
+      "loading": "Carregando planos...",
+      "noPlans": {
+        "title": "Nenhum plano disponível",
+        "description": "Por favor, volte mais tarde para opções de preços."
+      },
+      "authRequired": {
+        "title": "Autenticação necessária",
+        "description": "Por favor, faça login antes de comprar um plano"
+      },
+      "faq": {
+        "title": "Perguntas frequentes",
+        "questions": [
+          {
+            "q": "Preciso da minha própria API do WhatsApp Business?",
+            "a": "Sim, você precisa trazer sua própria API do Meta WhatsApp Business. Isso garante que você tenha controle total sobre seus dados e mensagens."
+          },
+          {
+            "q": "Existe uma taxa de configuração?",
+            "a": "Sem taxas de configuração! Você pode começar a usar nossa plataforma imediatamente após conectar sua API."
+          },
+          {
+            "q": "Posso mudar de plano a qualquer momento?",
+            "a": "Com certeza! Você pode fazer upgrade ou downgrade do seu plano a qualquer momento. As alterações entram em vigor imediatamente."
+          },
+          {
+            "q": "O que acontece se eu exceder meu limite de contatos?",
+            "a": "Nós notificaremos você antes de atingir seu limite. Você pode fazer upgrade do seu plano ou comprar contatos adicionais."
+          }
+        ]
+      },
+      "enterprise": {
+        "title": "Precisa de uma solução personalizada?",
+        "description": "Entre em contato com nossa equipe empresarial para preços personalizados, suporte dedicado e recursos personalizados",
+        "button": "Entrar em contato com vendas"
+      }
+    },
+    "footerSec": {
+      "newsletter": {
+        "heading": "Mantenha-se atualizado com dicas de marketing do WhatsApp",
+        "description": "Receba as últimas estratégias, estudos de caso e atualizações da plataforma em sua caixa de entrada.",
+        "emailPlaceholder": "Digite seu endereço de e-mail",
+        "subscribeButton": "Inscrever-se"
+      },
+      "brandSection": {
+        "brandNames": [
+          "WPSaaS",
+          "Whatsway"
+        ],
+        "description": "A plataforma de marketing do WhatsApp mais poderosa. Escale seu negócio com campanhas automatizadas, análises avançadas e integração API perfeita."
+      },
+      "socialLinks": {
+        "twitter": "Twitter",
+        "linkedin": "LinkedIn",
+        "github": "GitHub",
+        "mail": "E-mail"
+      },
+      "links": {
+        "product": [
+          "Recursos",
+          "Como funciona",
+          "Casos de uso",
+          "Preços",
+          "Documentação API"
+        ],
+        "company": [
+          "Sobre nós",
+          "Contato",
+          "Carreiras",
+          "Kit de imprensa",
+          "Integrações"
+        ],
+        "support": [
+          "Central de ajuda",
+          "Comunidade",
+          "Status",
+          "Segurança"
+        ],
+        "resources": [
+          "Modelos",
+          "Estudos de caso",
+          "Guia WhatsApp",
+          "Melhores práticas",
+          "Calculadora de ROI"
+        ],
+        "legal": [
+          "Política de privacidade",
+          "Termos de serviço",
+          "Política de cookies",
+          "LGPD"
+        ]
+      },
+      "bottomBar": {
+        "copyrightText": "© 2025 Whatsway. Todos os direitos reservados.",
+        "termsLink": "Termos de serviço",
+        "privacyLink": "Política de privacidade",
+        "cookieLink": "Política de cookies"
+      }
     }
   },
-    "groups": {
+  "groups": {
     "title": "Grupos",
     "subtitle": "Detalhes e gerenciamento de todos os grupos",
     "createButton": "Criar grupo"
+  },
+  "users": {
+    "title": "Usuários",
+    "subtitle": "Gerenciar todos os usuários registrados",
+    "search": {
+      "placeholder": "Pesquisar por nome de usuário ou email...",
+      "button": "Pesquisar",
+      "clear": "Limpar"
+    },
+    "stats": {
+      "showing": "Mostrando",
+      "of": "de",
+      "users": "usuários"
+    },
+    "table": {
+      "contact": "Contato",
+      "phone": "Telefone",
+      "groups": "Grupos",
+      "status": "Status",
+      "lastLogin": "Último login",
+      "actions": "Ações",
+      "noGroups": "Sem grupos"
+    },
+    "card": {
+      "phone": "Telefone:",
+      "groups": "Grupos:",
+      "status": "Status:",
+      "lastLogin": "Último login:"
+    },
+    "loading": "Carregando usuários...",
+    "noUsers": "Nenhum usuário encontrado",
+    "lastLoginNever": "Nunca",
+    "phonePlaceholder": "—",
+    "actions": {
+      "blockUser": "Bloquear usuário",
+      "activateUser": "Ativar usuário"
+    },
+    "pagination": {
+      "showing": "Mostrando",
+      "to": "até",
+      "of": "de",
+      "users": "usuários",
+      "previous": "Anterior",
+      "next": "Próximo"
+    },
+    "toast": {
+      "success": "Sucesso",
+      "statusUpdated": "Status do usuário atualizado para",
+      "error": "Erro",
+      "statusUpdateFailed": "Falha ao atualizar status",
+      "fetchFailed": "Falha ao buscar usuários",
+      "somethingWrong": "Algo deu errado"
+    }
+  },
+  "notifications": {
+    "title": "Notificações",
+    "subtitle": "Envie notificações para usuários, administradores ou sua equipe.",
+    "refresh": "Atualizar",
+    "createNotification": "Criar Notificação",
+    "stats": {
+      "totalSent": "Total Enviadas",
+      "allNotifications": "Todas as notificações",
+      "userTarget": "Destino: Usuário",
+      "usersOnly": "Apenas usuários",
+      "adminTeam": "Admin / Equipe",
+      "staffNotifications": "Notificações da equipe"
+    },
+    "table": {
+      "title": "Todas as notificações",
+      "total": "total",
+      "id": "ID",
+      "titleColumn": "Título",
+      "message": "Mensagem",
+      "target": "Destino",
+      "status": "Status",
+      "sentAt": "Enviada em",
+      "action": "Ação",
+      "send": "Enviar",
+      "sent": "Enviado"
+    },
+    "loading": "Carregando notificações...",
+    "empty": {
+      "title": "Nenhuma notificação encontrada",
+      "description": "Crie sua primeira notificação para começar",
+      "button": "Criar Notificação"
+    },
+    "card": {
+      "sentAt": "Enviada em:"
+    },
+    "dialog": {
+      "title": "Criar e Enviar Notificação",
+      "description": "A notificação será enviada imediatamente aos destinatários selecionados.",
+      "titleLabel": "Título",
+      "titlePlaceholder": "Insira o título da notificação",
+      "messageLabel": "Mensagem",
+      "messagePlaceholder": "Insira a mensagem da notificação",
+      "targetLabel": "Público alvo",
+      "targetOptions": {
+        "all": "Todos os usuários",
+        "users": "Apenas usuários",
+        "admins": "Apenas administradores",
+        "team": "Apenas equipe",
+        "specific": "Usuários específicos (IDs)"
+      },
+      "userIdsLabel": "IDs de usuário (separados por vírgula)",
+      "userIdsPlaceholder": "user1,user2,user3",
+      "cancel": "Cancelar",
+      "sendNow": "Enviar agora",
+      "sending": "Enviando...",
+      "required": "*"
+    },
+    "toast": {
+      "error": "Erro",
+      "errorLoading": "Falha ao carregar notificações",
+      "success": "Sucesso",
+      "notificationSent": "Notificação enviada com sucesso!",
+      "notificationSentShort": "Enviado!",
+      "refreshing": "Atualizando",
+      "refreshingDesc": "Carregando as notificações mais recentes..."
+    },
+    "validation": {
+      "titleRequired": "Título é obrigatório",
+      "messageRequired": "Mensagem é obrigatória"
+    }
+  },
+  "plans": {
+    "title": "Planos de Preços",
+    "subtitle": "Crie e gerencie seus planos de preços",
+    "stats": {
+      "totalPlans": "Total de Planos",
+      "featured": "Destaque",
+      "active": "Ativo",
+      "billing": "Faturamento",
+      "annual": "Anual",
+      "monthly": "Mensal"
+    },
+    "billingToggle": {
+      "monthly": "Mensal",
+      "annual": "Anual",
+      "discount": "-20%"
+    },
+    "buttons": {
+      "createPlan": "Criar Plano",
+      "cancel": "Cancelar",
+      "edit": "Editar",
+      "delete": "Excluir",
+      "save": "Salvar",
+      "updatePlan": "Atualizar Plano",
+      "addFeature": "Adicionar Recurso",
+      "getStartedFree": "Começar Grátis",
+      "startFreeTrial": "Iniciar Teste Gratuito"
+    },
+    "form": {
+      "createTitle": "Criar Novo Plano",
+      "editTitle": "Editar Plano",
+      "planName": "Nome do Plano *",
+      "planNamePlaceholder": "ex., Profissional",
+      "icon": "Ícone",
+      "iconOptions": {
+        "zap": "⚡ Raio",
+        "crown": "👑 Coroa",
+        "rocket": "🚀 Foguete",
+        "star": "⭐ Estrela"
+      },
+      "description": "Descrição",
+      "descriptionPlaceholder": "Perfeito para equipes em crescimento...",
+      "monthlyPrice": "Preço Mensal",
+      "monthlyPricePlaceholder": "29.99",
+      "annualPrice": "Preço Anual",
+      "annualPricePlaceholder": "299.99",
+      "badgeText": "Texto do Selo",
+      "badgePlaceholder": "Mais Popular",
+      "borderColor": "Cor da Borda",
+      "borderOptions": {
+        "gray": "Cinza Padrão",
+        "blue": "Azul",
+        "purple": "Roxo",
+        "green": "Verde",
+        "pink": "Rosa"
+      },
+      "permissions": {
+        "channels": "Canais",
+        "channelsPlaceholder": "5",
+        "contacts": "Contatos",
+        "contactsPlaceholder": "10.000",
+        "automation": "Automação",
+        "automationPlaceholder": "Avançado",
+        "campaign": "Campanha",
+        "campaignPlaceholder": "Avançado"
+      },
+      "popularToggle": "Marcar como Plano Popular",
+      "features": "Recursos",
+      "featureName": "Nome do recurso",
+      "featureIncluded": "Incluído",
+      "noFeatures": "Nenhum recurso adicionado ainda"
+    },
+    "empty": {
+      "title": "Nenhum Plano Criado Ainda",
+      "description": "Comece criando seu primeiro plano de preços",
+      "button": "Crie Seu Primeiro Plano"
+    },
+    "card": {
+      "perMonth": "mês",
+      "perYear": "ano"
+    },
+    "toast": {
+      "authRequired": "Autenticação Necessária",
+      "authRequiredDesc": "Por favor, faça login antes de comprar um plano",
+      "error": "Erro",
+      "fetchError": "Falha ao buscar planos",
+      "planCreated": "Plano criado",
+      "planCreatedDesc": "Seu plano foi criado com sucesso.",
+      "planUpdated": "Plano atualizado",
+      "planUpdatedDesc": "Seu plano foi atualizado com sucesso.",
+      "saveError": "Falha ao salvar plano",
+      "planDeleted": "Plano excluído",
+      "planDeletedDesc": "O plano foi excluído com sucesso.",
+      "deleteError": "Falha ao excluir plano",
+      "deleteConfirm": "Tem certeza de que deseja excluir este plano?"
+    }
+  },
+  "transactions": {
+    "title": "Transações",
+    "subtitle": "Gerencie e monitore todas as transações de pagamento",
+    "stats": {
+      "totalRevenue": "Receita Total",
+      "completed": "Concluídas",
+      "pending": "Pendentes",
+      "failed": "Falhadas"
+    },
+    "search": {
+      "placeholder": "Pesquisar transações...",
+      "filters": "Filtros",
+      "export": "Exportar"
+    },
+    "filters": {
+      "title": "Filtros Avançados",
+      "status": "Status",
+      "allStatuses": "Todos os Status",
+      "statusOptions": {
+        "pending": "Pendente",
+        "completed": "Concluída",
+        "failed": "Falhada",
+        "refunded": "Reembolsada",
+        "cancelled": "Cancelada"
+      },
+      "paymentMethod": "Método de Pagamento",
+      "allMethods": "Todos os Métodos",
+      "paymentOptions": {
+        "card": "Cartão",
+        "upi": "UPI",
+        "wallet": "Carteira",
+        "netbanking": "Internet Banking"
+      },
+      "billingCycle": "Ciclo de Faturamento",
+      "allCycles": "Todos os Ciclos",
+      "cycleOptions": {
+        "monthly": "Mensal",
+        "annual": "Anual"
+      },
+      "startDate": "Data de Início",
+      "endDate": "Data de Término",
+      "minAmount": "Valor Mínimo",
+      "minAmountPlaceholder": "0.00",
+      "maxAmount": "Valor Máximo",
+      "maxAmountPlaceholder": "0.00",
+      "clearFilters": "Limpar Filtros"
+    },
+    "table": {
+      "transactionId": "ID da Transação",
+      "user": "Usuário",
+      "plan": "Plano",
+      "amount": "Valor",
+      "status": "Status",
+      "paymentBy": "Pago por",
+      "date": "Data"
+    },
+    "card": {
+      "user": "Usuário:",
+      "plan": "Plano:",
+      "cycle": "Ciclo:",
+      "amount": "Valor:",
+      "payment": "Pagamento:",
+      "date": "Data:"
+    },
+    "status": {
+      "completed": "concluída",
+      "failed": "falhada",
+      "pending": "pendente",
+      "refunded": "reembolsada",
+      "cancelled": "cancelada"
+    },
+    "loading": "Carregando transações...",
+    "empty": {
+      "title": "Nenhuma transação encontrada",
+      "description": "Tente ajustar seus filtros"
+    },
+    "pagination": {
+      "showing": "Mostrando",
+      "to": "até",
+      "of": "de",
+      "perPage": "/página",
+      "previous": "Anterior",
+      "next": "Próximo"
+    }
+  },
+  "support": {
+    "title": "Chamados de Suporte",
+    "subtitleAdmin": "Gerencie todos os chamados de suporte de usuários e ouvintes",
+    "subtitleUser": "Veja e gerencie seus chamados de suporte",
+    "createTicket": "Criar Chamado",
+    "stats": {
+      "totalTickets": "Total de Chamados",
+      "openTickets": "Abertos",
+      "inProgress": "Em Andamento",
+      "resolved": "Resolvidos"
+    },
+    "search": {
+      "placeholder": "Buscar chamados...",
+      "allStatus": "Todos os Status",
+      "allPriority": "Todas as Prioridades",
+      "status": {
+        "open": "Aberto",
+        "inProgress": "Em Andamento",
+        "resolved": "Resolvido",
+        "closed": "Fechado"
+      },
+      "priority": {
+        "low": "Baixa",
+        "medium": "Média",
+        "high": "Alta",
+        "urgent": "Urgente"
+      }
+    },
+    "ticket": {
+      "updated": "Atualizado",
+      "creator": "Criador:",
+      "contact": "Contato:",
+      "details": "Detalhes:",
+      "status": "Status",
+      "priority": "Prioridade",
+      "assignTo": "Atribuir a",
+      "unassigned": "Não atribuído",
+      "description": "Descrição:",
+      "conversation": "Conversação",
+      "noMessages": "Nenhuma mensagem ainda",
+      "internal": "Interno",
+      "typeReply": "Digite sua resposta...",
+      "internalNote": "Nota interna (não visível para",
+      "resolveTicket": "Marcar como Resolvido"
+    },
+    "creatorType": {
+      "user": "Usuário",
+      "admin": "Admin",
+      "superadmin": "Super Admin",
+      "listener": "Ouvinte"
+    },
+    "empty": {
+      "noTickets": "Nenhum chamado encontrado",
+      "adjustFilters": "Tente ajustar seus filtros ou critérios de busca",
+      "allResolved": "Todos os chamados de suporte foram resolvidos!",
+      "noSelection": "Nenhum chamado selecionado",
+      "selectTicket": "Selecione um chamado na lista para ver detalhes e responder"
+    },
+    "loading": "Carregando chamados...",
+    "pagination": {
+      "page": "Página",
+      "of": "de",
+      "previous": "Anterior",
+      "next": "Próximo"
+    }
+  },
+  "gateway": {
+    "title": "Configurações de Gateway",
+    "subtitle": "Configure o gateway de pagamento para seu aplicativo",
+    "loading": "Carregando...",
+    "stats": {
+      "activeProvider": "Provedor Ativo",
+      "none": "Nenhum",
+      "provider": "Provedor",
+      "environment": "Ambiente",
+      "live": "Ao Vivo",
+      "test": "Teste",
+      "status": "Status",
+      "active": "Ativo",
+      "inactive": "Inativo"
+    },
+    "card": {
+      "title": "Configuração do Gateway de Pagamento",
+      "configured": "Configurado"
+    },
+    "form": {
+      "providerLabel": "Provedor de Pagamento *",
+      "selectProvider": "Selecione um provedor",
+      "razorpay": "Razorpay",
+      "stripe": "Stripe",
+      "environmentLabel": "Modo Ambiente *",
+      "testMode": "Modo de Teste",
+      "liveMode": "Modo ao Vivo",
+      "testModeSafe": "O modo teste é seguro para desenvolvimento e testes",
+      "liveModeWarning": "⚠️ O modo ao vivo processa pagamentos reais",
+      "testCredentials": "Credenciais de Teste",
+      "liveCredentials": "Credenciais ao Vivo",
+      "testApiKey": "Chave API de Teste *",
+      "testApiKeyPlaceholderRazorpay": "rzp_test_xxxxxxxxxxxxx",
+      "testApiKeyPlaceholderStripe": "pk_test_xxxxxxxxxxxxx",
+      "testApiSecret": "Segredo API de Teste *",
+      "testApiSecretPlaceholder": "Insira a Chave Secreta de Teste",
+      "liveApiKey": "Chave API ao Vivo *",
+      "liveApiKeyPlaceholderRazorpay": "rzp_live_xxxxxxxxxxxxx",
+      "liveApiKeyPlaceholderStripe": "pk_live_xxxxxxxxxxxxx",
+      "liveApiSecret": "Segredo API ao Vivo *",
+      "liveApiSecretPlaceholder": "Insira a Chave Secreta ao Vivo",
+      "enableGateway": "Ativar Gateway de Pagamento",
+      "enableGatewayDesc": "Ative o processamento de pagamento para seu aplicativo",
+      "saving": "Salvando...",
+      "updateSettings": "Atualizar Configurações",
+      "saveSettings": "Salvar Configurações"
+    },
+    "razorpay": {
+      "title": "Configuração Razorpay",
+      "description": "Obtenha suas credenciais do Razorpay no Painel Razorpay. Você vai precisar das credenciais de Teste e ao Vivo.",
+      "testKeyInfo": "Chaves de teste começam com",
+      "liveKeyInfo": "Chaves ao vivo começam com",
+      "getKeys": "Obter Chaves de API Razorpay →"
+    },
+    "stripe": {
+      "title": "Configuração Stripe",
+      "description": "Obtenha suas credenciais do Stripe no Painel Stripe. Você vai precisar das credenciais de Teste e ao Vivo.",
+      "testKeyInfo": "Chaves de teste começam com",
+      "testKeyInfoOr": "ou",
+      "liveKeyInfo": "Chaves ao vivo começam com",
+      "liveKeyInfoOr": "ou",
+      "getKeys": "Obter Chaves de API Stripe →"
+    },
+    "toast": {
+      "updated": "Gateway de pagamento atualizado",
+      "created": "Gateway de pagamento criado",
+      "successDesc": "Configurações do provedor de pagamento salvas com sucesso.",
+      "error": "Erro",
+      "errorDesc": "Falha ao salvar provedor"
+    },
+    "validation": {
+      "providerRequired": "Provedor de pagamento é obrigatório",
+      "apiKeyRequired": "Chave API ao Vivo obrigatória",
+      "apiSecretRequired": "Segredo API ao Vivo obrigatório",
+      "testApiKeyRequired": "Chave API de Teste obrigatória",
+      "testApiSecretRequired": "Segredo API de Teste obrigatório"
+    }
+  },
+  "subscriptions": {
+    "title": "Assinaturas Principais",
+    "subtitle": "Gerenciar todas as assinaturas",
+    "allSubscriptions": "Todas as Assinaturas",
+    "totalSubscriptions": "Total",
+    "subscription": "assinatura",
+    "subscriptions": "assinaturas",
+    "loading": "Carregando assinaturas...",
+    "error": {
+      "title": "Erro ao Carregar Dados",
+      "message": "Falha ao carregar assinaturas"
+    },
+    "table": {
+      "username": "Nome de Usuário",
+      "plan": "Plano",
+      "price": "Preço",
+      "status": "Status",
+      "startDate": "Data de Início",
+      "endDate": "Data de Término",
+      "autoRenew": "Renovação Automática",
+      "yes": "Sim",
+      "no": "Não"
+    },
+    "card": {
+      "price": "Preço:",
+      "startDate": "Data de Início:",
+      "endDate": "Data de Término:",
+      "autoRenew": "Renovação Automática:"
+    },
+    "pagination": {
+      "showing": "Mostrando",
+      "to": "até",
+      "of": "de",
+      "perPage": "por página",
+      "previous": "Anterior",
+      "next": "Próximo",
+      "page": "Página",
+      "pageOf": "de"
+    }
+  },
+  "support_tickets": {
+    "headTitle": "Tickets de suporte",
+    "headTitleAdmin": "Gerenciar todos os tickets de suporte de usuários e ouvintes",
+    "headTitleuser": "Visualizar e gerenciar seus tickets de suporte"
+  },
+  "messageLog": {
+    "headerTitle": "Logs de mensagens",
+    "headerSubTitle": "Rastreie todas as mensagens enviadas e seu status de entrega",
+    "messageHis": {
+      "title": "Histórico de mensagens",
+      "subtitle": "Visualizar logs detalhados de todas as mensagens"
+    },
+    "Refresh": "Atualizar"
+  },
+  "billing_subscription": {
+    "title": "Faturamento e Assinatura",
+    "subtitle": "Gerencie sua assinatura, créditos e faturamento",
+    "loading": "Carregando assinaturas...",
+    "noSubscription": {
+      "title": "Sem assinatura ativa",
+      "description": "Você não possui nenhuma assinatura ativa no momento.",
+      "upgradePlan": "Atualizar plano"
+    },
+    "card": {
+      "billing": "Faturamento:",
+      "starts": "Início:",
+      "renews": "Renova:",
+      "pricing": "Preços",
+      "monthly": "Mensal:",
+      "annual": "Anual:",
+      "details": "Detalhes",
+      "features": "Recursos"
+    }
   }
-
 }

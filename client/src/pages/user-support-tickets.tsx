@@ -57,6 +57,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/auth-context";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import Header from "@/components/layout/header";
+import { useTranslation } from "@/lib/i18n";
 
 interface AdminUser {
   id: string;
@@ -109,6 +110,8 @@ export default function UserSupportTicketsNew() {
   const [isInternalNote, setIsInternalNote] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+
+  const { t } = useTranslation();
 
   const [createFormData, setCreateFormData] = useState({
     title: "",
@@ -438,11 +441,11 @@ export default function UserSupportTicketsNew() {
       </header> */}
 
       <Header
-        title={"Support Tickets"}
+        title={t("support_tickets.headTitle")}
         subtitle={
           isAdmin
-            ? "Manage all support tickets from users and listeners"
-            : "View and manage your support tickets"
+            ? t("support_tickets.headTitleAdmin")
+            : t("support_tickets.headTitleuser")
         }
         action={{
           label: "Create Ticket",

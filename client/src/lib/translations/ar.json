@@ -37,8 +37,8 @@
     "profile": "الملف الشخصي",
     "settings": "الإعدادات",
     "active": "نشط",
-    "aiAssistant":"مساعد الذكاء الاصطناعي",
-    "myAccount":"حسابي"
+    "aiAssistant": "مساعد الذكاء الاصطناعي",
+    "myAccount": "حسابي"
   },
   "auth": {
     "login": "تسجيل الدخول",
@@ -63,16 +63,21 @@
     "analytics": "التحليلات",
     "settings": "الإعدادات",
     "team": "الفريق",
+    "groups": "المجموعات",
     "channels": "القنوات",
+    "webhooks": "Webhooks",
     "account": "الحساب",
-    "chatbotBuilder": "منشئ روبوت الدردشة",
-    "widgetBuilder": "منشئ الودجت",
-    "website": "الموقع الإلكتروني"
+    "chatbotBuilder": "منشئ الشات بوت",
+    "widgetBuilder": "منشئ الأدوات",
+    "website": "الموقع الإلكتروني",
+    "tickets_support": "دعم التذاكر",
+    "plan-upgrade": "ترقية الخطة",
+    "billing": "الفواتير والرصيد"
   },
-  "widget":{
-    "title":"منشئ ودجت واتساب",
-    "subtitle":"قم بإنشاء ودجت واتساب مخصص لموقعك الإلكتروني لجذب العملاء والتواصل معهم بسهولة."
-    },
+  "widget": {
+    "title": "منشئ ودجت واتساب",
+    "subtitle": "قم بإنشاء ودجت واتساب مخصص لموقعك الإلكتروني لجذب العملاء والتواصل معهم بسهولة."
+  },
   "dashboard": {
     "uploadCSV": "تحميل ملف CSV",
     "createAutomation": "إنشاء أتمتة",
@@ -135,23 +140,21 @@
     "apiUptime": "وقت تشغيل واجهة برمجة التطبيقات",
     "avgResponse": "متوسط الاستجابة",
     "dailyMessageLimit": "حد الرسائل اليومي",
-    "totalCampaigns":"إجمالي الحملات",
-     "textLead": "عملاء جدد",
-     "apiStatusText": "موافَق عليه",
-     "apiStatusUpTime": "وقت تشغيل API",
-     "healthDetails": "تفاصيل الصحة",
+    "totalCampaigns": "إجمالي الحملات",
+    "textLead": "عملاء جدد",
+    "apiStatusText": "موافَق عليه",
+    "apiStatusUpTime": "وقت تشغيل API",
+    "healthDetails": "تفاصيل الصحة",
     "apiStatus": "الحالة",
-"dashboardStates": {
-   "Total_Contacts": "إجمالي جهات الاتصال",
-   "Total_Channels": "إجمالي القنوات",
-   "Total_Messages": "إجمالي الرسائل",
-   "Total_Users": "إجمالي المستخدمين",
-   "Total_Campaigns": "إجمالي الحملات",
-   "Total_Signups": "إجمالي الاشتراكات",
-   "Total_Templates": "إجمالي القوالب"
-}
-
-
+    "dashboardStates": {
+      "Total_Contacts": "إجمالي جهات الاتصال",
+      "Total_Channels": "إجمالي القنوات",
+      "Total_Messages": "إجمالي الرسائل",
+      "Total_Users": "إجمالي المستخدمين",
+      "Total_Campaigns": "إجمالي الحملات",
+      "Total_Signups": "إجمالي الاشتراكات",
+      "Total_Templates": "إجمالي القوالب"
+    }
   },
   "contacts": {
     "contact": "جهة الاتصال",
@@ -277,7 +280,7 @@
       "description": "تحديث معلومات جهة الاتصال",
       "successTitle": "تم تحديث جهة الاتصال",
       "updating": "جارٍ التحديث...",
-      "groupsPlaceholder":"أدخل المجموعات مفصولة بفواصل",
+      "groupsPlaceholder": "أدخل المجموعات مفصولة بفواصل",
       "successDesc": "تم تحديث جهة الاتصال بنجاح."
     },
     "createGroup": {
@@ -369,7 +372,7 @@
     "rows": "صفوف",
     "tabContent": "تسمح حملات API للتطبيقات الخارجية بتشغيل الرسائل باستخدام القوالب الخاصة بك. بعد إنشاء الحملة، ستتلقى نقطة نهاية API ومفتاح."
   },
-   "templates": {
+  "templates": {
     "title": "القوالب",
     "createTemplate": "إنشاء قالب",
     "superAdminSubTitle": "إدارة قوالب رسائل WhatsApp",
@@ -447,14 +450,14 @@
     "endOfConversation": "نهاية المحادثة",
     "businessHoursMessage": "خارج ساعات العمل - قد يتأخر الرد"
   },
- "automations": {
+  "automations": {
     "title": "الأتمتة",
     "create_auto": "إنشاء أتمتة",
     "Subtitle": "إنشاء سير عمل آلي للتفاعل مع عملائك",
     "empityAuto": {
-        "title": "لا توجد أتمتة بعد",
-        "Subtitle": "أنشئ أول أتمتة لك وابدأ التفاعل مع العملاء تلقائيًا",
-        "buttonTitle": "أنشئ أول أتمتة لك"
+      "title": "لا توجد أتمتة بعد",
+      "Subtitle": "أنشئ أول أتمتة لك وابدأ التفاعل مع العملاء تلقائيًا",
+      "buttonTitle": "أنشئ أول أتمتة لك"
     },
     "createAutomation": "إنشاء أتمتة",
     "automationName": "اسم الأتمتة",
@@ -491,8 +494,7 @@
     "tagAdded": "تمت إضافة الوسم",
     "flowCompleted": "اكتمل التدفق",
     "flowFailed": "فشل التدفق"
-}
-,
+  },
   "messageLogs": {
     "title": "سجلات الرسائل",
     "messageId": "معرّف الرسالة",
@@ -516,7 +518,7 @@
     "errorCode": "رمز الخطأ",
     "errorMessage": "رسالة الخطأ"
   },
-"team": {
+  "team": {
     "title": "إدارة الفريق",
     "subtitle": "إدارة أعضاء فريقك، والأدوار، والصلاحيات",
     "teamMember": "أعضاء الفريق",
@@ -524,8 +526,7 @@
     "addMember": "إضافة عضو للفريق",
     "manage_Team": "إدارة أعضاء الفريق وصلاحيات الوصول الخاصة بهم",
     "Activity_LogsTitle": "سجلات النشاط",
-"Activity_LogsDes": "تتبع أنشطة أعضاء الفريق"
-,
+    "Activity_LogsDes": "تتبع أنشطة أعضاء الفريق",
     "editMember": "تعديل عضو",
     "deleteMember": "حذف عضو",
     "firstName": "الاسم الأول",
@@ -556,8 +557,8 @@
     "title": "الإعدادات",
     "general": "عام",
     "channels": "القنوات",
-    "webhooks": "خطافات الويب",
-    "apiKeys": "مفاتيح واجهة برمجة التطبيقات",
+    "webhooks": "Webhooks",
+    "apiKeys": "مفاتيح API",
     "account": "الحساب",
     "billing": "الفوترة",
     "notifications": "الإشعارات",
@@ -565,13 +566,13 @@
     "channelName": "اسم القناة",
     "phoneNumber": "رقم الهاتف",
     "accessToken": "رمز الوصول",
-    "webhookUrl": "عنوان URL لخطاف الويب",
-    "webhookSecret": "سر خطاف الويب",
+    "webhookUrl": "رابط Webhook",
+    "webhookSecret": "سر Webhook",
     "testConnection": "اختبار الاتصال",
     "saveSettings": "حفظ الإعدادات",
-    "generateApiKey": "إنشاء مفتاح واجهة برمجة تطبيقات",
-    "revokeApiKey": "إلغاء مفتاح واجهة برمجة تطبيقات",
-    "apiKeyName": "اسم مفتاح واجهة برمجة التطبيقات",
+    "generateApiKey": "إنشاء مفتاح API",
+    "revokeApiKey": "إلغاء مفتاح API",
+    "apiKeyName": "اسم مفتاح API",
     "createdAt": "تم الإنشاء في",
     "lastUsed": "آخر استخدام",
     "changePassword": "تغيير كلمة المرور",
@@ -579,14 +580,331 @@
     "enable": "تفعيل",
     "disable": "تعطيل",
     "emailNotifications": "إشعارات البريد الإلكتروني",
-    "smsNotifications": "إشعارات الرسائل القصيرة",
-    "webhookNotifications": "إشعارات خطافات الويب",
+    "smsNotifications": "إشعارات الرسائل النصية",
+    "webhookNotifications": "إشعارات Webhook",
     "language": "اللغة",
     "timezone": "المنطقة الزمنية",
     "dateFormat": "تنسيق التاريخ",
-    "theme": "السمة",
+    "theme": "المظهر",
     "light": "فاتح",
-    "dark": "داكن"
+    "dark": "داكن",
+    "headTitle": "الإعدادات",
+    "subTitle": "إدارة إعدادات WhatsApp Business الخاصة بك",
+    "general_setting": {
+      "tabName": "الإعدادات العامة",
+      "title": "التكوين العام",
+      "description": "إدارة هوية علامتك التجارية ومظهرها",
+      "loadingText": "جارٍ تحميل الإعدادات...",
+      "connectionIssueTitle": "مشكلة في الاتصال",
+      "connectionIssueDesc": "يرجى التحقق من الاتصال والمحاولة مرة أخرى.",
+      "refreshedTitle": "تم التحديث",
+      "refreshedDesc": "تم تحديث الإعدادات بنجاح.",
+      "refreshFailedTitle": "فشل التحديث",
+      "refreshFailedDesc": "تعذر تحديث الإعدادات. يرجى المحاولة مرة أخرى.",
+      "connectionErrorTitle": "خطأ في الاتصال",
+      "connectionErrorDesc": "تعذر تحميل الإعدادات من الخادم. يتم عرض بيانات نموذجية. يرجى التحقق من الاتصال ثم المحاولة مرة أخرى.",
+      "offline": "غير متصل",
+      "online": "متصل",
+      "refreshing": "جارٍ التحديث...",
+      "refresh": "تحديث",
+      "editSettings": "تعديل الإعدادات",
+      "brandIdentity": "هوية العلامة التجارية",
+      "dataTypeSample": "بيانات نموذجية",
+      "dataTypeLive": "بيانات مباشرة",
+      "dataTypeLabel": "نوع البيانات:",
+      "unknownTime": "غير معروف",
+      "justNow": "الآن",
+      "minuteAgo": "منذ دقيقة",
+      "minutesAgo": "منذ دقائق",
+      "hourAgo": "منذ ساعة",
+      "hoursAgo": "منذ ساعات",
+      "applicationTitle": "عنوان التطبيق",
+      "notConfigured": "غير مُكوّن",
+      "applicationTitleHelper": "انقر \"تعديل الإعدادات\" لتكوين عنوان التطبيق",
+      "tagline": "الشعار",
+      "taglineHelper": "أضف شعاراً جذاباً لعلامتك التجارية",
+      "logo": "الشعار",
+      "logoUploaded": "تم تحميل الشعار",
+      "logoHelper": "الشعار جاهز للعرض",
+      "logoMissing": "لم يتم تحميل الشعار",
+      "logoMissingHelper": "قم بتحميل الشعار لتحسين علامتك التجارية",
+      "favicon": "أيقونة المفضلة",
+      "faviconUploaded": "تم تحميل أيقونة المفضلة",
+      "faviconHelper": "ستظهر أيقونة المفضلة في علامات تبويب المتصفح",
+      "faviconMissing": "لم يتم تحميل أيقونة المفضلة",
+      "faviconMissingHelper": "أضف أيقونة مفضلة لعلامة تبويب المتصفح",
+      "country": "البلد",
+      "countryHelper": "أضف بلداً جذاباً لعلامتك التجارية",
+      "currency": "العملة",
+      "currencyHelper": "أضف عملة جذابة لعلامتك التجارية",
+      "configurationStatusLabel": "حالة التكوين:",
+      "configurationStatusComplete": "مكتمل",
+      "configurationStatusPartial": "جزئي",
+      "configurationStatusIncomplete": "غير مكتمل",
+      "lastUpdated": "آخر تحديث",
+      "brandPreviewTitle": "معاينة العلامة التجارية",
+      "brandPreviewDesc": "كيف ستظهر علامتك التجارية في التطبيق",
+      "brandLogoAlt": "شعار العلامة التجارية",
+      "logoAlt": "الشعار",
+      "faviconAlt": "أيقونة المفضلة"
+    },
+    "storage_setting": {
+      "tabName": "إعدادات التخزين",
+      "title": "تكوين التخزين",
+      "description": "إدارة تكامل تخزين الملفات وبيانات الاعتماد",
+      "loadingText": "جارٍ تحميل تكوين التخزين...",
+      "connectionIssueTitle": "مشكلة في الاتصال",
+      "connectionIssueDesc": "يرجى التحقق من الاتصال والمحاولة مرة أخرى.",
+      "refreshedTitle": "تم التحديث",
+      "refreshedDesc": "تم تحديث تكوين التخزين بنجاح.",
+      "refreshFailedTitle": "فشل التحديث",
+      "refreshFailedDesc": "تعذر تحديث إعدادات التخزين.",
+      "connectionErrorTitle": "خطأ في الاتصال",
+      "connectionErrorDesc": "تعذر تحميل إعدادات التخزين من الخادم. يتم عرض البيانات المخزنة مؤقتاً.",
+      "offline": "غير متصل",
+      "online": "متصل",
+      "refreshing": "جارٍ التحديث...",
+      "refresh": "تحديث",
+      "editStorage": "تعديل التخزين",
+      "storageDetails": "تفاصيل التخزين",
+      "active": "نشط",
+      "inactive": "غير نشط",
+      "unknownTime": "غير معروف",
+      "justNow": "الآن",
+      "minuteAgo": "منذ دقيقة",
+      "minutesAgo": "منذ دقائق",
+      "hourAgo": "منذ ساعة",
+      "hoursAgo": "منذ ساعات",
+      "spaceName": "اسم المساحة",
+      "spaceNamePlaceholder": "غير مُكوّن",
+      "endpoint": "نقطة النهاية",
+      "endpointPlaceholder": "لم يتم توفير نقطة نهاية",
+      "region": "المنطقة",
+      "regionPlaceholder": "غير محدد",
+      "accessKey": "مفتاح الوصول",
+      "accessKeyPlaceholder": "غير مُكوّن",
+      "accessKeyMasked": "********",
+      "secretKey": "المفتاح السري",
+      "secretKeyPlaceholder": "غير مُكوّن",
+      "secretKeyMasked": "********",
+      "configurationStatusLabel": "حالة التكوين:",
+      "configurationStatusComplete": "مكتمل",
+      "configurationStatusPartial": "جزئي",
+      "configurationStatusIncomplete": "غير مكتمل",
+      "lastUpdated": "آخر تحديث"
+    },
+    "ai_setting": {
+      "tabName": "إعدادات AI",
+      "title": "تكوين الذكاء الاصطناعي",
+      "description": "إدارة مزود نموذج الذكاء الاصطناعي، وبيانات الاعتماد، ومعاملات وقت التشغيل.",
+      "loadingText": "جارٍ تحميل تكوين AI...",
+      "loadingError": "فشل تحميل إعدادات AI.",
+      "refreshedTitle": "تم التحديث",
+      "refreshedDesc": "تم تحديث تكوين AI بنجاح.",
+      "refreshFailedTitle": "فشل التحديث",
+      "refreshFailedDesc": "تعذر تحديث إعدادات AI.",
+      "active": "نشط",
+      "inactive": "غير نشط",
+      "refreshing": "جارٍ التحديث...",
+      "refresh": "تحديث",
+      "edit": "تعديل",
+      "provider": "المزود",
+      "providerPlaceholder": "غير محدد",
+      "apiKey": "مفتاح API",
+      "apiKeyMasked": "***************",
+      "apiKeyPlaceholder": "غير مُكوّن",
+      "model": "النموذج",
+      "modelPlaceholder": "غير محدد",
+      "endpoint": "نقطة النهاية",
+      "endpointPlaceholder": "غير محدد",
+      "temperature": "درجة الحرارة",
+      "temperaturePlaceholder": "غير محدد",
+      "maxTokens": "الحد الأقصى للرموز",
+      "maxTokensPlaceholder": "غير محدد",
+      "triggerWords": "الكلمات المحفزة",
+      "triggerWordsPlaceholder": "لم يتم تعريف كلمات محفزة",
+      "notSet": "غير محدد"
+    },
+    "channel_setting": {
+      "tabName": "إعدادات القناة",
+      "title": "قنوات WhatsApp",
+      "description": "تكوين قنوات WhatsApp Business API لـ Cloud API وMM Lite",
+      "addChannel": "إضافة قناة",
+      "noChannels": "لم يتم تكوين قنوات WhatsApp بعد",
+      "addFirstChannel": "أضف قناتك الأولى",
+      "active": "نشط",
+      "mmLite": "MM Lite",
+      "phone": "الهاتف:",
+      "phoneNumberId": "معرف رقم الهاتف:",
+      "businessAccountId": "معرف حساب الأعمال:",
+      "notSet": "غير محدد",
+      "channelHealth": "صحة القناة",
+      "test": "اختبار",
+      "edit": "تعديل",
+      "delete": "حذف",
+      "channelDeleted": "تم حذف القناة",
+      "channelDeletedDesc": "تمت إزالة القناة بنجاح.",
+      "error": "خطأ",
+      "deleteConfirm": "هل أنت متأكد أنك تريد حذف هذه القناة؟",
+      "checkingHealth": "جارٍ فحص الصحة...",
+      "verifyingConnection": "التحقق من اتصال القناة وحالتها",
+      "channelHealthy": "القناة تعمل بشكل جيد",
+      "channelHealthyDesc": "قناة WhatsApp تعمل بشكل صحيح",
+      "channelWarnings": "القناة بها تحذيرات",
+      "channelWarningsDesc": "تحقق من تفاصيل الصحة للحصول على مزيد من المعلومات",
+      "channelIssues": "القناة بها مشاكل",
+      "channelIssuesDesc": "القناة تحتاج إلى اهتمام",
+      "healthCheckFailed": "فشل فحص الصحة",
+      "healthCheckFailedDesc": "تعذر التحقق من حالة القناة",
+      "healthStatus": {
+        "healthy": "صحية",
+        "warning": "تحذير",
+        "error": "خطأ",
+        "unknown": "غير معروف"
+      },
+      "healthDetails": {
+        "accountMode": "وضع الحساب",
+        "qualityRating": "تقييم الجودة",
+        "messagingLimit": "حد الرسائل",
+        "throughput": "الإنتاجية",
+        "verification": "التحقق",
+        "nameStatus": "حالة الاسم",
+        "errorLabel": "خطأ:",
+        "errorCode": "رمز الخطأ:",
+        "errorType": "نوع الخطأ:"
+      },
+      "lastChecked": "آخر فحص:",
+      "refresh": "تحديث"
+    },
+    "webhook_setting": {
+      "tabName": "إعدادات Webhook",
+      "title": "تكوين Webhook",
+      "description": "تكوين webhooks لاستقبال أحداث WhatsApp في الوقت الفعلي",
+      "refresh": "تحديث",
+      "configureWebhook": "تكوين Webhook",
+      "noWebhooks": "لم يتم تكوين webhooks بعد",
+      "configureFirst": "قم بتكوين Webhook الأول",
+      "channelWebhook": "Webhook القناة",
+      "globalWebhook": "Webhook عام",
+      "webhookUrl": "رابط Webhook:",
+      "events": "الأحداث:",
+      "lastEvent": "آخر حدث:",
+      "test": "اختبار",
+      "edit": "تعديل",
+      "delete": "حذف",
+      "webhookDeleted": "تم حذف Webhook",
+      "webhookDeletedDesc": "تمت إزالة تكوين webhook.",
+      "error": "خطأ",
+      "deleteConfirm": "هل أنت متأكد أنك تريد حذف تكوين webhook هذا؟",
+      "testSent": "تم إرسال اختبار webhook",
+      "testSentDesc": "تحقق من نقطة نهاية webhook للحصول على رسالة الاختبار.",
+      "testFailed": "فشل الاختبار",
+      "copied": "تم النسخ!",
+      "copiedDesc": "تم نسخ رابط Webhook إلى الحافظة",
+      "status": {
+        "noEvents": "لم يتم استلام أحداث",
+        "active": "نشط",
+        "inactive": "غير نشط"
+      },
+      "howItWorks": {
+        "title": "كيفية عمل Webhooks",
+        "description": "فهم تدفق webhook لـ WhatsApp Business API"
+      },
+      "setupInstructions": {
+        "title": "تعليمات الإعداد",
+        "step1": {
+          "title": "1. تكوين Webhook في تطبيق Meta",
+          "description": "انتقل إلى لوحة تحكم تطبيق Meta ← WhatsApp ← التكوين ← Webhook"
+        },
+        "step2": {
+          "title": "2. تعيين رابط Webhook",
+          "description": "انسخ رابط webhook أعلاه والصقه في حقل رابط webhook في تطبيق Meta"
+        },
+        "step3": {
+          "title": "3. أدخل رمز التحقق",
+          "description": "استخدم رمز التحقق المعروض في تكوين webhook الخاص بك"
+        },
+        "step4": {
+          "title": "4. الاشتراك في الأحداث",
+          "description": "اشترك في messages وmessage_status وحقول webhook المطلوبة الأخرى"
+        }
+      }
+    },
+    "api_key_setting": {
+      "tabName": "إعدادات مفتاح API",
+      "title": "مفاتيح API",
+      "description": "إدارة مفاتيح API للتكامل مع الأنظمة الخارجية",
+      "createApiKey": "إنشاء مفتاح API",
+      "noApiKeys": "لم يتم إنشاء مفاتيح API بعد",
+      "createFirst": "أنشئ مفتاح API الأول",
+      "active": "نشط",
+      "revoked": "مُلغى",
+      "created": "تم الإنشاء:",
+      "lastUsed": "آخر استخدام:",
+      "revoke": "إلغاء",
+      "apiKeyCreated": "تم إنشاء مفتاح API",
+      "apiKeyCreatedDesc": "تم إنشاء مفتاح API الجديد. تأكد من نسخه الآن لأنه لن يظهر مرة أخرى.",
+      "error": "خطأ",
+      "apiKeyRevoked": "تم إلغاء مفتاح API",
+      "apiKeyRevokedDesc": "تم إلغاء مفتاح API ولم يعد يمكن استخدامه.",
+      "revokeConfirm": "هل أنت متأكد أنك تريد إلغاء مفتاح API هذا؟ لا يمكن التراجع عن هذا الإجراء.",
+      "copied": "تم النسخ!",
+      "copiedDesc": "تم نسخ مفتاح API إلى الحافظة",
+      "nameRequired": "الاسم مطلوب",
+      "nameRequiredDesc": "يرجى إدخال اسم لمفتاح API",
+      "createForm": {
+        "title": "إنشاء مفتاح API جديد",
+        "keyName": "اسم المفتاح",
+        "keyNamePlaceholder": "مفتاح API للإنتاج",
+        "keyNameHelper": "اسم وصفي لتعريف مفتاح API هذا",
+        "creating": "جارٍ الإنشاء...",
+        "createKey": "إنشاء مفتاح",
+        "cancel": "إلغاء"
+      },
+      "documentation": {
+        "title": "وثائق API",
+        "description": "تعلم كيفية استخدام WhatsWay API",
+        "baseUrl": "رابط الأساس",
+        "authentication": "المصادقة",
+        "authDesc": "قم بتضمين مفتاح API في رأس التفويض:",
+        "exampleRequest": "طلب مثال",
+        "viewDocs": "عرض الوثائق الكاملة"
+      }
+    },
+    "firebase": {
+      "tabName": "إعدادات Firebase",
+      "title": "إعدادات Firebase",
+      "description": "إدارة تكوين Firebase المستخدم للمصادقة والإشعارات الفورية.",
+      "editButton": "تعديل",
+      "loading": "جارٍ التحميل...",
+      "fields": {
+        "apiKey": "مفتاح API",
+        "authDomain": "نطاق المصادقة",
+        "projectId": "معرف المشروع",
+        "storageBucket": "حاوية التخزين",
+        "messagingSenderId": "معرف مرسل الرسائل",
+        "appId": "معرف التطبيق",
+        "measurementId": "معرف القياس",
+        "privateKey": "المفتاح الخاص",
+        "clientEmail": "البريد الإلكتروني للعميل",
+        "vapidKey": "مفتاح Vapid"
+      },
+      "notConfigured": "غير مُكوّن",
+      "status": {
+        "active": "تكوين Firebase نشط",
+        "notFound": "لم يتم العثور على إعدادات Firebase"
+      },
+      "modal": {
+        "title": "تحديث إعدادات Firebase",
+        "cancel": "إلغاء",
+        "save": "حفظ"
+      },
+      "toast": {
+        "success": "تم حفظ إعدادات Firebase بنجاح!",
+        "error": "خطأ",
+        "errorDescription": "فشل في حفظ إعدادات Firebase"
+      }
+    }
   },
   "errors": {
     "genericError": "حدث خطأ ما",
@@ -638,69 +956,1195 @@
     "time_range": "نطاق الوقت",
     "MessagesTab": "الرسائل",
     "OverviewTab": {
-        "title": "نظرة عامة",
-        "last": "آخر",
-        "days": "أيام",
-        "Total_Messages": "إجمالي الرسائل",
-        "Delivery": "معدل التسليم",
-        "read_rate": "معدل القراءة",
-        "reply_rate": "معدل الرد",
-        "Failure_rate": "معدل الفشل",
-        "managePer": "اتجاهات أداء الرسائل",
-        "Summary": "ملخص",
-        "Active_Campaigns": "الحملات النشطة",
-        "Total_Campaigns": "إجمالي الحملات",
-        "Unique_Contacts": "جهات اتصال فريدة",
-        "Total_Recipients": "إجمالي المستلمين"
+      "title": "نظرة عامة",
+      "last": "آخر",
+      "days": "أيام",
+      "Total_Messages": "إجمالي الرسائل",
+      "Delivery": "معدل التسليم",
+      "read_rate": "معدل القراءة",
+      "reply_rate": "معدل الرد",
+      "Failure_rate": "معدل الفشل",
+      "managePer": "اتجاهات أداء الرسائل",
+      "Summary": "ملخص",
+      "Active_Campaigns": "الحملات النشطة",
+      "Total_Campaigns": "إجمالي الحملات",
+      "Unique_Contacts": "جهات اتصال فريدة",
+      "Total_Recipients": "إجمالي المستلمين"
     },
     "messageTab": {
-        "title": "الرسائل",
-        "Outbound_Messages": "الرسائل الصادرة",
-        "Inbound_Messages": "الرسائل الواردة",
-        "Average_Response": "متوسط وقت الاستجابة",
-        "Message_Activity": "نشاط الرسائل حسب الساعة"
+      "title": "الرسائل",
+      "Outbound_Messages": "الرسائل الصادرة",
+      "Inbound_Messages": "الرسائل الواردة",
+      "Average_Response": "متوسط وقت الاستجابة",
+      "Message_Activity": "نشاط الرسائل حسب الساعة"
     },
     "CampaignsTab": {
-        "title": "الحملات",
-        "Total_Sent": "إجمالي المرسلات",
-        "Total_Delivered": "إجمالي المرسلة بنجاح",
-        "Total_Read": "إجمالي المقروءة",
-        "Total_Failed": "إجمالي الفاشلة",
-        "Campaign_Performance": "أداء الحملة"
+      "title": "الحملات",
+      "Total_Sent": "إجمالي المرسلات",
+      "Total_Delivered": "إجمالي المرسلة بنجاح",
+      "Total_Read": "إجمالي المقروءة",
+      "Total_Failed": "إجمالي الفاشلة",
+      "Campaign_Performance": "أداء الحملة"
     }
-},
-"Landing": {
+  },
+  "Landing": {
     "header": {
       "getstart": "ابدأ مجانًا",
       "redystart": "هل أنت مستعد للبدء؟",
       "join": "انضم إلى آلاف الشركات التي تنمو بالفعل مع Whatsway",
-      "start": "ابدأ الفترة التجريبية المجانية",
-      "Learn": "تعلم المزيد",
+      "start": "ابدأ التجربة المجانية",
+      "Learn": "معرفة المزيد",
       "dash": "لوحة التحكم",
       "Settings": "الإعدادات",
       "Account": "الحساب",
       "logout": "تسجيل الخروج",
       "resourcesMenuItems": [
-        { "title": "القوالب", "description": "نماذج رسائل جاهزة للاستخدام" },
-        { "title": "دراسات الحالة", "description": "قصص نجاح من عملائنا" },
-        { "title": "دليل WhatsApp", "description": "دليل كامل لتسويق WhatsApp" },
-        { "title": "توثيق API", "description": "موارد المطورين ووثائق API" },
-        { "title": "أفضل الممارسات", "description": "نصائح لنجاح تسويق WhatsApp" },
-        { "title": "حاسبة العائد على الاستثمار", "description": "احسب عائد تسويق WhatsApp الخاص بك" }
+        {
+          "title": "القوالب",
+          "description": "قوالب رسائل جاهزة للاستخدام"
+        },
+        {
+          "title": "دراسات الحالة",
+          "description": "قصص نجاح من عملائنا"
+        },
+        {
+          "title": "دليل WhatsApp",
+          "description": "دليل التسويق الكامل عبر WhatsApp"
+        },
+        {
+          "title": "وثائق API",
+          "description": "موارد المطورين ووثائق API"
+        },
+        {
+          "title": "أفضل الممارسات",
+          "description": "نصائح لنجاح التسويق عبر WhatsApp"
+        },
+        {
+          "title": "حاسبة العائد على الاستثمار",
+          "description": "احسب عائد الاستثمار من التسويق عبر WhatsApp"
+        }
       ],
       "aboutMenuItems": [
-        { "title": "عنا", "description": "تعرف على مهمتنا وفريقنا" },
-        { "title": "اتصل بنا", "description": "تواصل مع فريقنا" },
-        { "title": "وظائف", "description": "انضم إلى فريقنا المتنامي" },
-        { "title": "التكاملات", "description": "اتصل بأكثر من 1000 تطبيق" }
+        {
+          "title": "من نحن",
+          "description": "تعرف على مهمتنا وفريقنا"
+        },
+        {
+          "title": "اتصل بنا",
+          "description": "تواصل مع فريقنا"
+        },
+        {
+          "title": "الوظائف",
+          "description": "انضم إلى فريقنا المتنامي"
+        },
+        {
+          "title": "التكاملات",
+          "description": "اتصل بأكثر من 1000 تطبيق"
+        }
       ],
-      "Navlinks": ["الرئيسية", "عنا", "الموارد", "تسجيل الدخول", "لوحة التحكم"]
+      "Navlinks": [
+        "الرئيسية",
+        "من نحن",
+        "الموارد",
+        "تسجيل الدخول",
+        "لوحة التحكم"
+      ]
+    },
+    "heroSec": {
+      "animatedBgGreenText": "منصة تسويق WhatsApp مجانية - أحضر API الخاص بك",
+      "headline": "وسع نطاق عملك مع",
+      "highlightText": "التسويق عبر WhatsApp",
+      "subHeadline": "اربط Meta WhatsApp Business API الخاص بك واستفد من الأتمتة القوية والرسائل الجماعية والتحليلات المتقدمة. ابدأ مجانًا، وسع بلا حدود.",
+      "startTrialButton": "ابدأ التجربة المجانية",
+      "watchDemoButton": "شاهد عرض توضيحي لمدة دقيقتين",
+      "trustedByText": "موثوق به من قبل أكثر من 10,000 شركة في جميع أنحاء العالم",
+      "brands": [
+        "Shopify",
+        "WooCommerce",
+        "Salesforce",
+        "HubSpot",
+        "Zapier"
+      ],
+      "stats": [
+        {
+          "label": "المستخدمون النشطون",
+          "suffix": "+"
+        },
+        {
+          "label": "معدل التسليم",
+          "suffix": "%"
+        },
+        {
+          "label": "تفاعل أعلى",
+          "suffix": "x"
+        }
+      ],
+      "animationDelays": {
+        "delay1": "animation-delay-2000",
+        "delay2": "animation-delay-4000"
+      }
+    },
+    "featuresSec": {
+      "introTagline": "ميزات تسويق WhatsApp القوية",
+      "headlinePre": "كل ما تحتاجه لـ",
+      "headlineHighlight": "توسيع نطاق عملك",
+      "subHeadline": "من الرسائل الجماعية إلى روبوتات الدردشة بالذكاء الاصطناعي، توفر منصتنا جميع الأدوات التي تحتاجها لإنشاء حملات تسويقية ناجحة عبر WhatsApp",
+      "featureTabs": [
+        {
+          "title": "الرسائل الجماعية",
+          "description": "أرسل رسائل مخصصة إلى آلاف جهات الاتصال على الفور مع تحسين التسليم الذكي",
+          "demo": {
+            "title": "حملة إذاعية",
+            "stats": "تم إرسال 10,000 رسالة في دقيقتين",
+            "features": [
+              "قوالب مخصصة",
+              "جدولة ذكية",
+              "تحسين التسليم"
+            ]
+          }
+        },
+        {
+          "title": "سير عمل الأتمتة",
+          "description": "أنشئ تسلسلات آلية ذكية ترعى العملاء المحتملين وتشرك العملاء على مدار الساعة طوال أيام الأسبوع",
+          "demo": {
+            "title": "تسلسل الترحيب",
+            "stats": "معدل تفاعل 85%",
+            "features": [
+              "تدفقات قائمة على المحفزات",
+              "منطق شرطي",
+              "رحلات متعددة الخطوات"
+            ]
+          }
+        },
+        {
+          "title": "التحليلات المتقدمة",
+          "description": "تتبع الأداء برؤى فورية وتقارير التسليم ومقاييس التفاعل",
+          "demo": {
+            "title": "تحليلات الحملة",
+            "stats": "معدل تسليم 98%",
+            "features": [
+              "تتبع في الوقت الفعلي",
+              "تحليل العائد على الاستثمار",
+              "تقارير مخصصة"
+            ]
+          }
+        },
+        {
+          "title": "إدارة جهات الاتصال",
+          "description": "نظم وقسّم جمهورك بالوسم الذكي والتصفية المتقدمة",
+          "demo": {
+            "title": "التقسيم الذكي",
+            "stats": "أكثر من 50 حقلاً مخصصًا",
+            "features": [
+              "الوسم التلقائي",
+              "شرائح سلوكية",
+              "استيراد/تصدير"
+            ]
+          }
+        },
+        {
+          "title": "روبوتات الدردشة بالذكاء الاصطناعي",
+          "description": "انشر روبوتات دردشة ذكية تتعامل مع استفسارات العملاء وتؤهل العملاء المحتملين تلقائيًا",
+          "demo": {
+            "title": "روبوت دعم العملاء",
+            "stats": "متاح على مدار الساعة طوال أيام الأسبوع",
+            "features": [
+              "لغة طبيعية",
+              "تأهيل العملاء المحتملين",
+              "التحويل إلى البشر"
+            ]
+          }
+        },
+        {
+          "title": "مُجدول الحملات",
+          "description": "خطط وجدول الحملات عبر المناطق الزمنية مع توقيت التسليم الأمثل",
+          "demo": {
+            "title": "الحملات العالمية",
+            "stats": "دعم متعدد المناطق الزمنية",
+            "features": [
+              "توقيت ذكي",
+              "حملات متكررة",
+              "اختبار A/B"
+            ]
+          }
+        }
+      ],
+      "additionalFeatures": [
+        {
+          "title": "دعم متعدد اللغات",
+          "desc": "الوصول إلى الجماهير العالمية بلغتهم الأصلية"
+        },
+        {
+          "title": "الاستهداف الذكي",
+          "desc": "استهداف دقيق بناءً على السلوك والديموغرافيا"
+        },
+        {
+          "title": "تكامل API",
+          "desc": "تكامل سلس مع أدواتك الحالية ونظام CRM"
+        }
+      ]
+    },
+    "howItWorksSec": {
+      "introTagline": "عملية بسيطة من 4 خطوات",
+      "headlinePre": "ابدأ في",
+      "headlineHighlight": "أقل من 5 دقائق",
+      "subHeadline": "تتيح لك عملية الإعداد المبسطة لدينا البدء في التسويق عبر WhatsApp بشكل أسرع من أي منصة أخرى",
+      "steps": [
+        {
+          "title": "اربط Meta API الخاص بك",
+          "description": "أحضر WhatsApp Business API الخاص بك من Meta واربطه بمنصتنا في ثوانٍ",
+          "details": [
+            "تكامل API آمن",
+            "عملية إعداد بنقرة واحدة",
+            "لا حاجة لمعرفة تقنية",
+            "ملكية كاملة للبيانات"
+          ]
+        },
+        {
+          "title": "استورد جهات الاتصال الخاصة بك",
+          "description": "قم بتحميل قاعدة بيانات العملاء الخاصة بك أو المزامنة مباشرة من نظام CRM والأدوات الحالية",
+          "details": [
+            "دعم استيراد CSV/Excel",
+            "تكاملات CRM متاحة",
+            "كشف التكرارات الذكي",
+            "التحقق التلقائي من البيانات"
+          ]
+        },
+        {
+          "title": "أنشئ وأطلق الحملات",
+          "description": "صمم رسائل جميلة باستخدام أداة السحب والإفلات وأطلق حملات مستهدفة",
+          "details": [
+            "أداة بناء حملات مرئية",
+            "قوالب جاهزة",
+            "خيارات التخصيص",
+            "إمكانيات اختبار A/B"
+          ]
+        },
+        {
+          "title": "تتبع وحسّن",
+          "description": "راقب الأداء في الوقت الفعلي وحسّن حملاتك للحصول على نتائج أفضل",
+          "details": [
+            "تحليلات في الوقت الفعلي",
+            "تتبع التسليم",
+            "مقاييس التفاعل",
+            "حسابات العائد على الاستثمار"
+          ]
+        }
+      ],
+      "progressBar": {
+        "previous": "السابق",
+        "nextStep": "الخطوة التالية"
+      },
+      "visualDemo": {
+        "whatsAppBusinessDashboard": "لوحة تحكم WhatsApp Business"
+      },
+      "cta": {
+        "readyToGetStarted": "هل أنت مستعد للبدء؟",
+        "joinText": "انضم إلى آلاف الشركات التي تستخدم منصتنا بالفعل لتوسيع نطاق تسويقها عبر WhatsApp",
+        "startFreeTrial": "ابدأ تجربتك المجانية"
+      }
+    },
+    "useCasesSec": {
+      "introTagline": "حلول الصناعة",
+      "headlinePre": "مثالي لكل",
+      "headlineHighlight": "صناعة وعمل",
+      "subHeadline": "اكتشف كيف تستخدم الشركات في مختلف الصناعات تسويق WhatsApp لدفع النمو وتحسين تفاعل العملاء",
+      "useCases": [
+        {
+          "icon": "ShoppingCart",
+          "title": "التجارة الإلكترونية",
+          "description": "عزز المبيعات من خلال استعادة السلة المتروكة وتحديثات الطلبات والتوصيات الشخصية للمنتجات",
+          "color": "from-green-500 to-green-600",
+          "bgColor": "bg-green-50",
+          "stats": {
+            "increase": "300%",
+            "metric": "استعادة المبيعات"
+          },
+          "features": [
+            "استعادة السلة المتروكة",
+            "تحديثات حالة الطلب",
+            "توصيات المنتجات",
+            "إشعارات التخفيضات السريعة"
+          ]
+        },
+        {
+          "icon": "GraduationCap",
+          "title": "التعليم",
+          "description": "إشراك الطلاب وأولياء الأمور بتحديثات الدورات وتذكيرات الواجبات والمحتوى التعليمي",
+          "color": "from-blue-500 to-blue-600",
+          "bgColor": "bg-blue-50",
+          "stats": {
+            "increase": "85%",
+            "metric": "تفاعل الطلاب"
+          },
+          "features": [
+            "تذكيرات الواجبات",
+            "إعلانات الدورات",
+            "التواصل مع أولياء الأمور",
+            "مشاركة المواد الدراسية"
+          ]
+        },
+        {
+          "icon": "Heart",
+          "title": "الرعاية الصحية",
+          "description": "تحسين رعاية المرضى من خلال تذكيرات المواعيد ونصائح الصحة وتنبيهات الأدوية",
+          "color": "from-red-500 to-red-600",
+          "bgColor": "bg-red-50",
+          "stats": {
+            "increase": "60%",
+            "metric": "حضور المواعيد"
+          },
+          "features": [
+            "تذكيرات المواعيد",
+            "تنبيهات الأدوية",
+            "توصيل نصائح الصحة",
+            "إشعارات نتائج الاختبار"
+          ]
+        },
+        {
+          "icon": "Building",
+          "title": "العقارات",
+          "description": "التواصل مع العملاء المحتملين من خلال تنبيهات العقارات والجولات الافتراضية وتحديثات السوق",
+          "color": "from-purple-500 to-purple-600",
+          "bgColor": "bg-purple-50",
+          "stats": {
+            "increase": "45%",
+            "metric": "تحويل العملاء المحتملين"
+          },
+          "features": [
+            "تنبيهات العقارات",
+            "جدولة الجولات الافتراضية",
+            "تحديثات السوق",
+            "تأهيل العملاء المحتملين"
+          ]
+        },
+        {
+          "icon": "Utensils",
+          "title": "المطاعم",
+          "description": "زيادة الطلبات من خلال تحديثات القائمة والعروض الخاصة وتأكيدات الحجز",
+          "color": "from-orange-500 to-orange-600",
+          "bgColor": "bg-orange-50",
+          "stats": {
+            "increase": "120%",
+            "metric": "حجم الطلبات"
+          },
+          "features": [
+            "تحديثات القائمة",
+            "العروض الخاصة",
+            "تأكيدات الحجز",
+            "برامج الولاء"
+          ]
+        },
+        {
+          "icon": "Car",
+          "title": "السيارات",
+          "description": "تحسين خدمة العملاء من خلال تذكيرات الخدمة وحجز المواعيد وتحديثات المركبات",
+          "color": "from-indigo-500 to-indigo-600",
+          "bgColor": "bg-indigo-50",
+          "stats": {
+            "increase": "75%",
+            "metric": "حجوزات الخدمة"
+          },
+          "features": [
+            "تذكيرات الخدمة",
+            "حجز المواعيد",
+            "تحديثات المركبات",
+            "نصائح الصيانة"
+          ]
+        }
+      ],
+      "cta": {
+        "viewCaseStudyButton": "عرض دراسة الحالة",
+        "customerSuccessQuote": "ساعدنا WhatsApp Pro على زيادة تفاعل {industry} بنسبة {increase}. وفرت لنا ميزات الأتمتة ساعات لا تحصى مع تحسين رضا العملاء.",
+        "testimonialName": "Sarah Johnson",
+        "testimonialPosition": "مديرة التسويق"
+      },
+      "quickStats": [
+        {
+          "value": "98%",
+          "label": "معدل التسليم"
+        },
+        {
+          "value": "5x",
+          "label": "تفاعل أعلى"
+        },
+        {
+          "value": "24/7",
+          "label": "الأتمتة"
+        },
+        {
+          "value": "50%",
+          "label": "تقليل التكلفة"
+        }
+      ]
+    },
+    "testimonialsSec": {
+      "introTagline": "قصص نجاح العملاء",
+      "headlinePre": "محبوب من قبل",
+      "headlineHighlight": "10,000+ شركة",
+      "subHeadline": "تعرف على كيفية تحقيق الشركات في مختلف الصناعات نتائج ملحوظة باستخدام منصة تسويق WhatsApp الخاصة بنا",
+      "testimonials": [
+        {
+          "name": "Sarah Chen",
+          "role": "مديرة التجارة الإلكترونية",
+          "company": "Fashion Forward",
+          "image": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
+          "rating": 5,
+          "text": "حول WhatsApp Pro تفاعل عملائنا. شهدنا زيادة بنسبة 300٪ في معدلات استعادة السلة ويحب عملاؤنا التجربة الشخصية.",
+          "results": "زيادة بنسبة 300٪ في استعادة السلة"
+        },
+        {
+          "name": "Michael Rodriguez",
+          "role": "مدير التسويق",
+          "company": "TechStart Solutions",
+          "image": "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
+          "rating": 5,
+          "text": "سير عمل الأتمتة مذهلة. يمكننا الآن رعاية العملاء المحتملين على مدار الساعة طوال أيام الأسبوع دون أي تدخل يدوي. معدلات التحويل لدينا لم تكن أعلى من أي وقت مضى.",
+          "results": "تحسين بنسبة 85٪ في تحويل العملاء المحتملين"
+        },
+        {
+          "name": "Emily Johnson",
+          "role": "قائدة نجاح العملاء",
+          "company": "HealthCare Plus",
+          "image": "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
+          "rating": 5,
+          "text": "تحسن حضور مواعيد المرضى بشكل كبير بعد تطبيق تذكيرات WhatsApp. المنصة بديهية وتبناها فريقنا بسرعة.",
+          "results": "انخفاض بنسبة 60٪ في عدم الحضور"
+        },
+        {
+          "name": "David Park",
+          "role": "صاحب مطعم",
+          "company": "Gourmet Bistro",
+          "image": "https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
+          "rating": 5,
+          "text": "نظام الحجز الخاص بنا الآن سلس. يحصل العملاء على تأكيدات فورية ويمكننا إرسال عروض خاصة لهم. زادت الإيرادات بنسبة 40٪ في 3 أشهر فقط.",
+          "results": "زيادة الإيرادات بنسبة 40٪"
+        },
+        {
+          "name": "Lisa Thompson",
+          "role": "منسقة التعليم",
+          "company": "Bright Future Academy",
+          "image": "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
+          "rating": 5,
+          "text": "لم يكن تفاعل الآباء أفضل من أي وقت مضى. يمكننا مشاركة التحديثات الفورية حول أطفالهم وتصل الإعلانات المدرسية المهمة إلى الجميع.",
+          "results": "معدل تفاعل الآباء 90٪"
+        }
+      ],
+      "navButtons": {
+        "previous": "السابق",
+        "next": "التالي"
+      },
+      "statsGrid": [
+        {
+          "number": "10,000+",
+          "label": "عملاء سعداء"
+        },
+        {
+          "number": "98%",
+          "label": "معدل الرضا"
+        },
+        {
+          "number": "5M+",
+          "label": "الرسائل المرسلة"
+        },
+        {
+          "number": "24/7",
+          "label": "الدعم متاح"
+        }
+      ]
+    },
+    "ctaSec": {
+      "introTagline": "انضم إلى أكثر من 10,000 شركة تنمو بالفعل",
+      "headline": "هل أنت مستعد لتوسيع نطاق عملك مع تسويق WhatsApp؟",
+      "subHeadline": "ابدأ تجربتك المجانية اليوم. لا حاجة لبطاقة ائتمان. اربط Meta API الخاص بك وابدأ إرسال الحملات في أقل من 5 دقائق.",
+      "buttons": {
+        "startTrial": "ابدأ التجربة المجانية",
+        "scheduleDemo": "جدولة عرض توضيحي"
+      },
+      "trustIndicators": [
+        {
+          "title": "إعداد فوري",
+          "desc": "ابدأ في 5 دقائق"
+        },
+        {
+          "title": "آمن ومتوافق",
+          "desc": "أمان على مستوى المؤسسات"
+        },
+        {
+          "title": "دعم 24/7",
+          "desc": "دائمًا هنا للمساعدة"
+        },
+        {
+          "title": "مجاني للأبد",
+          "desc": "بدون تكاليف خفية"
+        }
+      ],
+      "stats": [
+        {
+          "number": "10,000+",
+          "label": "المستخدمون النشطون"
+        },
+        {
+          "number": "98%",
+          "label": "معدل التسليم"
+        },
+        {
+          "number": "5M+",
+          "label": "الرسائل المرسلة"
+        },
+        {
+          "number": "24/7",
+          "label": "الدعم"
+        }
+      ]
+    },
+    "pricingSec": {
+      "introTagline": "تسعير بسيط وشفاف",
+      "headlinePre": "اختر",
+      "headlineHighlight": "خطتك المثالية",
+      "subHeadline": "ابدأ مجانًا وقم بالتوسع مع نموك. تتضمن جميع الخطط تكامل Meta API الخاص بك وإرسال رسائل غير محدود.",
+      "billingToggle": {
+        "monthly": "شهري",
+        "annual": "سنوي",
+        "saveLabel": "وفر 20%"
+      },
+      "planCTA": {
+        "freeButton": "ابدأ مجانًا",
+        "paidButton": "ابدأ التجربة المجانية"
+      },
+      "pricing": {
+        "month": "شهر",
+        "year": "سنة",
+        "upTo": "ما يصل إلى",
+        "contacts": "جهات اتصال",
+        "channels": "قنوات WhatsApp",
+        "automation": "أتمتة"
+      },
+      "loading": "جارٍ تحميل الخطط...",
+      "noPlans": {
+        "title": "لا توجد خطط متاحة",
+        "description": "يرجى التحقق مرة أخرى لاحقًا للحصول على خيارات التسعير."
+      },
+      "authRequired": {
+        "title": "المصادقة مطلوبة",
+        "description": "يرجى تسجيل الدخول قبل شراء خطة"
+      },
+      "faq": {
+        "title": "الأسئلة الشائعة",
+        "questions": [
+          {
+            "q": "هل أحتاج إلى WhatsApp Business API الخاص بي؟",
+            "a": "نعم، تحتاج إلى إحضار Meta WhatsApp Business API الخاص بك. هذا يضمن لك السيطرة الكاملة على بياناتك ورسائلك."
+          },
+          {
+            "q": "هل هناك رسوم إعداد؟",
+            "a": "لا توجد رسوم إعداد! يمكنك البدء في استخدام منصتنا فورًا بعد توصيل API الخاص بك."
+          },
+          {
+            "q": "هل يمكنني تغيير الخطط في أي وقت؟",
+            "a": "بالتأكيد! يمكنك الترقية أو التخفيض في أي وقت. تسري التغييرات على الفور."
+          },
+          {
+            "q": "ماذا يحدث إذا تجاوزت حد جهات الاتصال الخاصة بي؟",
+            "a": "سنخطرك قبل أن تصل إلى الحد الخاص بك. يمكنك ترقية خطتك أو شراء جهات اتصال إضافية."
+          }
+        ]
+      },
+      "enterprise": {
+        "title": "هل تحتاج إلى حل مخصص؟",
+        "description": "اتصل بفريق المؤسسات لدينا للحصول على تسعير مخصص ودعم مخصص وميزات مصممة خصيصًا",
+        "button": "اتصل بالمبيعات"
+      }
+    },
+    "footerSec": {
+      "newsletter": {
+        "heading": "ابق على اطلاع بنصائح تسويق WhatsApp",
+        "description": "احصل على أحدث الاستراتيجيات ودراسات الحالة وتحديثات المنصة في صندوق الوارد الخاص بك.",
+        "emailPlaceholder": "أدخل عنوان بريدك الإلكتروني",
+        "subscribeButton": "اشترك"
+      },
+      "brandSection": {
+        "brandNames": [
+          "WPSaaS",
+          "Whatsway"
+        ],
+        "description": "منصة تسويق WhatsApp الأكثر قوة. وسّع نطاق عملك من خلال الحملات الآلية والتحليلات المتقدمة وتكامل API السلس."
+      },
+      "socialLinks": {
+        "twitter": "تويتر",
+        "linkedin": "لينكد إن",
+        "github": "جيت هاب",
+        "mail": "البريد"
+      },
+      "links": {
+        "product": [
+          "الميزات",
+          "كيف يعمل",
+          "حالات الاستخدام",
+          "التسعير",
+          "وثائق API"
+        ],
+        "company": [
+          "من نحن",
+          "اتصل بنا",
+          "الوظائف",
+          "مجموعة الصحافة",
+          "التكاملات"
+        ],
+        "support": [
+          "مركز المساعدة",
+          "المجتمع",
+          "الحالة",
+          "الأمان"
+        ],
+        "resources": [
+          "القوالب",
+          "دراسات الحالة",
+          "دليل WhatsApp",
+          "أفضل الممارسات",
+          "حاسبة العائد على الاستثمار"
+        ],
+        "legal": [
+          "سياسة الخصوصية",
+          "شروط الخدمة",
+          "سياسة ملفات تعريف الارتباط",
+          "اللائحة العامة لحماية البيانات"
+        ]
+      },
+      "bottomBar": {
+        "copyrightText": "© 2025 Whatsway. جميع الحقوق محفوظة.",
+        "termsLink": "شروط الخدمة",
+        "privacyLink": "سياسة الخصوصية",
+        "cookieLink": "سياسة ملفات تعريف الارتباط"
+      }
     }
   },
-    "groups": {
+  "groups": {
     "title": "المجموعات",
     "subtitle": "تفاصيل وإدارة جميع المجموعات",
     "createButton": "إنشاء مجموعة"
+  },
+  "users": {
+    "title": "المستخدمون",
+    "subtitle": "إدارة جميع المستخدمين المسجلين",
+    "search": {
+      "placeholder": "البحث باسم المستخدم أو البريد الإلكتروني...",
+      "button": "بحث",
+      "clear": "مسح"
+    },
+    "stats": {
+      "showing": "عرض",
+      "of": "من",
+      "users": "مستخدمين"
+    },
+    "table": {
+      "contact": "جهة الاتصال",
+      "phone": "الهاتف",
+      "groups": "المجموعات",
+      "status": "الحالة",
+      "lastLogin": "آخر تسجيل دخول",
+      "actions": "الإجراءات",
+      "noGroups": "لا توجد مجموعات"
+    },
+    "card": {
+      "phone": "الهاتف:",
+      "groups": "المجموعات:",
+      "status": "الحالة:",
+      "lastLogin": "آخر تسجيل دخول:"
+    },
+    "loading": "جاري تحميل المستخدمين...",
+    "noUsers": "لم يتم العثور على مستخدمين",
+    "lastLoginNever": "أبداً",
+    "phonePlaceholder": "—",
+    "actions": {
+      "blockUser": "حظر المستخدم",
+      "activateUser": "تفعيل المستخدم"
+    },
+    "pagination": {
+      "showing": "عرض",
+      "to": "إلى",
+      "of": "من",
+      "users": "مستخدمين",
+      "previous": "السابق",
+      "next": "التالي"
+    },
+    "toast": {
+      "success": "نجح",
+      "statusUpdated": "تم تحديث حالة المستخدم إلى",
+      "error": "خطأ",
+      "statusUpdateFailed": "فشل تحديث الحالة",
+      "fetchFailed": "فشل في جلب المستخدمين",
+      "somethingWrong": "حدث خطأ ما"
+    }
+  },
+  "notifications": {
+    "title": "الإشعارات",
+    "subtitle": "أرسل إشعارات للمستخدمين، المسؤولين، أو فريقك.",
+    "refresh": "تحديث",
+    "createNotification": "إنشاء إشعار",
+    "stats": {
+      "totalSent": "إجمالي المرسلة",
+      "allNotifications": "جميع الإشعارات",
+      "userTarget": "موجه للمستخدم",
+      "usersOnly": "للمستخدمين فقط",
+      "adminTeam": "مسؤول / فريق",
+      "staffNotifications": "إشعارات الموظفين"
+    },
+    "table": {
+      "title": "جميع الإشعارات",
+      "total": "الإجمالي",
+      "id": "المعرف",
+      "titleColumn": "العنوان",
+      "message": "الرسالة",
+      "target": "الهدف",
+      "status": "الحالة",
+      "sentAt": "أُرسلت في",
+      "action": "إجراء",
+      "send": "إرسال",
+      "sent": "تم الإرسال"
+    },
+    "loading": "جارٍ تحميل الإشعارات...",
+    "empty": {
+      "title": "لا توجد إشعارات",
+      "description": "أنشئ إشعارك الأول للبدء",
+      "button": "إنشاء إشعار"
+    },
+    "card": {
+      "sentAt": "أُرسلت في:"
+    },
+    "dialog": {
+      "title": "إنشاء وإرسال إشعار",
+      "description": "سيتم إرسال الإشعار فوراً إلى المستلمين المحددين.",
+      "titleLabel": "العنوان",
+      "titlePlaceholder": "أدخل عنوان الإشعار",
+      "messageLabel": "الرسالة",
+      "messagePlaceholder": "أدخل نص الإشعار",
+      "targetLabel": "الجمهور المستهدف",
+      "targetOptions": {
+        "all": "جميع المستخدمين",
+        "users": "للمستخدمين فقط",
+        "admins": "للمسؤولين فقط",
+        "team": "للفريق فقط",
+        "specific": "مستخدمون محددون (معرّفات)"
+      },
+      "userIdsLabel": "معرّفات المستخدمين (مفصولة بفواصل)",
+      "userIdsPlaceholder": "user1,user2,user3",
+      "cancel": "إلغاء",
+      "sendNow": "إرسال الآن",
+      "sending": "جاري الإرسال...",
+      "required": "*"
+    },
+    "toast": {
+      "error": "خطأ",
+      "errorLoading": "فشل تحميل الإشعارات",
+      "success": "تم بنجاح",
+      "notificationSent": "تم إرسال الإشعار بنجاح!",
+      "notificationSentShort": "تم الإرسال!",
+      "refreshing": "جاري التحديث",
+      "refreshingDesc": "جارٍ تحميل أحدث الإشعارات..."
+    },
+    "validation": {
+      "titleRequired": "العنوان مطلوب",
+      "messageRequired": "الرسالة مطلوبة"
+    }
+  },
+  "plans": {
+    "title": "خطط الأسعار",
+    "subtitle": "إنشاء وإدارة خطط الأسعار الخاصة بك",
+    "stats": {
+      "totalPlans": "إجمالي الخطط",
+      "featured": "مميز",
+      "active": "نشط",
+      "billing": "الفوترة",
+      "annual": "سنوي",
+      "monthly": "شهري"
+    },
+    "billingToggle": {
+      "monthly": "شهري",
+      "annual": "سنوي",
+      "discount": "-20%"
+    },
+    "buttons": {
+      "createPlan": "إنشاء خطة",
+      "cancel": "إلغاء",
+      "edit": "تعديل",
+      "delete": "حذف",
+      "save": "حفظ",
+      "updatePlan": "تحديث الخطة",
+      "addFeature": "إضافة ميزة",
+      "getStartedFree": "ابدأ مجاناً",
+      "startFreeTrial": "ابدأ النسخة التجريبية المجانية"
+    },
+    "form": {
+      "createTitle": "إنشاء خطة جديدة",
+      "editTitle": "تعديل الخطة",
+      "planName": "اسم الخطة *",
+      "planNamePlaceholder": "مثال: احترافي",
+      "icon": "الأيقونة",
+      "iconOptions": {
+        "zap": "⚡ برق",
+        "crown": "👑 تاج",
+        "rocket": "🚀 صاروخ",
+        "star": "⭐ نجمة"
+      },
+      "description": "الوصف",
+      "descriptionPlaceholder": "مثالي للفرق المتنامية...",
+      "monthlyPrice": "السعر الشهري",
+      "monthlyPricePlaceholder": "29.99",
+      "annualPrice": "السعر السنوي",
+      "annualPricePlaceholder": "299.99",
+      "badgeText": "نص الشارة",
+      "badgePlaceholder": "الأكثر شعبية",
+      "borderColor": "لون الحدود",
+      "borderOptions": {
+        "gray": "رمادي افتراضي",
+        "blue": "أزرق",
+        "purple": "بنفسجي",
+        "green": "أخضر",
+        "pink": "وردي"
+      },
+      "permissions": {
+        "channels": "القنوات",
+        "channelsPlaceholder": "5",
+        "contacts": "جهات الاتصال",
+        "contactsPlaceholder": "10,000",
+        "automation": "الأتمتة",
+        "automationPlaceholder": "متقدم",
+        "campaign": "الحملة",
+        "campaignPlaceholder": "متقدم"
+      },
+      "popularToggle": "تعيين كخطة شائعة",
+      "features": "الميزات",
+      "featureName": "اسم الميزة",
+      "featureIncluded": "متضمن",
+      "noFeatures": "لم يتم إضافة ميزات بعد"
+    },
+    "empty": {
+      "title": "لم يتم إنشاء خطط بعد",
+      "description": "ابدأ بإنشاء خطة التسعير الأولى",
+      "button": "إنشاء خطتك الأولى"
+    },
+    "card": {
+      "perMonth": "شهرياً",
+      "perYear": "سنوياً"
+    },
+    "toast": {
+      "authRequired": "المصادقة مطلوبة",
+      "authRequiredDesc": "يرجى تسجيل الدخول قبل شراء خطة",
+      "error": "خطأ",
+      "fetchError": "فشل في جلب الخطط",
+      "planCreated": "تم إنشاء الخطة",
+      "planCreatedDesc": "تم إنشاء خطتك بنجاح.",
+      "planUpdated": "تم تحديث الخطة",
+      "planUpdatedDesc": "تم تحديث خطتك بنجاح.",
+      "saveError": "فشل في حفظ الخطة",
+      "planDeleted": "تم حذف الخطة",
+      "planDeletedDesc": "تم حذف الخطة بنجاح.",
+      "deleteError": "فشل في حذف الخطة",
+      "deleteConfirm": "هل أنت متأكد أنك تريد حذف هذه الخطة؟"
+    }
+  },
+  "transactions": {
+    "title": "المعاملات",
+    "subtitle": "إدارة ومراقبة جميع معاملات الدفع",
+    "stats": {
+      "totalRevenue": "إجمالي الإيرادات",
+      "completed": "مكتملة",
+      "pending": "قيد الانتظار",
+      "failed": "فشلت"
+    },
+    "search": {
+      "placeholder": "البحث في المعاملات...",
+      "filters": "الفلاتر",
+      "export": "تصدير"
+    },
+    "filters": {
+      "title": "فلاتر متقدمة",
+      "status": "الحالة",
+      "allStatuses": "جميع الحالات",
+      "statusOptions": {
+        "pending": "قيد الانتظار",
+        "completed": "مكتملة",
+        "failed": "فشلت",
+        "refunded": "مُستردة",
+        "cancelled": "ملغاة"
+      },
+      "paymentMethod": "طريقة الدفع",
+      "allMethods": "جميع الطرق",
+      "paymentOptions": {
+        "card": "بطاقة",
+        "upi": "UPI",
+        "wallet": "محفظة",
+        "netbanking": "الخدمات المصرفية عبر الإنترنت"
+      },
+      "billingCycle": "دورة الفوترة",
+      "allCycles": "جميع الدورات",
+      "cycleOptions": {
+        "monthly": "شهرية",
+        "annual": "سنوية"
+      },
+      "startDate": "تاريخ البدء",
+      "endDate": "تاريخ الانتهاء",
+      "minAmount": "الحد الأدنى للمبلغ",
+      "minAmountPlaceholder": "0.00",
+      "maxAmount": "الحد الأقصى للمبلغ",
+      "maxAmountPlaceholder": "0.00",
+      "clearFilters": "مسح الفلاتر"
+    },
+    "table": {
+      "transactionId": "معرف المعاملة",
+      "user": "المستخدم",
+      "plan": "الخطة",
+      "amount": "المبلغ",
+      "status": "الحالة",
+      "paymentBy": "الدفع بواسطة",
+      "date": "التاريخ"
+    },
+    "card": {
+      "user": "المستخدم:",
+      "plan": "الخطة:",
+      "cycle": "الدورة:",
+      "amount": "المبلغ:",
+      "payment": "الدفع:",
+      "date": "التاريخ:"
+    },
+    "status": {
+      "completed": "مكتملة",
+      "failed": "فشلت",
+      "pending": "قيد الانتظار",
+      "refunded": "مُستردة",
+      "cancelled": "ملغاة"
+    },
+    "loading": "جاري تحميل المعاملات...",
+    "empty": {
+      "title": "لا توجد معاملات",
+      "description": "حاول تعديل الفلاتر"
+    },
+    "pagination": {
+      "showing": "عرض",
+      "to": "إلى",
+      "of": "من",
+      "perPage": "/صفحة",
+      "previous": "السابق",
+      "next": "التالي"
+    }
+  },
+  "support": {
+    "title": "تذاكر الدعم",
+    "subtitleAdmin": "إدارة جميع تذاكر الدعم من المستخدمين والمستمعين",
+    "subtitleUser": "عرض وإدارة تذاكر الدعم الخاصة بك",
+    "createTicket": "إنشاء تذكرة",
+    "stats": {
+      "totalTickets": "إجمالي التذاكر",
+      "openTickets": "التذاكر المفتوحة",
+      "inProgress": "قيد التنفيذ",
+      "resolved": "تم الحل"
+    },
+    "search": {
+      "placeholder": "البحث في التذاكر...",
+      "allStatus": "جميع الحالات",
+      "allPriority": "جميع الأولويات",
+      "status": {
+        "open": "مفتوحة",
+        "inProgress": "قيد التنفيذ",
+        "resolved": "تم الحل",
+        "closed": "مغلقة"
+      },
+      "priority": {
+        "low": "منخفضة",
+        "medium": "متوسطة",
+        "high": "عالية",
+        "urgent": "عاجلة"
+      }
+    },
+    "ticket": {
+      "updated": "تم التحديث",
+      "creator": "المنشئ:",
+      "contact": "الاتصال:",
+      "details": "التفاصيل:",
+      "status": "الحالة",
+      "priority": "الأولوية",
+      "assignTo": "تعيين إلى",
+      "unassigned": "غير مُعيَّن",
+      "description": "الوصف:",
+      "conversation": "المحادثة",
+      "noMessages": "لا توجد رسائل بعد",
+      "internal": "داخلي",
+      "typeReply": "اكتب ردك...",
+      "internalNote": "ملاحظة داخلية (غير مرئية لـ",
+      "resolveTicket": "حل التذكرة"
+    },
+    "creatorType": {
+      "user": "مستخدم",
+      "admin": "مسؤول",
+      "superadmin": "مسؤول متقدم",
+      "listener": "مستمع"
+    },
+    "empty": {
+      "noTickets": "لا توجد تذاكر",
+      "adjustFilters": "حاول تعديل معايير البحث أو الفلتر",
+      "allResolved": "تم حل جميع تذاكر الدعم!",
+      "noSelection": "لم يتم تحديد تذكرة",
+      "selectTicket": "حدد تذكرة من القائمة لعرض التفاصيل والرد"
+    },
+    "loading": "جارٍ تحميل التذاكر...",
+    "pagination": {
+      "page": "صفحة",
+      "of": "من",
+      "previous": "السابق",
+      "next": "التالي"
+    }
+  },
+  "gateway": {
+    "title": "إعدادات البوابة",
+    "subtitle": "تكوين بوابة الدفع لتطبيقك",
+    "loading": "جارٍ التحميل...",
+    "stats": {
+      "activeProvider": "المزود النشط",
+      "none": "لا يوجد",
+      "provider": "المزود",
+      "environment": "البيئة",
+      "live": "مباشر",
+      "test": "اختبار",
+      "status": "الحالة",
+      "active": "نشط",
+      "inactive": "غير نشط"
+    },
+    "card": {
+      "title": "تكوين بوابة الدفع",
+      "configured": "تم التكوين"
+    },
+    "form": {
+      "providerLabel": "مزود الدفع *",
+      "selectProvider": "اختر المزود",
+      "razorpay": "Razorpay",
+      "stripe": "Stripe",
+      "environmentLabel": "وضع البيئة *",
+      "testMode": "وضع الاختبار",
+      "liveMode": "الوضع المباشر",
+      "testModeSafe": "وضع الاختبار آمن للتطوير والاختبار",
+      "liveModeWarning": "⚠️ الوضع المباشر سيعالج مدفوعات حقيقية",
+      "testCredentials": "بيانات الاختبار",
+      "liveCredentials": "البيانات المباشرة",
+      "testApiKey": "مفتاح API للاختبار *",
+      "testApiKeyPlaceholderRazorpay": "rzp_test_xxxxxxxxxxxxx",
+      "testApiKeyPlaceholderStripe": "pk_test_xxxxxxxxxxxxx",
+      "testApiSecret": "سر API للاختبار *",
+      "testApiSecretPlaceholder": "أدخل المفتاح السري للاختبار",
+      "liveApiKey": "مفتاح API المباشر *",
+      "liveApiKeyPlaceholderRazorpay": "rzp_live_xxxxxxxxxxxxx",
+      "liveApiKeyPlaceholderStripe": "pk_live_xxxxxxxxxxxxx",
+      "liveApiSecret": "سر API المباشر *",
+      "liveApiSecretPlaceholder": "أدخل المفتاح السري المباشر",
+      "enableGateway": "تفعيل بوابة الدفع",
+      "enableGatewayDesc": "تنشيط معالجة الدفع لتطبيقك",
+      "saving": "جاري الحفظ...",
+      "updateSettings": "تحديث الإعدادات",
+      "saveSettings": "حفظ الإعدادات"
+    },
+    "razorpay": {
+      "title": "تكوين Razorpay",
+      "description": "احصل على بيانات Razorpay من لوحة تحكم Razorpay. ستحتاج إلى بيانات الاختبار والمباشرة.",
+      "testKeyInfo": "مفاتيح الاختبار تبدأ بـ",
+      "liveKeyInfo": "المفاتيح المباشرة تبدأ بـ",
+      "getKeys": "احصل على مفاتيح Razorpay API ←"
+    },
+    "stripe": {
+      "title": "تكوين Stripe",
+      "description": "احصل على بيانات Stripe من لوحة تحكم Stripe. ستحتاج إلى بيانات الاختبار والمباشرة.",
+      "testKeyInfo": "مفاتيح الاختبار تبدأ بـ",
+      "testKeyInfoOr": "أو",
+      "liveKeyInfo": "المفاتيح المباشرة تبدأ بـ",
+      "liveKeyInfoOr": "أو",
+      "getKeys": "احصل على مفاتيح Stripe API ←"
+    },
+    "toast": {
+      "updated": "تم تحديث بوابة الدفع",
+      "created": "تم إنشاء بوابة الدفع",
+      "successDesc": "تم حفظ إعدادات مزود الدفع بنجاح.",
+      "error": "خطأ",
+      "errorDesc": "فشل في حفظ المزود"
+    },
+    "validation": {
+      "providerRequired": "مزود الدفع مطلوب",
+      "apiKeyRequired": "مفتاح API المباشر مطلوب",
+      "apiSecretRequired": "سر API المباشر مطلوب",
+      "testApiKeyRequired": "مفتاح API للاختبار مطلوب",
+      "testApiSecretRequired": "سر API للاختبار مطلوب"
+    }
+  },
+  "subscriptions": {
+    "title": "الاشتراكات الرئيسية",
+    "subtitle": "إدارة جميع الاشتراكات",
+    "allSubscriptions": "جميع الاشتراكات",
+    "totalSubscriptions": "الإجمالي",
+    "subscription": "اشتراك",
+    "subscriptions": "اشتراكات",
+    "loading": "جارٍ تحميل الاشتراكات...",
+    "error": {
+      "title": "خطأ في تحميل البيانات",
+      "message": "فشل تحميل الاشتراكات"
+    },
+    "table": {
+      "username": "اسم المستخدم",
+      "plan": "الخطة",
+      "price": "السعر",
+      "status": "الحالة",
+      "startDate": "تاريخ البدء",
+      "endDate": "تاريخ الانتهاء",
+      "autoRenew": "تجديد تلقائي",
+      "yes": "نعم",
+      "no": "لا"
+    },
+    "card": {
+      "price": "السعر:",
+      "startDate": "تاريخ البدء:",
+      "endDate": "تاريخ الانتهاء:",
+      "autoRenew": "تجديد تلقائي:"
+    },
+    "pagination": {
+      "showing": "عرض",
+      "to": "إلى",
+      "of": "من",
+      "perPage": "لكل صفحة",
+      "previous": "السابق",
+      "next": "التالي",
+      "page": "صفحة",
+      "pageOf": "من"
+    }
+  },
+  "support_tickets": {
+    "headTitle": "تذاكر الدعم",
+    "headTitleAdmin": "إدارة جميع تذاكر الدعم من المستخدمين والمستمعين",
+    "headTitleuser": "عرض وإدارة تذاكر الدعم الخاصة بك"
+  },
+  "messageLog": {
+    "headerTitle": "سجلات الرسائل",
+    "headerSubTitle": "تتبع جميع الرسائل المرسلة وحالة التسليم الخاصة بها",
+    "messageHis": {
+      "title": "سجل الرسائل",
+      "subtitle": "عرض السجلات التفصيلية لجميع الرسائل"
+    },
+    "Refresh": "تحديث"
+  },
+  "billing_subscription": {
+    "title": "الفوترة والاشتراك",
+    "subtitle": "إدارة اشتراكك، أرصدتك، والفواتير",
+    "loading": "جار تحميل الاشتراكات...",
+    "noSubscription": {
+      "title": "لا يوجد اشتراك نشط",
+      "description": "ليس لديك أي اشتراك مفعل حالياً.",
+      "upgradePlan": "ترقية الخطة"
+    },
+    "card": {
+      "billing": "الفوترة:",
+      "starts": "يبدأ:",
+      "renews": "تجديد:",
+      "pricing": "الأسعار",
+      "monthly": "شهرياً:",
+      "annual": "سنوياً:",
+      "details": "التفاصيل",
+      "features": "المزايا"
+    }
   }
-
 }
