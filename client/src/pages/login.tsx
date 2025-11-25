@@ -65,7 +65,7 @@ export default function LoginPage() {
     },
   });
 
-  const loginMutation = useMutation({
+  const loginMutationOld = useMutation({
     mutationFn: async (data: z.infer<typeof loginSchema>) => {
       console.log(data);
       const response = await apiRequest("POST", "/api/auth/login", data);
@@ -85,6 +85,52 @@ export default function LoginPage() {
       setError(errorMessage);
     },
   });
+
+
+  const loginMutation = useMutation({
+  mutationFn: async (data: z.infer<typeof loginSchema>) => {
+    const response = await apiRequest("POST", "/api/auth/login", data);
+
+    // Always parse JSON first
+    let json: any;
+    try {
+      json = await response.json();
+    } catch {
+      json = {};
+    }
+
+    if (!response.ok) {
+      // Throw backend error message so onError gets proper string
+      throw new Error(json?.error || "Login failed. Please try again.");
+    }
+
+    return json;
+  },
+  onSuccess: () => {
+    // Redirect after successful login
+    window.location.href = "/dashboard";
+  },
+  onError: (error: any) => {
+    // Extract human-readable message
+    let errorMessage = error?.message || "Login failed. Please try again.";
+
+    // Optional: parse JSON if error.message has raw JSON string
+    if (typeof errorMessage === "string" && errorMessage.includes("{")) {
+      try {
+        const parsed = JSON.parse(errorMessage.match(/\{.*\}/)?.[0] || "{}");
+        if (parsed?.error) errorMessage = parsed.error;
+      } catch (e) {
+        console.warn("Failed to parse error JSON:", e);
+      }
+    }
+
+    // Show error to user
+    setError(errorMessage);
+  },
+});
+
+
+
 
   const onSubmit = async (data: z.infer<typeof loginSchema>) => {
     setError(null);
