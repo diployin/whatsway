@@ -127,8 +127,7 @@ const {user} = useAuth()
           title: editingChannel ? "Channel updated" : "Channel created",
           description: editingChannel ? "Your channel has been updated successfully." : "Your new channel has been added successfully.",
         });
-      }
-      
+      }      
       onSuccess();
     },
     onError: (error) => {
