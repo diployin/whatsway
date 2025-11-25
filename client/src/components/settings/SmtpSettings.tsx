@@ -135,7 +135,7 @@ export default function SMTPSettings() {
 
               <Button
                 size="sm"
-                disabled={isUsingStaticData}
+                // disabled={isUsingStaticData}
                 onClick={() => setShowEditDialog(true)}
                 className="text-xs"
               >
@@ -149,7 +149,7 @@ export default function SMTPSettings() {
         </CardHeader>
 
         <CardContent>
-          {isUsingStaticData && (
+          {/* {isUsingStaticData && (
             <div className="p-4 bg-red-50 border border-red-200 rounded-lg mb-6">
               <div className="flex items-center gap-3">
                 <AlertCircle className="w-5 h-5 text-red-600" />
@@ -161,7 +161,7 @@ export default function SMTPSettings() {
                 </div>
               </div>
             </div>
-          )}
+          )} */}
 
           <div className="border p-6 rounded-lg">
             <div className="flex justify-between mb-6">
