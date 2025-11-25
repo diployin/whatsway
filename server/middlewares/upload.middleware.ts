@@ -118,9 +118,11 @@ export const handleDigitalOceanUpload = async (
     // If DO is not active, keep files local
     if (!doClient) {
       console.log("💾 DigitalOcean not configured/active, files saved locally");
+    console.log(files);
       files.forEach(file => {
         console.log(`   📍 Local path: ${file.path}`);
         console.log(`   🌐 Access URL: /uploads/${path.basename(path.dirname(file.path))}/${file.filename}`);
+        file.cloudUrl = `${path.basename(path.dirname(file.path))}/${file.filename}`;
       });
       return next();
     }
