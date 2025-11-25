@@ -612,9 +612,11 @@ export default function WidgetBuilder() {
                   <>
                     <Card>
                       <CardHeader>
-                        <CardTitle>Messenger Layout</CardTitle>
+                        <CardTitle>
+                          {t("widget.Layout.messenger_layout.title")}
+                        </CardTitle>
                         <CardDescription>
-                          Customize chat-focused layout
+                          {t("widget.Layout.messenger_layout.subtitle")}
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-4">
@@ -1227,9 +1229,12 @@ export default function WidgetBuilder() {
               <TabsContent value="features" className="space-y-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Widget Features</CardTitle>
+                    <CardTitle>
+                      {" "}
+                      {t("widget.features.Widget_Features.title")}
+                    </CardTitle>
                     <CardDescription>
-                      Enable or disable functionality
+                      {t("widget.features.Widget_Features.subtitle")}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -1285,9 +1290,12 @@ export default function WidgetBuilder() {
               <TabsContent value="team" className="space-y-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Team Members</CardTitle>
+                    <CardTitle>
+                      {" "}
+                      {t("widget.team.Widget_Features.title")}
+                    </CardTitle>
                     <CardDescription>
-                      Configure your support team
+                      {t("widget.team.Widget_Features.subtitle")}
                     </CardDescription>
                   </CardHeader>
 
@@ -1428,9 +1436,12 @@ export default function WidgetBuilder() {
               <TabsContent value="training" className="space-y-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>AI Training</CardTitle>
+                    <CardTitle>
+                      {" "}
+                      {t("widget.ai.Widget_Features.title")}
+                    </CardTitle>
                     <CardDescription>
-                      Configure AI response behavior
+                      {t("widget.ai.Widget_Features.title")}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -1502,9 +1513,12 @@ export default function WidgetBuilder() {
               <TabsContent value="advanced" className="space-y-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Advanced Branding</CardTitle>
+                    <CardTitle>
+                      {" "}
+                      {t("widget.advanced.Widget_Features.title")}
+                    </CardTitle>
                     <CardDescription>
-                      Customize fonts, shadows, and animations
+                      {t("widget.advanced.Widget_Features.title")}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">

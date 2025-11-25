@@ -183,7 +183,7 @@ export default function Logs() {
                 <RefreshCw
                   className={`w-4 h-4 mr-2 ${isFetching ? "animate-spin" : ""}`}
                 />
-                {t("messageLog.messageHis.Refresh")}
+                {t("messageLog.Refresh")}
               </Button>
             </div>
           </CardHeader>

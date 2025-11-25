@@ -1,3 +1,466 @@
+// import React, { useEffect, useState } from "react";
+// import { apiRequest } from "@/lib/queryClient";
+// import { useToast } from "@/hooks/use-toast";
+// import { Input } from "@/components/ui/input";
+// import { Button } from "@/components/ui/button";
+// import { FaEllipsisH, FaEye, FaBan, FaSearch, FaCheck } from "react-icons/fa";
+// import Header from "@/components/layout/header";
+// import { Link } from "wouter";
+
+// interface UserType {
+//   id: string;
+//   username: string;
+//   email: string;
+//   status: string;
+//   avatar?: string;
+//   phone?: string;
+//   groups?: string[];
+//   lastLogin?: string;
+// }
+
+// interface PaginationType {
+//   page: number;
+//   limit: number;
+//   total: number;
+//   totalPages: number;
+// }
+
+// const statusColors: Record<string, string> = {
+//   active: "bg-green-100 text-green-800",
+//   inactive: "bg-gray-100 text-gray-800",
+//   pending: "bg-yellow-100 text-yellow-800",
+//   banned: "bg-red-100 text-red-800",
+// };
+
+// const User: React.FC = () => {
+//   const [users, setUsers] = useState<UserType[]>([]);
+//   const [loading, setLoading] = useState(false);
+//   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
+//   const { toast } = useToast();
+
+//   const [pagination, setPagination] = useState<PaginationType>({
+//     page: 1,
+//     limit: 10,
+//     total: 0,
+//     totalPages: 1,
+//   });
+
+//   const [search, setSearch] = useState("");
+
+//   const handleToggleStatus = async (user: UserType) => {
+//     try {
+//       const newStatus = user.status === "active" ? "inactive" : "active";
+
+//       const res = await apiRequest("PUT", `/api/user/status/${user.id}`, {
+//         status: newStatus,
+//       });
+
+//       const data = await res.json();
+
+//       if (data.success) {
+//         toast({
+//           title: "Success",
+//           description: `User status updated to ${newStatus}`,
+//         });
+
+//         // Update list
+//         setUsers((prev) =>
+//           prev.map((u) => (u.id === user.id ? { ...u, status: newStatus } : u))
+//         );
+//       } else {
+//         toast({
+//           title: "Error",
+//           description: "Failed to update status",
+//           variant: "destructive",
+//         });
+//       }
+//     } catch (error) {
+//       toast({
+//         title: "Error",
+//         description: "Something went wrong",
+//         variant: "destructive",
+//       });
+//     }
+//   };
+
+//   const fetchUsers = async (
+//     page = 1,
+//     searchTerm = "",
+//     limit = pagination.limit
+//   ) => {
+//     try {
+//       setLoading(true);
+
+//       const response = await apiRequest(
+//         "GET",
+//         `/api/admin/users?page=${page}&limit=${limit}&search=${searchTerm}`
+//       );
+
+//       const data = await response.json();
+
+//       if (data.success) {
+//         setUsers(data.data);
+//         setPagination(data.pagination);
+//       } else {
+//         toast({
+//           title: "Error",
+//           description: "Failed to fetch users",
+//           variant: "destructive",
+//         });
+//       }
+//     } catch (error) {
+//       toast({
+//         title: "Error",
+//         description: "Failed to fetch users",
+//         variant: "destructive",
+//       });
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   useEffect(() => {
+//     fetchUsers(pagination.page, search, pagination.limit);
+//   }, [pagination.page, pagination.limit]);
+
+//   const handlePageChange = (p: number) => {
+//     if (p >= 1 && p <= pagination.totalPages) {
+//       setPagination((prev) => ({ ...prev, page: p }));
+//     }
+//   };
+
+//   const handleSearch = (e: any) => {
+//     e.preventDefault();
+//     setPagination((prev) => ({ ...prev, page: 1 }));
+//     fetchUsers(1, search, pagination.limit);
+//   };
+
+//   const toggleUserSelection = (id: string) => {
+//     setSelectedUsers((prev) => {
+//       const newSet = new Set(prev);
+//       newSet.has(id) ? newSet.delete(id) : newSet.add(id);
+//       return newSet;
+//     });
+//   };
+
+//   return (
+//     <div className="min-h-screen bg-gray-50">
+//       <Header title="Users" subtitle="Manage all registered users" />
+
+//       <div className="p-4 md:p-6">
+//         {/* Search */}
+//         <form
+//           onSubmit={handleSearch}
+//           className="flex flex-col sm:flex-row gap-3 mb-6 w-full"
+//         >
+//           <div className="relative flex-1">
+//             <Input
+//               placeholder="Search by username or email..."
+//               value={search}
+//               onChange={(e) => setSearch(e.target.value)}
+//               className="pl-10 w-full"
+//             />
+//             <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+//           </div>
+
+//           <Button className="bg-green-600 hover:bg-green-700 w-full sm:w-auto">
+//             Search
+//           </Button>
+
+//           <Button
+//             variant="outline"
+//             onClick={() => {
+//               setSearch("");
+//               setPagination((prev) => ({ ...prev, page: 1 }));
+//               fetchUsers(1, "", pagination.limit);
+//             }}
+//             className="w-full sm:w-auto"
+//           >
+//             Clear
+//           </Button>
+//         </form>
+
+//         {/* Stats */}
+//         <div className="mb-4 text-sm text-gray-700">
+//           Showing {users.length} of {pagination.total} users
+//         </div>
+
+//         {/* TABLE FOR DESKTOP */}
+//         <div className="hidden md:block bg-white border rounded-lg shadow-sm overflow-x-auto">
+//           <table className="min-w-full divide-y divide-gray-200">
+//             <thead className="bg-gray-50">
+//               <tr>
+//                 <th className="px-4 py-3"></th>
+//                 <th className="px-4 py-3 text-left text-sm font-semibold">
+//                   Contact
+//                 </th>
+//                 <th className="px-4 py-3 text-left text-sm font-semibold">
+//                   Phone
+//                 </th>
+//                 {/* <th className="px-4 py-3 text-left text-sm font-semibold">Groups</th> */}
+//                 <th className="px-4 py-3 text-left text-sm font-semibold">
+//                   Status
+//                 </th>
+//                 <th className="px-4 py-3 text-left text-sm font-semibold">
+//                   Last Login
+//                 </th>
+//                 <th className="px-4 py-3 text-center text-sm font-semibold">
+//                   Actions
+//                 </th>
+//               </tr>
+//             </thead>
+
+//             <tbody className="divide-y divide-gray-100">
+//               {loading ? (
+//                 <tr>
+//                   <td colSpan={7} className="py-10 text-center text-gray-500">
+//                     Loading users...
+//                   </td>
+//                 </tr>
+//               ) : users.length === 0 ? (
+//                 <tr>
+//                   <td colSpan={7} className="py-10 text-center text-gray-500">
+//                     No users found
+//                   </td>
+//                 </tr>
+//               ) : (
+//                 users.map((u) => (
+//                   <tr key={u.id} className="hover:bg-gray-50">
+//                     <td className="px-4 py-3">
+//                       <input
+//                         type="checkbox"
+//                         checked={selectedUsers.has(u.id)}
+//                         onChange={() => toggleUserSelection(u.id)}
+//                       />
+//                     </td>
+
+//                     <td className="px-4 py-3">
+//                       <div className="flex items-center space-x-3">
+//                         <div className="w-10 h-10 rounded-full bg-green-600 text-white flex items-center justify-center overflow-hidden">
+//                           {u.avatar ? (
+//                             <img
+//                               src={u.avatar}
+//                               className="w-full h-full object-cover"
+//                             />
+//                           ) : (
+//                             u.username.charAt(0).toUpperCase()
+//                           )}
+//                         </div>
+//                         <div>
+//                           <Link
+//                             href={`/users/${u.id}`}
+//                             className="text-sm font-medium hover:text-green-600"
+//                           >
+//                             {u.username}
+//                           </Link>
+//                           <p className="text-xs text-gray-500">{u.email}</p>
+//                         </div>
+//                       </div>
+//                     </td>
+
+//                     <td className="px-4 py-3 text-sm">{u.phone || "—"}</td>
+
+//                     {/* <td className="px-4 py-3 text-sm">
+//                       {u.groups?.length ? u.groups.join(", ") : "No groups"}
+//                     </td> */}
+
+//                     <td className="px-4 py-3">
+//                       <span
+//                         className={`px-3 py-1 rounded-full text-xs font-semibold
+//                         ${statusColors[u.status?.toLowerCase()]}`}
+//                       >
+//                         {u.status.toUpperCase()}
+//                       </span>
+//                     </td>
+
+//                     <td className="px-4 py-3 text-sm">
+//                       {u.lastLogin
+//                         ? new Date(u.lastLogin).toLocaleDateString()
+//                         : "Never"}
+//                     </td>
+
+//                     <td className="px-4 py-3 text-center">
+//                       <div className="flex justify-center gap-3 text-gray-500">
+//                         <Link href={`/users/${u.id}`}>
+//                           <FaEye className="cursor-pointer hover:text-green-600" />
+//                         </Link>
+//                         {u.status === "active" ? (
+//                           <FaBan
+//                             onClick={() => handleToggleStatus(u)}
+//                             className="cursor-pointer hover:text-red-600"
+//                             title="Block User"
+//                           />
+//                         ) : (
+//                           <FaCheck
+//                             onClick={() => handleToggleStatus(u)}
+//                             className="cursor-pointer hover:text-green-600"
+//                             title="Activate User"
+//                           />
+//                         )}
+
+//                         {/* <FaEllipsisH className="cursor-pointer hover:text-gray-700" /> */}
+//                       </div>
+//                     </td>
+//                   </tr>
+//                 ))
+//               )}
+//             </tbody>
+//           </table>
+//         </div>
+
+//         {/* MOBILE CARD LIST */}
+//         <div className="md:hidden space-y-4">
+//           {loading ? (
+//             <p className="text-center text-gray-500 py-10">Loading users...</p>
+//           ) : users.length === 0 ? (
+//             <p className="text-center text-gray-500 py-10">No users found</p>
+//           ) : (
+//             users.map((u) => (
+//               <div
+//                 key={u.id}
+//                 className="bg-white shadow-sm rounded-lg p-4 border space-y-3"
+//               >
+//                 <div className="flex items-center justify-between">
+//                   <div className="flex items-center gap-3">
+//                     <div className="w-12 h-12 rounded-full bg-green-600 text-white flex items-center justify-center overflow-hidden">
+//                       {u.avatar ? (
+//                         <img
+//                           src={u.avatar}
+//                           className="w-full h-full object-cover"
+//                         />
+//                       ) : (
+//                         u.username.charAt(0).toUpperCase()
+//                       )}
+//                     </div>
+//                     <div>
+//                       <Link
+//                         href={`/users/${u.id}`}
+//                         className="font-semibold text-gray-800"
+//                       >
+//                         {u.username}
+//                       </Link>
+//                       <p className="text-xs text-gray-500">{u.email}</p>
+//                     </div>
+//                   </div>
+
+//                   <input
+//                     type="checkbox"
+//                     checked={selectedUsers.has(u.id)}
+//                     onChange={() => toggleUserSelection(u.id)}
+//                   />
+//                 </div>
+
+//                 <div className="text-sm text-gray-600 space-y-1">
+//                   <p>
+//                     <strong>Phone:</strong> {u.phone || "—"}
+//                   </p>
+//                   {/* <p>
+//                     <strong>Groups:</strong>{" "}
+//                     {u.groups?.length ? u.groups.join(", ") : "No groups"}
+//                   </p> */}
+//                   <p>
+//                     <strong>Status:</strong>{" "}
+//                     <span
+//                       className={`px-2 py-1 rounded-full text-xs font-semibold ${
+//                         statusColors[u.status.toLowerCase()]
+//                       }`}
+//                     >
+//                       {u.status.toUpperCase()}
+//                     </span>
+//                   </p>
+//                   <p>
+//                     <strong>Last Login:</strong>{" "}
+//                     {u.lastLogin
+//                       ? new Date(u.lastLogin).toLocaleDateString()
+//                       : "Never"}
+//                   </p>
+//                 </div>
+
+//                 <div className="flex justify-end gap-4 pt-2 text-gray-500">
+//                   <Link href={`/users/${u.id}`}>
+//                     <FaEye className="cursor-pointer hover:text-green-600" />
+//                   </Link>
+//                   {u.status === "active" ? (
+//                     <FaBan
+//                       onClick={() => handleToggleStatus(u)}
+//                       className="cursor-pointer hover:text-red-600"
+//                       title="Block User"
+//                     />
+//                   ) : (
+//                     <FaCheck
+//                       onClick={() => handleToggleStatus(u)}
+//                       className="cursor-pointer hover:text-green-600"
+//                       title="Activate User"
+//                     />
+//                   )}
+
+//                   {/* <FaEllipsisH className="cursor-pointer hover:text-gray-700" /> */}
+//                 </div>
+//               </div>
+//             ))
+//           )}
+//         </div>
+
+//         {/* Pagination */}
+//         <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4">
+//           {/* LEFT */}
+//           <div className="flex items-center gap-4 order-2 sm:order-1">
+//             <span className="text-sm text-gray-700">
+//               Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
+//               {Math.min(pagination.page * pagination.limit, pagination.total)}{" "}
+//               of {pagination.total} users
+//             </span>
+
+//             <select
+//               value={pagination.limit}
+//               onChange={(e) =>
+//                 setPagination((p) => ({
+//                   ...p,
+//                   limit: Number(e.target.value),
+//                   page: 1,
+//                 }))
+//               }
+//               className="border px-2 py-1 rounded text-sm"
+//             >
+//               <option value={5}>5</option>
+//               <option value={10}>10</option>
+//               <option value={20}>20</option>
+//               <option value={50}>50</option>
+//             </select>
+//           </div>
+
+//           {/* RIGHT */}
+//           <div className="flex items-center gap-2 order-1 sm:order-2">
+//             <Button
+//               variant="outline"
+//               size="sm"
+//               disabled={pagination.page === 1}
+//               onClick={() => handlePageChange(pagination.page - 1)}
+//             >
+//               Previous
+//             </Button>
+
+//             <span className="bg-green-600 text-white px-3 py-1 rounded text-sm">
+//               {pagination.page}
+//             </span>
+
+//             <Button
+//               variant="outline"
+//               size="sm"
+//               disabled={pagination.page === pagination.totalPages}
+//               onClick={() => handlePageChange(pagination.page + 1)}
+//             >
+//               Next
+//             </Button>
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default User;
+
 import React, { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -6,6 +469,7 @@ import { Button } from "@/components/ui/button";
 import { FaEllipsisH, FaEye, FaBan, FaSearch, FaCheck } from "react-icons/fa";
 import Header from "@/components/layout/header";
 import { Link } from "wouter";
+import { useTranslation } from "@/lib/i18n";
 
 interface UserType {
   id: string;
@@ -33,6 +497,7 @@ const statusColors: Record<string, string> = {
 };
 
 const User: React.FC = () => {
+  const { t } = useTranslation();
   const [users, setUsers] = useState<UserType[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
@@ -59,25 +524,24 @@ const User: React.FC = () => {
 
       if (data.success) {
         toast({
-          title: "Success",
-          description: `User status updated to ${newStatus}`,
+          title: t("users.toast.success"),
+          description: `${t("users.toast.statusUpdated")} ${newStatus}`,
         });
 
-        // Update list
         setUsers((prev) =>
           prev.map((u) => (u.id === user.id ? { ...u, status: newStatus } : u))
         );
       } else {
         toast({
-          title: "Error",
-          description: "Failed to update status",
+          title: t("users.toast.error"),
+          description: t("users.toast.statusUpdateFailed"),
           variant: "destructive",
         });
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Something went wrong",
+        title: t("users.toast.error"),
+        description: t("users.toast.somethingWrong"),
         variant: "destructive",
       });
     }
@@ -103,15 +567,15 @@ const User: React.FC = () => {
         setPagination(data.pagination);
       } else {
         toast({
-          title: "Error",
-          description: "Failed to fetch users",
+          title: t("users.toast.error"),
+          description: t("users.toast.fetchFailed"),
           variant: "destructive",
         });
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to fetch users",
+        title: t("users.toast.error"),
+        description: t("users.toast.fetchFailed"),
         variant: "destructive",
       });
     } finally {
@@ -145,7 +609,7 @@ const User: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header title="Users" subtitle="Manage all registered users" />
+      <Header title={t("users.title")} subtitle={t("users.subtitle")} />
 
       <div className="p-4 md:p-6">
         {/* Search */}
@@ -155,7 +619,7 @@ const User: React.FC = () => {
         >
           <div className="relative flex-1">
             <Input
-              placeholder="Search by username or email..."
+              placeholder={t("users.search.placeholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-10 w-full"
@@ -164,7 +628,7 @@ const User: React.FC = () => {
           </div>
 
           <Button className="bg-green-600 hover:bg-green-700 w-full sm:w-auto">
-            Search
+            {t("users.search.button")}
           </Button>
 
           <Button
@@ -176,13 +640,14 @@ const User: React.FC = () => {
             }}
             className="w-full sm:w-auto"
           >
-            Clear
+            {t("users.search.clear")}
           </Button>
         </form>
 
         {/* Stats */}
         <div className="mb-4 text-sm text-gray-700">
-          Showing {users.length} of {pagination.total} users
+          {t("users.stats.showing")} {users.length} {t("users.stats.of")}{" "}
+          {pagination.total} {t("users.stats.users")}
         </div>
 
         {/* TABLE FOR DESKTOP */}
@@ -192,20 +657,19 @@ const User: React.FC = () => {
               <tr>
                 <th className="px-4 py-3"></th>
                 <th className="px-4 py-3 text-left text-sm font-semibold">
-                  Contact
+                  {t("users.table.contact")}
                 </th>
                 <th className="px-4 py-3 text-left text-sm font-semibold">
-                  Phone
-                </th>
-                {/* <th className="px-4 py-3 text-left text-sm font-semibold">Groups</th> */}
-                <th className="px-4 py-3 text-left text-sm font-semibold">
-                  Status
+                  {t("users.table.phone")}
                 </th>
                 <th className="px-4 py-3 text-left text-sm font-semibold">
-                  Last Login
+                  {t("users.table.status")}
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-semibold">
+                  {t("users.table.lastLogin")}
                 </th>
                 <th className="px-4 py-3 text-center text-sm font-semibold">
-                  Actions
+                  {t("users.table.actions")}
                 </th>
               </tr>
             </thead>
@@ -214,13 +678,13 @@ const User: React.FC = () => {
               {loading ? (
                 <tr>
                   <td colSpan={7} className="py-10 text-center text-gray-500">
-                    Loading users...
+                    {t("users.loading")}
                   </td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-10 text-center text-gray-500">
-                    No users found
+                    {t("users.noUsers")}
                   </td>
                 </tr>
               ) : (
@@ -258,11 +722,9 @@ const User: React.FC = () => {
                       </div>
                     </td>
 
-                    <td className="px-4 py-3 text-sm">{u.phone || "—"}</td>
-
-                    {/* <td className="px-4 py-3 text-sm">
-                      {u.groups?.length ? u.groups.join(", ") : "No groups"}
-                    </td> */}
+                    <td className="px-4 py-3 text-sm">
+                      {u.phone || t("users.phonePlaceholder")}
+                    </td>
 
                     <td className="px-4 py-3">
                       <span
@@ -276,7 +738,7 @@ const User: React.FC = () => {
                     <td className="px-4 py-3 text-sm">
                       {u.lastLogin
                         ? new Date(u.lastLogin).toLocaleDateString()
-                        : "Never"}
+                        : t("users.lastLoginNever")}
                     </td>
 
                     <td className="px-4 py-3 text-center">
@@ -288,17 +750,15 @@ const User: React.FC = () => {
                           <FaBan
                             onClick={() => handleToggleStatus(u)}
                             className="cursor-pointer hover:text-red-600"
-                            title="Block User"
+                            title={t("users.actions.blockUser")}
                           />
                         ) : (
                           <FaCheck
                             onClick={() => handleToggleStatus(u)}
                             className="cursor-pointer hover:text-green-600"
-                            title="Activate User"
+                            title={t("users.actions.activateUser")}
                           />
                         )}
-
-                        {/* <FaEllipsisH className="cursor-pointer hover:text-gray-700" /> */}
                       </div>
                     </td>
                   </tr>
@@ -311,9 +771,13 @@ const User: React.FC = () => {
         {/* MOBILE CARD LIST */}
         <div className="md:hidden space-y-4">
           {loading ? (
-            <p className="text-center text-gray-500 py-10">Loading users...</p>
+            <p className="text-center text-gray-500 py-10">
+              {t("users.loading")}
+            </p>
           ) : users.length === 0 ? (
-            <p className="text-center text-gray-500 py-10">No users found</p>
+            <p className="text-center text-gray-500 py-10">
+              {t("users.noUsers")}
+            </p>
           ) : (
             users.map((u) => (
               <div
@@ -352,14 +816,11 @@ const User: React.FC = () => {
 
                 <div className="text-sm text-gray-600 space-y-1">
                   <p>
-                    <strong>Phone:</strong> {u.phone || "—"}
+                    <strong>{t("users.card.phone")}</strong>{" "}
+                    {u.phone || t("users.phonePlaceholder")}
                   </p>
-                  {/* <p>
-                    <strong>Groups:</strong>{" "}
-                    {u.groups?.length ? u.groups.join(", ") : "No groups"}
-                  </p> */}
                   <p>
-                    <strong>Status:</strong>{" "}
+                    <strong>{t("users.card.status")}</strong>{" "}
                     <span
                       className={`px-2 py-1 rounded-full text-xs font-semibold ${
                         statusColors[u.status.toLowerCase()]
@@ -369,10 +830,10 @@ const User: React.FC = () => {
                     </span>
                   </p>
                   <p>
-                    <strong>Last Login:</strong>{" "}
+                    <strong>{t("users.card.lastLogin")}</strong>{" "}
                     {u.lastLogin
                       ? new Date(u.lastLogin).toLocaleDateString()
-                      : "Never"}
+                      : t("users.lastLoginNever")}
                   </p>
                 </div>
 
@@ -384,17 +845,15 @@ const User: React.FC = () => {
                     <FaBan
                       onClick={() => handleToggleStatus(u)}
                       className="cursor-pointer hover:text-red-600"
-                      title="Block User"
+                      title={t("users.actions.blockUser")}
                     />
                   ) : (
                     <FaCheck
                       onClick={() => handleToggleStatus(u)}
                       className="cursor-pointer hover:text-green-600"
-                      title="Activate User"
+                      title={t("users.actions.activateUser")}
                     />
                   )}
-
-                  {/* <FaEllipsisH className="cursor-pointer hover:text-gray-700" /> */}
                 </div>
               </div>
             ))
@@ -403,12 +862,14 @@ const User: React.FC = () => {
 
         {/* Pagination */}
         <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4">
-          {/* LEFT */}
           <div className="flex items-center gap-4 order-2 sm:order-1">
             <span className="text-sm text-gray-700">
-              Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
+              {t("users.pagination.showing")}{" "}
+              {(pagination.page - 1) * pagination.limit + 1}{" "}
+              {t("users.pagination.to")}{" "}
               {Math.min(pagination.page * pagination.limit, pagination.total)}{" "}
-              of {pagination.total} users
+              {t("users.pagination.of")} {pagination.total}{" "}
+              {t("users.pagination.users")}
             </span>
 
             <select
@@ -429,7 +890,6 @@ const User: React.FC = () => {
             </select>
           </div>
 
-          {/* RIGHT */}
           <div className="flex items-center gap-2 order-1 sm:order-2">
             <Button
               variant="outline"
@@ -437,7 +897,7 @@ const User: React.FC = () => {
               disabled={pagination.page === 1}
               onClick={() => handlePageChange(pagination.page - 1)}
             >
-              Previous
+              {t("users.pagination.previous")}
             </Button>
 
             <span className="bg-green-600 text-white px-3 py-1 rounded text-sm">
@@ -450,7 +910,7 @@ const User: React.FC = () => {
               disabled={pagination.page === pagination.totalPages}
               onClick={() => handlePageChange(pagination.page + 1)}
             >
-              Next
+              {t("users.pagination.next")}
             </Button>
           </div>
         </div>

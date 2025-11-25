@@ -4,8 +4,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Smartphone,
   Webhook,
-  Key,
-  User,
   SettingsIcon,
   Database,
   BotIcon,
@@ -19,12 +17,15 @@ import StorageSettings from "@/components/settings/StorageSettings";
 import AISettings from "@/components/settings/AISettings";
 import { useAuth } from "@/contexts/auth-context";
 import FirebaseSettings from "@/components/settings/FirebaseSettings";
+import { useTranslation } from "@/lib/i18n";
 import SMTPSettings from "@/components/settings/SmtpSettings";
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState("general_setting");
   const { user } = useAuth();
   const isAdmin = user?.role === "superadmin";
+
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (user?.role !== "superadmin") {
@@ -35,8 +36,8 @@ export default function Settings() {
   return (
     <div className="flex-1 dots-bg min-h-screen">
       <Header
-        title="Settings"
-        subtitle="Manage your WhatsApp business configuration"
+        title={t("settings.headTitle")}
+        subtitle={t("settings.subTitle")}
       />
 
       <main className="p-6 my-4">
@@ -54,7 +55,9 @@ export default function Settings() {
                   className="flex items-center space-x-2 whitespace-nowrap justify-center sm:justify-start text-xs h-7 rounded-sm px-2 sm:h-9 sm:rounded-md sm:px-3"
                 >
                   <SettingsIcon className=" w-3 h-3 md:w-4 md:h-4" />
-                  <span className="text-xs sm:text-base">General Setting</span>
+                  <span className="text-xs sm:text-base">
+                    {t("settings.general_setting.tabName")}
+                  </span>
                 </TabsTrigger>
 
                 <TabsTrigger
@@ -62,7 +65,10 @@ export default function Settings() {
                   className="flex items-center space-x-2 whitespace-nowrap justify-center sm:justify-start text-xs h-7 rounded-sm px-2 sm:h-9 sm:rounded-md sm:px-3"
                 >
                   <SettingsIcon className=" w-3 h-3 md:w-4 md:h-4" />
-                  <span className="text-xs sm:text-base">Firebase Setting</span>
+                  <span className="text-xs sm:text-base">
+                    {" "}
+                    {t("settings.firebase.tabName")}
+                  </span>
                 </TabsTrigger>
 
                 <TabsTrigger
@@ -70,7 +76,10 @@ export default function Settings() {
                   className="flex items-center space-x-2 whitespace-nowrap justify-center sm:justify-start text-xs h-7 rounded-sm px-2 sm:h-9 sm:rounded-md sm:px-3"
                 >
                   <Database className=" w-3 h-3 md:w-4 md:h-4" />
-                  <span className="text-xs sm:text-base">Storage Setting</span>
+                  <span className="text-xs sm:text-base">
+                    {" "}
+                    {t("settings.storage_setting.tabName")}
+                  </span>
                 </TabsTrigger>
 
                 <TabsTrigger
@@ -91,7 +100,10 @@ export default function Settings() {
                   className="flex items-center space-x-2 whitespace-nowrap justify-center sm:justify-start text-xs h-7 rounded-sm px-2 sm:h-9 sm:rounded-md sm:px-3"
                 >
                   <Smartphone className=" w-3 h-3 md:w-4 md:h-4" />
-                  <span className="text-xs sm:text-base">WhatsApp</span>
+                  <span className="text-xs sm:text-base">
+                    {" "}
+                    {t("settings.channel_setting.tabName")}
+                  </span>
                 </TabsTrigger>
 
                 <TabsTrigger
@@ -99,7 +111,10 @@ export default function Settings() {
                   className="flex items-center space-x-2 whitespace-nowrap justify-center sm:justify-start text-xs h-7 rounded-sm px-2 sm:h-9 sm:rounded-md sm:px-3"
                 >
                   <BotIcon className=" w-3 h-3 md:w-4 md:h-4" />
-                  <span className="text-xs sm:text-base">AI Settings</span>
+                  <span className="text-xs sm:text-base">
+                    {" "}
+                    {t("settings.ai_setting.tabName")}
+                  </span>
                 </TabsTrigger>
 
                 <TabsTrigger
@@ -107,7 +122,10 @@ export default function Settings() {
                   className="flex items-center space-x-2 whitespace-nowrap justify-center sm:justify-start text-xs h-7 rounded-sm px-2 sm:h-9 sm:rounded-md sm:px-3"
                 >
                   <Webhook className=" w-3 h-3 md:w-4 md:h-4" />
-                  <span className="text-xs sm:text-base">Webhooks</span>
+                  <span className="text-xs sm:text-base">
+                    {" "}
+                    {t("settings.webhook_setting.tabName")}
+                  </span>
                 </TabsTrigger>
               </>
             )}
@@ -127,7 +145,6 @@ export default function Settings() {
               <TabsContent value="storage_setting">
                 <StorageSettings />
               </TabsContent>
-
               <TabsContent value="smtp_setting">
                 <SMTPSettings />
               </TabsContent>

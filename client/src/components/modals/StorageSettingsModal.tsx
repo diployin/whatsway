@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -13,7 +18,12 @@ interface Props {
   onSuccess: () => void;
 }
 
-export default function StorageSettingsModal({ open, onOpenChange, existingData, onSuccess }: Props) {
+export default function StorageSettingsModal({
+  open,
+  onOpenChange,
+  existingData,
+  onSuccess,
+}: Props) {
   const [form, setForm] = useState({
     id: existingData?.id || "",
     spaceName: existingData?.spaceName || "",
@@ -28,7 +38,7 @@ export default function StorageSettingsModal({ open, onOpenChange, existingData,
   const [loading, setLoading] = useState(false);
 
   const handleChange = (key: string, value: any) => {
-    setForm(prev => ({ ...prev, [key]: value }));
+    setForm((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleSubmit = async () => {
@@ -44,7 +54,11 @@ export default function StorageSettingsModal({ open, onOpenChange, existingData,
       onSuccess();
       onOpenChange(false);
     } catch {
-      toast({ title: "Error", description: "Failed to update storage.", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Failed to update storage.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -59,32 +73,49 @@ export default function StorageSettingsModal({ open, onOpenChange, existingData,
 
         <div className="space-y-3">
           <Label>Space Name</Label>
-          <Input value={form.spaceName} onChange={e => handleChange("spaceName", e.target.value)} />
+          <Input
+            value={form.spaceName}
+            onChange={(e) => handleChange("spaceName", e.target.value)}
+          />
 
           <Label>Endpoint</Label>
-          <Input value={form.endpoint} onChange={e => handleChange("endpoint", e.target.value)} />
+          <Input
+            value={form.endpoint}
+            onChange={(e) => handleChange("endpoint", e.target.value)}
+          />
 
           <Label>Region</Label>
-          <Input value={form.region} onChange={e => handleChange("region", e.target.value)} />
+          <Input
+            value={form.region}
+            onChange={(e) => handleChange("region", e.target.value)}
+          />
 
           <Label>Access Key</Label>
-          <Input value={form.accessKey} onChange={e => handleChange("accessKey", e.target.value)} />
+          <Input
+            value={form.accessKey}
+            onChange={(e) => handleChange("accessKey", e.target.value)}
+          />
 
           <Label>Secret Key</Label>
           <Input
             type="password"
             value={form.secretKey}
-            onChange={e => handleChange("secretKey", e.target.value)}
+            onChange={(e) => handleChange("secretKey", e.target.value)}
           />
 
           <div className="flex items-center justify-between mt-3">
             <Label>Active Storage</Label>
-            <Switch checked={form.isActive} onCheckedChange={val => handleChange("isActive", val)} />
+            <Switch
+              checked={form.isActive}
+              onCheckedChange={(val) => handleChange("isActive", val)}
+            />
           </div>
         </div>
 
         <div className="flex justify-end mt-6 space-x-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
           <Button onClick={handleSubmit} disabled={loading}>
             {loading ? "Saving..." : "Save Changes"}
           </Button>

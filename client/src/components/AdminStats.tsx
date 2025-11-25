@@ -3,6 +3,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/contexts/auth-context";
 import type { DashboardStats } from "@/types/types";
 import { CardStat } from "./CardStat";
+import { useTranslation } from "@/lib/i18n";
 
 // Define different icons for each card
 const ContactsIcon = (
@@ -60,7 +61,6 @@ const MessagesIcon = (
   </svg>
 );
 
-
 const TeamMembersIcon = (
   <svg
     className="w-6 h-6"
@@ -87,7 +87,6 @@ const TeamMembersIcon = (
     />
   </svg>
 );
-
 
 const UsersIcon = (
   <svg
@@ -148,7 +147,7 @@ const TrendingIcon = (
 export default function AdminStats() {
   const { user } = useAuth();
 
-
+  const { t } = useTranslation();
 
   const { data: activeChannel } = useQuery({
     queryKey: ["/api/channels/active"],
@@ -198,7 +197,7 @@ export default function AdminStats() {
           stats.totalContacts !== undefined &&
           stats.totalContacts !== null && (
             <CardStat
-              label="Total Contacts"
+              label={t("dashboard.dashboardStates.Total_Contacts")}
               value={stats.totalContacts}
               icon={ContactsIcon}
               iconClassName="bg-blue-50 text-blue-600"
@@ -211,7 +210,7 @@ export default function AdminStats() {
           stats.totalTemplates !== undefined &&
           stats.totalTemplates !== null && (
             <CardStat
-              label="Total Templates"
+              label={t("dashboard.dashboardStates.Total_Templates")}
               value={stats.totalTemplates}
               icon={TemplatesIcon}
               iconClassName="bg-purple-50 text-purple-600"
@@ -224,7 +223,7 @@ export default function AdminStats() {
           stats.totalChannels !== undefined &&
           stats.totalChannels !== null && (
             <CardStat
-              label="Total Channels"
+              label={t("dashboard.dashboardStates.Total_Channels")}
               value={stats.totalChannels}
               icon={ChannelsIcon}
               iconClassName="bg-green-50 text-green-600"
@@ -237,7 +236,7 @@ export default function AdminStats() {
           stats.totalMessages !== undefined &&
           stats.totalMessages !== null && (
             <CardStat
-              label="Total Messages"
+              label={t("dashboard.dashboardStates.Total_Messages")}
               value={stats.totalMessages}
               icon={MessagesIcon}
               iconClassName="bg-orange-50 text-orange-600"
@@ -245,12 +244,11 @@ export default function AdminStats() {
             />
           )}
 
-
-          {stats &&
+        {stats &&
           stats.totalTeamMembers !== undefined &&
           stats.totalTeamMembers !== null && (
             <CardStat
-              label="Total Team Members"
+              label={t("dashboard.dashboardStates.Total_Templates")}
               value={stats.totalTeamMembers}
               icon={TeamMembersIcon}
               iconClassName="bg-orange-50 text-orange-600"
@@ -263,7 +261,7 @@ export default function AdminStats() {
           stats.totalUsers !== undefined &&
           stats.totalUsers !== null && (
             <CardStat
-              label="Total Users"
+              label={t("dashboard.dashboardStates.Total_Users")}
               value={stats.totalUsers}
               icon={UsersIcon}
               iconClassName="bg-indigo-50 text-indigo-600"
@@ -276,7 +274,7 @@ export default function AdminStats() {
           stats.totalCampaigns !== undefined &&
           stats.totalCampaigns !== null && (
             <CardStat
-              label="Total Campaigns"
+              label={t("dashboard.dashboardStates.Total_Campaigns")}
               value={stats.totalCampaigns}
               icon={CampaignsIcon}
               iconClassName="bg-pink-50 text-pink-600"
@@ -289,7 +287,7 @@ export default function AdminStats() {
           stats.todaySignups !== undefined &&
           stats.todaySignups !== null && (
             <CardStat
-              label="Today Signups"
+              label={t("dashboard.dashboardStates.Total_Signups")}
               value={stats.todaySignups}
               icon={SignupsIcon}
               iconClassName="bg-teal-50 text-teal-600"
