@@ -50,8 +50,6 @@ interface NavItem {
 }
 
 function getNavItems(role: string): NavItem[] {
-  console.log("User role in sidebar:", role);
-
   if (role === "admin") {
     return [
       {
@@ -344,77 +342,82 @@ function getNavItems(role: string): NavItem[] {
 
 const sidebarItemsCategories = [
   {
-    name: "Dashboard",
+    name: "navigation.dashboard",
     icon: LayoutDashboard,
     path: "/dashboard",
     color: "text-green-600",
   },
-  { name: "Users", icon: Users, path: "/users", color: "text-green-600" },
   {
-    name: "Master Campaigns",
+    name: "navigation.users",
+    icon: Users,
+    path: "/users",
+    color: "text-green-600",
+  },
+  {
+    name: "navigation.master_campaigns",
     icon: Megaphone,
     path: "/campaigns",
     badge: "",
     color: "text-blue-600",
   },
   {
-    name: "Master Templates",
+    name: "navigation.master_templates",
     icon: FileText,
     path: "/templates",
     badge: "",
     color: "text-purple-600",
   },
   {
-    name: "Master Contacts",
+    name: "navigation.master_contacts",
     icon: Users,
     path: "/contacts-management",
     badge: "",
     color: "text-yellow-600",
   },
   {
-    name: "Analytics",
+    name: "navigation.analytics",
     icon: BarChart3,
     path: "/analytics",
     color: "text-teal-500",
   },
   {
-    name: "Notifications",
+    name: "navigation.notifications",
     icon: Bell,
     path: "/notifications",
     color: "text-pink-400",
   },
   {
-    name: "Subscription Plans",
+    name: "navigation.subscription_plans",
     icon: MdOutlinePayment,
     path: "/plans",
     color: "text-blue-400",
   },
   {
-    name: "Transactions logs",
+    name: "navigation.transactions_logs",
     icon: AiOutlineTransaction,
     path: "/transactions-logs",
     color: "text-[#00a63e]",
   },
   {
-    name: "Payment Gateway",
+    name: "navigation.payment_gateway",
     icon: RiSecurePaymentFill,
     path: "/gateway",
     color: "text-[#ffb900]",
   },
   {
-    name: "Support Tickets",
+    name: "navigation.support_tickets",
     icon: MdOutlineSupportAgent,
     path: "/support-tickets",
     color: "text-black-400",
   },
   {
-    name: "Settings",
+    name: "navigation.settings",
     icon: Settings,
     path: "/settings",
     color: "text-purple-400",
   },
   {
-    name: "Master Subscriptions",
+    name: "navigation.master_subscriptions",
     icon: CheckCircle,
     path: "/master-subscriptions",
     badge: "",
@@ -655,7 +658,7 @@ export default function Sidebar() {
             {isSuper
               ? sidebarItemsCategories.map((item) =>
                   renderLink(
-                    item.name,
+                    t(item.name),
                     item.icon,
                     item.path,
                     item.badge,

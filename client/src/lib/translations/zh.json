@@ -56,7 +56,9 @@
     "dashboard": "仪表板",
     "contacts": "联系人",
     "campaigns": "营销活动",
+    "master_campaigns": "主营销活动",
     "templates": "模板",
+    "master_templates": "主模板",
     "inbox": "团队收件箱",
     "automations": "自动化",
     "messageLogs": "消息日志",
@@ -72,7 +74,15 @@
     "website": "网站",
     "tickets_support": "工单支持",
     "plan-upgrade": "升级计划",
-    "billing": "账单和积分"
+    "billing": "账单和积分",
+    "users": "用户",
+    "master_contacts": "主联系人",
+    "notifications": "通知",
+    "subscription_plans": "订阅计划",
+    "transactions_logs": "交易日志",
+    "payment_gateway": "支付网关",
+    "support_tickets": "支持工单",
+    "master_subscriptions": "主订阅"
   },
   "widget": {
     "title": "小部件构建器",

@@ -549,19 +549,9 @@ const Footer: React.FC = () => {
 
   // Links structure with hrefs (hrefs remain same across languages)
   const links = {
-    product: [
-      { name: productLinks[0], href: "/#features" },
-      { name: productLinks[1], href: "/#how-it-works" },
-      { name: productLinks[2], href: "/#use-cases" },
-      { name: productLinks[3], href: "/#pricing" },
-      { name: productLinks[4], href: "/api-docs" },
-    ],
     company: [
       { name: companyLinks[0], href: "/about" },
       { name: companyLinks[1], href: "/contact" },
-      { name: companyLinks[2], href: "/careers" },
-      { name: companyLinks[3], href: "/press-kit" },
-      { name: companyLinks[4], href: "/integrations" },
     ],
     support: [
       { name: supportLinks[0], href: "#" },
@@ -569,18 +559,10 @@ const Footer: React.FC = () => {
       { name: supportLinks[2], href: "#" },
       { name: supportLinks[3], href: "#" },
     ],
-    resources: [
-      { name: resourcesLinks[0], href: "/templates" },
-      { name: resourcesLinks[1], href: "/case-studies" },
-      { name: resourcesLinks[2], href: "/whatsapp-guide" },
-      { name: resourcesLinks[3], href: "/best-practices" },
-      { name: resourcesLinks[4], href: "/roi-calculator" },
-    ],
+
     legal: [
       { name: legalLinks[0], href: "/privacy-policy" },
       { name: legalLinks[1], href: "/terms-of-service" },
-      { name: legalLinks[2], href: "/cookie-policy" },
-      { name: legalLinks[3], href: "#" },
     ],
   };
 
@@ -666,54 +648,11 @@ const Footer: React.FC = () => {
             </div>
           </div>
 
-          {/* Product Links */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Product</h3>
-            <ul className="space-y-3">
-              {links.product.map((link, index) => (
-                <li key={index}>
-                  <a
-                    href={link.href}
-                    className="text-gray-300 hover:text-white transition-colors"
-                  >
-                    {link.name}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
           {/* Company Links */}
           <div>
             <h3 className="text-lg font-semibold mb-4">Company</h3>
             <ul className="space-y-3">
               {links.company.map((link, index) => (
-                <li key={index}>
-                  {link.href.startsWith("/") ? (
-                    <Link
-                      to={link.href}
-                      className="text-gray-300 hover:text-white transition-colors"
-                    >
-                      {link.name}
-                    </Link>
-                  ) : (
-                    <a
-                      href={link.href}
-                      className="text-gray-300 hover:text-white transition-colors"
-                    >
-                      {link.name}
-                    </a>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Resources Links */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Resources</h3>
-            <ul className="space-y-3">
-              {links.resources.map((link, index) => (
                 <li key={index}>
                   {link.href.startsWith("/") ? (
                     <Link
