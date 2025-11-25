@@ -66,7 +66,7 @@ export function registerContactRoutes(app: Express) {
     "/api/contacts/import",
     requireAuth,
     requirePermission(PERMISSIONS.CONTACTS_EXPORT), // or CONTACTS_IMPORT if you defined it
-    extractChannelId,
+    extractChannelId,requireSubscription('contacts'),
     contactsController.importContacts
   );
 }
