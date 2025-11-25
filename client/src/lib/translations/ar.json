@@ -56,7 +56,9 @@
     "dashboard": "لوحة التحكم",
     "contacts": "جهات الاتصال",
     "campaigns": "الحملات",
+    "master_campaigns": "الحملات الرئيسية",
     "templates": "القوالب",
+    "master_templates": "القوالب الرئيسية",
     "inbox": "صندوق الوارد للفريق",
     "automations": "الأتمتة",
     "messageLogs": "سجلات الرسائل",
@@ -72,7 +74,15 @@
     "website": "الموقع الإلكتروني",
     "tickets_support": "دعم التذاكر",
     "plan-upgrade": "ترقية الخطة",
-    "billing": "الفواتير والرصيد"
+    "billing": "الفواتير والرصيد",
+    "users": "المستخدمون",
+    "master_contacts": "جهات الاتصال الرئيسية",
+    "notifications": "الإشعارات",
+    "subscription_plans": "خطط الاشتراك",
+    "transactions_logs": "سجلات المعاملات",
+    "payment_gateway": "بوابة الدفع",
+    "support_tickets": "تذاكر الدعم",
+    "master_subscriptions": "الاشتراكات الرئيسية"
   },
   "widget": {
     "title": "منشئ ودجت واتساب",

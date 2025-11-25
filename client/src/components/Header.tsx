@@ -201,9 +201,14 @@ const Header = () => {
           <div className="flex justify-between items-center h-14 sm:h-16">
             {/* Logo */}
             <Link href="/" className="flex items-center space-x-2 sm:space-x-3">
-              <div className="bg-gradient-to-r from-green-500 to-green-600 p-1.5 sm:p-2 rounded-lg sm:rounded-xl shadow-lg">
+              {/* <div className="bg-gradient-to-r from-green-500 to-green-600 p-1.5 sm:p-2 rounded-lg sm:rounded-xl shadow-lg">
                 <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-              </div>
+              </div> */}
+              <img
+                src={staticData.logo}
+                alt="User Profile"
+                className=" w-14 h-14 "
+              />
               <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
                 Whatsway
               </span>
@@ -248,7 +253,7 @@ const Header = () => {
                 <MegaMenu
                   items={staticData.header.aboutMenuItems}
                   isVisible={showAboutMega}
-                  title="About"
+                  title="Company"
                 />
               </div>
 

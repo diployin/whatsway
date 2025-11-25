@@ -56,7 +56,9 @@
     "dashboard": "Dashboard",
     "contacts": "Contacts",
     "campaigns": "Campaigns",
+    "master_campaigns": "Master Campaigns",
     "templates": "Templates",
+    "master_templates": "Master Templates",
     "inbox": "Team Inbox",
     "automations": "Automations",
     "messageLogs": "Message Logs",
@@ -72,7 +74,15 @@
     "website": "Website",
     "tickets_support": "Tickets Support",
     "plan-upgrade": "Upgrade Plan",
-    "billing": "Billing & Credits"
+    "billing": "Billing & Credits",
+    "users": "Users",
+    "master_contacts": "Master Contacts",
+    "notifications": "Notifications",
+    "subscription_plans": "Subscription Plans",
+    "transactions_logs": "Transactions Logs",
+    "payment_gateway": "Payment Gateway",
+    "support_tickets": "Support Tickets",
+    "master_subscriptions": "Master Subscriptions"
   },
   "widget": {
     "title": "Widget Builder",
@@ -1075,11 +1085,11 @@
       "logout": "Logout",
       "resourcesMenuItems": [
         {
-          "title": "Templates",
+          "title": "Privacy Policy",
           "description": "Ready-to-use message templates"
         },
         {
-          "title": "Case Studies",
+          "title": "Terms of Service",
           "description": "Success stories from our clients"
         },
         {
@@ -1119,8 +1129,8 @@
       ],
       "Navlinks": [
         "Home",
-        "About",
-        "Resources",
+        "Company",
+        "Legal",
         "Login",
         "Dashboard"
       ]
