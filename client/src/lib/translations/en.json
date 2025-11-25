@@ -1749,7 +1749,8 @@
       "updatePlan": "Update Plan",
       "addFeature": "Add Feature",
       "getStartedFree": "Get Started Free",
-      "startFreeTrial": "Start Free Trial"
+      "startFreeTrial": "Start Free Trial",
+      "buy": "Buy"
     },
     "form": {
       "createTitle": "Create New Plan",

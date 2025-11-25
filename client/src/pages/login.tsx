@@ -31,6 +31,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getFcmToken, initFirebase } from "@/lib/firebase";
+import { AppSettings } from "@/types/types";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -44,13 +45,13 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  const [step, setStep] = useState<"login" | "forgot" | "verify" | "reset">(
+    "login"
+  );
+  const [email, setEmail] = useState("");
+  const [otpCode, setOtpCode] = useState("");
 
-const [step, setStep] = useState<"login" | "forgot" | "verify" | "reset">("login");
-const [email, setEmail] = useState("");
-const [otpCode, setOtpCode] = useState("");
-
-
-  const { data: brandSettings } = useQuery({
+  const { data: brandSettings } = useQuery<AppSettings>({
     queryKey: ["/api/brand-settings"],
     queryFn: () => fetch("/api/brand-settings").then((res) => res.json()),
     staleTime: 5 * 60 * 1000,
@@ -198,237 +199,144 @@ const [otpCode, setOtpCode] = useState("");
           </div>
 
           <Card className="py-4">
-            {/* <CardHeader>
-            <CardTitle>Sign in to your account</CardTitle>
-            <CardDescription>
-              Enter your credentials to access the dashboard
-            </CardDescription>
-          </CardHeader> */}
-            {/* <CardContent>
-              <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(onSubmit)}
-                  className="space-y-4"
-                >
-                  {error && (
-                    <Alert variant="destructive">
-                      <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                  )}
-
-                  <FormField
-                    control={form.control}
-                    name="username"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Username</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="Enter your username"
-                            autoComplete="username"
-                            autoFocus
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            type="password"
-                            placeholder="Enter your password"
-                            autoComplete="current-password"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <Button
-                    type="submit"
-                    className="w-full bg-green-600 hover:bg-green-700"
-                    disabled={loginMutation.isPending}
-                  >
-                    {loginMutation.isPending ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Signing in...
-                      </>
-                    ) : (
-                      "Sign in"
-                    )}
-                  </Button>
-                </form>
-              </Form>
-
-              <div className="mt-6 text-center">
-                <p className="text-gray-600">
-                  Don't have an account?{" "}
-                  <Link
-                    to="/signup"
-                    className="text-green-600 hover:text-green-700 font-medium"
-                  >
-                    Sign up for free
-                  </Link>
-                </p>
-              </div>
-
-              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-600 text-center">
-                  <strong>Default Admin Credentials:</strong>
-                </p>
-                <p className="text-sm text-gray-600 text-center mt-1">
-                  Username:{" "}
-                  <code className="bg-gray-200 px-1 rounded">demouser</code>
-                </p>
-                <p className="text-sm text-gray-600 text-center">
-                  Password:{" "}
-                  <code className="bg-gray-200 px-1 rounded">Demo@12345</code>
-                </p>
-              </div>
-            </CardContent> */}
             <CardContent>
-  {step === "login" && (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        {error && (
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+              {step === "login" && (
+                <Form {...form}>
+                  <form
+                    onSubmit={form.handleSubmit(onSubmit)}
+                    className="space-y-4"
+                  >
+                    {error && (
+                      <Alert variant="destructive">
+                        <AlertDescription>{error}</AlertDescription>
+                      </Alert>
+                    )}
 
-        <FormField
-          control={form.control}
-          name="username"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Username</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  placeholder="Enter your username"
-                  autoComplete="username"
-                  autoFocus
+                    <FormField
+                      control={form.control}
+                      name="username"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Username</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="Enter your username"
+                              autoComplete="username"
+                              autoFocus
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Password</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="password"
+                              placeholder="Enter your password"
+                              autoComplete="current-password"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <Button
+                      type="submit"
+                      className="w-full bg-green-600 hover:bg-green-700"
+                      disabled={loginMutation.isPending}
+                    >
+                      {loginMutation.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Signing in...
+                        </>
+                      ) : (
+                        "Sign in"
+                      )}
+                    </Button>
+
+                    <div className="mt-2 text-center">
+                      <button
+                        type="button"
+                        className="text-green-600 hover:text-green-700 underline"
+                        onClick={() => setStep("forgot")}
+                      >
+                        Forgot Password?
+                      </button>
+                    </div>
+                  </form>
+                </Form>
+              )}
+
+              {step === "forgot" && (
+                <ForgotPasswordEmail
+                  onEmailSent={(sentEmail) => {
+                    setEmail(sentEmail);
+                    setStep("verify");
+                  }}
                 />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+              )}
 
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Password</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  type="password"
-                  placeholder="Enter your password"
-                  autoComplete="current-password"
+              {step === "verify" && (
+                <VerifyOtp
+                  email={email}
+                  onVerified={(otp) => {
+                    setOtpCode(otp);
+                    setStep("reset");
+                  }}
                 />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+              )}
 
-        <Button
-          type="submit"
-          className="w-full bg-green-600 hover:bg-green-700"
-          disabled={loginMutation.isPending}
-        >
-          {loginMutation.isPending ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Signing in...
-            </>
-          ) : (
-            "Sign in"
-          )}
-        </Button>
+              {step === "reset" && (
+                <ResetPassword
+                  email={email}
+                  otpCode={otpCode}
+                  onReset={() => setStep("login")}
+                />
+              )}
 
-        <div className="mt-2 text-center">
-          <button
-            type="button"
-            className="text-green-600 hover:text-green-700 underline"
-            onClick={() => setStep("forgot")}
-          >
-            Forgot Password?
-          </button>
-        </div>
-      </form>
-    </Form>
-  )}
+              {step === "login" && (
+                <>
+                  <div className="mt-6 text-center">
+                    <p className="text-gray-600">
+                      Don't have an account?{" "}
+                      <Link
+                        to="/signup"
+                        className="text-green-600 hover:text-green-700 font-medium"
+                      >
+                        Sign up for free
+                      </Link>
+                    </p>
+                  </div>
 
-  {step === "forgot" && (
-    <ForgotPasswordEmail
-      onEmailSent={(sentEmail) => {
-        setEmail(sentEmail);
-        setStep("verify");
-      }}
-    />
-  )}
-
-  {step === "verify" && (
-    <VerifyOtp
-      email={email}
-      onVerified={(otp) => {
-        setOtpCode(otp);
-        setStep("reset");
-      }}
-    />
-  )}
-
-  {step === "reset" && (
-    <ResetPassword
-      email={email}
-      otpCode={otpCode}
-      onReset={() => setStep("login")}
-    />
-  )}
-
-  {step === "login" && (
-    <>
-      <div className="mt-6 text-center">
-        <p className="text-gray-600">
-          Don't have an account?{" "}
-          <Link
-            to="/signup"
-            className="text-green-600 hover:text-green-700 font-medium"
-          >
-            Sign up for free
-          </Link>
-        </p>
-      </div>
-
-      <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-        <p className="text-sm text-gray-600 text-center">
-          <strong>Default Admin Credentials:</strong>
-        </p>
-        <p className="text-sm text-gray-600 text-center mt-1">
-          Username: <code className="bg-gray-200 px-1 rounded">demouser</code>
-        </p>
-        <p className="text-sm text-gray-600 text-center">
-          Password: <code className="bg-gray-200 px-1 rounded">Demo@12345</code>
-        </p>
-      </div>
-    </>
-  )}
-</CardContent>
-
+                  <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-600 text-center">
+                      <strong>Default Admin Credentials:</strong>
+                    </p>
+                    <p className="text-sm text-gray-600 text-center mt-1">
+                      Username:{" "}
+                      <code className="bg-gray-200 px-1 rounded">demouser</code>
+                    </p>
+                    <p className="text-sm text-gray-600 text-center">
+                      Password:{" "}
+                      <code className="bg-gray-200 px-1 rounded">
+                        Demo@12345
+                      </code>
+                    </p>
+                  </div>
+                </>
+              )}
+            </CardContent>
           </Card>
           {/* Trust Indicators */}
           <div className="text-center">

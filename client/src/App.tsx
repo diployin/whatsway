@@ -64,6 +64,7 @@ import MinimalLoader from "./components/MinimalLoader";
 import { TermsPage } from "./pages/TermsPage";
 import { PrivacyPage } from "./pages/PrivacyPage";
 import VerifyEmail from "./pages/verify-email";
+import AboutUs from "./pages/AboutUs";
 // Define route permissions mapping
 const ROUTE_PERMISSIONS: Record<string, string> = {
   "/contacts": "contacts.view",
@@ -466,6 +467,7 @@ function Router() {
       <Route path="/privacy-policy" component={PrivacyPage} />
       <Route path="/terms" component={TermsPage} />
       <Route path="/signup" component={Signup} />
+      <Route path="/about" component={AboutUs} />
       <Route path="/" component={Home} />
       <Route
         path="/analytics/campaign/:campaignId"
