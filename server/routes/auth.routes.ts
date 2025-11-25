@@ -47,6 +47,11 @@ router.post("/login", validateRequest(loginSchema), async (req, res) => {
       return res.status(403).json({ error: "Account is inactive. Please contact administrator." });
     }
 
+    // Check if email is verified
+if (!user.isEmailVerified) {
+  return res.status(403).json({ error: "Email not verified. Please verify your email first." });
+}
+
     // Ensure password field exists
     if (!user.password) {
       console.error("User has no password in DB:", user.id);

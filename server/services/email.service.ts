@@ -292,6 +292,50 @@ export async function sendOTPEmail(email: string, otpCode: string, name?: string
   }
 }
 
+
+
+
+export async function sendOTPEmailVerify(email: string, otpCode: string, name?: string) {
+//   const [configs] = await getPanelConfigs();
+  const companyName = "diploy";
+  const fromName = config?.fromName || companyName;  
+  const fromEmail = config?.fromEmail;
+
+  // console.log(
+  //   process.env.SMTP_FROM_NAME , process.env.SMTP_EMAIL_FROM,
+  //   {
+  //     host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  //     port: parseInt(process.env.SMTP_PORT || '587', 10),
+  //     secure: false,
+  //     auth: {
+  //       user: process.env.SMTP_USER,
+  //       pass: process.env.SMTP_PASSWORD,
+  //     },
+  //   }
+  // )
+
+  const mailOptions = {
+    from: `"${fromName}" <${fromEmail}>`,
+    to: email,
+    subject: `Your ${companyName} Verification Code`,
+    html: generateOTPEmailHTML(companyName, "whatsway", otpCode, name),
+    text: generateOTPEmailText(companyName, otpCode, name),
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    // console.log(info)
+    console.log('✉️ [Email] OTP sent to:', email);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('❌ [Email] Failed to send OTP:', error);
+    throw new Error('Failed to send verification email');
+  }
+}
+
+
+
+
 export async function verifyEmailConfiguration(): Promise<boolean> {
   try {
     await transporter.verify();

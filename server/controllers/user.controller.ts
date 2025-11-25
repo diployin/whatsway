@@ -1,8 +1,11 @@
 import { Request, Response } from "express";
 import { db } from "../db";
 import {users} from "@shared/schema";
-import { eq, or, like, sql, and } from "drizzle-orm";
+import { eq, or, like, sql, and, desc } from "drizzle-orm";
 import bcrypt from "bcryptjs";
+
+import { otpVerifications } from "@shared/schema";
+import { sendOTPEmailVerify } from "../services/email.service";
 
 
 // Default permissions 
@@ -110,7 +113,170 @@ export const getUserById = async (req: Request, res: Response) => {
   }
 };
 
+
+
+
+
 export const createUser = async (req: Request, res: Response) => {
+  try {
+    const { username, password, email, firstName, lastName, role, avatar } = req.body;
+
+    if (!username || !password || !email) {
+      return res.status(400).json({
+        success: false,
+        message: "Username, password, and email are required.",
+      });
+    }
+
+    // Check existing user
+    const existingUser = await db
+      .select()
+      .from(users)
+      .where(eq(users.username, username));
+
+    if (existingUser.length > 0) {
+      return res.status(409).json({
+        success: false,
+        message: "Username already exists.",
+      });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create user
+    const newUser = await db
+      .insert(users)
+      .values({
+        username,
+        password: hashedPassword,
+        email,
+        firstName,
+        lastName,
+        role: role || "admin",
+        avatar,
+        permissions: defaultPermissions,
+        isEmailVerified: false,
+      })
+      .returning();
+
+    const user = newUser[0];
+
+    // ----- Generate OTP -----
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // Save OTP
+    await db.insert(otpVerifications).values({
+      userId: user.id,
+      otpCode,
+      expiresAt,
+      isUsed: false,
+    });
+
+    // Send OTP Email
+    await sendOTPEmailVerify(email, otpCode, firstName);
+
+    return res.status(201).json({
+      success: true,
+      message: "User created. Verification OTP sent to email.",
+      data: { id: user.id, email },
+    });
+
+  } catch (error) {
+    console.error("Error creating user:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error creating user",
+      error,
+    });
+  }
+};
+
+
+
+export const verifyEmailOTP = async (req: Request, res: Response) => {
+  try {
+    const { email, otpCode } = req.body;
+
+    if (!email || !otpCode) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and OTP are required.",
+      });
+    }
+
+    // User fetch
+    const user = await db.select().from(users).where(eq(users.email, email));
+    if (!user.length) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    const userData = user[0];
+
+    // OTP fetch
+    const otpRecord = await db
+      .select()
+      .from(otpVerifications)
+      .where(eq(otpVerifications.userId, userData.id))
+      .orderBy(desc(otpVerifications.createdAt))
+      .limit(1);
+
+    if (!otpRecord.length) {
+      return res.status(400).json({
+        success: false,
+        message: "No OTP found.",
+      });
+    }
+
+    const otp = otpRecord[0];
+
+    // Check OTP validity
+    if (otp.isUsed) {
+      return res.status(400).json({ success: false, message: "OTP already used." });
+    }
+
+    if (otp.otpCode !== otpCode) {
+      return res.status(400).json({ success: false, message: "Invalid OTP." });
+    }
+
+    if (new Date() > otp.expiresAt) {
+      return res.status(400).json({ success: false, message: "OTP expired." });
+    }
+
+    // Mark OTP as used
+    await db
+      .update(otpVerifications)
+      .set({ isUsed: true })
+      .where(eq(otpVerifications.id, otp.id));
+
+    // Mark user email verified
+    await db
+      .update(users)
+      .set({ isEmailVerified: true })
+      .where(eq(users.id, userData.id));
+
+    return res.json({
+      success: true,
+      message: "Email verified successfully.",
+    });
+
+  } catch (error) {
+    console.error("Error verifying OTP:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error.",
+      error,
+    });
+  }
+};
+
+
+
+export const createUserOld = async (req: Request, res: Response) => {
   try {
     const { username, password, email, firstName, lastName, role, avatar, permissions } = req.body;
 

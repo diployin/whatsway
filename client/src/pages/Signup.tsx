@@ -49,7 +49,7 @@ const Signup: React.FC = () => {
   };
 
   // ✅ Handle signup API
-const handleSubmit = async (e: React.FormEvent) => {
+const handleSubmitOld = async (e: React.FormEvent) => {
   e.preventDefault();
   if (!validateForm()) return;
 
@@ -80,6 +80,42 @@ const handleSubmit = async (e: React.FormEvent) => {
     setIsLoading(false);
   }
 };
+
+
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!validateForm()) return;
+
+  setIsLoading(true);
+  setErrors({});
+
+  try {
+    const res = await apiRequest("POST", "/api/users/create", {
+      username: formData.username,
+      password: formData.password,
+      email: formData.email,
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      role: "admin",
+      avatar: "",
+    });
+
+    const data = await res.json();
+    console.log("User created:", data);
+
+    // 👇👇 NEW: Redirect to verify email page
+    setLocation(`/verify-email?email=${formData.email}`);
+
+  } catch (error: any) {
+    console.error("Signup error:", error);
+    setErrors({
+      general: error.message || "Signup failed. Please try again.",
+    });
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
 
   // ✅ Google signup (dummy for now)

@@ -37,6 +37,7 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
   createdBy: varchar("created_by").default(""),
   fcmToken: varchar("fcm_token", { length: 512 }),
+  isEmailVerified: boolean("is_email_verified").default(false),
 });
 
 // Conversation assignments to users
