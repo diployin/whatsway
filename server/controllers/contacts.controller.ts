@@ -364,6 +364,13 @@ export const createContact = asyncHandler(
       }
     }
 
+    // ✅ If no channel found, throw error
+    if (!channelId) {
+      return res
+        .status(400)
+        .json({ error: "You must create a channel before adding a contact." });
+    }
+
     // Check for duplicate phone number
     const existingContacts = channelId
       ? await storage.getContactsByChannel(channelId)
