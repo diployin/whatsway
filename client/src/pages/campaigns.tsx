@@ -72,18 +72,41 @@ export default function Campaigns() {
   const totalPages = Math.ceil(total / limit);
 
   // Fetch templates
-  const { data: templates = [] } = useQuery({
-    queryKey: ["/api/getTemplateByUserId", userId, channelId], // <-- channelId add kiya
-    enabled: !!userId && !!channelId, // <-- dono available honi chahiye
-    queryFn: async () => {
-      // New API call
-      const response = await api.getTemplates(channelId);
-      const data = await response.json();
+  // const { data: templates = [] } = useQuery({
+  //   queryKey: ["/api/getTemplateByUserId", userId, channelId], // <-- channelId add kiya
+  //   enabled: !!userId && !!channelId, // <-- dono available honi chahiye
+  //   queryFn: async () => {
+  //     // New API call
+  //     const response = await api.getTemplates(channelId);
+  //     const data = await response.json();
+  //     console.log("Fetched templates dataaaaa:", data);
 
-      // Return clean array
-      return Array.isArray(data) ? data : [];
-    },
-  });
+  //     // Return clean array
+  //     return Array.isArray(data) ? data : [];
+  //   },
+  // });
+
+
+  const { data: templates = [], refetch: refetchTemplates } = useQuery({
+  queryKey: ["/api/templates", channelId],
+  enabled: !!channelId, 
+  queryFn: async () => {
+    try {
+      const response = await fetch(`/api/templates?channelId=${channelId}`);
+      const res = await response.json();
+
+      // IMPORTANT FIX
+      return Array.isArray(res.data) ? res.data : [];
+    } catch (error) {
+      console.error("Error fetching templates:", error);
+      return [];
+    }
+  },
+});
+
+
+// console.log("Fetched templatesssss:", templates);
+
 
   // Fetch contacts
   const { data: contactsResponse } = useQuery({
