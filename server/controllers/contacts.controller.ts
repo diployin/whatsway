@@ -356,7 +356,9 @@ export const createContact = asyncHandler(
     const createdBy =(req.session as any).user.id;
 
     // Use channelId from query or active channel
-    let channelId = req.query.channelId as string | undefined;
+    // let channelId = req.query.channelId as string | undefined;
+    let channelId = (req.body.channelId as string) || undefined;
+    
     if (!channelId) {
       const activeChannel = await storage.getActiveChannel();
       if (activeChannel) {

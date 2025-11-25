@@ -172,13 +172,28 @@ export class ContactRepository {
     return contact || undefined;
   }
 
-  async create(insertContact: InsertContact): Promise<Contact> {
-    const [contact] = await db
-      .insert(contacts)
-      .values(insertContact)
-      .returning();
-    return contact;
+  // async create(insertContact: InsertContact): Promise<Contact> {
+  //   const [contact] = await db
+  //     .insert(contacts)
+  //     .values(insertContact)
+  //     .returning();
+  //   return contact;
+  // }
+
+
+  async create(insertContact: InsertContact & { channelId?: string }): Promise<Contact> {
+  // Validation: channelId required
+  if (!insertContact.channelId) {
+    throw new Error("Cannot create contact without a channel. Please create a channel first.");
   }
+
+  const [contact] = await db
+    .insert(contacts)
+    .values(insertContact)
+    .returning();
+  return contact;
+}
+
 
   async update(
     id: string,

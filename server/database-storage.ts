@@ -207,9 +207,19 @@ async getContactsByUser(
     return this.contactRepo.getByPhone(phone);
   }
 
-  async createContact(insertContact: InsertContact): Promise<Contact> {
-    return this.contactRepo.create(insertContact);
+  // async createContact(insertContact: InsertContact): Promise<Contact> {
+  //   return this.contactRepo.create(insertContact);
+  // }
+
+
+  async createContact(insertContact: InsertContact & { channelId?: string }): Promise<Contact> {
+  if (!insertContact.channelId) {
+    throw new Error("Cannot create contact without a channel. Please create a channel first.");
   }
+
+  return this.contactRepo.create(insertContact);
+}
+
 
   async updateContact(
     id: string,
