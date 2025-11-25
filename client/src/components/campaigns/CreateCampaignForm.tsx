@@ -62,7 +62,7 @@ export function CreateCampaignForm({
     <form onSubmit={handleSubmit} className="space-y-4 mt-4">
       <div>
         <Label htmlFor="name">Campaign Name</Label>
-        <Input id="name" name="name" required placeholder="Black Friday Sale" />
+        <Input id="name" name="name" required placeholder="Name" />
       </div>
 
       <div>

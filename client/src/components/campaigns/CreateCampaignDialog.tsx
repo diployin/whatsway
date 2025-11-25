@@ -166,7 +166,7 @@ const { t } = useTranslation();
           value={campaignType}
           onValueChange={(v) => setCampaignType(v as any)}
         >
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="contacts" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               {t('campaigns.contactsImport')}
@@ -175,14 +175,14 @@ const { t } = useTranslation();
               <FileSpreadsheet className="h-4 w-4" />
               {t('campaigns.csvImport')}
             </TabsTrigger>
-            <TabsTrigger
+            {/* <TabsTrigger
               disabled={true}
               value="api"
               className="flex items-center gap-2"
             >
               <Code className="h-4 w-4" />
               {t('campaigns.apiCampaign')} ({t('campaigns.comingSoon')})
-            </TabsTrigger>
+            </TabsTrigger> */}
           </TabsList>
 
           <CreateCampaignForm
