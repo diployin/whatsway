@@ -105,7 +105,8 @@ export function CampaignStatistics({ campaigns }: CampaignStatisticsProps) {
                 {t("campaigns.deliveryRate")}
               </p>
               <p className="text-2xl font-bold text-green-600">
-                {deliveryRate}%
+               {(!isFinite(deliveryRate) || deliveryRate < 0 ? 0 : deliveryRate)}%
+
               </p>
               <p className="text-xs text-muted-foreground mt-1">
                 {stats.totalDelivered} {t("campaigns.delivered")}
