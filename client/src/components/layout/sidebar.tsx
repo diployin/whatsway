@@ -25,7 +25,7 @@ import { ChannelSwitcher } from "@/components/channel-switcher";
 import { useTranslation } from "@/lib/i18n";
 import { LanguageSelector } from "@/components/language-selector";
 import { useAuth } from "@/contexts/auth-context";
-import logo from "../../images/logo1924.jpg";
+// import logo from "../../images/logo1924.jpg";
 import { GiUpgrade } from "react-icons/gi";
 import { TbInvoice } from "react-icons/tb";
 import { RiSecurePaymentFill } from "react-icons/ri";
@@ -35,6 +35,7 @@ import { useSidebar } from "@/contexts/sidebar-context";
 
 import { AdminCreditBox } from "../AdminCreditBox";
 import { useQuery } from "@tanstack/react-query";
+import { AppSettings } from "@/types/types";
 
 type Role = "superadmin" | "admin" | "user" | "team";
 
@@ -437,6 +438,12 @@ export default function Sidebar() {
 
   const navItems = getNavItems(user?.role || "");
 
+  const { data: brandSettings } = useQuery<AppSettings>({
+    queryKey: ["/api/brand-settings"],
+    queryFn: () => fetch("/api/brand-settings").then((res) => res.json()),
+    staleTime: 5 * 60 * 1000,
+  });
+
   const {
     isOpen,
     toggle,
@@ -631,7 +638,17 @@ export default function Sidebar() {
               onClick={() => setLocation("/")}
               className="flex items-center space-x-3"
             >
-              <img src={logo} alt="Logo" className="w-8 h-8 object-contain" />
+              {brandSettings?.logo ? (
+                <img
+                  src={brandSettings?.logo}
+                  alt="Logo"
+                  className="h-16 w-16 object-contain"
+                />
+              ) : (
+                <div className="bg-green-800 text-primary-foreground rounded-full p-3">
+                  <MessageSquare className="h-8 w-8" />
+                </div>
+              )}
               <h1 className="text-xl font-bold text-gray-900">Whatsway</h1>
             </div>
             <button
@@ -641,10 +658,6 @@ export default function Sidebar() {
               <X className="w-5 h-5" />
             </button>
           </div>
-
-          {/* <div className="px-6 py-3 border-b border-gray-100">
-            <ChannelSwitcher />
-          </div> */}
 
           {isAdmin ? (
             <div className="px-6 py-3 border-b border-gray-100">

@@ -422,17 +422,33 @@ export function TemplateDialog({
 
                   <FormField
                     control={form.control}
-                    name="header"
+                    name="footer"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Header (Optional)</FormLabel>
+                        <FormLabel>Footer (Optional)</FormLabel>
                         <FormControl>
-                          <Input
-                            placeholder="Welcome to our service!"
-                            {...field}
-                          />
+                          <div className="relative">
+                            <Input
+                              placeholder="Reply STOP to unsubscribe"
+                              {...field}
+                            />
+
+                            {/* LIVE COUNT */}
+                            <span
+                              className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs ${
+                                (field.value?.length || 0) > 60
+                                  ? "text-red-500"
+                                  : "text-gray-400"
+                              }`}
+                            >
+                              {field.value?.length || 0} / 60
+                            </span>
+                          </div>
                         </FormControl>
+
+                        {/* Optional description */}
                         <FormDescription>Max 60 characters</FormDescription>
+
                         <FormMessage />
                       </FormItem>
                     )}

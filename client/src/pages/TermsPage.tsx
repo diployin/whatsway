@@ -192,22 +192,16 @@ export const TermsPage = () => {
               </div>
 
               {/* Contact Section */}
-              <div className="bg-gradient-to-br from-green-600 via-green-500 to-blue-600  p-8 rounded-2xl text-white">
+              {/* <div className="bg-gradient-to-br from-green-600 via-green-500 to-blue-600  p-8 rounded-2xl text-white">
                 <h2 className="text-3xl font-bold mb-4">Contact Information</h2>
                 <p className="text-lg leading-relaxed mb-4">
                   If you have questions regarding these Terms, contact us:
                 </p>
                 <div className="space-y-2">
                   <p>
-                    <strong>Email:</strong> legal@stylehub.com
-                  </p>
-                  <p>
-                    <strong>Address:</strong> Flat - f61 , building - D and K
-                    city , village - Minnie bay , Road- Minnie bay , city - Port
-                    Blair, district - South andamans
                   </p>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
