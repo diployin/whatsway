@@ -1819,9 +1819,9 @@
         "contacts": "جهات الاتصال",
         "contactsPlaceholder": "10,000",
         "automation": "الأتمتة",
-        "automationPlaceholder": "متقدم",
+        "automationPlaceholder": "0",
         "campaign": "الحملة",
-        "campaignPlaceholder": "متقدم"
+        "campaignPlaceholder": "0"
       },
       "popularToggle": "تعيين كخطة شائعة",
       "features": "الميزات",

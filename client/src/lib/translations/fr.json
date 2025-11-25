@@ -1819,9 +1819,9 @@
         "contacts": "Contacts",
         "contactsPlaceholder": "10 000",
         "automation": "Automatisation",
-        "automationPlaceholder": "Avancée",
+        "automationPlaceholder": "0",
         "campaign": "Campagne",
-        "campaignPlaceholder": "Avancée"
+        "campaignPlaceholder": "0"
       },
       "popularToggle": "Marquer comme Plan Populaire",
       "features": "Fonctionnalités",

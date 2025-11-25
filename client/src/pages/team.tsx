@@ -148,20 +148,28 @@ export default function TeamPage() {
         return apiRequest("PUT", `/api/team/members/${editingMember.id}`, data);
       } else {
         return apiRequest("POST", "/api/team/members", data);
-        // new add
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/team/members"] });
+  
+    onSuccess: async () => {
+      queryClient.invalidateQueries({
+        queryKey: ["teamMembers"], // MUST match useQuery key
+      });
+  
+      // 2️⃣ Also re-fetch activity logs
+      queryClient.invalidateQueries({ queryKey: ["/api/team/activity-logs"] });
+  
       toast({
         title: editingMember ? "Member updated" : "Member added",
         description: `Team member has been ${
           editingMember ? "updated" : "added"
         } successfully.`,
       });
+  
       setShowAddDialog(false);
       setEditingMember(null);
     },
+  
     onError: (error: Error) => {
       toast({
         title: "Error",
@@ -170,6 +178,7 @@ export default function TeamPage() {
       });
     },
   });
+  
 
   // Delete team member mutation
   const deleteMemberMutation = useMutation({

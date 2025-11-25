@@ -118,38 +118,56 @@ async getAll(page: number = 1, limit: number = 10) {
   };
 }
 
-
-  async getTemplateByUserID(
+async getTemplateByUserID(
   userId: string,
   page: number = 1,
   limit: number = 10
-): Promise<{ data: Template[]; total: number; page: number; limit: number }> {
+) {
   const offset = (page - 1) * limit;
 
-  // Templates fetch with pagination
+  // Fetch templates based on channel owner
   const templatesData = await db
-    .select()
+    .select({
+      template: templates, // return full template object
+    })
     .from(templates)
-    .where(eq(templates.createdBy, userId))
+    .leftJoin(channels, eq(templates.channelId, channels.id))
+    .where(eq(channels.createdBy, userId))
     .orderBy(desc(templates.createdAt))
     .limit(limit)
     .offset(offset);
 
-  // Total count for pagination
+  // Total count
   const totalResult = await db
-    .select({ total: sql<number>`COUNT(*)` })
+    .select({
+      total: sql<number>`COUNT(*)`,
+    })
     .from(templates)
-    .where(eq(templates.createdBy, userId));
+    .leftJoin(channels, eq(templates.channelId, channels.id))
+    .where(eq(channels.createdBy, userId));
 
-  const total = totalResult[0]?.total ?? 0;
+  const total = Number(totalResult[0]?.total ?? 0);
 
   return {
-    data: templatesData,
+    data:  templatesData.map((t) => t.template), // if you want only template objects
     total,
     page,
     limit,
   };
+
+  // return {
+  //   status: "success",
+  //   data: templatesData.map((t) => t.template), // extract inner template object
+  //   pagination: {
+  //     page,
+  //     limit,
+  //     total,
+  //     totalPages: Math.ceil(total / limit),
+  //   },
+  // };
 }
+
+
 
 
   async getByChannelOld(channelId: string): Promise<Template[]> {

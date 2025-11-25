@@ -1819,9 +1819,9 @@
         "contacts": "Kontakte",
         "contactsPlaceholder": "10.000",
         "automation": "Automatisierung",
-        "automationPlaceholder": "Erweitert",
+        "automationPlaceholder": "0",
         "campaign": "Kampagne",
-        "campaignPlaceholder": "Erweitert"
+        "campaignPlaceholder": "0"
       },
       "popularToggle": "Als beliebten Plan markieren",
       "features": "Features",
