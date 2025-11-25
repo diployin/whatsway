@@ -42,13 +42,15 @@ router.post("/login", validateRequest(loginSchema), async (req, res) => {
       return res.status(401).json({ error: "Invalid username or password" });
     }
 
+    // console.log(user.status, "checkk users statuuuuuu")
+
     // Check if user is active
-    if (user.status !== "active") {
-      return res.status(403).json({ error: "Account is inactive. Please contact administrator." });
-    }
+    if ((user.status || "").trim().toLowerCase() !== "active") {
+  return res.status(403).json({ error: "Account is inactive. Please contact administrator." });
+}
 
     // Check if email is verified
-if (!user.isEmailVerified) {
+if (user.isEmailVerified === false) {
   return res.status(403).json({ error: "Email not verified. Please verify your email first." });
 }
 
