@@ -373,7 +373,7 @@ export const createContact = asyncHandler(
       (c) => c.phone === validatedContact.phone
     );
     if (duplicate) {
-      throw new AppError(409, "Contact with this phone number already exists");
+      throw new AppError(409, "This phone number is already exists.");
     }
 
     const contact = await storage.createContact({
