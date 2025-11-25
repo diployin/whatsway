@@ -353,7 +353,9 @@ export default function ContactsManagements() {
       const response = await api.getAllContacts(
         searchQuery || undefined,
         currentPage,
-        limit
+        limit,
+        selectedGroup !== "all" && selectedGroup ? selectedGroup : undefined,
+        selectedStatus !== "all" && selectedStatus ? selectedStatus : undefined,
       );
 
       return (await response.json()) as ContactsResponse;
@@ -362,7 +364,7 @@ export default function ContactsManagements() {
     // enabled: !!activeChannel,
   });
 
-  console.log("check contact", contactsResponse);
+  // console.log("check contact", contactsResponse);
 
   const contacts = contactsResponse?.data || [];
 

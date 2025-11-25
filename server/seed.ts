@@ -173,6 +173,7 @@ async function seed() {
       'templates:create',
       'templates:edit',
       'templates:delete',
+      'templates:sync',
 
       // Analytics
       'analytics:view',

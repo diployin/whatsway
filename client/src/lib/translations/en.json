@@ -1785,9 +1785,9 @@
         "contacts": "Contacts",
         "contactsPlaceholder": "10,000",
         "automation": "Automation",
-        "automationPlaceholder": "Advanced",
+        "automationPlaceholder": "0",
         "campaign": "Campaign",
-        "campaignPlaceholder": "Advanced"
+        "campaignPlaceholder": "0"
       },
       "popularToggle": "Mark as Popular Plan",
       "features": "Features",

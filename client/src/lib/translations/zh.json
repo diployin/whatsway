@@ -1819,9 +1819,9 @@
         "contacts": "联系人",
         "contactsPlaceholder": "10,000",
         "automation": "自动化",
-        "automationPlaceholder": "高级",
+        "automationPlaceholder": "0",
         "campaign": "营销活动",
-        "campaignPlaceholder": "高级"
+        "campaignPlaceholder": "0"
       },
       "popularToggle": "标记为热门方案",
       "features": "功能",

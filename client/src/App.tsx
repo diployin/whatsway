@@ -61,6 +61,8 @@ import GroupsUI from "./pages/group-list";
 import AllSubscriptionsPage from "./pages/masterSubscriptions";
 import DemoPage from "./pages/DemoPage";
 import MinimalLoader from "./components/MinimalLoader";
+import { TermsPage } from "./pages/TermsPage";
+import { PrivacyPage } from "./pages/PrivacyPage";
 // Define route permissions mapping
 const ROUTE_PERMISSIONS: Record<string, string> = {
   "/contacts": "contacts.view",
@@ -458,6 +460,9 @@ function Router() {
     <Switch>
       <Route path="/login" component={LoginPage} />
       <Route path="/demo" component={DemoPage} />
+      <Route path="/signup" component={Signup} />
+      <Route path="/privacy-policy" component={PrivacyPage} />
+      <Route path="/terms" component={TermsPage} />
       <Route path="/signup" component={Signup} />
       <Route path="/" component={Home} />
       <Route

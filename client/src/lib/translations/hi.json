@@ -1819,9 +1819,9 @@
         "contacts": "संपर्क",
         "contactsPlaceholder": "10,000",
         "automation": "ऑटोमेशन",
-        "automationPlaceholder": "उन्नत",
+        "automationPlaceholder": "0",
         "campaign": "कैम्पेन",
-        "campaignPlaceholder": "उन्नत"
+        "campaignPlaceholder": "0"
       },
       "popularToggle": "लोकप्रिय योजना के रूप में चिह्नित करें",
       "features": "फीचर्स",
