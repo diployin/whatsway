@@ -750,7 +750,14 @@ export default function Contacts() {
           body: JSON.stringify({ contacts }),
         }
       );
-      if (!response.ok) throw new Error("Failed to import contacts");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        const message =
+          errorData?.error ||
+          errorData?.message ||
+          "Failed to create contact";
+        throw new Error(message);
+      }
       return response.json();
     },
     onSuccess: (data) => {
@@ -986,7 +993,7 @@ export default function Contacts() {
   // ✅ Export All Contacts
   const handleExportAllContacts = async () => {
     try {
-      const response = await fetch("/api/contacts-all");
+      const response = await fetch(`/api/contacts-all?channelId=${activeChannel?.id}`);
       if (!response.ok) {
         throw new Error("Failed to fetch contacts");
       }

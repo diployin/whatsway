@@ -22,6 +22,8 @@ export const getContacts = asyncHandler(
   async (req: RequestWithChannel, res: Response) => {
     const { search, channelId } = req.query;
 
+    // console.log("Get Contacts Query Params:", { search, channelId });
+
     let contacts;
     if (channelId && typeof channelId === "string") {
       contacts = await storage.getContactsByChannel(channelId);;
@@ -471,6 +473,7 @@ export const importContacts = asyncHandler(
         const validatedContact = insertContactSchema.parse({
           ...contact,
           channelId,
+          createdBy: (req.session as any).user.id,
         });
         const created = await storage.createContact(validatedContact);
         createdContacts.push(created);

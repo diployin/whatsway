@@ -280,9 +280,13 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
               // ✅ Close modal first
               onOpenChange(false);
 
+              setTimeout(() => {
+                window.location.reload();
+              }, 100);
+
               // ✅ Use setTimeout to ensure modal closes before navigation
               setTimeout(() => {
-                setLocation("/plans");
+                setLocation("/billing");
               }, 100);
             } else {
               throw new Error(

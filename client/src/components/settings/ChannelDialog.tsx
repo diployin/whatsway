@@ -132,12 +132,34 @@ const {user} = useAuth()
       onSuccess();
     },
     onError: (error) => {
+      let errorData = error?.response?.data;
+    
+      // If response.data is missing, try to extract JSON from error.message
+      if (!errorData && typeof error?.message === "string") {
+        try {
+          const match = error.message.match(/\{.*\}/); // find JSON inside the message
+          if (match) {
+            errorData = JSON.parse(match[0]);
+          }
+        } catch (e) {
+          console.error("Failed to parse error JSON:", e);
+        }
+      }
+    
+      console.log("Channel mutation error:", errorData, error);
+    
       toast({
         title: "Error",
-        description: error.message,
+        description:
+          errorData?.error ||
+          errorData?.message ||
+          error?.message ||
+          "Something went wrong while saving the channel.",
         variant: "destructive",
       });
-    },
+    }
+    
+    
   });
 
   const handleChannelSubmit = (data: z.infer<typeof channelFormSchema>) => {
