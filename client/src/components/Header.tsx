@@ -18,12 +18,15 @@ import {
   LogOut,
   User,
   Settings,
+  MessageSquare,
 } from "lucide-react";
 import LoadingAnimation from "./LoadingAnimation";
 import { useAuth } from "@/contexts/auth-context";
 import useStaticData from "@/hooks/useStaticData";
 import { useTranslation } from "@/lib/i18n";
 import { LanguageSelector } from "./language-selector";
+import { AppSettings } from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -43,6 +46,14 @@ const Header = () => {
   const { t } = useTranslation();
 
   const username = (user?.firstName || "") + " " + (user?.lastName || "");
+
+  const logos = user?.avatar;
+
+  const { data: brandSettings } = useQuery<AppSettings>({
+    queryKey: ["/api/brand-settings"],
+    queryFn: () => fetch("/api/brand-settings").then((res) => res.json()),
+    staleTime: 5 * 60 * 1000,
+  });
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -204,11 +215,17 @@ const Header = () => {
               {/* <div className="bg-gradient-to-r from-green-500 to-green-600 p-1.5 sm:p-2 rounded-lg sm:rounded-xl shadow-lg">
                 <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div> */}
-              <img
-                src={staticData.logo}
-                alt="User Profile"
-                className=" w-14 h-14 "
-              />
+              {brandSettings?.logo ? (
+                <img
+                  src={brandSettings?.logo}
+                  alt="Logo"
+                  className="h-16 w-16 object-contain"
+                />
+              ) : (
+                <div className="bg-green-800 text-primary-foreground rounded-full p-3">
+                  <MessageSquare className="h-8 w-8" />
+                </div>
+              )}
               <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
                 Whatsway
               </span>

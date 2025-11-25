@@ -7,12 +7,21 @@ import {
   Github,
   Mail,
   ArrowRight,
+  MessageSquare,
 } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import { useTranslation } from "@/lib/i18n";
+import { useQuery } from "@tanstack/react-query";
+import { AppSettings } from "@/types/types";
 
 const Footer: React.FC = () => {
   const { t } = useTranslation();
+
+  const { data: brandSettings } = useQuery<AppSettings>({
+    queryKey: ["/api/brand-settings"],
+    queryFn: () => fetch("/api/brand-settings").then((res) => res.json()),
+    staleTime: 5 * 60 * 1000,
+  });
 
   // Get links from translation with proper typing
   const productLinks = t(
@@ -82,9 +91,17 @@ const Footer: React.FC = () => {
           {/* Brand Section */}
           <div className="lg:col-span-2">
             <Link to="/" className="flex items-center space-x-3 mb-6">
-              <div className="bg-gradient-to-r from-green-500 to-green-600 p-2 rounded-xl">
-                <MessageCircle className="w-6 h-6 text-white" />
-              </div>
+              {brandSettings?.logo ? (
+                <img
+                  src={brandSettings?.logo}
+                  alt="Logo"
+                  className="h-16 w-16 object-contain"
+                />
+              ) : (
+                <div className="bg-green-800 text-primary-foreground rounded-full p-3">
+                  <MessageSquare className="h-8 w-8" />
+                </div>
+              )}
 
               <span className="text-xl font-bold">
                 {t("Landing.footerSec.brandSection.brandNames.1")}

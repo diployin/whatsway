@@ -26,7 +26,6 @@ export const PrivacyPage = () => {
                 At StyleHub, we are committed to protecting your privacy. This
                 policy explains how we collect, use, and safeguard your personal
                 information when you visit and make purchases from our website
-                (stylehub.com).
               </p>
             </div>
 
@@ -191,7 +190,6 @@ export const PrivacyPage = () => {
 
                 <p className="leading-relaxed text-gray-700">
                   To exercise these rights, contact us at:{" "}
-                  <strong>stylehub078600@gmail.com</strong>
                 </p>
               </div>
 
@@ -221,7 +219,7 @@ export const PrivacyPage = () => {
               </div>
 
               {/* 9. Contact */}
-              <div className="bg-gradient-to-br from-green-600 via-green-500 to-blue-600  rounded-2xl text-white">
+              {/* <div className="bg-gradient-to-br from-green-600 via-green-500 to-blue-600  rounded-2xl text-white">
                 <h2 className="text-3xl font-bold mb-4">Contact Us</h2>
                 <p className="text-lg leading-relaxed mb-4">
                   If you have any questions about this Privacy Policy, please
@@ -229,7 +227,6 @@ export const PrivacyPage = () => {
                 </p>
                 <div className="space-y-2">
                   <p>
-                    <strong>Email:</strong> stylehub078600@gmail.com
                   </p>
                   <p>
                     <strong>Mail:</strong> Flat - f61 , building - D and K city
@@ -237,7 +234,7 @@ export const PrivacyPage = () => {
                     Blair, district - South andamans
                   </p>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
