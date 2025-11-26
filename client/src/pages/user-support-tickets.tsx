@@ -924,7 +924,7 @@ export default function UserSupportTicketsNew() {
             </button>
             <button
               onClick={handleCreateTicket}
-              disabled={createTicketMutation.isPending}
+              disabled={  user?.username === "demouser"||  createTicketMutation.isPending}
               className="px-4 py-2 text-sm text-white bg-green-500 rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {createTicketMutation.isPending ? "Creating..." : "Create Ticket"}

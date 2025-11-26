@@ -372,7 +372,7 @@ export default function Contacts() {
     },
   });
 
-  console.log("checkk active channelllll",activeChannel?.id);
+  // console.log("checkk active channelllll",activeChannel?.id);
 
   // First, get the active channel
   // const { data: groupsData } = useQuery({
@@ -394,7 +394,7 @@ export default function Contacts() {
   });
 
   const groupsData = groupsFormateData?.groups;
-  console.log(groupsData);
+  // console.log(groupsData);
 
   // Updated query to fetch contacts with proper server-side filtering
   // const { data: contactsResponse, isLoading } = useQuery<ContactsResponse>({
@@ -1284,7 +1284,7 @@ export default function Contacts() {
                     asChild
                   >
                     <span>
-                      <Upload className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                      <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
                       <span className="hidden sm:inline">
                         {t("contacts.importContacts")}
                       </span>

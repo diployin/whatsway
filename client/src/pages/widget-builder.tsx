@@ -48,6 +48,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/layout/header";
 import { useTranslation } from "@/lib/i18n";
+import { useAuth } from "@/contexts/auth-context";
 
 interface TeamMember {
   id: string;
@@ -74,7 +75,7 @@ interface HelpCategory {
 
 export default function WidgetBuilder() {
   // const { selectedSiteId, sites } = useSite();
-
+  const { user } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
 
@@ -1649,7 +1650,7 @@ export default function WidgetBuilder() {
 
                 <Button
                   onClick={() => saveConfigMutation.mutate(config)}
-                  disabled={saveConfigMutation.isPending}
+                  disabled={user?.username === "demouser" ||saveConfigMutation.isPending}
                   className="w-full"
                 >
                   {saveConfigMutation.isPending
