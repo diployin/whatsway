@@ -74,6 +74,7 @@ import BestPractices from "./components/BestPractices";
 import CookiePolicy from "./components/CookiePolicy";
 import ContactusLanding from "./components/ContactusLanding";
 import { SignupPopupHandler } from "./components/SignupPopupHandler";
+import Careers from "./components/Careers";
 
 // Define route permissions mapping
 const ROUTE_PERMISSIONS: Record<string, string> = {
@@ -493,6 +494,13 @@ function Router() {
           <>
             <Header />
             <ContactusLanding />
+            <Footer />
+          </>
+        </Route>
+        <Route path="/careers">
+          <>
+            <Header />
+            <Careers />
             <Footer />
           </>
         </Route>

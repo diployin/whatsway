@@ -18,7 +18,8 @@ import {
   X,
   Bell,
   CheckCircle,
-  Star,User
+  Star,
+  User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ChannelSwitcher } from "@/components/channel-switcher";
@@ -43,7 +44,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
 
 type Role = "superadmin" | "admin" | "user" | "team";
 
@@ -663,14 +663,19 @@ export default function Sidebar() {
                 <img
                   src={brandSettings?.logo}
                   alt="Logo"
-                  className="h-12 w-12 object-contain"
+                  className="h-8 w-8 object-contain"
                 />
               ) : (
                 <div className="bg-green-800 text-primary-foreground rounded-full p-3">
                   <MessageSquare className="h-8 w-8" />
                 </div>
               )}
-              <h1 className="text-xl font-bold text-gray-900">Whatsway</h1>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">Whatsway</h1>
+                <span className="text-xs mb-2">
+                  Building amazing experiences
+                </span>
+              </div>
             </div>
             <button
               onClick={toggle}
@@ -759,7 +764,6 @@ export default function Sidebar() {
               </div>
             </div>
           )}
-
 
           {/* User Profile */}
           <div className="p-4 border-t border-gray-100">

@@ -12,12 +12,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Trash, Edit, Plus, Users, Inbox } from "lucide-react";
+import { Trash, Edit, Plus, Users, Inbox, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import Header from "@/components/layout/header";
 import { useTranslation } from "@/lib/i18n";
+import { StateDisplay } from "@/components/StateDisplay";
 
 // Loading Skeleton Component
 const GroupSkeleton = () => (
@@ -95,6 +96,7 @@ export default function GroupsUI() {
       );
       const data = await res.json();
       setGroups(data.groups || []);
+      setLoading(false);
     } catch (err) {
       console.log(err);
       toast({
@@ -230,6 +232,22 @@ export default function GroupsUI() {
     setGroupDescription(group.description || "");
     setOpenDialog(true);
   };
+
+  // if (activeChannel.id) {
+  //   return <StateDisplay />;
+  // }
+  if (!activeChannel.id) {
+    return (
+      <StateDisplay
+        variant="error"
+        icon={AlertCircle}
+        title="Failed to Load Channels"
+        description={"Something went wrong while fetching Channels."}
+        buttonText="Try Again"
+        onButtonClick={() => window.location.reload()}
+      />
+    );
+  }
 
   return (
     <div className="flex-1 dots-bg min-h-screen">
