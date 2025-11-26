@@ -29,6 +29,8 @@ export default function Campaigns() {
   const { user } = useAuth();
   const userId = user?.id;
   const userRole = user?.role;
+  const userIdNew =  user?.role === "team" ? user?.createdBy : user?.id
+
 
   const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -46,7 +48,7 @@ export default function Campaigns() {
 
   // Fetch campaigns
   const { data: campaignResponse, isLoading: campaignsLoading } = useQuery({
-    queryKey: ["campaigns", userId, userRole, page],
+    queryKey: ["campaigns", userIdNew, userRole, page],
     queryFn: async () => {
       let res;
       if (userRole === "superadmin") {
@@ -57,7 +59,7 @@ export default function Campaigns() {
         res = await fetch("/api/getCampaignsByUserId", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId, page, limit }),
+          body: JSON.stringify({ userIdNew, page, limit }),
         });
       }
 

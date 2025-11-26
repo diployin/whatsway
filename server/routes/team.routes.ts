@@ -85,16 +85,83 @@ const updateStatusSchema = z.object({
 });
 
 // Get all team members (created by current user)
+// router.get(
+//   "/members",
+//   requireAuth,
+//   requirePermission(PERMISSIONS.TEAM_VIEW),
+//   async (req, res) => {
+//     try {
+//       const userId = req.user?.id;
+//       if (!userId) {
+//         return res.status(401).json({ error: "Unauthorized: User not found" });
+//       }
+
+//       const page = parseInt(req.query.page as string) || 1;
+//       const limit = parseInt(req.query.limit as string) || 10;
+//       const offset = (page - 1) * limit;
+
+//       const members = await db
+//         .select({
+//           id: users.id,
+//           username: users.username,
+//           email: users.email,
+//           firstName: users.firstName,
+//           lastName: users.lastName,
+//           role: users.role,
+//           status: users.status,
+//           permissions: users.permissions,
+//           avatar: users.avatar,
+//           lastLogin: users.lastLogin,
+//           createdAt: users.createdAt,
+//           updatedAt: users.updatedAt,
+//           createdBy: users.createdBy,
+//         })
+//         .from(users)
+//         .where(eq(users.createdBy, userId))
+//         .orderBy(desc(users.createdAt))
+//         .limit(limit)
+//         .offset(offset);
+
+//       const countResult = await db
+//         .select({ count: sql<number>`COUNT(*)` })
+//         .from(users)
+//         .where(eq(users.createdBy, userId));
+
+//       const total = countResult[0]?.count ?? 0;
+
+//       res.json({
+//         data: members,
+//         total,
+//         page,
+//         limit,
+//         totalPages: Math.ceil(total / limit),
+//       });
+//     } catch (error) {
+//       console.error("Error fetching team members:", error);
+//       res.status(500).json({ error: "Failed to fetch team members" });
+//     }
+//   }
+// );
+
+
 router.get(
   "/members",
   requireAuth,
   requirePermission(PERMISSIONS.TEAM_VIEW),
   async (req, res) => {
     try {
-      const userId = req.user?.id;
-      if (!userId) {
+      const loggedInUser = req.user;
+
+      if (!loggedInUser?.id) {
         return res.status(401).json({ error: "Unauthorized: User not found" });
       }
+
+      // ✓ Admin → apni id
+      // ✓ Team → createdBy id
+      const ownerUserId =
+        loggedInUser.role === "team"
+          ? loggedInUser.createdBy
+          : loggedInUser.id;
 
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
@@ -117,7 +184,7 @@ router.get(
           createdBy: users.createdBy,
         })
         .from(users)
-        .where(eq(users.createdBy, userId))
+        .where(eq(users.createdBy, ownerUserId)) // <--- updated
         .orderBy(desc(users.createdAt))
         .limit(limit)
         .offset(offset);
@@ -125,7 +192,7 @@ router.get(
       const countResult = await db
         .select({ count: sql<number>`COUNT(*)` })
         .from(users)
-        .where(eq(users.createdBy, userId));
+        .where(eq(users.createdBy, ownerUserId)); // <--- updated
 
       const total = countResult[0]?.count ?? 0;
 
@@ -142,6 +209,7 @@ router.get(
     }
   }
 );
+
 
 
 
