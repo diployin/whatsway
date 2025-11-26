@@ -281,6 +281,7 @@ requirePermission(PERMISSIONS.TEAM_CREATE), validateRequest(createUserSchema), a
         permissions, // already an array from schema
         avatar: avatar || null,
         status: "active",
+        isEmailVerified: true,
         createdBy: (req.user as { id: string }).id
       })
       .returning();

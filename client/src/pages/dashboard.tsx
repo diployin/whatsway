@@ -50,11 +50,16 @@ export default function Dashboard() {
     queryKey: ["/api/team/activity-logs"],
     queryFn: async () => {
       const response = await fetch("/api/team/activity-logs");
-
+      
       // if (!response.ok) return null;
       return await response.json();
     },
   });
+
+
+  
+
+  // console.log("activity logs response ", activityLogs);
 
   const [timeRange, setTimeRange] = useState<number>(30);
 
@@ -373,264 +378,260 @@ export default function Dashboard() {
 
         {/* Quick Actions and API Status */}
         {user?.role !== "superadmin" && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Quick Actions */}
-            <Card className="hover-lift fade-in">
-              <CardHeader>
-                <CardTitle>{t("dashboard.quickActions")}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-4 ">
-                  <Button
-                    variant="outline"
-                    className="p-4 h-auto text-left flex flex-col items-center md:items-start space-y-2 hover:bg-blue-50"
-                    onClick={() => setLocation("/contacts")}
-                  >
-                    <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                      <Upload className="w-4 h-4 text-white" />
-                    </div>
-                    <div>
-                      <h4 className=" text-gray-900 text-xs md:text-sm">
-                        {t("dashboard.importContacts")}
-                      </h4>
-                      <p className="text-sm text-gray-600 hidden sm:block ">
-                        {t("dashboard.uploadCSV")}
-                      </p>
-                    </div>
-                  </Button>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Quick Actions */}
+          <Card className="hover-lift fade-in">
+            <CardHeader>
+              <CardTitle>{t("dashboard.quickActions")}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4 ">
+                <Button
+                  variant="outline"
+                  className="p-4 h-auto text-left flex flex-col items-center md:items-start space-y-2 hover:bg-blue-50"
+                  onClick={() => setLocation("/contacts")}
+                >
+                  <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <Upload className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <h4 className=" text-gray-900 text-xs md:text-sm">
+                      {t("dashboard.importContacts")}
+                    </h4>
+                    <p className="text-sm text-gray-600 hidden sm:block ">
+                      {t("dashboard.uploadCSV")}
+                    </p>
+                  </div>
+                </Button>
 
-                  <Button
-                    variant="outline"
-                    className="p-4 h-auto text-left flex flex-col items-start space-y-2 hover:bg-green-50"
-                    onClick={() => setLocation("/templates")}
-                  >
-                    <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
-                      <FileText className="w-4 h-4 text-white" />
-                    </div>
-                    <div>
-                      <h4 className=" text-gray-900 text-xs md:text-sm">
-                        {t("dashboard.newTemplate")}
-                      </h4>
-                      <p className="text-sm text-gray-600 text-nowrap hidden sm:block ">
-                        {t("dashboard.createMessageTemplate")}
-                      </p>
-                    </div>
-                  </Button>
+                <Button
+                  variant="outline"
+                  className="p-4 h-auto text-left flex flex-col items-start space-y-2 hover:bg-green-50"
+                  onClick={() => setLocation("/templates")}
+                >
+                  <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
+                    <FileText className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <h4 className=" text-gray-900 text-xs md:text-sm">
+                      {t("dashboard.newTemplate")}
+                    </h4>
+                    <p className="text-sm text-gray-600 text-nowrap hidden sm:block ">
+                      {t("dashboard.createMessageTemplate")}
+                    </p>
+                  </div>
+                </Button>
 
-                  <Button
-                    variant="outline"
-                    className="p-4 h-auto text-left flex flex-col items-start space-y-2 hover:bg-purple-50"
-                    onClick={() => setLocation("/automation")}
-                  >
-                    <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
-                      <Zap className="w-4 h-4 text-white" />
-                    </div>
-                    <div>
-                      <h4 className=" text-gray-900 text-xs md:text-sm">
-                        {t("dashboard.buildFlow")}
-                      </h4>
-                      <p className="text-sm text-gray-600 text-nowrap hidden sm:block">
-                        {t("dashboard.createAutomation")}
-                      </p>
-                    </div>
-                  </Button>
+                <Button
+                  variant="outline"
+                  className="p-4 h-auto text-left flex flex-col items-start space-y-2 hover:bg-purple-50"
+                  onClick={() => setLocation("/automation")}
+                >
+                  <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
+                    <Zap className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <h4 className=" text-gray-900 text-xs md:text-sm">
+                      {t("dashboard.buildFlow")}
+                    </h4>
+                    <p className="text-sm text-gray-600 text-nowrap hidden sm:block">
+                      {t("dashboard.createAutomation")}
+                    </p>
+                  </div>
+                </Button>
 
-                  <Button
-                    variant="outline"
-                    className="p-4 h-auto text-left flex flex-col items-start space-y-2 hover:bg-orange-50"
-                    onClick={() => setLocation("/analytics")}
-                  >
-                    <div className="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center">
-                      <BarChart3 className="w-4 h-4 text-white" />
+                <Button
+                  variant="outline"
+                  className="p-4 h-auto text-left flex flex-col items-start space-y-2 hover:bg-orange-50"
+                  onClick={() => setLocation("/analytics")}
+                >
+                  <div className="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center">
+                    <BarChart3 className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <h4 className=" text-gray-900 text-xs md:text-sm">
+                      {t("dashboard.viewReports")}
+                    </h4>
+                    <p className="text-sm text-gray-600 text-nowrap hidden sm:block">
+                      {t("dashboard.detailedAnalytics")}
+                    </p>
+                  </div>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* API Status */}
+          <Card className="hover-lift fade-in">
+            <CardHeader>
+              <CardTitle>{t("dashboard.apiStatusConnection")}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {/* WhatsApp Cloud API */}
+                <div
+                  className={`flex items-center justify-between p-3 rounded-lg ${
+                    activeChannel?.isActive === true
+                      ? "bg-green-50"
+                      : "bg-red-50"
+                  }`}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3 space-y-2 sm:space-y-0">
+                    <div
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                        activeChannel?.isActive ? "bg-green-600" : "bg-red-600"
+                      }`}
+                    >
+                      <MessageSquare className="w-4 h-4 text-white" />
                     </div>
-                    <div>
-                      <h4 className=" text-gray-900 text-xs md:text-sm">
-                        {t("dashboard.viewReports")}
+                    <div className="min-w-0">
+                      <h4 className="font-medium text-gray-900 text-sm sm:text-base truncate">
+                        {t("dashboard.whatsAppCloudAPI")}
                       </h4>
-                      <p className="text-sm text-gray-600 text-nowrap hidden sm:block">
-                        {t("dashboard.detailedAnalytics")}
+                      <p className="text-xs sm:text-sm text-gray-600 truncate">
+                        {user?.username
+                          ? activeChannel
+                            ? `${
+                                activeChannel.name
+                                  .slice(0, -1)
+                                  .replace(/./g, "*") +
+                                activeChannel.name.slice(-1)
+                              } (${
+                                activeChannel.phoneNumber
+                                  .slice(0, -4)
+                                  .replace(/\d/g, "*") +
+                                activeChannel.phoneNumber.slice(-4)
+                              })`
+                            : t("dashboard.noChannelSelected")
+                          : activeChannel
+                          ? `${activeChannel.name} (${activeChannel.phoneNumber})`
+                          : t("dashboard.noChannelSelected")}
                       </p>
                     </div>
-                  </Button>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <div
+                      className={`w-2 h-2 rounded-full ${
+                        activeChannel?.isActive === true
+                          ? "bg-green-500 pulse-gentle"
+                          : "bg-red-500"
+                      }`}
+                    />
+                    <span
+                      className={`text-sm font-medium ${
+                        activeChannel?.isActive === true
+                          ? "text-green-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      {activeChannel?.isActive === true
+                        ? t("dashboard.connected")
+                        : activeChannel?.isActive === false
+                        ? t("dashboard.warning")
+                        : activeChannel
+                        ? t("dashboard.error")
+                        : t("dashboard.noChannel")}
+                    </span>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
 
-            {/* API Status */}
-            <Card className="hover-lift fade-in">
-              <CardHeader>
-                <CardTitle>{t("dashboard.apiStatusConnection")}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {/* WhatsApp Cloud API */}
-                  <div
-                    className={`flex items-center justify-between p-3 rounded-lg ${
-                      activeChannel?.isActive === true
-                        ? "bg-green-50"
-                        : "bg-red-50"
-                    }`}
-                  >
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3 space-y-2 sm:space-y-0">
-                      <div
-                        className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                          activeChannel?.isActive
-                            ? "bg-green-600"
-                            : "bg-red-600"
-                        }`}
-                      >
-                        <MessageSquare className="w-4 h-4 text-white" />
+                {/* Channel Quality */}
+                {activeChannel && (
+                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                        <Activity className="w-4 h-4 text-white" />
                       </div>
-                      <div className="min-w-0">
-                        <h4 className="font-medium text-gray-900 text-sm sm:text-base truncate">
-                          {t("dashboard.whatsAppCloudAPI")}
+                      <div>
+                        <h4 className="font-medium text-gray-900">
+                          {t("dashboard.healthDetails")}
                         </h4>
-                        <p className="text-xs sm:text-sm text-gray-600 truncate">
-                          {user?.username
-                            ? activeChannel
-                              ? `${
-                                  activeChannel.name
-                                    .slice(0, -1)
-                                    .replace(/./g, "*") +
-                                  activeChannel.name.slice(-1)
-                                } (${
-                                  activeChannel.phoneNumber
-                                    .slice(0, -4)
-                                    .replace(/\d/g, "*") +
-                                  activeChannel.phoneNumber.slice(-4)
-                                })`
-                              : t("dashboard.noChannelSelected")
-                            : activeChannel
-                            ? `${activeChannel.name} (${activeChannel.phoneNumber})`
-                            : t("dashboard.noChannelSelected")}
+                        <p className="text-sm text-gray-600">
+                          {t("dashboard.rating")}:{" "}
+                          {activeChannel?.healthDetails.quality_rating || "N/A"}
                         </p>
                       </div>
                     </div>
-
                     <div className="flex items-center space-x-2">
-                      <div
-                        className={`w-2 h-2 rounded-full ${
-                          activeChannel?.isActive === true
-                            ? "bg-green-500 pulse-gentle"
-                            : "bg-red-500"
-                        }`}
-                      />
-                      <span
-                        className={`text-sm font-medium ${
-                          activeChannel?.isActive === true
-                            ? "text-green-600"
-                            : "text-red-600"
-                        }`}
-                      >
-                        {activeChannel?.isActive === true
-                          ? t("dashboard.connected")
-                          : activeChannel?.isActive === false
-                          ? t("dashboard.warning")
-                          : activeChannel
-                          ? t("dashboard.error")
-                          : t("dashboard.noChannel")}
+                      <span className="text-sm text-blue-600 font-medium">
+                        {t("dashboard.tier")}:{" "}
+                        {activeChannel?.healthDetails.messaging_limit || "N/A"}
                       </span>
                     </div>
                   </div>
+                )}
 
-                  {/* Channel Quality */}
-                  {activeChannel && (
-                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                          <Activity className="w-4 h-4 text-white" />
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-gray-900">
-                            {t("dashboard.healthDetails")}
-                          </h4>
-                          <p className="text-sm text-gray-600">
-                            {t("dashboard.rating")}:{" "}
-                            {activeChannel?.healthDetails.quality_rating ||
-                              "N/A"}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm text-blue-600 font-medium">
-                          {t("dashboard.tier")}:{" "}
-                          {activeChannel?.healthDetails.messaging_limit ||
-                            "N/A"}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Performance Stats */}
-                  <div className="grid grid-cols-2 gap-4 mt-4">
-                    <div className="text-center p-3 bg-gray-50 rounded-lg">
-                      <p className="text-lg font-bold text-gray-900">
-                        {activeChannel?.lastHealthCheck ? "100%" : "N/A"}
-                      </p>
-                      <p className="text-xs text-gray-600">
-                        {t("dashboard.apiUptime")}
-                      </p>
-                    </div>
-                    <div className="text-center p-3 bg-gray-50 rounded-lg">
-                      <p className="text-lg font-bold text-gray-900">
-                        {activeChannel?.healthDetails.name_status || "N/A"}
-                      </p>
-                      <p className="text-xs text-gray-600">
-                        {t("dashboard.apiStatus")}
-                      </p>
-                    </div>
+                {/* Performance Stats */}
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <p className="text-lg font-bold text-gray-900">
+                      {activeChannel?.lastHealthCheck ? "100%" : "N/A"}
+                    </p>
+                    <p className="text-xs text-gray-600">
+                      {t("dashboard.apiUptime")}
+                    </p>
                   </div>
-
-                  {/* Daily Limit */}
-                  <div className="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-700">
-                        {t("dashboard.dailyMessageLimit")}
-                      </span>
-                      <span className="text-sm text-gray-600">
-                        {stats?.todayMessages || 0} /{" "}
-                        {activeChannel?.healthDetails.messaging_limit ===
-                        "TIER_1K"
-                          ? "1,000"
-                          : activeChannel?.healthDetails.messaging_limit ===
-                            "TIER_10K"
-                          ? "10,000"
-                          : activeChannel?.healthDetails.messaging_limit ===
-                            "TIER_100K"
-                          ? "100,000"
-                          : activeChannel?.healthDetails.messaging_limit ===
-                            "TIER_UNLIMITED"
-                          ? "Unlimited"
-                          : "1,000"}
-                      </span>
-                    </div>
-                    <div className="w-full bg-yellow-200 rounded-full h-2">
-                      <div
-                        className="bg-yellow-500 h-2 rounded-full"
-                        style={{
-                          width: `${Math.min(
-                            ((stats?.todayMessages || 0) /
-                              (activeChannel?.healthDetails.messaging_limit ===
-                              "TIER_1K"
-                                ? 1000
-                                : activeChannel?.healthDetails
-                                    .messaging_limit === "TIER_10K"
-                                ? 10000
-                                : activeChannel?.healthDetails
-                                    .messaging_limit === "TIER_100K"
-                                ? 100000
-                                : 1000)) *
-                              100,
-                            100
-                          )}%`,
-                        }}
-                      />
-                    </div>
+                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <p className="text-lg font-bold text-gray-900">
+                      {activeChannel?.healthDetails.name_status || "N/A"}
+                    </p>
+                    <p className="text-xs text-gray-600">
+                      {t("dashboard.apiStatus")}
+                    </p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+
+                {/* Daily Limit */}
+                <div className="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-gray-700">
+                      {t("dashboard.dailyMessageLimit")}
+                    </span>
+                    <span className="text-sm text-gray-600">
+                      {stats?.todayMessages || 0} /{" "}
+                      {activeChannel?.healthDetails.messaging_limit ===
+                      "TIER_1K"
+                        ? "1,000"
+                        : activeChannel?.healthDetails.messaging_limit ===
+                          "TIER_10K"
+                        ? "10,000"
+                        : activeChannel?.healthDetails.messaging_limit ===
+                          "TIER_100K"
+                        ? "100,000"
+                        : activeChannel?.healthDetails.messaging_limit ===
+                          "TIER_UNLIMITED"
+                        ? "Unlimited"
+                        : "1,000"}
+                    </span>
+                  </div>
+                  <div className="w-full bg-yellow-200 rounded-full h-2">
+                    <div
+                      className="bg-yellow-500 h-2 rounded-full"
+                      style={{
+                        width: `${Math.min(
+                          ((stats?.todayMessages || 0) /
+                            (activeChannel?.healthDetails.messaging_limit ===
+                            "TIER_1K"
+                              ? 1000
+                              : activeChannel?.healthDetails.messaging_limit ===
+                                "TIER_10K"
+                              ? 10000
+                              : activeChannel?.healthDetails.messaging_limit ===
+                                "TIER_100K"
+                              ? 100000
+                              : 1000)) *
+                            100,
+                          100
+                        )}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
         )}
       </main>
     </div>
