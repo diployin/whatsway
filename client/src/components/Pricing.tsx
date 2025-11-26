@@ -487,10 +487,14 @@ const Pricing = () => {
         </div>
       );
     }
-
+    const sortedPlans = plans.sort((a, b) => {
+      const priceA = Number(isAnnual ? a.annualPrice : a.monthlyPrice);
+      const priceB = Number(isAnnual ? b.annualPrice : b.monthlyPrice);
+      return priceA - priceB;
+    });
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 lg:gap-8 mb-16">
-        {plans.map((plan) => {
+       {sortedPlans.map((plan, index) => {
           const IconComponent = iconMap[plan.icon] || Zap;
           const isPopular = plan.popular;
 
