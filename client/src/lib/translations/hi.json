@@ -38,7 +38,8 @@
     "settings": "सेटिंग्स",
     "active": "सक्रिय",
     "aiAssistant": "AI सहायक",
-    "myAccount": "मेरा खाता"
+    "myAccount": "मेरा खाता",
+    "inactive": "निष्क्रिय"
   },
   "auth": {
     "login": "लॉगिन",
