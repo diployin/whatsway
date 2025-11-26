@@ -166,6 +166,7 @@ export const createUser = async (req: Request, res: Response) => {
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
+    console.log(`Generated OTP for ${email}: ${otpCode} (expires at ${expiresAt.toISOString()})`);
     // Save OTP
     await db.insert(otpVerifications).values({
       userId: user.id,
