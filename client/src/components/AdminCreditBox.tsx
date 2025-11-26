@@ -17,97 +17,73 @@ export function AdminCreditBox() {
     enabled: !!user?.id,
   });
 
-  // -----------------------------
-  // ⭐ FILTER ACTIVE PLANS ⭐
-  // -----------------------------
   const activePlans =
-    activeplandata?.data?.filter(
-      (p) => p.subscription.status === "active"
-    ) || [];
+    activeplandata?.data?.filter((p) => p.subscription.status === "active") ||
+    [];
 
   const hasActivePlan = activePlans.length > 0;
 
-  // -----------------------------
-  // ⭐ DYNAMIC PERMISSION SUMMER ⭐
-  // -----------------------------
   const totalPermissions: Record<string, number> = {};
-
   activePlans.forEach((plan) => {
     const permissions = plan.subscription.planData.permissions || {};
-
     Object.keys(permissions).forEach((key) => {
-      const val = Number(permissions[key] || 0);
-
-      if (!totalPermissions[key]) {
-        totalPermissions[key] = val;
-      } else {
-        totalPermissions[key] += val;
-      }
+      totalPermissions[key] = (totalPermissions[key] || 0) + Number(permissions[key] || 0);
     });
   });
 
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-gray-200 bg-gray-50 px-5 py-4 w-[200px] h-[140px] animate-pulse" />
+      <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 animate-pulse h-28" />
     );
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-gradient-to-br from-blue-50/50 to-purple-50/50 px-5 py-4 shadow-sm hover:shadow-md transition-all duration-200 w-[200px]">
+    <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-blue-50/50 to-purple-50/50 p-3 shadow-sm">
       {/* Header */}
-      <div className="flex justify-between items-center mb-3">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-yellow-100 rounded-lg">
-            <Crown className="h-3.5 w-3.5 text-yellow-600" />
+      <div className="flex justify-between items-center mb-2">
+        <div className="flex items-center gap-1.5">
+          <div className="p-1 bg-yellow-100 rounded">
+            <Crown className="h-3 w-3 text-yellow-600" />
           </div>
-          <span className="text-sm font-semibold text-gray-800">
-            Subscription
-          </span>
+          <span className="text-xs font-semibold text-gray-800">Plan</span>
         </div>
 
         {hasActivePlan ? (
-          <span className="text-[10px] font-bold text-green-600 bg-green-100 px-2 py-1 rounded-full">
+          <span className="text-[9px] font-bold text-green-600 bg-green-100 px-1.5 py-0.5 rounded-full">
             PRO
           </span>
         ) : (
           <Link
             to="/plan-upgrade"
-            className="text-xs font-semibold text-blue-600 hover:underline"
+            className="text-[10px] font-semibold text-blue-600 hover:underline"
           >
             Upgrade
           </Link>
         )}
       </div>
 
-      {/* Plan Summary */}
-      {hasActivePlan && (
-        <div className="mb-3">
-          <p className="text-xs font-bold text-gray-900 mb-2">
-            Active Plans ({activePlans.length})
-          </p>
-        </div>
-      )}
-
-      {/* Dynamic Permissions List */}
-      <div className="space-y-2">
+      {/* Permissions */}
+      <div className="space-y-1">
         {hasActivePlan ? (
-          Object.entries(totalPermissions).map(([key, value], idx) => (
-            <div key={key} className="flex items-center gap-2">
-              <Check
-                className={`w-3 h-3 flex-shrink-0 ${
-                  idx % 2 === 0 ? "text-blue-600" : "text-purple-600"
-                }`}
-              />
-              <span className="text-[11px] text-gray-700 capitalize">
-                <span className="font-semibold">{value}</span>{" "}
-                <span className="text-gray-500">{key}</span>
-              </span>
-            </div>
-          ))
+          Object.entries(totalPermissions)
+            .slice(0, 3)
+            .map(([key, value], idx) => (
+              <div key={key} className="flex items-center gap-1.5">
+                <Check
+                  className={`w-2.5 h-2.5 flex-shrink-0 ${
+                    idx % 2 === 0 ? "text-blue-600" : "text-purple-600"
+                  }`}
+                />
+                <span className="text-[10px] text-gray-700">
+                  <span className="font-semibold">{value}</span>{" "}
+                  <span className="text-gray-500 capitalize">{key}</span>
+                </span>
+              </div>
+            ))
         ) : (
-          <div className="text-xs text-gray-500 text-center py-3 bg-white rounded-lg">
-            No active subscription
-          </div>
+          <p className="text-[10px] text-gray-500 text-center py-2">
+            No active plan
+          </p>
         )}
       </div>
     </div>

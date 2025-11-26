@@ -572,7 +572,7 @@ export default function Contacts() {
   const { data: tempData } = useQuery({
     queryKey: ["/api/templates", activeChannel?.id],
     queryFn: async () => {
-      const response = await apiRequest('GET',`/api/templates?channelId=${activeChannel?.id}`);
+      const response = await apiRequest('GET',`/api/templates?channelId=${activeChannel?.id}&page=1&limit=100`);
       return await response.json();
     },
     enabled: !!activeChannel,
