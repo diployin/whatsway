@@ -435,7 +435,6 @@ const HowItWorks: React.FC = () => {
                   {visualDemoLabel}
                 </span>
               </div>
-
               <div className="bg-white rounded-lg p-2 min-h-[250px] overflow-hidden">
                 <img
                   src={stepImages[activeStep]}
