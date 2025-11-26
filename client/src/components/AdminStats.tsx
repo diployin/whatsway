@@ -158,20 +158,34 @@ export default function AdminStats() {
     },
   });
 
-  const { data: stats, isLoading } = useQuery<DashboardStats>({
-    queryKey: [
-      user?.role === "admin"
-        ? `/api/dashboard/user/statss?channelId=${activeChannel?.id}`
-        : "/api/dashboard/admin/stats",
-    ],
-    queryFn: () =>
-      apiRequest(
-        "GET",
-        user?.role === "admin"
-          ? `/api/dashboard/user/statss?channelId=${activeChannel?.id}`
-          : "/api/dashboard/admin/stats"
-      ).then((res) => res.json()),
-  });
+  // const { data: stats, isLoading } = useQuery<DashboardStats>({
+  //   queryKey: [
+  //     user?.role === "admin" || "team"
+  //       ? `/api/dashboard/user/statss?channelId=${activeChannel?.id}`
+  //       : "/api/dashboard/admin/stats",
+  //   ],
+  //   queryFn: () =>
+  //     apiRequest(
+  //       "GET",
+  //       user?.role === "admin" || "team"
+  //         ? `/api/dashboard/user/statss?channelId=${activeChannel?.id}`
+  //         : "/api/dashboard/admin/stats"
+  //     ).then((res) => res.json()),
+  // });
+
+
+  const isTeamOrAdmin =
+  user?.role === "team" || user?.role === "admin";
+
+const url = isTeamOrAdmin
+  ? `/api/dashboard/user/statss?channelId=${activeChannel?.id}`
+  : "/api/dashboard/admin/stats";
+
+const { data: stats, isLoading } = useQuery<DashboardStats>({
+  queryKey: [url],
+  queryFn: () => apiRequest("GET", url).then((res) => res.json()),
+});
+
 
   // Loading skeleton
   if (isLoading) {
