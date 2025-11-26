@@ -18,7 +18,7 @@ import {
   X,
   Bell,
   CheckCircle,
-  Star,
+  Star,User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ChannelSwitcher } from "@/components/channel-switcher";
@@ -32,10 +32,18 @@ import { RiSecurePaymentFill } from "react-icons/ri";
 import { AiOutlineTransaction } from "react-icons/ai";
 import { MdOutlineSupportAgent, MdGroups } from "react-icons/md";
 import { useSidebar } from "@/contexts/sidebar-context";
-
 import { AdminCreditBox } from "../AdminCreditBox";
 import { useQuery } from "@tanstack/react-query";
 import { AppSettings } from "@/types/types";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 
 type Role = "superadmin" | "admin" | "user" | "team";
 
@@ -751,6 +759,64 @@ export default function Sidebar() {
               </div>
             </div>
           )}
+
+
+          {/* User Profile */}
+          <div className="p-4 border-t border-gray-100">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="w-full flex items-center space-x-3 hover:bg-gray-50 rounded-lg p-2 transition-colors">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-green-600 to-green-500 flex items-center justify-center">
+                    <span className="text-sm font-medium text-white">
+                      {user
+                        ? (
+                            user.firstName?.[0] || user.username[0]
+                          ).toUpperCase()
+                        : "U"}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0 text-left">
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {user
+                        ? user.firstName && user.lastName
+                          ? `${user.firstName} ${user.lastName}`
+                          : user.username
+                        : "User"}
+                    </p>
+                    <p className="text-xs text-gray-500 truncate capitalize">
+                      {user?.role || "User"}
+                    </p>
+                  </div>
+                  <Settings className="w-4 h-4 text-gray-400" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>{t("common.myAccount")}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/settings" className="cursor-pointer">
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>{t("navigation.settings")}</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/account" className="cursor-pointer">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>{t("navigation.account")}</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={logout}
+                  className="cursor-pointer text-red-600"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>{t("common.logout")}</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
     </>

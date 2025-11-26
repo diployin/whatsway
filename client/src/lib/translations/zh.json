@@ -38,7 +38,8 @@
     "settings": "设置",
     "active": "活跃",
     "aiAssistant": "人工智能助手",
-    "myAccount": "我的账户"
+    "myAccount": "我的账户",
+    "inactive": "不活跃"
   },
   "auth": {
     "login": "登录",

@@ -38,7 +38,8 @@
     "settings": "Configurações",
     "active": "Ativa",
     "aiAssistant": "Assistente de IA",
-    "myAccount": "Minha Conta"
+    "myAccount": "Minha Conta",
+    "inactive": "Inativa"
   },
   "auth": {
     "login": "Login",
