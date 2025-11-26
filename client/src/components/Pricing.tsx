@@ -392,6 +392,7 @@ import CheckoutModal from "./modals/CheckoutPage";
 import { useAuth } from "@/contexts/auth-context";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "@/lib/i18n";
+import { Link } from "wouter";
 
 const Pricing = () => {
   const { t } = useTranslation();
@@ -719,10 +720,13 @@ const Pricing = () => {
             <p className="text-gray-300 mb-6">
               {t("Landing.pricingSec.enterprise.description")}
             </p>
-            <button className="bg-white text-gray-900 px-8 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-all flex items-center mx-auto group">
+            <Link
+              href="/contact"
+              className="bg-white text-gray-900 px-8 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-all flex items-center mx-auto group w-fit"
+            >
               {t("Landing.pricingSec.enterprise.button")}
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-            </button>
+            </Link>
           </div>
         </div>
       </section>
