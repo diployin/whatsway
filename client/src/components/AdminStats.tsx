@@ -259,11 +259,11 @@ const { data: stats, isLoading } = useQuery<DashboardStats>({
           )}
 
         {stats &&
-          stats.totalTeamMembers !== undefined &&
-          stats.totalTeamMembers !== null && (
+          stats.totalTemplatesByUserId !== undefined &&
+          stats.totalTemplatesByUserId !== null && (
             <CardStat
               label={t("dashboard.dashboardStates.Total_Templates")}
-              value={stats.totalTeamMembers}
+              value={stats.totalTemplatesByUserId}
               icon={TeamMembersIcon}
               iconClassName="bg-orange-50 text-orange-600"
               borderColor="border-l-orange-500"
