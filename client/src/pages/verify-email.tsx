@@ -13,7 +13,10 @@ const VerifyEmail = () => {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleOtpChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+  const handleOtpChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    index: number
+  ) => {
     const value = e.target.value.replace(/\D/, "");
     const newOtp = [...otp];
     newOtp[index] = value;
@@ -52,7 +55,6 @@ const VerifyEmail = () => {
 
       setSuccess("Email verified successfully!");
       setTimeout(() => setLocation("/login"), 1500);
-
     } catch (err) {
       setError("Verification failed, try again.");
     } finally {
@@ -63,7 +65,9 @@ const VerifyEmail = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="bg-white shadow-md rounded-xl p-8 w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center mb-4">Verify Your Email</h2>
+        <h2 className="text-2xl font-bold text-center mb-4">
+          Verify Your Email
+        </h2>
         <p className="text-gray-600 text-center mb-6">
           A 6-digit code was sent to: <br />
           <span className="font-semibold">{email}</span>
