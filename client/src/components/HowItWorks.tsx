@@ -258,10 +258,10 @@ import * as LucideIcons from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 
 // Import your step images
-import step1Image from "../../public/images/screen1.png";
-import step2Image from "../../public/images/screen2.png";
-import step3Image from "../../public/images/screen1.png";
-import step4Image from "../../public/images/screen1.png";
+import step1Image from "../images/Connect_Your_Meta_API.png";
+import step2Image from "../images/Import_Your_Contacts.png";
+import step3Image from "../images/create_lanch_campaigns.png";
+import step4Image from "../images/Track_&_Optimize.png";
 
 interface FeatureStep {
   icon: keyof typeof LucideIcons;

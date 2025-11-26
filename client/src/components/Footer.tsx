@@ -113,7 +113,7 @@ const Footer: React.FC = () => {
                 <img
                   src={brandSettings?.logo}
                   alt="Logo"
-                  className="h-16 w-16 object-contain"
+                  className="h-12 w-12 object-contain"
                 />
               ) : (
                 <div className="bg-green-800 text-primary-foreground rounded-full p-3">
