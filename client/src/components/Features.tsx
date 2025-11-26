@@ -423,14 +423,9 @@ const Features = () => {
                     </h3>
                     <p className="text-gray-600 mb-4">{feature.description}</p>
                     <div className="flex items-center text-green-600 font-semibold">
-                      <span className="text-sm">
+                      {/* <span className="text-sm">
                         {t("Landing.featuresSec.demo")}
-                      </span>
-                      <ArrowRight
-                        className={`w-4 h-4 ml-2 transition-transform ${
-                          activeTab === index ? "translate-x-1" : ""
-                        }`}
-                      />
+                      </span> */}
                     </div>
                   </div>
                 </div>

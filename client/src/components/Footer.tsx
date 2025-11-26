@@ -48,8 +48,6 @@ const Footer: React.FC = () => {
       { name: companyLinks[0], href: "/about" },
       { name: companyLinks[1], href: "/contact" },
       { name: companyLinks[2], href: "/careers" },
-      { name: companyLinks[3], href: "/press-kit" },
-      { name: companyLinks[4], href: "/integrations" },
     ],
     support: [
       { name: supportLinks[0], href: "#" },
@@ -71,35 +69,6 @@ const Footer: React.FC = () => {
 
   return (
     <footer className="bg-gray-900 text-white">
-      {/* Newsletter Section */}
-      <div className="border-b border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-            <div>
-              <h3 className="text-2xl font-bold mb-4">
-                {t("Landing.footerSec.newsletter.heading")}
-              </h3>
-              <p className="text-gray-300">
-                {t("Landing.footerSec.newsletter.description")}
-              </p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <input
-                type="email"
-                name="subscriptEmail"
-                id="subscriptEmail"
-                placeholder={t("Landing.footerSec.newsletter.emailPlaceholder")}
-                className="flex-1 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
-              />
-              <button className="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-lg hover:from-green-600 hover:to-green-700 transition-all flex items-center justify-center group">
-                {t("Landing.footerSec.newsletter.subscribeButton")}
-                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Main Footer Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
@@ -129,28 +98,28 @@ const Footer: React.FC = () => {
             </p>
             <div className="flex space-x-4">
               <a
-                href="#"
+                href="https://x.com"
                 className="bg-gray-800 p-3 rounded-lg hover:bg-gray-700 transition-colors group"
                 aria-label={t("Landing.footerSec.socialLinks.twitter")}
               >
                 <Twitter className="w-5 h-5 group-hover:text-blue-400 transition-colors" />
               </a>
               <a
-                href="#"
+                href="https://linkedin.com/"
                 className="bg-gray-800 p-3 rounded-lg hover:bg-gray-700 transition-colors group"
                 aria-label={t("Landing.footerSec.socialLinks.linkedin")}
               >
                 <Linkedin className="w-5 h-5 group-hover:text-blue-500 transition-colors" />
               </a>
               <a
-                href="#"
+                href="https://github.com/"
                 className="bg-gray-800 p-3 rounded-lg hover:bg-gray-700 transition-colors group"
                 aria-label={t("Landing.footerSec.socialLinks.github")}
               >
                 <Github className="w-5 h-5 group-hover:text-gray-300 transition-colors" />
               </a>
               <a
-                href="#"
+                href="https://mail.google.com"
                 className="bg-gray-800 p-3 rounded-lg hover:bg-gray-700 transition-colors group"
                 aria-label={t("Landing.footerSec.socialLinks.mail")}
               >

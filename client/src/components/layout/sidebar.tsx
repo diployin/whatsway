@@ -732,7 +732,6 @@ export default function Sidebar() {
                   <p className="text-sm font-medium text-gray-900">
                     {t("common.aiAssistant")}
                   </p>
-
                   <div className="flex items-center space-x-2">
                     {/* Status Dot */}
                     <div
