@@ -209,12 +209,9 @@ const Header = () => {
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20 sm:h-16">
+          <div className="flex justify-between items-center h-20 sm:h-18">
             {/* Logo */}
             <Link href="/" className="flex items-center space-x-2 sm:space-x-3">
-              {/* <div className="bg-gradient-to-r from-green-500 to-green-600 p-1.5 sm:p-2 rounded-lg sm:rounded-xl shadow-lg">
-                <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-              </div> */}
               {brandSettings?.logo ? (
                 <img
                   src={brandSettings?.logo}

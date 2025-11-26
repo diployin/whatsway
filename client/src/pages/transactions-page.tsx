@@ -167,7 +167,7 @@ function TransactionsPage() {
   // ==================== UI ====================
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dots-bg">
       {/* Header */}
       <Header
         title={t("transactions.title")}

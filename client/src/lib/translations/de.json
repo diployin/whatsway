@@ -38,7 +38,8 @@
     "settings": "Einstellungen",
     "active": "Aktiv",
     "aiAssistant": "KI-Assistent",
-    "myAccount": "Mein Konto"
+    "myAccount": "Mein Konto",
+    "inactive": "Inaktiv"
   },
   "auth": {
     "login": "Anmelden",

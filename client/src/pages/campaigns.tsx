@@ -30,7 +30,6 @@ export default function Campaigns() {
   const userId = user?.role === "team" ? user?.createdBy : user?.id;
   const userRole = user?.role;
 
-
   const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [campaignType, setCampaignType] = useState<string>("");
@@ -72,42 +71,24 @@ export default function Campaigns() {
   const total = campaignResponse?.total || 0;
   const totalPages = Math.ceil(total / limit);
 
-  // Fetch templates
-  // const { data: templates = [] } = useQuery({
-  //   queryKey: ["/api/getTemplateByUserId", userId, channelId], // <-- channelId add kiya
-  //   enabled: !!userId && !!channelId, // <-- dono available honi chahiye
-  //   queryFn: async () => {
-  //     // New API call
-  //     const response = await api.getTemplates(channelId);
-  //     const data = await response.json();
-  //     console.log("Fetched templates dataaaaa:", data);
-
-  //     // Return clean array
-  //     return Array.isArray(data) ? data : [];
-  //   },
-  // });
-
-
   const { data: templates = [], refetch: refetchTemplates } = useQuery({
-  queryKey: ["/api/templates", channelId],
-  enabled: !!channelId, 
-  queryFn: async () => {
-    try {
-      const response = await fetch(`/api/templates?channelId=${channelId}`);
-      const res = await response.json();
+    queryKey: ["/api/templates", channelId],
+    enabled: !!channelId,
+    queryFn: async () => {
+      try {
+        const response = await fetch(`/api/templates?channelId=${channelId}`);
+        const res = await response.json();
 
-      // IMPORTANT FIX
-      return Array.isArray(res.data) ? res.data : [];
-    } catch (error) {
-      console.error("Error fetching templates:", error);
-      return [];
-    }
-  },
-});
+        // IMPORTANT FIX
+        return Array.isArray(res.data) ? res.data : [];
+      } catch (error) {
+        console.error("Error fetching templates:", error);
+        return [];
+      }
+    },
+  });
 
-
-// console.log("Fetched templatesssss:", templates);
-
+  // console.log("Fetched templatesssss:", templates);
 
   // Fetch contacts
   const { data: contactsResponse } = useQuery({
@@ -242,7 +223,7 @@ export default function Campaigns() {
     );
 
   return (
-    <div className="container mx-auto">
+    <div className="container mx-auto dots-bg">
       <Header
         title={t("campaigns.title")}
         subtitle={t("campaigns.subtitle")}
@@ -259,15 +240,6 @@ export default function Campaigns() {
       <div className="px-4 py-4">
         <CampaignStatistics campaigns={campaigns} />
       </div>
-      {/* <div className="px-4 py-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
-        <CardStat
-          label="Total Contacts"
-          value={campaigns.}
-          icon={ContactsIcon}
-          iconClassName="bg-blue-50 text-blue-600"
-          borderColor="border-l-blue-500"
-        />
-      </div> */}
 
       <div className="px-4 py-4">
         <Card>

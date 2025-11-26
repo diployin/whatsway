@@ -11,6 +11,26 @@ const PolicyLayout: React.FC<PolicyLayoutProps> = ({
   lastUpdated,
   children,
 }) => {
+  // Handle smooth scroll without URL change
+  const handleScrollToSection = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    sectionId: string
+  ) => {
+    e.preventDefault();
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+      // Optional: Add offset for fixed header
+      const yOffset = -100; // Adjust based on your header height
+      const y =
+        element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: "smooth" });
+    }
+  };
+
   return (
     <div className="pt-16">
       {/* Hero Section */}
@@ -19,7 +39,7 @@ const PolicyLayout: React.FC<PolicyLayoutProps> = ({
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
             {title}
           </h1>
-          <p className="text-lg text-gray-600">Last updated: {lastUpdated}</p>
+          <p className="text-gray-600">Last Updated: {lastUpdated}</p>
         </div>
       </section>
 
@@ -36,11 +56,13 @@ const PolicyLayout: React.FC<PolicyLayoutProps> = ({
                 <nav className="space-y-2">
                   {React.Children.map(children, (child, index) => {
                     if (React.isValidElement(child) && child.props.title) {
+                      const sectionId = `section-${index}`;
                       return (
                         <a
                           key={index}
-                          href={`#section-${index}`}
-                          className="block text-gray-600 hover:text-green-600 transition-colors py-1"
+                          href={`#${sectionId}`}
+                          onClick={(e) => handleScrollToSection(e, sectionId)}
+                          className="block text-gray-600 hover:text-green-600 transition-colors py-1 cursor-pointer"
                         >
                           {child.props.title}
                         </a>
@@ -60,7 +82,7 @@ const PolicyLayout: React.FC<PolicyLayoutProps> = ({
                     return React.cloneElement(child, {
                       key: index,
                       id: `section-${index}`,
-                    });
+                    } as any);
                   }
                   return child;
                 })}
@@ -85,7 +107,7 @@ export const PolicySection: React.FC<PolicySectionProps> = ({
   id,
 }) => {
   return (
-    <section id={id} className="mb-12">
+    <section id={id} className="mb-12 scroll-mt-24">
       <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b border-gray-200 pb-3">
         {title}
       </h2>

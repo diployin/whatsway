@@ -403,40 +403,7 @@ export default function SupportTicketsNew() {
   const selectedTicket = tickets.find((t) => t.id === selectedTicketId);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      {/* <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 py-3 sm:py-4">
-            <div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0">
-              <div className="bg-green-100 p-2 sm:p-2.5 rounded-lg shrink-0">
-                <Headphones className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
-              </div>
-              <div className="min-w-0">
-                <h1 className="text-lg sm:text-2xl font-bold text-gray-900 truncate">
-                  Support Tickets
-                </h1>
-                <p className="text-xs sm:text-sm text-gray-600">
-                  {isAdmin
-                    ? "Manage all support tickets from users and listeners"
-                    : "View and manage your support tickets"}
-                </p>
-              </div>
-            </div>
-
-            <div className="w-full sm:w-auto">
-              <button
-                onClick={() => setShowCreateDialog(true)}
-                className="w-full sm:w-auto inline-flex items-center justify-center bg-green-500 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-green-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2 text-sm sm:text-base"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Create Ticket
-              </button>
-            </div>
-          </div>
-        </div>
-      </header> */}
-
+    <div className="min-h-screen bg-gray-50 dots-bg">
       <Header
         title={"Support Tickets"}
         subtitle={

@@ -40,6 +40,7 @@ export function CreateCampaignForm({
   onCancel,
   children
 }: CreateCampaignFormProps) {
+  // console.log(templates)
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);

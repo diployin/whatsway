@@ -840,7 +840,7 @@ export default function Notifications() {
   });
 
   return (
-    <div className="flex-1 min-h-screen">
+    <div className="flex-1 min-h-screen dots-bg">
       <Header
         title={t("notifications.title")}
         subtitle={t("notifications.subtitle")}

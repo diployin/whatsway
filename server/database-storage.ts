@@ -748,9 +748,9 @@ const totalChannels = await this.channelRepo.getAll()
     const totalCampaigns = await this.campaignRepo
       .getByChannel(channelId)
       .then((c) => c.length);
-    const totalTemplates = await this.templateRepo
-      .getByChannel(channelId)
-      .then((t) => t.length);
+
+    const totalTemplates = await this.templateRepo.getByChannel(channelId).then((t) => t.length);
+    const totalTemplatesByUserId = await this.templateRepo.getTemplateByUserID(userId);
     const messageStats = await this.messageQueueRepo.getMessageStatsByChannel(
       channelId
     );
@@ -768,6 +768,7 @@ const totalChannels = await this.channelRepo.getAll()
       totalTemplates,
       totalChannels,
       totalTeamMembers,
+      totalTemplatesByUserId:totalTemplatesByUserId.total,
       ...messageStats,
     };
   }

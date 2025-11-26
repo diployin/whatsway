@@ -91,8 +91,8 @@ const ContactusLanding = () => {
     <div className="pt-16">
       {/* Hero Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-green-50 via-white to-blue-50">
-        <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+        <div className="max-w-7xl mx-auto text-center ">
+          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 inline-flex">
             Get in
             <span className="block bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
               Touch
@@ -232,7 +232,7 @@ const ContactusLanding = () => {
               </div>
 
               {/* Support Options */}
-              <div>
+              {/* <div>
                 <h3 className="text-xl font-bold text-gray-900 mb-4">
                   Other Ways to Get Help
                 </h3>
@@ -263,7 +263,7 @@ const ContactusLanding = () => {
                     </div>
                   ))}
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>

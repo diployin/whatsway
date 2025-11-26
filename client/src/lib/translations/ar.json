@@ -38,7 +38,8 @@
     "settings": "الإعدادات",
     "active": "نشط",
     "aiAssistant": "مساعد الذكاء الاصطناعي",
-    "myAccount": "حسابي"
+    "myAccount": "حسابي",
+    "inactive": "غير نشط"
   },
   "auth": {
     "login": "تسجيل الدخول",

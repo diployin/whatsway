@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ArrowRight, Play, Users, TrendingUp, Zap } from "lucide-react";
 import LoadingAnimation from "./LoadingAnimation";
 import { useTranslation } from "@/lib/i18n";
+import { Link } from "wouter";
 
 const Hero = () => {
   const [currentStat, setCurrentStat] = useState(0);
@@ -106,9 +107,10 @@ const Hero = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
-            <button
-              onClick={handleStartTrial}
-              disabled={startTrialLoading}
+            <Link
+              href="/contact"
+              // onClick={handleStartTrial}
+              // disabled={startTrialLoading}
               className="bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-4 rounded-xl font-semibold hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105 shadow-xl flex items-center group disabled:opacity-50 min-w-[180px] justify-center"
             >
               {startTrialLoading ? (
@@ -119,13 +121,13 @@ const Hero = () => {
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </>
               )}
-            </button>
-            <button className="flex items-center text-gray-700 hover:text-green-600 transition-colors group">
+            </Link>
+            {/* <button className="flex items-center text-gray-700 hover:text-green-600 transition-colors group">
               <div className="bg-white p-3 rounded-full shadow-lg mr-3 group-hover:shadow-xl transition-shadow">
                 <Play className="w-6 h-6 text-green-600" />
               </div>
               {t("Landing.heroSec.watchDemoButton")}
-            </button>
+            </button> */}
           </div>
 
           {/* Animated Stats */}
