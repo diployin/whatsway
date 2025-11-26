@@ -65,6 +65,16 @@ import { TermsPage } from "./pages/TermsPage";
 import { PrivacyPage } from "./pages/PrivacyPage";
 import VerifyEmail from "./pages/verify-email";
 import AboutUs from "./pages/AboutUs";
+import { ScrollToTop } from "./components/ScrollToTop";
+import Integrations from "./components/Integrations";
+import PressKit from "./components/PressKit";
+import CaseStudies from "./components/CaseStudies";
+import WhatsAppGuide from "./components/WhatsAppGuide";
+import BestPractices from "./components/BestPractices";
+import CookiePolicy from "./components/CookiePolicy";
+import { HeaderFooterWraper } from "./components/layout/HeaderFooterWraper";
+import ContactusLanding from "./components/ContactusLanding";
+
 // Define route permissions mapping
 const ROUTE_PERMISSIONS: Record<string, string> = {
   "/contacts": "contacts.view",
@@ -132,20 +142,27 @@ function ProtectedRoutes() {
   const { isAuthenticated, isLoading, user } = useAuth();
   const [location, setLocation] = useLocation();
   const [showSignupPopup, setShowSignupPopup] = useState(false);
-  const [showLoading, setShowLoading] = useState(true);
+
+  const fromLoginFlag = sessionStorage.getItem("fromLogin") === "true";
+
+  const [showLoading, setShowLoading] = useState(fromLoginFlag);
+
+  const [isLoginRedirect, setIsLoginRedirect] = useState(fromLoginFlag);
+
+  useEffect(() => {
+    if (fromLoginFlag) {
+      setTimeout(() => {
+        sessionStorage.removeItem("fromLogin");
+      }, 1000);
+    }
+  }, []);
 
   // Check if user has access to current route
   useEffect(() => {
     if (isAuthenticated && user && location !== "/") {
       const requiredPermission = ROUTE_PERMISSIONS[location];
-      // console.log(
-      //   "Checking permissions for route:",
-      //   location,
-      //   requiredPermission,
-      //   hasRoutePermission(requiredPermission, user)
-      // );
+
       if (requiredPermission && !hasRoutePermission(requiredPermission, user)) {
-        // Redirect to dashboard if user doesn't have permission for current route
         setLocation("/");
       }
     }
@@ -154,7 +171,6 @@ function ProtectedRoutes() {
   useEffect(() => {
     const popupShown = sessionStorage.getItem("signupPopupShown");
 
-    // only skip if value is explicitly "true"
     if (popupShown === "true") return;
 
     const timer = setTimeout(() => {
@@ -190,18 +206,28 @@ function ProtectedRoutes() {
     setShowSignupPopup(false);
   };
 
+  // IMPORTANT: Show loader FIRST, before any auth checks
   if (showLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        {user?.role === "superadmin" ? (
+      <div className="flex items-center justify-center min-h-screen bg-white">
+        {isLoginRedirect ? (
+          <LoadingAnimation onComplete={() => setShowLoading(false)} />
+        ) : (
           <MinimalLoader
             onComplete={() => setShowLoading(false)}
             duration={1500}
             color="green"
           />
-        ) : (
-          <LoadingAnimation onComplete={() => setShowLoading(false)} />
         )}
+      </div>
+    );
+  }
+
+  // Show minimal loader during auth check (AFTER login loader is done)
+  if (isLoading && !showLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-white">
+        <MinimalLoader onComplete={() => {}} duration={1500} color="green" />
       </div>
     );
   }
@@ -263,10 +289,7 @@ function ProtectedRoutes() {
             <PermissionRoute component={Plans} />
           </Route>
           <Route path="/gateway">
-            <PermissionRoute
-              component={GatewaySettings}
-              // requiredPermission="plans:view"
-            />
+            <PermissionRoute component={GatewaySettings} />
           </Route>
           <Route path="/team">
             <PermissionRoute component={Team} requiredPermission="team:view" />
@@ -402,10 +425,6 @@ function ProtectedRoutes() {
 
           <Route component={NotFound} />
         </Switch>
-
-        {/* {showSignupPopup && !isAuthenticated && (
-          <SignupPopup onClose={handleClosePopup} />
-        )} */}
       </div>
     </div>
   );
@@ -459,22 +478,33 @@ export function usePermissions() {
 
 function Router() {
   return (
-    <Switch>
-      <Route path="/login" component={LoginPage} />
-      <Route path="/demo" component={DemoPage} />
-      <Route path="/verify-email" component={VerifyEmail} />
-      <Route path="/signup" component={Signup} />
-      <Route path="/privacy-policy" component={PrivacyPage} />
-      <Route path="/terms" component={TermsPage} />
-      <Route path="/signup" component={Signup} />
-      <Route path="/about" component={AboutUs} />
-      <Route path="/" component={Home} />
-      <Route
-        path="/analytics/campaign/:campaignId"
-        component={CampaignAnalytics}
-      />
-      <Route component={ProtectedRoutes} />
-    </Switch>
+    <>
+      <ScrollToTop />
+      <Header />
+      <Switch>
+        <Route path="/demo" component={DemoPage} />
+        <Route path="/login" component={LoginPage} />
+        <Route path="/verify-email" component={VerifyEmail} />
+        <Route path="/signup" component={Signup} />
+        <Route path="/privacy-policy" component={PrivacyPage} />
+        <Route path="/terms" component={TermsPage} />
+        <Route path="/about" component={AboutUs} />
+        <Route path="/integrations" component={Integrations} />
+        <Route path="/press-kit" component={PressKit} />
+        <Route path="/case-studies" component={CaseStudies} />
+        <Route path="/whatsapp-guide" component={WhatsAppGuide} />
+        <Route path="/best-practices" component={BestPractices} />
+        <Route path="/cookie-policy" component={CookiePolicy} />
+        <Route path="/contact" component={ContactusLanding} />
+        <Route path="/" component={Home} />
+        <Route
+          path="/analytics/campaign/:campaignId"
+          component={CampaignAnalytics}
+        />
+        <Route component={ProtectedRoutes} />
+      </Switch>
+      <Footer />
+    </>
   );
 }
 

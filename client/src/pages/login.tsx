@@ -65,73 +65,46 @@ export default function LoginPage() {
     },
   });
 
-  const loginMutationOld = useMutation({
+  const loginMutation = useMutation({
     mutationFn: async (data: z.infer<typeof loginSchema>) => {
       console.log(data);
       const response = await apiRequest("POST", "/api/auth/login", data);
-      return response;
+
+      let json: any;
+      try {
+        json = await response.json();
+      } catch {
+        json = {};
+      }
+
+      if (!response.ok) {
+        throw new Error(json?.error || "Login failed. Please try again.");
+      }
+
+      return json;
     },
     onSuccess: () => {
-      // Force a full page refresh to ensure proper auth state loading
+      try {
+        sessionStorage.setItem("fromLogin", "true");
+      } catch (e) {
+        console.error("Failed to set sessionStorage:", e);
+      }
+
+      // Now redirect
       window.location.href = "/dashboard";
     },
-    onError: (error: Error) => {
-      const errorMessage = error.message.includes("401")
-        ? "Invalid username or password"
-        : error.message.includes("403")
-        ? "Account is inactive. Please contact administrator."
-        : "Login failed. Please try again.";
+    onError: (error: any) => {
+      let errorMessage = error?.message || "Login failed. Please try again.";
+
+      if (error.message.includes("401")) {
+        errorMessage = "Invalid username or password";
+      } else if (error.message.includes("403")) {
+        errorMessage = "Account is inactive. Please contact administrator.";
+      }
 
       setError(errorMessage);
     },
   });
-
-
-  const loginMutation = useMutation({
-  mutationFn: async (data: z.infer<typeof loginSchema>) => {
-    const response = await apiRequest("POST", "/api/auth/login", data);
-
-    // Always parse JSON first
-    let json: any;
-    try {
-      json = await response.json();
-    } catch {
-      json = {};
-    }
-
-    if (!response.ok) {
-      // Throw backend error message so onError gets proper string
-      throw new Error(json?.error || "Login failed. Please try again.");
-    }
-
-    return json;
-  },
-  onSuccess: () => {
-    // Redirect after successful login
-    window.location.href = "/dashboard";
-  },
-  onError: (error: any) => {
-    // Extract human-readable message
-    let errorMessage = error?.message || "Login failed. Please try again.";
-
-    // Optional: parse JSON if error.message has raw JSON string
-    if (typeof errorMessage === "string" && errorMessage.includes("{")) {
-      try {
-        const parsed = JSON.parse(errorMessage.match(/\{.*\}/)?.[0] || "{}");
-        if (parsed?.error) errorMessage = parsed.error;
-      } catch (e) {
-        console.warn("Failed to parse error JSON:", e);
-      }
-    }
-
-    // Show error to user
-    setError(errorMessage);
-  },
-});
-
-
-
-
   const onSubmit = async (data: z.infer<typeof loginSchema>) => {
     setError(null);
 
@@ -172,8 +145,6 @@ export default function LoginPage() {
 
   return (
     <>
-      <Header />
-
       <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-6">
         <div className="max-w-md w-full space-y-8 mt-[100px]">
           <div className="text-center">
@@ -357,8 +328,6 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
-
-      <Footer />
     </>
   );
 }

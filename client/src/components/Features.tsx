@@ -424,7 +424,7 @@ const Features = () => {
                     <p className="text-gray-600 mb-4">{feature.description}</p>
                     <div className="flex items-center text-green-600 font-semibold">
                       <span className="text-sm">
-                        {t("Landing.featuresSec.viewDemo")}
+                        {t("Landing.featuresSec.demo")}
                       </span>
                       <ArrowRight
                         className={`w-4 h-4 ml-2 transition-transform ${
@@ -481,7 +481,7 @@ const Features = () => {
                 <div className="mt-6 bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm text-gray-600">
-                      {t("Landing.featuresSec.campaignProgress")}
+                      {t("Landing.featuresSec.campaign_progress")}
                     </span>
                     <span className="text-sm font-semibold text-gray-900">
                       {Math.round((activeTab + 1) * 16.67)}%

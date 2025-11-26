@@ -9,7 +9,6 @@ import {
   ArrowRight,
   MessageSquare,
 } from "lucide-react";
-import ThemeToggle from "./ThemeToggle";
 import { useTranslation } from "@/lib/i18n";
 import { useQuery } from "@tanstack/react-query";
 import { AppSettings } from "@/types/types";
@@ -23,7 +22,7 @@ const Footer: React.FC = () => {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Get links from translation with proper typing
+  // Get translated links
   const productLinks = t(
     "Landing.footerSec.links.product"
   ) as unknown as string[];
@@ -40,17 +39,33 @@ const Footer: React.FC = () => {
 
   // Links structure with hrefs (hrefs remain same across languages)
   const links = {
-    company: [{ name: companyLinks[0], href: "/about" }],
+    product: [
+      { name: productLinks[0], href: "/#features" },
+      { name: productLinks[1], href: "/#how-it-works" },
+      { name: productLinks[2], href: "/#use-cases" },
+    ],
+    company: [
+      { name: companyLinks[0], href: "/about" },
+      { name: companyLinks[1], href: "/contact" },
+      { name: companyLinks[2], href: "/careers" },
+      { name: companyLinks[3], href: "/press-kit" },
+      { name: companyLinks[4], href: "/integrations" },
+    ],
     support: [
       { name: supportLinks[0], href: "#" },
       { name: supportLinks[1], href: "#" },
       { name: supportLinks[2], href: "#" },
       { name: supportLinks[3], href: "#" },
     ],
-
+    resources: [
+      { name: resourcesLinks[1], href: "/case-studies" },
+      { name: resourcesLinks[2], href: "/whatsapp-guide" },
+      { name: resourcesLinks[3], href: "/best-practices" },
+    ],
     legal: [
       { name: legalLinks[0], href: "/privacy-policy" },
       { name: legalLinks[1], href: "/terms" },
+      { name: legalLinks[2], href: "/cookie-policy" },
     ],
   };
 
@@ -90,7 +105,10 @@ const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
           {/* Brand Section */}
           <div className="lg:col-span-2">
-            <Link to="/" className="flex items-center space-x-3 mb-6">
+            <Link href="/" className="flex items-center space-x-2 sm:space-x-3">
+              {/* <div className="bg-gradient-to-r from-green-500 to-green-600 p-1.5 sm:p-2 rounded-lg sm:rounded-xl shadow-lg">
+                <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              </div> */}
               {brandSettings?.logo ? (
                 <img
                   src={brandSettings?.logo}
@@ -102,9 +120,8 @@ const Footer: React.FC = () => {
                   <MessageSquare className="h-8 w-8" />
                 </div>
               )}
-
-              <span className="text-xl font-bold">
-                {t("Landing.footerSec.brandSection.brandNames.1")}
+              <span className="text-lg sm:text-xl font-bold  text-white">
+                Whatsway
               </span>
             </Link>
             <p className="text-gray-300 mb-6 max-w-md">
@@ -142,11 +159,54 @@ const Footer: React.FC = () => {
             </div>
           </div>
 
+          {/* Product Links */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Product</h3>
+            <ul className="space-y-3">
+              {links.product.map((link, index) => (
+                <li key={index}>
+                  <a
+                    href={link.href}
+                    className="text-gray-300 hover:text-white transition-colors"
+                  >
+                    {link.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
           {/* Company Links */}
           <div>
             <h3 className="text-lg font-semibold mb-4">Company</h3>
             <ul className="space-y-3">
               {links.company.map((link, index) => (
+                <li key={index}>
+                  {link.href.startsWith("/") ? (
+                    <Link
+                      to={link.href}
+                      className="text-gray-300 hover:text-white transition-colors"
+                    >
+                      {link.name}
+                    </Link>
+                  ) : (
+                    <a
+                      href={link.href}
+                      className="text-gray-300 hover:text-white transition-colors"
+                    >
+                      {link.name}
+                    </a>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Resources Links */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Resources</h3>
+            <ul className="space-y-3">
+              {links.resources.map((link, index) => (
                 <li key={index}>
                   {link.href.startsWith("/") ? (
                     <Link
@@ -216,7 +276,12 @@ const Footer: React.FC = () => {
               >
                 {t("Landing.footerSec.bottomBar.privacyLink")}
               </Link>
-
+              <Link
+                to="/cookie-policy"
+                className="text-gray-400 hover:text-white text-sm transition-colors"
+              >
+                {t("Landing.footerSec.bottomBar.cookieLink")}
+              </Link>
               {/* <ThemeToggle /> */}
             </div>
           </div>
