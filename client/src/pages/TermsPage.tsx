@@ -7,10 +7,12 @@ export const TermsPage = () => {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   }, []);
 
+  // className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-green-50 via-white to-blue-50"
+
   return (
     <div className="min-h-screen bg-background ">
       {/* Hero Section */}
-      <section className="py-24 bg-gradient-to-br from-green-600 via-green-500 to-blue-600  text-white">
+      <section className="py-40 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-green-600 via-green-500 to-blue-600  text-white">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-6xl font-bold mb-6">Terms & Conditions</h1>
           <p className="text-xl text-white/90 max-w-3xl mx-auto">

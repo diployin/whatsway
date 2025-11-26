@@ -1218,7 +1218,7 @@ export default function Plans() {
   };
 
   return (
-    <div className="flex-1 dots-bg min-h-screen">
+    <div className="flex-1 dots-bg min-h-screen dots-bg">
       <Header title={t("plans.title")} subtitle={t("plans.subtitle")} />
 
       <main className="p-6 space-y-6">

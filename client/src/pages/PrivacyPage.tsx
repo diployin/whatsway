@@ -4,15 +4,10 @@ import Header from "@/components/Header";
 export const PrivacyPage = () => {
   return (
     <div className="min-h-screen bg-background">
-      <Header />
-
       {/* Hero Section */}
-      <section className="py-20 bg-gradient-to-br from-green-600 via-green-500 to-blue-600 t text-white">
+      <section className="py-40 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-green-600 via-green-500 to-blue-600 t text-white">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-6xl font-bold mb-6">Privacy Policy</h1>
-          <p className="text-xl text-white/90 max-w-3xl mx-auto">
-            Last Updated: November 21, 2025
-          </p>
         </div>
       </section>
 
@@ -239,8 +234,6 @@ export const PrivacyPage = () => {
           </div>
         </div>
       </section>
-
-      <Footer />
     </div>
   );
 };

@@ -104,9 +104,8 @@ export default function TeamPage() {
   const [editingMember, setEditingMember] = useState<User | null>(null);
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState(
-  user?.role == "superadmin" ? "activity" : "members"
-);
-
+    user?.role == "superadmin" ? "activity" : "members"
+  );
 
   const { t } = useTranslation();
   // Fetch team members
@@ -150,26 +149,26 @@ export default function TeamPage() {
         return apiRequest("POST", "/api/team/members", data);
       }
     },
-  
+
     onSuccess: async () => {
       queryClient.invalidateQueries({
         queryKey: ["teamMembers"], // MUST match useQuery key
       });
-  
+
       // 2️⃣ Also re-fetch activity logs
       queryClient.invalidateQueries({ queryKey: ["/api/team/activity-logs"] });
-  
+
       toast({
         title: editingMember ? "Member updated" : "Member added",
         description: `Team member has been ${
           editingMember ? "updated" : "added"
         } successfully.`,
       });
-  
+
       setShowAddDialog(false);
       setEditingMember(null);
     },
-  
+
     onError: (error: Error) => {
       toast({
         title: "Error",
@@ -178,7 +177,6 @@ export default function TeamPage() {
       });
     },
   });
-  
 
   // Delete team member mutation
   const deleteMemberMutation = useMutation({
@@ -271,47 +269,43 @@ export default function TeamPage() {
   };
 
   return (
-    <div className="container max-w-7xl mx-auto ">
+    <div className="container max-w-7xl mx-auto dots-bg ">
       {user?.role === "superadmin" ? (
         <Header
-        title="Manage Activity Logs"
-        subtitle="View and monitor team activity logs"
-      />
-
+          title="Manage Activity Logs"
+          subtitle="View and monitor team activity logs"
+        />
       ) : (
         <Header
-        title={t("team.title")}
-        subtitle={t("team.subtitle")}
-        action={{
-          label: t("team.addMember"),
-          onClick: () => handleOpenDialog(),
-        }}
-      />
+          title={t("team.title")}
+          subtitle={t("team.subtitle")}
+          action={{
+            label: t("team.addMember"),
+            onClick: () => handleOpenDialog(),
+          }}
+        />
       )}
-      
+
       <div className="px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList>
-           
-            {user?.role === 'superadmin' ? (
-  <TabsTrigger value="activity">
-    <Activity className="mr-2 h-4 w-4" />
-   {/* {t("team.Activity_Logs")} */} Activity logs
-  </TabsTrigger>
-) : (
-  <>
-    <TabsTrigger value="members">
-      <Users className="mr-2 h-4 w-4" />
-      {/* {t("team.members")} */}  Team Members
-    </TabsTrigger>
-    <TabsTrigger value="activity">
-      <Activity className="mr-2 h-4 w-4" />
-      {/* {t("team.Activity_Logs")} */} Activity logs
-    </TabsTrigger>
-  </>
-)}
-           
-           
+            {user?.role === "superadmin" ? (
+              <TabsTrigger value="activity">
+                <Activity className="mr-2 h-4 w-4" />
+                {/* {t("team.Activity_Logs")} */} Activity logs
+              </TabsTrigger>
+            ) : (
+              <>
+                <TabsTrigger value="members">
+                  <Users className="mr-2 h-4 w-4" />
+                  {/* {t("team.members")} */} Team Members
+                </TabsTrigger>
+                <TabsTrigger value="activity">
+                  <Activity className="mr-2 h-4 w-4" />
+                  {/* {t("team.Activity_Logs")} */} Activity logs
+                </TabsTrigger>
+              </>
+            )}
           </TabsList>
           <TabsContent value="members" className="mt-4 sm:mt-6">
             <Card>
@@ -865,9 +859,9 @@ function DetailsView({ details }: { details?: any }) {
           <strong>Name:</strong> {firstName} {lastName}
         </div>
         <div>
-  <strong>Permissions:</strong> {permissions?.length ? permissions.join(", ") : "No permissions"}
-</div>
-
+          <strong>Permissions:</strong>{" "}
+          {permissions?.length ? permissions.join(", ") : "No permissions"}
+        </div>
       </>
     );
   }
@@ -1000,8 +994,7 @@ const PERMISSION_GROUPS: PermissionGroup[] = [
     ],
   },
 
-
-   {
+  {
     title: "widgetBuilder",
     label: "Manage Widgets",
     permissions: [

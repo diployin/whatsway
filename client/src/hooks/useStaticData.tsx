@@ -41,14 +41,7 @@ const useStaticData = () => {
           image:
             "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop",
         },
-        {
-          title: t("Landing.header.resourcesMenuItems.3.title"),
-          path: "/api-docs",
-          description: t("Landing.header.resourcesMenuItems.0.description"),
-          icon: Code,
-          image:
-            "https://images.pexels.com/photos/1181244/pexels-photo-1181244.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop",
-        },
+
         {
           title: t("Landing.header.resourcesMenuItems.4.title"),
           path: "/best-practices",
@@ -56,14 +49,6 @@ const useStaticData = () => {
           icon: BookOpen,
           image:
             "https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop",
-        },
-        {
-          title: t("Landing.header.resourcesMenuItems.5.title"),
-          path: "/roi-calculator",
-          description: t("Landing.header.resourcesMenuItems.5.description"),
-          icon: Calculator,
-          image:
-            "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop",
         },
       ],
       aboutMenuItems: [
@@ -91,14 +76,14 @@ const useStaticData = () => {
           image:
             "https://images.pexels.com/photos/1181675/pexels-photo-1181675.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop",
         },
-        {
-          title: t("Landing.header.aboutMenuItems.3.title"),
-          path: "/integrations",
-          description: t("Landing.header.aboutMenuItems.3.description"),
-          icon: Zap,
-          image:
-            "https://images.pexels.com/photos/267350/pexels-photo-267350.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop",
-        },
+        // {
+        //   title: t("Landing.header.aboutMenuItems.3.title"),
+        //   path: "/integrations",
+        //   description: t("Landing.header.aboutMenuItems.3.description"),
+        //   icon: Zap,
+        //   image:
+        //     "https://images.pexels.com/photos/267350/pexels-photo-267350.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop",
+        // },
       ],
     },
   };

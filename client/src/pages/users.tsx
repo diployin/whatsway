@@ -608,7 +608,7 @@ const User: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dots-bg">
       <Header title={t("users.title")} subtitle={t("users.subtitle")} />
 
       <div className="p-4 md:p-6">

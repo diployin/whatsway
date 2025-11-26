@@ -40,7 +40,7 @@ const CTA: React.FC = () => {
 
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
             <Link
-              href="/login"
+              href="/contact"
               className="bg-white text-green-600 px-8 py-4 rounded-xl font-bold hover:bg-gray-100 transition-all transform hover:scale-105 shadow-xl flex items-center group text-lg"
             >
               {t("Landing.ctaSec.buttons.startTrial")}

@@ -89,11 +89,14 @@ const Footer: React.FC = () => {
                   <MessageSquare className="h-8 w-8" />
                 </div>
               )}
-              <span className="text-lg sm:text-xl font-bold  text-white">
-                Whatsway
-              </span>
+              <div>
+                <h1 className="text-xl font-bold text-white">Whatsway</h1>
+                <span className="text-xs mb-2">
+                  Building amazing experiences
+                </span>
+              </div>
             </Link>
-            <p className="text-gray-300 mb-6 max-w-md">
+            <p className="text-gray-300 mt-2 mb-10 max-w-md ">
               {t("Landing.footerSec.brandSection.description")}
             </p>
             <div className="flex space-x-4">

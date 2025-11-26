@@ -858,7 +858,7 @@ export default function AllSubscriptionsPage() {
 
   // ------------------- RENDER -------------------
   return (
-    <>
+    <div className="min-h-screen bg-gray-50 dots-bg">
       <Header
         title={t("subscriptions.title")}
         subtitle={t("subscriptions.subtitle")}
@@ -1176,6 +1176,6 @@ export default function AllSubscriptionsPage() {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
