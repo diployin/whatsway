@@ -57,19 +57,44 @@ export const getChannelsByUserId = asyncHandler(async (req: Request, res: Respon
 
 
 
-export const getActiveChannel = asyncHandler(async (req: Request, res: Response) => {
-  const userId =  req.user.id ; 
+// export const getActiveChannel = asyncHandler(async (req: Request, res: Response) => {
+//   const userId =  req.user.id ; 
 
-  if(!userId){
+//   if(!userId){
+//     throw new AppError(404, 'No active channel found');
+//   }
+  
+//   const channel = await storage.getActiveChannelByUserId(userId);
+//   if (!channel) {
+//     throw new AppError(404, 'No active channel found');
+//   }
+//   res.json(channel);
+// });
+
+
+export const getActiveChannel = asyncHandler(async (req: Request, res: Response) => {
+  const user = req.user;
+
+  if (!user) {
+    throw new AppError(401, 'User not found');
+  }
+
+  // 🟩 Team member? use parent user (createdBy)
+  const userId = user.role === "team" ? user.createdBy : user.id;
+
+  if (!userId) {
     throw new AppError(404, 'No active channel found');
   }
-  
+
   const channel = await storage.getActiveChannelByUserId(userId);
+
   if (!channel) {
     throw new AppError(404, 'No active channel found');
   }
+
   res.json(channel);
 });
+
 
 export const createChannel = asyncHandler(async (req: Request, res: Response) => {
   const validatedChannel = insertChannelSchema.parse(req.body);

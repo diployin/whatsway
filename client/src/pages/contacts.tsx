@@ -372,7 +372,7 @@ export default function Contacts() {
     },
   });
 
-  console.log(activeChannel?.id);
+  console.log("checkk active channelllll",activeChannel?.id);
 
   // First, get the active channel
   // const { data: groupsData } = useQuery({
@@ -422,6 +422,9 @@ export default function Contacts() {
   //   enabled: !!activeChannel,
   // });
 
+
+  const userIdNew =  user?.role === "team" ? user?.createdBy : user?.id
+
   const { data: contactsResponse, isLoading } = useQuery<ContactsResponse>({
     queryKey: [
       "/api/contacts",
@@ -431,7 +434,7 @@ export default function Contacts() {
       selectedGroup,
       selectedStatus,
       searchQuery,
-      user?.id,
+      userIdNew,
     ],
 
     queryFn: async () => {
@@ -444,14 +447,14 @@ export default function Contacts() {
         limit,
         selectedGroup !== "all" && selectedGroup ? selectedGroup : undefined,
         selectedStatus !== "all" && selectedStatus ? selectedStatus : undefined,
-        user.id // ✅ ALWAYS sent
+        userIdNew// ✅ ALWAYS sent
       );
 
       return (await response.json()) as ContactsResponse;
     },
 
     placeholderData: (prev) => prev,
-    enabled: !!activeChannel?.id && !!user?.id, // both required
+    // enabled: !!activeChannel?.id, // both required
   });
 
   const contacts = contactsResponse?.data || [];

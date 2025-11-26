@@ -36,12 +36,14 @@ export function ChannelSwitcher() {
 
   const userId = user?.id;
 
+  const userIdNew =  user?.role === "team" ? user?.createdBy : user?.id
+
   // Fetch channels with pagination
   const { data: response, isLoading } = useQuery<ChannelsResponse>({
     queryKey: ["/api/channels", page],
     queryFn: async () => {
       const res = await apiRequest("POST", "/api/channels/userid", {
-        userId:userId,
+        userId:userIdNew,
         page,
         limit,
       });

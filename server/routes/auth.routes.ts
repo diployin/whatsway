@@ -108,6 +108,7 @@ if (user.isEmailVerified === false) {
       role: user.role,
       permissions: resolveUserPermissions(user.role, user.permissions as any),
       avatar: user.avatar,
+      createdBy: user.createdBy || "",
     };
 
     // Remove password before sending back

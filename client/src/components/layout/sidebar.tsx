@@ -480,21 +480,43 @@ export default function Sidebar() {
     // SUPERADMIN sees everything
     if (role === "superadmin") return true;
 
-    // TEAM role must ONLY use permissions — ignore allowedRoles & alwaysVisible
-    if (role === "team") {
-      if (!item.requiredPrefix) return false;
-      if (!user.permissions) return false;
+    // // TEAM role must ONLY use permissions — ignore allowedRoles & alwaysVisible
+    // if (role === "team") {
+    //   if (!item.requiredPrefix) return false;
+    //   if (!user.permissions) return false;
 
-      const perms = Array.isArray(user.permissions)
-        ? user.permissions
-        : Object.keys(user.permissions);
+    //   const perms = Array.isArray(user.permissions)
+    //     ? user.permissions
+    //     : Object.keys(user.permissions);
 
-      const normalize = (str: string) => str.replace(".", ":");
+    //   const normalize = (str: string) => str.replace(".", ":");
 
-      return perms.some((perm) =>
-        perm.startsWith(normalize(item.requiredPrefix!))
-      );
-    }
+    //   return perms.some((perm) =>
+    //     perm.startsWith(normalize(item.requiredPrefix!))
+    //   );
+    // }
+
+
+    // TEAM role must ONLY use permissions — but allow alwaysVisible items
+if (role === "team") {
+  // allow items with no requiredPrefix if they are alwaysVisible
+  if (!item.requiredPrefix) {
+    return item.alwaysVisible === true;
+  }
+
+  if (!user.permissions) return false;
+
+  const perms = Array.isArray(user.permissions)
+    ? user.permissions
+    : Object.keys(user.permissions);
+
+  const normalize = (str: string) => str.replace(".", ":");
+
+  return perms.some((perm) =>
+    perm.startsWith(normalize(item.requiredPrefix!))
+  );
+}
+
 
     // ---- ADMIN / USER LOGIC ----
     if (item.allowedRoles && !item.allowedRoles.includes(role)) {
@@ -659,7 +681,7 @@ export default function Sidebar() {
             </button>
           </div>
 
-          {isAdmin ? (
+          {isAdmin || user?.role == 'team' ? (
             <div className="px-6 py-3 border-b border-gray-100">
               <ChannelSwitcher />
             </div>
