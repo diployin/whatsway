@@ -999,6 +999,29 @@ const PERMISSION_GROUPS: PermissionGroup[] = [
       { key: "logs:view", label: "Logs View" },
     ],
   },
+
+
+   {
+    title: "widgets",
+    label: "Manage Widgets",
+    permissions: [
+      { key: "widgets:view", label: "View" },
+      { key: "widgets:create", label: "Create" },
+      { key: "widgets:edit", label: "Edit" },
+      { key: "widgets:delete", label: "Delete" },
+    ],
+  },
+
+  {
+    title: "supporttickets",
+    label: "Manage Support Tickets",
+    permissions: [
+      { key: "supporttickets:view", label: "View" },
+      { key: "supporttickets:create", label: "Create" },
+      { key: "supporttickets:edit", label: "Edit" },
+      { key: "supporttickets:delete", label: "Delete" },
+    ],
+  },
 ];
 
 // Convert array from API → object for form
