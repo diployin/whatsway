@@ -567,15 +567,18 @@ export default function Contacts() {
     },
   });
 
-  const { data: availableTemplates = [] } = useQuery({
+  console.log("activeChannel?.id" , activeChannel?.id)
+
+  const { data: tempData } = useQuery({
     queryKey: ["/api/templates", activeChannel?.id],
     queryFn: async () => {
-      const response = await fetch("/api/templates");
+      const response = await apiRequest('GET',`/api/templates?channelId=${activeChannel?.id}`);
       return await response.json();
     },
     enabled: !!activeChannel,
   });
 
+ const availableTemplates = tempData?.data || []; 
   // const createContactMutation = useMutation({
   //   mutationFn: async (data: InsertContact) => {
   //     const response = await fetch(
