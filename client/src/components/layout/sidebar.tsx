@@ -18,8 +18,7 @@ import {
   X,
   Bell,
   CheckCircle,
-  Star,
-  User,
+  Star,User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ChannelSwitcher } from "@/components/channel-switcher";
@@ -44,6 +43,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
+
 
 type Role = "superadmin" | "admin" | "user" | "team";
 
@@ -436,6 +437,7 @@ export default function Sidebar() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const isSuper = user?.role === "superadmin";
   const isAdmin = user?.role === "admin";
+  const { toast } = useToast();
 
   const navItems = getNavItems(user?.role || "");
 
@@ -636,7 +638,40 @@ export default function Sidebar() {
   });
 
   // Extract dynamic active status
-  const isAIActive = aiData?.isActive ?? false;
+  const aiSettings = aiData?.length ? aiData[0] : null;
+const isAIActive = aiSettings?.isActive ?? false;
+
+
+const handleToggleAI = async () => {
+  if (!aiSettings) return;
+
+  const updatedValue = !isAIActive;
+
+  try {
+    const res = await fetch(`/api/ai-settings/${aiSettings.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isActive: updatedValue }), // update only isActive
+    });
+
+    if (!res.ok) throw new Error();
+
+    toast({
+      title: "Updated",
+      description: "AI status updated successfully.",
+    });
+
+    refetch();
+  } catch {
+    toast({
+      title: "Error",
+      description: "Unable to update AI status.",
+      variant: "destructive",
+    });
+  }
+};
+
+  
 
   return (
     <>
@@ -663,19 +698,14 @@ export default function Sidebar() {
                 <img
                   src={brandSettings?.logo}
                   alt="Logo"
-                  className="h-8 w-8 object-contain"
+                  className="h-12 w-12 object-contain"
                 />
               ) : (
                 <div className="bg-green-800 text-primary-foreground rounded-full p-3">
                   <MessageSquare className="h-8 w-8" />
                 </div>
               )}
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">Whatsway</h1>
-                <span className="text-xs mb-2">
-                  Building amazing experiences
-                </span>
-              </div>
+              <h1 className="text-xl font-bold text-gray-900">Whatsway</h1>
             </div>
             <button
               onClick={toggle}
@@ -717,7 +747,7 @@ export default function Sidebar() {
                   )}
           </nav>
 
-          <div className="w-[180px] px-6 py-3 border-t border-gray-100">
+          <div className="w-[180px] px-4 py-2 border-t border-gray-100">
             <LanguageSelector />
           </div>
           {/* {isAdmin ? (
@@ -726,14 +756,20 @@ export default function Sidebar() {
           )} */}
 
           {isAdmin && (
-            <div className="px-6 py-3">
+            <div className="px-3 py-2">
               <AdminCreditBox />
             </div>
           )}
-
+{isAdmin && !aiSettings && (
+  <div className="p-4">
+    <div className="text-center text-red-500 text-sm font-medium">
+      Please add your AI setting data first, then you can edit this.
+    </div>
+  </div>
+)}
           {/* Smaller Toggle Button with Green Color */}
           {isAdmin && (
-            <div className="p-4 border-t border-gray-100">
+            <div className="p-2 border-t border-gray-100">
               <div className="flex items-center space-x-3 p-3 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg">
                 {/* Icon Box */}
                 <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
@@ -746,27 +782,52 @@ export default function Sidebar() {
                     {t("common.aiAssistant")}
                   </p>
                   <div className="flex items-center space-x-2">
-                    {/* Status Dot */}
-                    <div
-                      className={`w-2 h-2 rounded-full transition-all ${
-                        isAIActive
-                          ? "bg-green-500 animate-pulse"
-                          : "bg-gray-400"
-                      }`}
-                    ></div>
+                    
+<div className="flex items-center space-x-3">
+  {/* Status Dot */}
+  <div
+    className={`w-2 h-2 rounded-full transition-all ${
+      isAIActive ? "bg-green-500 animate-pulse" : "bg-gray-400"
+    }`}
+  ></div>
 
-                    {/* Status Text */}
-                    <span className="text-xs text-gray-600">
-                      {isAIActive ? t("common.active") : t("common.inactive")}
-                    </span>
+  {/* Status Text */}
+  <span className="text-xs text-gray-600">
+    {isAIActive ? t("common.active") : t("common.inactive")}
+  </span>
+
+  {/* Toggle Button */}
+  <button
+    onClick={handleToggleAI}
+    disabled={!aiSettings}
+    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors 
+      ${
+        !aiSettings
+          ? "bg-gray-300 cursor-not-allowed"
+          : isAIActive
+          ? "bg-green-600"
+          : "bg-gray-200"
+      }
+    `}
+  >
+    <span
+      className={`inline-block h-3 w-3 transform rounded-full bg-white transition 
+        ${isAIActive ? "translate-x-5" : "translate-x-1"}
+      `}
+    />
+  </button>
+</div>
+
+
                   </div>
                 </div>
               </div>
             </div>
           )}
 
+
           {/* User Profile */}
-          <div className="p-4 border-t border-gray-100">
+          <div className="p-2 border-t border-gray-100">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="w-full flex items-center space-x-3 hover:bg-gray-50 rounded-lg p-2 transition-colors">
