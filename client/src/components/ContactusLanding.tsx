@@ -40,27 +40,27 @@ const ContactusLanding = () => {
     {
       icon: Mail,
       title: "Email Us",
-      details: "support@wpsaas.com",
+      details: "support@whatsway.com",
       description: "Send us an email anytime",
     },
-    {
-      icon: Phone,
-      title: "Call Us",
-      details: "+1 (555) 123-4567",
-      description: "Mon-Fri from 8am to 5pm",
-    },
+    // {
+    //   icon: Phone,
+    //   title: "Call Us",
+    //   details: "+1 (555) 123-4567",
+    //   description: "Mon-Fri from 8am to 5pm",
+    // },
     {
       icon: MapPin,
       title: "Visit Us",
-      details: "123 Business Ave, Suite 100",
-      description: "San Francisco, CA 94105",
+      details: "Noida",
+      description: "India",
     },
-    {
-      icon: Clock,
-      title: "Business Hours",
-      details: "Mon-Fri: 8am-5pm PST",
-      description: "Weekend support available",
-    },
+    // {
+    //   icon: Clock,
+    //   title: "Business Hours",
+    //   details: "Mon-Fri: 8am-5pm PST",
+    //   description: "Weekend support available",
+    // },
   ];
 
   const supportOptions = [

@@ -75,9 +75,6 @@ const Footer: React.FC = () => {
           {/* Brand Section */}
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center space-x-2 sm:space-x-3">
-              {/* <div className="bg-gradient-to-r from-green-500 to-green-600 p-1.5 sm:p-2 rounded-lg sm:rounded-xl shadow-lg">
-                <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-              </div> */}
               {brandSettings?.logo ? (
                 <img
                   src={brandSettings?.logo}

@@ -18,7 +18,8 @@ import {
   X,
   Bell,
   CheckCircle,
-  Star,User
+  Star,
+  User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ChannelSwitcher } from "@/components/channel-switcher";
@@ -44,7 +45,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
-
 
 type Role = "superadmin" | "admin" | "user" | "team";
 
@@ -639,39 +639,44 @@ export default function Sidebar() {
 
   // Extract dynamic active status
   const aiSettings = aiData?.length ? aiData[0] : null;
-const isAIActive = aiSettings?.isActive ?? false;
+  const isAIActive = aiSettings?.isActive ?? false;
 
+  const handleToggleAI = async () => {
+    // if (!aiSettings) return;
+    if (!aiSettings) {
+      toast({
+        title: "No settings found",
+        description: "Please add AI settings.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-const handleToggleAI = async () => {
-  if (!aiSettings) return;
+    const updatedValue = !isAIActive;
 
-  const updatedValue = !isAIActive;
+    try {
+      const res = await fetch(`/api/ai-settings/${aiSettings.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: updatedValue }), // update only isActive
+      });
 
-  try {
-    const res = await fetch(`/api/ai-settings/${aiSettings.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ isActive: updatedValue }), // update only isActive
-    });
+      if (!res.ok) throw new Error();
 
-    if (!res.ok) throw new Error();
+      toast({
+        title: "Updated",
+        description: "AI status updated successfully.",
+      });
 
-    toast({
-      title: "Updated",
-      description: "AI status updated successfully.",
-    });
-
-    refetch();
-  } catch {
-    toast({
-      title: "Error",
-      description: "Unable to update AI status.",
-      variant: "destructive",
-    });
-  }
-};
-
-  
+      refetch();
+    } catch {
+      toast({
+        title: "Error",
+        description: "Unable to update AI status.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <>
@@ -690,7 +695,7 @@ const handleToggleAI = async () => {
       >
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-            <div
+            {/* <div
               onClick={() => setLocation("/")}
               className="flex items-center space-x-3"
             >
@@ -706,7 +711,30 @@ const handleToggleAI = async () => {
                 </div>
               )}
               <h1 className="text-xl font-bold text-gray-900">Whatsway</h1>
-            </div>
+            </div> */}
+
+            <Link
+              href="/dashboard"
+              className="flex items-center space-x-2 sm:space-x-3"
+            >
+              {brandSettings?.logo ? (
+                <img
+                  src={brandSettings?.logo}
+                  alt="Logo"
+                  className="h-8 w-8 object-contain"
+                />
+              ) : (
+                <div className="bg-green-800 text-primary-foreground rounded-full p-3">
+                  <MessageSquare className="h-8 w-8" />
+                </div>
+              )}
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">Whatsway</h1>
+                <span className="text-xs mb-2">
+                  Building amazing experiences
+                </span>
+              </div>
+            </Link>
             <button
               onClick={toggle}
               className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
@@ -760,13 +788,13 @@ const handleToggleAI = async () => {
               <AdminCreditBox />
             </div>
           )}
-{isAdmin && !aiSettings && (
-  <div className="p-4">
-    <div className="text-center text-red-500 text-sm font-medium">
-      Please add your AI setting data first, then you can edit this.
-    </div>
-  </div>
-)}
+          {/* {isAdmin && !aiSettings && (
+            <div className="p-4">
+              <div className="text-center text-red-500 text-sm font-medium">
+                Please add your AI setting data first, then you can edit this.
+              </div>
+            </div>
+          )} */}
           {/* Smaller Toggle Button with Green Color */}
           {isAdmin && (
             <div className="p-2 border-t border-gray-100">
@@ -782,25 +810,26 @@ const handleToggleAI = async () => {
                     {t("common.aiAssistant")}
                   </p>
                   <div className="flex items-center space-x-2">
-                    
-<div className="flex items-center space-x-3">
-  {/* Status Dot */}
-  <div
-    className={`w-2 h-2 rounded-full transition-all ${
-      isAIActive ? "bg-green-500 animate-pulse" : "bg-gray-400"
-    }`}
-  ></div>
+                    <div className="flex items-center space-x-3">
+                      {/* Status Dot */}
+                      <div
+                        className={`w-2 h-2 rounded-full transition-all ${
+                          isAIActive
+                            ? "bg-green-500 animate-pulse"
+                            : "bg-gray-400"
+                        }`}
+                      ></div>
 
-  {/* Status Text */}
-  <span className="text-xs text-gray-600">
-    {isAIActive ? t("common.active") : t("common.inactive")}
-  </span>
+                      {/* Status Text */}
+                      <span className="text-xs text-gray-600">
+                        {isAIActive ? t("common.active") : t("common.inactive")}
+                      </span>
 
-  {/* Toggle Button */}
-  <button
-    onClick={handleToggleAI}
-    disabled={!aiSettings}
-    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors 
+                      {/* Toggle Button */}
+                      <button
+                        onClick={handleToggleAI}
+                        // disabled={!aiSettings}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors 
       ${
         !aiSettings
           ? "bg-gray-300 cursor-not-allowed"
@@ -809,22 +838,19 @@ const handleToggleAI = async () => {
           : "bg-gray-200"
       }
     `}
-  >
-    <span
-      className={`inline-block h-3 w-3 transform rounded-full bg-white transition 
+                      >
+                        <span
+                          className={`inline-block h-3 w-3 transform rounded-full bg-white transition 
         ${isAIActive ? "translate-x-5" : "translate-x-1"}
       `}
-    />
-  </button>
-</div>
-
-
+                        />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           )}
-
 
           {/* User Profile */}
           <div className="p-2 border-t border-gray-100">

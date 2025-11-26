@@ -146,7 +146,7 @@ export default function LoginPage() {
   return (
     <>
       <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-6">
-        <div className="max-w-md w-full space-y-8 mt-[100px]">
+        <div className="max-w-md w-full space-y-8 mt-[50px]">
           <div className="text-center">
             <div className="flex justify-center mb-4">
               {brandSettings?.logo ? (
@@ -290,19 +290,53 @@ export default function LoginPage() {
                     </p>
                   </div>
 
-                  <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-600 text-center">
-                      <strong>Default Admin Credentials:</strong>
-                    </p>
-                    <p className="text-sm text-gray-600 text-center mt-1">
-                      Username:{" "}
-                      <code className="bg-gray-200 px-1 rounded">demouser</code>
-                    </p>
-                    <p className="text-sm text-gray-600 text-center">
-                      Password:{" "}
-                      <code className="bg-gray-200 px-1 rounded">
-                        Demo@12345
-                      </code>
+                  <div className="mt-6 space-y-4">
+                    {/* Admin Credentials */}
+                    <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
+                      <p className="text-sm font-semibold text-purple-900 text-center mb-2">
+                        🔐 Admin Demo Credentials
+                      </p>
+                      <div className="space-y-1">
+                        <p className="text-sm text-gray-700 text-center">
+                          Username:{" "}
+                          <code className="bg-white px-2 py-1 rounded border border-purple-200 font-mono">
+                            demoadmin
+                          </code>
+                        </p>
+                        <p className="text-sm text-gray-700 text-center">
+                          Password:{" "}
+                          <code className="bg-white px-2 py-1 rounded border border-purple-200 font-mono">
+                            Admin@12345
+                          </code>
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* User Credentials */}
+                    <div className="p-4 bg-gradient-to-r from-green-50 to-teal-50 rounded-lg border border-green-200">
+                      <p className="text-sm font-semibold text-green-900 text-center mb-2">
+                        👤 User Demo Credentials
+                      </p>
+                      <div className="space-y-1">
+                        <p className="text-sm text-gray-700 text-center">
+                          Username:{" "}
+                          <code className="bg-white px-2 py-1 rounded border border-green-200 font-mono">
+                            demouser
+                          </code>
+                        </p>
+                        <p className="text-sm text-gray-700 text-center">
+                          Password:{" "}
+                          <code className="bg-white px-2 py-1 rounded border border-green-200 font-mono">
+                            User@12345
+                          </code>
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Optional: Info note */}
+                    <p className="text-xs text-gray-500 text-center italic">
+                      💡 Choose admin for full access or user for limited
+                      permissions
                     </p>
                   </div>
                 </>

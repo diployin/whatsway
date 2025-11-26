@@ -362,7 +362,6 @@ const AboutUs: React.FC = () => {
           </button>
         </div>
       </section>
-      <Footer />
     </div>
   );
 };
