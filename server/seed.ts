@@ -12,6 +12,7 @@ interface User {
   role: "admin" | "user" | "superadmin";
   status: "active" | "inactive";
   permissions: string[];
+  isEmailVerified?: boolean;
 }
 
 async function seed() {
@@ -43,6 +44,7 @@ async function seed() {
           role,
           status,
           permissions,
+          isEmailVerified: true
         })
         .returning();
 
@@ -210,38 +212,41 @@ async function seed() {
       lastName: "Admin",
       role: "superadmin",
       status: "active",
+      isEmailVerified: true,
       permissions: DefaultsuperAdminPermissions,
     });
 
-    // Create Admin
-    const adminUser = await createUserIfNotExists({
-      username: "whatsway",
+
+     const demoAdmin = await createUserIfNotExists({
+      username: "demoadmin",
       password: "Admin@123",
-      email: "admin@whatsway.com",
-      firstName: "Admin",
-      lastName: "User",
-      role: "admin",
+      email: "demoadmin@whatsway.com",
+      firstName: "Demo",
+      lastName: "Admin",
+      role: "superadmin",
       status: "active",
       permissions: defaultPermissions,
+      isEmailVerified: true,
     });
 
     // Create Demo User
     const demoUser = await createUserIfNotExists({
       username: "demouser",
       password: "Demo@12345",
-      email: "demo@whatsway.com",
+      email: "demouser@whatsway.com",
       firstName: "Demo",
       lastName: "User",
-      role: "user",
+      role: "admin",
       status: "active",
+      isEmailVerified: true,
       permissions: ['contacts:view', 'campaigns:view', 'templates:view', 'analytics:view', 'inbox:view'],
     });
 
     console.log("\n=== Default Users Created ===");
-    console.log("Admin:");
-    console.log("  Username: whatsway");
+    console.log("Demo Admin:");
+    console.log("  Username: demoadmin");
     console.log("  Password: Admin@123");
-    console.log("Demo:");
+    console.log("Demo User:");
     console.log("  Username: demouser");
     console.log("  Password: Demo@12345");
 
