@@ -1002,19 +1002,19 @@ const PERMISSION_GROUPS: PermissionGroup[] = [
 
 
    {
-    title: "widgets",
+    title: "widgetBuilder",
     label: "Manage Widgets",
     permissions: [
-      { key: "widgets:view", label: "View" },
-      { key: "widgets:create", label: "Create" },
-      { key: "widgets:edit", label: "Edit" },
-      { key: "widgets:delete", label: "Delete" },
+      { key: "widgetbuilder:view", label: "View" },
+      { key: "widgetbuilder:create", label: "Create" },
+      { key: "widgetbuilder:edit", label: "Edit" },
+      { key: "widgetbuilder:delete", label: "Delete" },
     ],
   },
 
   {
     title: "supporttickets",
-    label: "Manage Support Tickets",
+    label: "Manage Tickets Support",
     permissions: [
       { key: "supporttickets:view", label: "View" },
       { key: "supporttickets:create", label: "Create" },

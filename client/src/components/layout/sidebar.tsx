@@ -307,17 +307,10 @@ function getNavItems(role: string): NavItem[] {
         allowedRoles: ["team"],
       },
       {
-        href: "/support-tickets",
-        icon: Bell,
-        labelKey: "tickets-support",
-        requiredPrefix: "supporttickets.",
-        color: "text-blue-400",
-        allowedRoles: ["team"],
-      },
-      {
         href: "/user-support-tickets",
         icon: MdOutlineSupportAgent,
         labelKey: "Tickets Support",
+        requiredPrefix: "supporttickets.",
         color: "text-blue-400",
         allowedRoles: ["team"],
       },
