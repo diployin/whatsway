@@ -17,7 +17,7 @@ import Footer from "@/components/Footer";
 const AboutUs: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
+      {/* <Header /> */}
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-green-600 via-green-500 to-blue-600 text-white py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">

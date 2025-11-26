@@ -21,7 +21,7 @@ const Home = () => {
   });
   return (
     <>
-      <Header />
+      {/* <Header /> */}
       <Hero />
       <Features />
       <HowItWorks />
@@ -31,7 +31,7 @@ const Home = () => {
         <Pricing />
       )}
       <CTA />
-      <Footer />
+      {/* <Footer /> */}
     </>
   );
 };

@@ -1,11 +1,14 @@
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
+import { useEffect } from "react";
 
 export const TermsPage = () => {
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, []);
+
   return (
     <div className="min-h-screen bg-background ">
-      <Header />
-
       {/* Hero Section */}
       <section className="py-24 bg-gradient-to-br from-green-600 via-green-500 to-blue-600  text-white">
         <div className="container mx-auto px-4 text-center">
@@ -190,24 +193,10 @@ export const TermsPage = () => {
                   periodically.
                 </p>
               </div>
-
-              {/* Contact Section */}
-              {/* <div className="bg-gradient-to-br from-green-600 via-green-500 to-blue-600  p-8 rounded-2xl text-white">
-                <h2 className="text-3xl font-bold mb-4">Contact Information</h2>
-                <p className="text-lg leading-relaxed mb-4">
-                  If you have questions regarding these Terms, contact us:
-                </p>
-                <div className="space-y-2">
-                  <p>
-                  </p>
-                </div>
-              </div> */}
             </div>
           </div>
         </div>
       </section>
-
-      <Footer />
     </div>
   );
 };
