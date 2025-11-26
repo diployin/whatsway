@@ -292,7 +292,7 @@ export default function LoginPage() {
 
                   <div className="mt-6 p-4 bg-gray-50 rounded-lg">
                     <p className="text-sm text-gray-600 text-center">
-                      <strong>Default Admin Credentials:</strong>
+                      <strong>Default User Credentials:</strong>
                     </p>
                     <p className="text-sm text-gray-600 text-center mt-1">
                       Username:{" "}
@@ -302,6 +302,21 @@ export default function LoginPage() {
                       Password:{" "}
                       <code className="bg-gray-200 px-1 rounded">
                         Demo@12345
+                      </code>
+                    </p>
+
+
+                     <p className="text-sm text-gray-600 text-center">
+                      <strong>Default Admin Credentials:</strong>
+                    </p>
+                    <p className="text-sm text-gray-600 text-center mt-1">
+                      Username:{" "}
+                      <code className="bg-gray-200 px-1 rounded">demoadmin</code>
+                    </p>
+                    <p className="text-sm text-gray-600 text-center">
+                      Password:{" "}
+                      <code className="bg-gray-200 px-1 rounded">
+                        Admin@12345
                       </code>
                     </p>
                   </div>

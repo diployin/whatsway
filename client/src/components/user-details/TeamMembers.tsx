@@ -4,6 +4,8 @@ import { useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { EmptyState } from "../EmptyState";
 import { StateDisplay } from "../StateDisplay";
+import { isDemoUser, maskValue } from "@/utils/maskUtils";
+import { useAuth } from "@/contexts/auth-context";
 
 interface TeamMember {
   id: string;
@@ -28,6 +30,7 @@ interface TeamMembersProps {
 export default function TeamMembers({ userId }: TeamMembersProps) {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+  const { user } = useAuth();
 
   const { data, isLoading, isError, error } = useQuery<{
     data: TeamMember[];
@@ -155,7 +158,11 @@ export default function TeamMembers({ userId }: TeamMembersProps) {
                   </div>
                   {member.firstName} {member.lastName}
                 </td>
-                <td className="py-3 px-4 border-b">{member.email}</td>
+                
+                <td className="py-3 px-4 border-b">
+  {isDemoUser(user?.username) ? maskValue(member.email) : member.email}
+</td>
+
                 <td className="py-3 px-4 border-b flex items-center gap-1">
                   <Shield className="w-3 h-3 text-gray-500" />
                   {member.role}

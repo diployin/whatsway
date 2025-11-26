@@ -4,6 +4,8 @@ import { useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { EmptyState } from "../EmptyState";
 import { StateDisplay } from "../StateDisplay";
+import { isDemoUser, maskValue } from "@/utils/maskUtils";
+import { useAuth } from "@/contexts/auth-context";
 
 interface Contact {
   id: string;
@@ -29,6 +31,8 @@ interface ContactsProps {
 export default function Contacts({ userId }: ContactsProps) {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+
+  const { user } = useAuth();
 
   const { data, isLoading, isError, error } = useQuery<{
     data: Contact[];
@@ -110,8 +114,18 @@ export default function Contacts({ userId }: ContactsProps) {
                 className="hover:bg-gray-50 transition-colors text-sm text-gray-700"
               >
                 <td className="py-3 px-4 border-b">{contact.name}</td>
-                <td className="py-3 px-4 border-b">{contact.phone}</td>
-                <td className="py-3 px-4 border-b">{contact.email}</td>
+                <td className="py-3 px-4 border-b">
+                  {isDemoUser(user?.username)
+                    ? maskValue(contact.phone)
+                    : contact.phone}
+                </td>
+
+                <td className="py-3 px-4 border-b">
+                  {isDemoUser(user?.username)
+                    ? maskValue(contact.email)
+                    : contact.email}
+                </td>
+
                 <td className="py-3 px-4 border-b">
                   {contact.status === "active" ? (
                     <span className="px-2 py-1 rounded text-xs bg-green-100 text-green-700">

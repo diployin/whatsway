@@ -121,11 +121,11 @@ export default function Subscriptions({ userId }: SubscriptionsProps) {
               <td className="py-3 px-4 border-b">
                 {subscription.billingCycle === "monthly" ? (
                   <span className="text-sm font-medium">
-                    ${subscription.planData.monthlyPrice}
+                    {subscription.planData.monthlyPrice}
                   </span>
                 ) : (
                   <span className="text-sm font-medium">
-                    ${subscription.planData.annualPrice}
+                    {subscription.planData.annualPrice}
                   </span>
                 )}
               </td>

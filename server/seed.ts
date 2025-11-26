@@ -246,6 +246,7 @@ async function seed() {
     console.log("Demo Admin:");
     console.log("  Username: demoadmin");
     console.log("  Password: Admin@123");
+    
     console.log("Demo User:");
     console.log("  Username: demouser");
     console.log("  Password: Demo@12345");

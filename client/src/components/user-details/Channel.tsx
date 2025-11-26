@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { EmptyState } from "../EmptyState";
 import { StateDisplay } from "../StateDisplay";
+import { isDemoUser, maskValue } from "@/utils/maskUtils";
+import { useAuth } from "@/contexts/auth-context";
 
 interface Channel {
   id: string;
@@ -32,6 +34,8 @@ interface ChannelsProps {
 export default function Channels({ userId }: ChannelsProps) {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+
+  const { user } = useAuth();
 
   const {
     data: response,
@@ -130,7 +134,7 @@ export default function Channels({ userId }: ChannelsProps) {
                 className="hover:bg-gray-50 transition-colors text-sm text-gray-700"
               >
                 <td className="py-3 px-4 border-b">{channel.name}</td>
-                <td className="py-3 px-4 border-b">{channel.phoneNumber}</td>
+                <td className="py-3 px-4 border-b">{isDemoUser(user?.username) ? maskValue(channel.phoneNumber) : channel.phoneNumber}</td>
                 <td className="py-3 px-4 border-b">
                   {channel.isActive ? (
                     <span className="px-2 py-1 rounded text-xs bg-green-100 text-green-700">

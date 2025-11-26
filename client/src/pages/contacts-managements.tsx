@@ -69,6 +69,7 @@ import {
 import { useAuth } from "@/contexts/auth-context";
 import { Switch } from "@/components/ui/switch";
 import { apiRequest } from "@/lib/queryClient";
+import {isDemoUser, maskValue} from "@/utils/maskUtils";
 
 interface ContactsResponse {
   data: Contact[];
@@ -724,7 +725,7 @@ export default function ContactsManagements() {
               <Button
                 variant="outline"
                 onClick={handleExportAllContacts}
-                disabled={user?.username === "demouser"}
+                disabled={user?.username === "demouser" || user?.username === "demoadmin"}
               >
                 <Upload className="w-4 h-4 mr-2" />
                 {t("contacts.exportAllContacts")}
@@ -857,7 +858,7 @@ export default function ContactsManagements() {
                                 </div>
                                 {contact.email && (
                                   <div className="text-sm text-gray-500">
-                                    {user?.username === "demouser"
+                                    {user?.username === "demouser" || user?.username === "demoadmin"
                                       ? contact.email
                                           .split("@")[0]
                                           .slice(0, -2)
@@ -872,7 +873,7 @@ export default function ContactsManagements() {
                             </div>
                           </td>
                           <td className="px-4 xl:px-6 py-4 text-sm text-gray-900">
-                            {user?.username === "demouser"
+                            {user?.username === "demouser" || user?.username === "demoadmin"
                               ? contact.phone.slice(0, -4).replace(/\d/g, "*") +
                                 contact.phone.slice(-4)
                               : contact.phone}
