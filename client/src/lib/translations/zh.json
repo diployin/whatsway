@@ -2157,5 +2157,1100 @@
       "details": "详情",
       "features": "功能"
     }
+  },
+  "aboutUs": {
+    "hero": {
+      "badge": "关于 Whatsway",
+      "title": "重塑 WhatsApp",
+      "titleHighlight": "企业营销方式",
+      "subtitle": "通过强大且可扩展的 WhatsApp 营销自动化，帮助全球企业获取真正的业务成果"
+    },
+    "mission": {
+      "badge": "我们的使命",
+      "title": "让 WhatsApp 营销",
+      "titleHighlight": "对所有人都触手可及",
+      "description1": "我们相信，无论规模大小，每一家企业都应该拥有强大的营销工具。我们的使命是通过提供直观、实惠且具备企业级功能的平台，让 WhatsApp 营销大众化。",
+      "description2": "借助 Whatsway，企业可以在全球最受欢迎的消息平台上与客户建立联系，将互动、销售和忠诚度提升到全新水平。",
+      "stats": {
+        "businesses": "10K+",
+        "businessesLabel": "活跃企业",
+        "messages": "5M+",
+        "messagesLabel": "已发送消息"
+      },
+      "card": {
+        "title": "行业领袖的共同选择",
+        "description": "加入数以千计正在通过 Whatsway 实现增长的企业",
+        "count": "+10,000 家企业"
+      }
+    },
+    "story": {
+      "badge": "我们的故事",
+      "title": "由营销人打造，",
+      "titleHighlight": "为营销人服务",
+      "description1": "Whatsway 源于一个简单的困扰：现有的 WhatsApp 营销工具要么价格昂贵，要么过于复杂，要么缺少关键功能。作为营销从业者，我们知道一定有更好的解决方案。",
+      "description2": "我们于 2023 年开始打造 Whatsway，目标清晰：打造市场上最强大、最易用、且价格亲民的 WhatsApp 营销平台。如今，我们已自豪地为全球超过 10,000 家企业提供服务。",
+      "description3": "我们的团队融合了营销自动化、软件开发和客户成功等领域的专业能力，不断创新，为用户持续创造价值。",
+      "globalPresence": "全球布局",
+      "globalPresenceDesc": "为 50+ 个国家的企业提供支持",
+      "journey": {
+        "title": "我们的征程",
+        "milestones": [
+          {
+            "year": "2023",
+            "label": "公司成立"
+          },
+          {
+            "year": "2024",
+            "label": "10K+ 活跃用户"
+          },
+          {
+            "year": "2025",
+            "label": "行业认可"
+          }
+        ]
+      }
+    },
+    "values": {
+      "badge": "我们的价值观",
+      "title": "驱动我们的力量",
+      "titleHighlight": "每一天",
+      "list": [
+        {
+          "title": "客户至上",
+          "description": "我们做出的每一个决策都始于客户。你的成功就是我们的成功。"
+        },
+        {
+          "title": "持续创新",
+          "description": "我们不断突破边界，提供行业领先的功能与能力。"
+        },
+        {
+          "title": "信任与安全",
+          "description": "你的数据安全与隐私至关重要。我们始终坚持企业级安全标准。"
+        },
+        {
+          "title": "7×24 小时支持",
+          "description": "我们的专属支持团队随时为你的成功保驾护航。"
+        }
+      ],
+      "achievements": [
+        {
+          "title": "98% 客户满意度",
+          "subtitle": "评分 4.9/5 星"
+        },
+        {
+          "title": "300% 平均投资回报率",
+          "subtitle": "来自我们的客户"
+        },
+        {
+          "title": "50+ 个国家",
+          "subtitle": "全球业务覆盖"
+        }
+      ]
+    },
+    "cta": {
+      "title": "准备好彻底升级你的",
+      "titleHighlight": "WhatsApp 营销了吗？",
+      "subtitle": "加入数千家已经通过 Whatsway 实现增长的企业",
+      "button": "开始免费试用"
+    }
+  },
+  "contactUs": {
+    "hero": {
+      "title": "联系我们",
+      "titleHighlight": "",
+      "subtitle": "有关于WPSaaS的问题吗？我们随时帮助你在WhatsApp营销中取得成功。"
+    },
+    "form": {
+      "heading": "发送消息给我们",
+      "fields": {
+        "name": "全名",
+        "email": "电子邮箱",
+        "company": "公司",
+        "subject": "主题",
+        "message": "留言",
+        "required": "*"
+      },
+      "placeholders": {
+        "selectSubject": "请选择一个主题",
+        "message": "告诉我们我们如何帮助你……"
+      },
+      "subjects": {
+        "general": "一般咨询",
+        "support": "技术支持",
+        "sales": "销售问题",
+        "partnership": "合作伙伴",
+        "feedback": "反馈"
+      },
+      "button": "发送消息"
+    },
+    "contactInfo": {
+      "heading": "联系方式",
+      "list": [
+        {
+          "title": "发邮件给我们",
+          "details": "support@whatsway.com",
+          "description": "随时给我们发送邮件"
+        },
+        {
+          "title": "来访我们",
+          "details": "诺伊达",
+          "description": "印度"
+        }
+      ]
+    },
+    "faq": {
+      "heading": "常见问题",
+      "subtitle": "WPSaaS 的常见问题快捷解答",
+      "questions": [
+        {
+          "q": "WPSaaS多快可以用上？",
+          "a": "你可以5分钟内上手。只需注册，连接你的Meta WhatsApp Business API，就能开始营销。"
+        },
+        {
+          "q": "你们提供WhatsApp Business API吗？",
+          "a": "不提供，你需要自己准备Meta WhatsApp Business API，才能完全掌控你的数据和费用。"
+        },
+        {
+          "q": "你们提供哪种支持？",
+          "a": "我们提供7x24邮箱支持、工作时间在线聊天、丰富的文档和视频教程。"
+        },
+        {
+          "q": "我能迁移自别的WhatsApp营销平台吗？",
+          "a": "可以！我们免费帮助你迁移联系人、模板和活动。"
+        },
+        {
+          "q": "有免费试用吗？",
+          "a": "有，我们Starter套餐支持1000联系人内免费使用。不需要信用卡。"
+        }
+      ]
+    }
+  },
+  "careers": {
+    "hero": {
+      "title": "加入我们的",
+      "titleHighlight": "卓越团队",
+      "subtitle": "帮助我们革新WhatsApp营销，打造商务沟通的未来。我们正在寻找有激情的你加入我们的成长之队。",
+      "buttons": {
+        "viewPositions": "查看职位",
+        "learnCulture": "了解企业文化"
+      }
+    },
+    "stats": [
+      {
+        "number": "50+",
+        "label": "团队成员"
+      },
+      {
+        "number": "15+",
+        "label": "国家"
+      },
+      {
+        "number": "10,000+",
+        "label": "满意客户"
+      },
+      {
+        "number": "$10M+",
+        "label": "创收"
+      }
+    ],
+    "positions": {
+      "heading": "开放职位",
+      "subtitle": "寻找你的下一个机会",
+      "departments": [
+        {
+          "id": "all",
+          "name": "所有职位"
+        },
+        {
+          "id": "engineering",
+          "name": "工程"
+        },
+        {
+          "id": "product",
+          "name": "产品"
+        },
+        {
+          "id": "marketing",
+          "name": "市场"
+        },
+        {
+          "id": "sales",
+          "name": "销售"
+        },
+        {
+          "id": "support",
+          "name": "支持"
+        }
+      ],
+      "applyButton": "立即申请",
+      "noResults": {
+        "title": "暂无职位",
+        "description": "尝试选择不同部门或稍后再来"
+      }
+    },
+    "benefits": {
+      "heading": "为什么选择WPSaaS？",
+      "subtitle": "我们提供有竞争力的福利和优秀的工作环境",
+      "list": [
+        {
+          "title": "健康与福利",
+          "description": "全面健康、牙科和视力保险，加健康补贴"
+        },
+        {
+          "title": "灵活工作",
+          "description": "远程优先文化，弹性工时，无限假期"
+        },
+        {
+          "title": "成长与学习",
+          "description": "每年$2,000学习预算+会议机会"
+        },
+        {
+          "title": "股权与归属",
+          "description": "有竞争力的股权和员工购股计划"
+        },
+        {
+          "title": "远程文化",
+          "description": "可全球远程办公，季度团队团建"
+        },
+        {
+          "title": "设备配置",
+          "description": "顶级笔记本、显示器和家庭办公室补贴"
+        }
+      ]
+    },
+    "values": {
+      "heading": "我们的价值观",
+      "subtitle": "驱动我们一切的原则",
+      "list": [
+        {
+          "title": "客户至上",
+          "description": "客户是我们一切工作的核心"
+        },
+        {
+          "title": "持续创新",
+          "description": "我们不断突破与拥抱新技术"
+        },
+        {
+          "title": "透明",
+          "description": "我们彼此坦诚沟通"
+        },
+        {
+          "title": "成长思维",
+          "description": "从失败中学习，不断成长"
+        }
+      ]
+    },
+    "cta": {
+      "heading": "没有看到合适的职位？",
+      "subtitle": "我们一直在寻找人才。发送简历，我们会在有合适机会时联系你。",
+      "button": "发送简历"
+    }
+  },
+  "caseStudies": {
+    "hero": {
+      "title": "成功",
+      "titleHighlight": "案例",
+      "subtitle": "了解各行业企业如何通过WPSaaS WhatsApp营销平台取得卓越成果。"
+    },
+    "cta": {
+      "buttonText": "查看完整案例",
+      "modalButtons": {
+        "startStory": "开启你的成功故事",
+        "share": "分享"
+      }
+    },
+    "modal": {
+      "challenge": "挑战",
+      "solution": "解决方案",
+      "keyResults": "关键成果",
+      "primaryResult": "主要成果"
+    },
+    "stats": {
+      "heading": "覆盖各行业的效果",
+      "list": [
+        {
+          "number": "300%",
+          "label": "平均投资回报提升"
+        },
+        {
+          "number": "85%",
+          "label": "客户参与度"
+        },
+        {
+          "number": "60%",
+          "label": "成本降低"
+        },
+        {
+          "number": "24/7",
+          "label": "自动化支持"
+        }
+      ]
+    },
+    "ctaBanner": {
+      "heading": "准备好书写你的成功故事了吗？",
+      "subtitle": "加入数千家已在 Whatsway 成长的企业",
+      "button": "开始免费试用"
+    }
+  },
+  "whatsappGuide": {
+    "hero": {
+      "title": "WhatsApp 营销",
+      "titleHighlight": "完整指南",
+      "subtitle": "关于 WhatsApp Business API、营销策略和最佳实践的一切，帮助你发展业务。"
+    },
+    "sections": [
+      {
+        "id": "getting-started",
+        "title": "入门"
+      },
+      {
+        "id": "setup",
+        "title": "API 设置"
+      },
+      {
+        "id": "campaigns",
+        "title": "创建营销活动"
+      },
+      {
+        "id": "automation",
+        "title": "自动化"
+      },
+      {
+        "id": "best-practices",
+        "title": "最佳实践"
+      },
+      {
+        "id": "compliance",
+        "title": "合规"
+      }
+    ],
+    "sidebarTitle": "指南部分",
+    "navigation": {
+      "previous": "上一页",
+      "next": "下一页"
+    },
+    "content": {
+      "getting-started": {
+        "title": "WhatsApp 营销入门",
+        "items": [
+          {
+            "title": "什么是 WhatsApp Business API？",
+            "text": "WhatsApp Business API 是一个强大的平台，允许企业大规模与客户沟通。与常规的 WhatsApp Business 应用程序不同，API 支持自动消息、集成和高级功能。"
+          },
+          {
+            "title": "为什么选择 WPSaaS？",
+            "text": "WPSaaS 为 WhatsApp Business API 提供用户友好的界面，让您无需技术复杂性即可创建营销活动、自动化响应和跟踪性能。"
+          },
+          {
+            "title": "前提条件",
+            "text": "在开始之前，您需要：来自 Meta 的经过验证的 WhatsApp Business API 账户，商业电话号码，对目标受众的基本了解"
+          }
+        ]
+      },
+      "setup": {
+        "title": "设置您的 WhatsApp Business API",
+        "items": [
+          {
+            "title": "步骤 1：获取 Meta API 凭证",
+            "text": "访问 Meta Business 平台并创建 WhatsApp Business API 账户。您将收到 API 凭证，包括电话号码 ID、访问令牌和 webhook URL。"
+          },
+          {
+            "title": "步骤 2：连接到 WPSaaS",
+            "text": "在您的 WPSaaS 仪表板中，导航到设置 > API 配置。输入您的 Meta API 凭证并测试连接以确保一切正常工作。"
+          },
+          {
+            "title": "步骤 3：验证您的企业",
+            "text": "完成 Meta 的企业验证流程。这通常涉及提供商业文件，可能需要 1-3 个工作日才能完成。"
+          }
+        ]
+      },
+      "campaigns": {
+        "title": "创建有效的 WhatsApp 营销活动",
+        "items": [
+          {
+            "title": "营销活动类型",
+            "text": "WPSaaS 支持各种营销活动类型：用于公告的广播消息，用于培养潜在客户的滴灌营销活动，基于用户操作的触发消息，用于销售和优惠的促销活动"
+          },
+          {
+            "title": "消息模板",
+            "text": "在您的 Meta Business Manager 中创建模板并与 Whatsway 同步。模板可以包括文本、图片、视频和互动按钮。"
+          },
+          {
+            "title": "受众细分",
+            "text": "根据人口统计、行为、购买历史和参与度级别对受众进行细分。这确保您的消息相关并提高参与率。"
+          }
+        ]
+      },
+      "automation": {
+        "title": "WhatsApp 营销自动化",
+        "items": [
+          {
+            "title": "工作流自动化",
+            "text": "创建响应客户操作的自动化工作流。示例包括新订阅者的欢迎序列、放弃购物车恢复、预约提醒和后续消息。"
+          },
+          {
+            "title": "聊天机器人集成",
+            "text": "部署 AI 驱动的聊天机器人来处理常见查询、筛选潜在客户并提供全天候客户支持。聊天机器人可以在需要时无缝转接给人工客服。"
+          },
+          {
+            "title": "基于触发器的消息",
+            "text": "根据客户行为、时间延迟或外部事件设置触发器。这确保与您的受众进行及时且相关的沟通。"
+          }
+        ]
+      },
+      "best-practices": {
+        "title": "WhatsApp 营销最佳实践",
+        "items": [
+          {
+            "title": "尊重用户隐私",
+            "text": "在向用户发送消息之前，始终获得明确同意。提供明确的退出选项并尊重用户偏好。切勿购买联系人列表或发送未经请求的消息。"
+          },
+          {
+            "title": "时间和频率",
+            "text": "根据受众的时区在适当的时间发送消息。避免过度发送消息 - 质量胜于数量是关键。监控参与率并相应调整频率。"
+          },
+          {
+            "title": "个性化",
+            "text": "使用客户数据来个性化消息。包括姓名、购买历史和相关优惠。个性化消息的参与率明显更高。"
+          }
+        ]
+      },
+      "compliance": {
+        "title": "WhatsApp Business 政策合规",
+        "items": [
+          {
+            "title": "消息类别",
+            "text": "WhatsApp 将消息分为：实用（账户更新、订单确认）、身份验证（登录代码、安全警报）、营销（促销、公告）。每个类别都有特定的规则和定价。"
+          },
+          {
+            "title": "模板审批流程",
+            "text": "所有消息模板必须在使用前获得 Meta 批准。审批流程通常需要 24-48 小时。确保模板遵循 WhatsApp 的内容指南。"
+          },
+          {
+            "title": "质量评级",
+            "text": "WhatsApp 通过用户反馈和参与度指标监控您的消息质量。保持高质量评级以避免限制并确保可传递性。"
+          }
+        ]
+      }
+    },
+    "quickTips": {
+      "heading": "成功快捷提示",
+      "subtitle": "最大化 WhatsApp 营销效果的关键提示",
+      "tips": [
+        {
+          "title": "有机建立受众",
+          "tip": "注重质量而非数量。有参与度的订阅者比大而无效的列表更有价值。"
+        },
+        {
+          "title": "打造吸引力消息",
+          "tip": "保持消息简洁、有价值且面向行动。包含清晰的行动号召。"
+        },
+        {
+          "title": "监控效果",
+          "tip": "跟踪发送率、阅读率和回复率。使用数据优化你的营销活动。"
+        },
+        {
+          "title": "明智自动化",
+          "tip": "自动化日常任务，但在复杂互动中保持人性化。"
+        },
+        {
+          "title": "保持合规",
+          "tip": "始终遵循 WhatsApp 政策和当地法规。合规保护你的业务。"
+        },
+        {
+          "title": "测试与迭代",
+          "tip": "持续测试不同方法，并根据结果优化。"
+        }
+      ]
+    },
+    "cta": {
+      "heading": "准备开始你的 WhatsApp 营销之旅了吗？",
+      "subtitle": "用 WPSaaS 强大的平台将本指南付诸实践",
+      "button": "开始免费试用"
+    }
+  },
+  "bestPractices": {
+    "hero": {
+      "title": "WhatsApp 营销",
+      "titleHighlight": "最佳实践",
+      "subtitle": "经过验证的策略和技巧，最大化您的 WhatsApp 营销成功率。向行业专家和表现最佳的活动学习。"
+    },
+    "categories": [
+      {
+        "id": "messaging",
+        "name": "消息发送"
+      },
+      {
+        "id": "automation",
+        "name": "自动化"
+      },
+      {
+        "id": "engagement",
+        "name": "参与度"
+      },
+      {
+        "id": "compliance",
+        "name": "合规"
+      },
+      {
+        "id": "timing",
+        "name": "时机"
+      },
+      {
+        "id": "optimization",
+        "name": "优化"
+      }
+    ],
+    "implementationTips": "实施建议：",
+    "expectedImpact": "预期效果",
+    "expectedImpactDesc": "实施此做法通常会显著提升您的 WhatsApp 营销表现。",
+    "quickTips": {
+      "heading": "快速成功提示",
+      "subtitle": "WhatsApp 营销成功的关键提醒",
+      "tips": [
+        {
+          "title": "质量重于数量",
+          "tip": "关注活跃订阅者，而非庞大名单"
+        },
+        {
+          "title": "时机至关重要",
+          "tip": "在您的目标受众最活跃时发送消息"
+        },
+        {
+          "title": "个性化",
+          "tip": "利用客户数据创造相关体验"
+        },
+        {
+          "title": "保持合规",
+          "tip": "始终遵守 WhatsApp 政策和当地法规"
+        },
+        {
+          "title": "促进互动",
+          "tip": "打造双向对话，提升参与度"
+        },
+        {
+          "title": "测试并优化",
+          "tip": "持续根据数据表现进行改进"
+        }
+      ]
+    },
+    "warning": {
+      "heading": "重要合规提醒",
+      "description": "在向客户发送 WhatsApp 消息前，务必确保获得明确同意。违反 WhatsApp 商业政策可能导致账号限制或封禁。",
+      "points": [
+        "切勿购买联系人名单",
+        "始终提供退订选项",
+        "遵守 24 小时消息窗口规定",
+        "推广内容使用获批消息模板"
+      ]
+    },
+    "cta": {
+      "heading": "准备好实施这些最佳实践了吗？",
+      "subtitle": "立即开始使用 Whatsway 应用这些经过验证的策略",
+      "button": "开始免费试用"
+    },
+    "practices": {
+      "messaging": [
+        {
+          "title": "保持消息简洁明了",
+          "description": "WhatsApp 用户偏好简短、直接的消息。尽量控制在 160 字符以内。",
+          "tips": [
+            "对多个项目使用要点符号",
+            "包含明确的行动号召",
+            "避免使用行话和复杂语言",
+            "适度有效地使用表情符号"
+          ],
+          "impact": "阅读率提升 40%"
+        },
+        {
+          "title": "个性化您的消息",
+          "description": "利用客户数据创建与受众产生共鸣的个性化体验。",
+          "tips": [
+            "在问候中包含客户姓名",
+            "参考过去的购买或互动",
+            "针对不同受众细分精准发送",
+            "根据用户行为使用动态内容"
+          ],
+          "impact": "参与度提升 60%"
+        },
+        {
+          "title": "有效使用多媒体",
+          "description": "图片、视频和文档能显著增强消息的影响力。",
+          "tips": [
+            "针对移动端优化图片",
+            "视频时长控制在 30 秒以内",
+            "使用高质量视觉内容",
+            "为无障碍添加字幕"
+          ],
+          "impact": "转化率提升 35%"
+        }
+      ],
+      "automation": [
+        {
+          "title": "设置欢迎序列",
+          "description": "为新订阅者创建自动欢迎消息，建立期望。",
+          "tips": [
+            "欢迎消息应在 5 分钟内发送",
+            "向订阅者说明可期待的内容",
+            "提供退订说明",
+            "附上有用的资源或链接"
+          ],
+          "impact": "取消订阅率降低 25%"
+        },
+        {
+          "title": "实施智能触发器",
+          "description": "利用行为触发器在最佳时机发送相关消息。",
+          "tips": [
+            "购物车遗弃提醒",
+            "购买后跟进",
+            "生日及周年纪念消息",
+            "针对非活跃用户的重新参与活动"
+          ],
+          "impact": "收入增长 45%"
+        },
+        {
+          "title": "创建滴灌式活动",
+          "description": "通过一系列自动消息培养潜在客户。",
+          "tips": [
+            "消息间隔 2-3 天",
+            "每条消息都提供价值",
+            "加入社交证明和客户推荐",
+            "以明确的行动号召收尾"
+          ],
+          "impact": "潜在客户转化提升 50%"
+        }
+      ],
+      "engagement": [
+        {
+          "title": "鼓励双向对话",
+          "description": "使您的 WhatsApp 形象具备互动性，建立更牢固的关系。",
+          "tips": [
+            "在消息中提问",
+            "快速响应客户咨询",
+            "使用投票和调查",
+            "分享用户生成的内容"
+          ],
+          "impact": "客户忠诚度提高 30%"
+        },
+        {
+          "title": "提供卓越的客户支持",
+          "description": "使用 WhatsApp 作为客户服务渠道，快速解决问题。",
+          "tips": [
+            "设置常见问题自动回复",
+            "培训支持团队 WhatsApp 礼仪",
+            "使用快速回复提升响应速度",
+            "将复杂问题升级至电话或电邮"
+          ],
+          "impact": "客户满意度提升 55%"
+        },
+        {
+          "title": "分享有价值的内容",
+          "description": "提供教育性、娱乐性或解决问题的内容给受众。",
+          "tips": [
+            "分享行业洞见和技巧",
+            "提供独家优惠和预览",
+            "发送有用的教程和指南",
+            "策划相关的新闻和更新"
+          ],
+          "impact": "品牌信任提升 40%"
+        }
+      ],
+      "compliance": [
+        {
+          "title": "获取适当同意",
+          "description": "添加联系人到 WhatsApp 列表前，务必获得明确许可。",
+          "tips": [
+            "采用双重选择加入流程",
+            "清晰说明用户将接收的内容",
+            "提供简单的退订选项",
+            "保留同意记录"
+          ],
+          "impact": "垃圾邮件投诉减少 80%"
+        },
+        {
+          "title": "遵守 WhatsApp 商业政策",
+          "description": "遵守 WhatsApp 服务条款和商业政策。",
+          "tips": [
+            "使用已批准的消息模板",
+            "尊重24小时消息窗口",
+            "未经同意不发送促销内容",
+            "定期监控质量评级"
+          ],
+          "impact": "防止账户受限"
+        },
+        {
+          "title": "维护数据隐私",
+          "description": "保护客户数据，遵守隐私法规。",
+          "tips": [
+            "实施数据加密",
+            "限制客户信息访问",
+            "定期审计数据使用情况",
+            "提供数据删除选项"
+          ],
+          "impact": "建立客户信任"
+        }
+      ],
+      "timing": [
+        {
+          "title": "在最佳时间发送消息",
+          "description": "选择受众最活跃时发送消息。",
+          "tips": [
+            "分析受众时区",
+            "测试不同发送时段",
+            "避免清晨和深夜发送",
+            "考虑当地节假日和活动"
+          ],
+          "impact": "打开率提升 25%"
+        },
+        {
+          "title": "遵守发送频率限制",
+          "description": "避免频繁发送消息，造成受众疲劳。",
+          "tips": [
+            "每周最多发送 2-3 条消息",
+            "合理间隔促销信息",
+            "监控退订率",
+            "允许用户设置接收频率偏好"
+          ],
+          "impact": "退订率降低 35%"
+        },
+        {
+          "title": "规划季节性活动",
+          "description": "根据季节趋势和事件调整消息策略。",
+          "tips": [
+            "创建节日专属活动",
+            "规划返校促销",
+            "利用当地活动和节庆",
+            "准备年终销售信息"
+          ],
+          "impact": "季节性销售提升 60%"
+        }
+      ],
+      "optimization": [
+        {
+          "title": "进行 A/B 测试",
+          "description": "不断测试不同消息版本，优化效果。",
+          "tips": [
+            "测试主题和开头内容",
+            "尝试不同的行动号召",
+            "实验消息长度",
+            "测试发送时间和频率"
+          ],
+          "impact": "性能提升 30%"
+        },
+        {
+          "title": "监控关键指标",
+          "description": "追踪关键指标，衡量并优化 WhatsApp 营销。",
+          "tips": [
+            "监控送达率和阅读率",
+            "跟踪点击率",
+            "测量转化率",
+            "分析客户生命周期价值"
+          ],
+          "impact": "支持数据驱动决策"
+        },
+        {
+          "title": "细分您的受众",
+          "description": "将受众划分成不同群体，实现精准营销。",
+          "tips": [
+            "按人口统计细分",
+            "按购买行为分组",
+            "基于参与度创建细分",
+            "使用地理位置进行细分"
+          ],
+          "impact": "提升相关性 45%"
+        }
+      ]
+    }
+  },
+  "privacy_policy": {
+    "hero": {
+      "title": "隐私政策"
+    },
+    "intro": {
+      "text": "在 StyleHub，我们致力于保护您的隐私。本政策说明当您访问我们的网站并进行购买时，我们如何收集、使用和保护您的个人信息。"
+    },
+    "sections": {
+      "informationWeCollect": {
+        "title": "1. 我们收集的信息",
+        "paragraphs": {
+          "intro": "我们会收集您直接提供给我们的信息：",
+          "personalIdentifiers": {
+            "label": "个人标识信息：",
+            "text": "当您下订单或创建账户时，我们会收集您的姓名、收货地址、电子邮箱地址和电话号码。"
+          },
+          "paymentInformation": {
+            "label": "支付信息：",
+            "text": "信用卡/借记卡详情或其他支付信息。付款由我们的支付服务提供商（如 Stripe、PayPal）安全处理，我们不会在服务器上存储完整的卡片信息。"
+          },
+          "orderHistory": {
+            "label": "订单历史：",
+            "text": "您购买产品的记录。"
+          },
+          "communication": {
+            "label": "沟通内容：",
+            "text": "您发送给我们的任何沟通信息，包括客服和支持请求。"
+          },
+          "autoIntro": "此外，当您访问我们的网站时，我们还会自动收集某些信息：",
+          "technicalData": {
+            "label": "技术数据：",
+            "text": "IP 地址、浏览器类型、设备信息，以及您与我们网站的互动（例如访问的页面），这些信息通过 Cookie 等类似技术收集。"
+          }
+        }
+      },
+      "howWeUseInfo": {
+        "title": "2. 我们如何使用您的信息",
+        "list": [
+          "处理并完成您的订单",
+          "提供发票、收据和订单确认信息",
+          "回复咨询并提供客户支持",
+          "分析网站使用情况并改进我们的商店",
+          "用于营销目的（仅在您同意的情况下）。您可以随时选择退出。"
+        ]
+      },
+      "sharingInfo": {
+        "title": "3. 我们如何共享您的信息",
+        "intro": "我们不会出售您的个人信息。我们只在有限的情况下共享这些信息：",
+        "list": [
+          {
+            "label": "服务提供商：",
+            "text": "物流公司、支付处理方、电子邮件平台等。"
+          },
+          {
+            "label": "法律义务：",
+            "text": "在法律要求或法律程序需要的情况下。"
+          }
+        ]
+      },
+      "cookies": {
+        "title": "4. Cookie",
+        "text": "我们使用 Cookie 来记住偏好设置、分析流量并提升您的购物体验。您可以在浏览器设置中禁用 Cookie，但这样可能会导致某些网站功能无法正常工作。"
+      },
+      "dataRetention": {
+        "title": "5. 数据保留",
+        "text": "我们仅在完成收集目的所必需的时间内保留您的信息，包括符合法律、会计或合规报告方面的要求。"
+      },
+      "yourRights": {
+        "title": "6. 您的权利",
+        "intro": "根据您所在的地区，您可能享有以下权利：",
+        "list": [
+          "访问并更正您的个人信息",
+          "请求删除您的数据",
+          "随时退订营销电子邮件",
+          "以可携带的格式请求获取您的信息"
+        ],
+        "contact": "如需行使这些权利，请通过以下方式联系我们："
+      },
+      "dataSecurity": {
+        "title": "7. 数据安全",
+        "text": "我们采用符合行业标准的安全措施来保护您的数据。但是，任何通过互联网传输的方法都无法保证 100% 安全。"
+      },
+      "changes": {
+        "title": "8. 本政策的变更",
+        "text": "我们可能会不时更新本政策。更新内容将显示在本页面，并附带修改后的“最后更新”日期。"
+      }
+    }
+  },
+  "terms": {
+    "hero": {
+      "title": "条款与条件",
+      "lastUpdated": "最后更新：2025年1月1日"
+    },
+    "intro": {
+      "text": "在使用 StyleHub 网站和服务之前，请仔细阅读这些条款与条件。访问或使用我们的平台即表示您同意受这些条款的约束。"
+    },
+    "sections": {
+      "generalConditions": {
+        "title": "1. 一般条款",
+        "text": "我们保留在任何时间、以任何理由拒绝为任何人提供服务的权利。您理解您的内容（不包括支付信息）可能会未经加密传输，并根据技术要求进行调整。"
+      },
+      "accountCreation": {
+        "title": "2. 账户创建与安全",
+        "text": "您可能需要创建账户才能访问某些功能。您有责任维护账户和密码的机密性。您必须达到所在地区的法定成年年龄才能使用本网站。"
+      },
+      "productsServices": {
+        "title": "3. 产品与服务",
+        "items": [
+          "我们可能会限制向任何个人、地区或司法管辖区销售产品。",
+          "我们尽力准确显示产品图片和颜色。",
+          "所有价格如有变动，恕不另行通知。"
+        ]
+      },
+      "billingOrders": {
+        "title": "4. 账单与订单信息",
+        "text": "您同意为所有交易提供完整且准确的购买及账户信息。我们保留拒绝或取消任何订单的权利。"
+      },
+      "thirdPartyLinks": {
+        "title": "5. 第三方链接",
+        "text": "我们不对通过平台链接访问的第三方内容、网站或服务承担责任。"
+      },
+      "userComments": {
+        "title": "6. 用户评论",
+        "text": "您向我们提供的任何评论或内容均可能不受限制地使用。我们没有义务保密或向您支付报酬。"
+      },
+      "prohibitedUses": {
+        "title": "7. 禁止使用",
+        "items": [
+          "从事非法活动",
+          "违反适用法律和法规",
+          "侵犯我们的知识产权或他人的权利",
+          "进行滥用、有害或歧视性行为"
+        ]
+      },
+      "disclaimer": {
+        "title": "8. 免责声明与责任限制",
+        "text": "我们不保证服务不中断、安全或无错误。您同意自行承担使用本服务的风险。所有服务均按“现状”提供，不作任何保证。"
+      },
+      "indemnification": {
+        "title": "9. 赔偿",
+        "text": "您同意赔偿并使 StyleHub 及其员工、合作伙伴免于因您违反本条款而引起的任何索赔。"
+      },
+      "severability": {
+        "title": "10. 可分割性",
+        "text": "如果本条款中任何规定被视为不可执行，其余规定仍然有效并可执行。"
+      },
+      "termination": {
+        "title": "11. 终止",
+        "text": "除非任何一方终止，否则本条款将持续有效。终止前产生的义务在终止后仍然适用。"
+      },
+      "governingLaw": {
+        "title": "12. 适用法律",
+        "text": "本条款受印度法律管辖。"
+      },
+      "changes": {
+        "title": "13. 条款变更",
+        "text": "我们可随时更新本条款，并在此页面发布变更。您有责任定期查看这些条款。"
+      }
+    }
+  },
+  "cookiePolicy": {
+    "hero": {
+      "title": "Cookie 政策",
+      "lastUpdated": "2025年1月15日"
+    },
+    "sections": {
+      "whatAreCookies": {
+        "title": "什么是 Cookies",
+        "paragraphs": [
+          "Cookies 是当您访问我们的网站时存储在您设备上的小型文本文件。它们通过记住您的偏好并了解您如何使用我们的服务，帮助我们为您提供更好的体验。",
+          "本 Cookie 政策解释了什么是 Cookies，我们如何使用它们，我们使用哪些类型的 Cookies，以及您如何管理您的 Cookie 偏好。"
+        ]
+      },
+      "howWeUseCookies": {
+        "title": "我们如何使用 Cookies",
+        "intro": "我们将 Cookies 用于多个目的：",
+        "list": [
+          "确保我们的网站正常运行",
+          "记住您的登录状态和偏好",
+          "分析网站流量和使用模式",
+          "改进我们的服务和用户体验",
+          "提供个性化内容和功能",
+          "衡量营销活动效果"
+        ]
+      },
+      "typesOfCookies": {
+        "title": "我们使用的 Cookie 类型",
+        "essential": {
+          "title": "必要的 Cookies",
+          "text": "这些 Cookies 对网站正常运行至关重要。它们启用基本功能，例如安全性、网络管理和可访问性。您无法禁用这些 Cookies。",
+          "examples": "示例：会话 Cookies、身份验证 Cookies、负载均衡 Cookies"
+        },
+        "performance": {
+          "title": "性能 Cookies",
+          "text": "这些 Cookies 收集访客如何使用我们网站的信息，例如访问最多的页面以及用户是否收到错误消息。这有助于我们改善网站性能。",
+          "examples": "示例：Google Analytics、页面加载时间跟踪、错误报告"
+        },
+        "functional": {
+          "title": "功能性 Cookies",
+          "text": "这些 Cookies 允许网站记住您做出的选择，并提供更加个性化的功能。它们可以由我们设置，也可以由我们使用的第三方服务设置。",
+          "examples": "示例：语言偏好、主题设置、表单数据"
+        },
+        "marketing": {
+          "title": "营销 Cookies",
+          "text": "这些 Cookies 用于跨网站跟踪访客，以显示相关广告并衡量营销活动的有效性。",
+          "examples": "示例：Facebook Pixel、Google Ads、再营销 Cookies"
+        }
+      },
+      "thirdPartyCookies": {
+        "title": "第三方 Cookies",
+        "intro": "我们可能使用会在您设备上设置 Cookies 的第三方服务，包括：",
+        "list": [
+          "Google Analytics：用于网站分析和性能监测",
+          "Intercom：用于客户支持和在线聊天",
+          "Stripe：用于支付处理和防欺诈",
+          "Facebook：用于社交媒体集成和广告"
+        ],
+        "outro": "这些第三方有自己的隐私政策和 Cookie 政策。我们建议您查看这些政策以了解它们如何使用 Cookies。"
+      },
+      "cookieDuration": {
+        "title": "Cookie 持续时间",
+        "intro": "Cookies 可以是会话 Cookies 或持久性 Cookies：",
+        "list": [
+          "会话 Cookies：这些是临时 Cookies，在您关闭浏览器时删除",
+          "持久性 Cookies：这些 Cookies 保留在您的设备上，直到过期或您手动删除"
+        ],
+        "extra": "持久性 Cookies 的持续时间取决于其用途，通常介于 30 天到 2 年之间。"
+      },
+      "managingCookies": {
+        "title": "管理您的 Cookie 偏好",
+        "intro": "您有多种方式管理 Cookies：",
+        "browserSettings": {
+          "title": "浏览器设置",
+          "text": "大多数浏览器允许您通过设置控制 Cookies。您可以：",
+          "list": [
+            "屏蔽所有 Cookies",
+            "屏蔽第三方 Cookies",
+            "删除现有 Cookies",
+            "设置在发送 Cookies 时通知"
+          ]
+        },
+        "consentManager": {
+          "title": "Cookie 同意管理器",
+          "text": "首次访问我们的网站时，您会看到一个 Cookie 同意横幅，允许您接受或拒绝不同类型的 Cookies。您可以随时通过点击页脚中的“Cookie 设置”链接更改偏好。"
+        },
+        "optOutLinks": {
+          "title": "退出链接",
+          "intro": "您可以选择退出特定的第三方 Cookies：",
+          "links": [
+            {
+              "label": "Google Analytics：",
+              "text": "退出 Google Analytics",
+              "href": "https://tools.google.com/dlpage/gaoptout"
+            },
+            {
+              "label": "Facebook：",
+              "text": "Facebook 广告偏好设置",
+              "href": "https://www.facebook.com/settings?tab=ads"
+            }
+          ]
+        }
+      },
+      "impactDisabling": {
+        "title": "禁用 Cookies 的影响",
+        "intro": "尽管您可以禁用 Cookies，但请注意，这可能会影响您在我们网站上的体验：",
+        "list": [
+          "某些功能可能无法正常运行",
+          "您可能需要更频繁地重新输入信息",
+          "个性化内容和推荐可能不可用",
+          "我们可能无法记住您的偏好"
+        ]
+      },
+      "updates": {
+        "title": "此政策的更新",
+        "paragraphs": [
+          "我们可能会定期更新此 Cookie 政策，以反映我们的实践变更或其他运营、法律或监管原因。重大更新将通过在网站上发布通知的方式告知您。",
+          "我们建议您定期查看此政策，以了解我们如何使用 Cookies。"
+        ]
+      },
+      "contact": {
+        "title": "联系我们",
+        "intro": "如果您对我们使用 Cookies 或此 Cookie 政策有任何疑问，请联系我们：",
+        "emailLabel": "电子邮件：",
+        "email": "privacy@whatsway.com",
+        "addressLabel": "地址：",
+        "address": "123 Business Ave, Suite 100, San Francisco, CA 94105",
+        "phoneLabel": "电话：",
+        "phone": "+1 (555) 123-4567"
+      }
+    }
   }
 }
