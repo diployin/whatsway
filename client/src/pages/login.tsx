@@ -321,13 +321,13 @@ export default function LoginPage() {
                         <p className="text-sm text-gray-700 text-center">
                           Username:{" "}
                           <code className="bg-white px-2 py-1 rounded border border-green-200 font-mono">
-                            demouser
+                            raman
                           </code>
                         </p>
                         <p className="text-sm text-gray-700 text-center">
                           Password:{" "}
                           <code className="bg-white px-2 py-1 rounded border border-green-200 font-mono">
-                            User@12345
+                            Raman@123
                           </code>
                         </p>
                       </div>
