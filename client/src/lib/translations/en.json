@@ -2550,5 +2550,766 @@
       "subtitle": "Join thousands of businesses already growing with Whatsway",
       "button": "Start Your Free Trial"
     }
+  },
+  "whatsappGuide": {
+    "hero": {
+      "title": "WhatsApp Marketing",
+      "titleHighlight": "Complete Guide",
+      "subtitle": "Everything you need to know about WhatsApp Business API, marketing strategies, and best practices to grow your business."
+    },
+    "sections": [
+      {
+        "id": "getting-started",
+        "title": "Getting Started"
+      },
+      {
+        "id": "setup",
+        "title": "API Setup"
+      },
+      {
+        "id": "campaigns",
+        "title": "Creating Campaigns"
+      },
+      {
+        "id": "automation",
+        "title": "Automation"
+      },
+      {
+        "id": "best-practices",
+        "title": "Best Practices"
+      },
+      {
+        "id": "compliance",
+        "title": "Compliance"
+      }
+    ],
+    "sidebarTitle": "Guide Sections",
+    "navigation": {
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "content": {
+      "getting-started": {
+        "title": "Getting Started with WhatsApp Marketing",
+        "items": [
+          {
+            "title": "What is WhatsApp Business API?",
+            "text": "WhatsApp Business API is a powerful platform that allows businesses to communicate with customers at scale. Unlike the regular WhatsApp Business app, the API enables automated messaging, integrations, and advanced features."
+          },
+          {
+            "title": "Why Choose WPSaaS?",
+            "text": "WPSaaS provides a user-friendly interface for the WhatsApp Business API, allowing you to create campaigns, automate responses, and track performance without technical complexity."
+          },
+          {
+            "title": "Prerequisites",
+            "text": "Before getting started, you'll need: A verified WhatsApp Business API account from Meta, A business phone number, Basic understanding of your target audience"
+          }
+        ]
+      },
+      "setup": {
+        "title": "Setting Up Your WhatsApp Business API",
+        "items": [
+          {
+            "title": "Step 1: Get Your Meta API Credentials",
+            "text": "Visit the Meta Business Platform and create a WhatsApp Business API account. You'll receive API credentials including your phone number ID, access token, and webhook URL."
+          },
+          {
+            "title": "Step 2: Connect to WPSaaS",
+            "text": "In your WPSaaS dashboard, navigate to Settings > API Configuration. Enter your Meta API credentials and test the connection to ensure everything is working properly."
+          },
+          {
+            "title": "Step 3: Verify Your Business",
+            "text": "Complete the business verification process with Meta. This typically involves providing business documents and may take 1-3 business days to complete."
+          }
+        ]
+      },
+      "campaigns": {
+        "title": "Creating Effective WhatsApp Campaigns",
+        "items": [
+          {
+            "title": "Campaign Types",
+            "text": "WPSaaS supports various campaign types: Broadcast messages for announcements, Drip campaigns for nurturing leads, Triggered messages based on user actions, Promotional campaigns for sales and offers"
+          },
+          {
+            "title": "Message Templates",
+            "text": "Create templates in your Meta Business Manager and sync them with Whatsway. Templates can include text, images, videos, and interactive buttons."
+          },
+          {
+            "title": "Audience Segmentation",
+            "text": "Segment your audience based on demographics, behavior, purchase history, and engagement levels. This ensures your messages are relevant and improve engagement rates."
+          }
+        ]
+      },
+      "automation": {
+        "title": "WhatsApp Marketing Automation",
+        "items": [
+          {
+            "title": "Workflow Automation",
+            "text": "Create automated workflows that respond to customer actions. Examples include welcome sequences for new subscribers, abandoned cart recovery, appointment reminders, and follow-up messages."
+          },
+          {
+            "title": "Chatbot Integration",
+            "text": "Deploy AI-powered chatbots to handle common queries, qualify leads, and provide 24/7 customer support. Chatbots can seamlessly hand over to human agents when needed."
+          },
+          {
+            "title": "Trigger-Based Messaging",
+            "text": "Set up triggers based on customer behavior, time delays, or external events. This ensures timely and relevant communication with your audience."
+          }
+        ]
+      },
+      "best-practices": {
+        "title": "WhatsApp Marketing Best Practices",
+        "items": [
+          {
+            "title": "Respect User Privacy",
+            "text": "Always obtain explicit consent before messaging users. Provide clear opt-out options and respect user preferences. Never purchase contact lists or send unsolicited messages."
+          },
+          {
+            "title": "Timing and Frequency",
+            "text": "Send messages at appropriate times based on your audience's time zone. Avoid over-messaging - quality over quantity is key. Monitor engagement rates and adjust frequency accordingly."
+          },
+          {
+            "title": "Personalization",
+            "text": "Use customer data to personalize messages. Include names, purchase history, and relevant offers. Personalized messages have significantly higher engagement rates."
+          }
+        ]
+      },
+      "compliance": {
+        "title": "WhatsApp Business Policy Compliance",
+        "items": [
+          {
+            "title": "Message Categories",
+            "text": "WhatsApp categorizes messages into: Utility (account updates, order confirmations), Authentication (login codes, security alerts), Marketing (promotions, announcements). Each category has specific rules and pricing."
+          },
+          {
+            "title": "Template Approval Process",
+            "text": "All message templates must be approved by Meta before use. The approval process typically takes 24-48 hours. Ensure templates follow WhatsApp's content guidelines."
+          },
+          {
+            "title": "Quality Rating",
+            "text": "WhatsApp monitors your messaging quality through user feedback and engagement metrics. Maintain a high quality rating to avoid restrictions and ensure deliverability."
+          }
+        ]
+      }
+    },
+    "quickTips": {
+      "heading": "Quick Tips for Success",
+      "subtitle": "Essential tips to maximize your WhatsApp marketing results",
+      "tips": [
+        {
+          "title": "Build Your Audience Organically",
+          "tip": "Focus on quality over quantity. Engaged subscribers are more valuable than large, unengaged lists."
+        },
+        {
+          "title": "Craft Compelling Messages",
+          "tip": "Keep messages concise, valuable, and action-oriented. Include clear calls-to-action."
+        },
+        {
+          "title": "Monitor Performance",
+          "tip": "Track delivery rates, read rates, and response rates. Use data to optimize your campaigns."
+        },
+        {
+          "title": "Automate Wisely",
+          "tip": "Automate routine tasks but maintain human touch for complex interactions."
+        },
+        {
+          "title": "Stay Compliant",
+          "tip": "Always follow WhatsApp policies and local regulations. Compliance protects your business."
+        },
+        {
+          "title": "Test and Iterate",
+          "tip": "Continuously test different approaches and optimize based on results."
+        }
+      ]
+    },
+    "cta": {
+      "heading": "Ready to Start Your WhatsApp Marketing Journey?",
+      "subtitle": "Put this guide into action with WPSaaS's powerful platform",
+      "button": "Start Free Trial"
+    }
+  },
+  "bestPractices": {
+    "hero": {
+      "title": "WhatsApp Marketing",
+      "titleHighlight": "Best Practices",
+      "subtitle": "Proven strategies and techniques to maximize your WhatsApp marketing success. Learn from industry experts and top-performing campaigns."
+    },
+    "categories": [
+      {
+        "id": "messaging",
+        "name": "Messaging"
+      },
+      {
+        "id": "automation",
+        "name": "Automation"
+      },
+      {
+        "id": "engagement",
+        "name": "Engagement"
+      },
+      {
+        "id": "compliance",
+        "name": "Compliance"
+      },
+      {
+        "id": "timing",
+        "name": "Timing"
+      },
+      {
+        "id": "optimization",
+        "name": "Optimization"
+      }
+    ],
+    "implementationTips": "Implementation Tips:",
+    "expectedImpact": "Expected Impact",
+    "expectedImpactDesc": "Implementing this practice typically results in measurable improvements to your WhatsApp marketing performance.",
+    "quickTips": {
+      "heading": "Quick Success Tips",
+      "subtitle": "Essential reminders for WhatsApp marketing success",
+      "tips": [
+        {
+          "title": "Quality Over Quantity",
+          "tip": "Focus on engaged subscribers rather than large lists"
+        },
+        {
+          "title": "Timing Matters",
+          "tip": "Send messages when your audience is most active"
+        },
+        {
+          "title": "Be Personal",
+          "tip": "Use customer data to create relevant experiences"
+        },
+        {
+          "title": "Stay Compliant",
+          "tip": "Always follow WhatsApp policies and local regulations"
+        },
+        {
+          "title": "Encourage Interaction",
+          "tip": "Make conversations two-way for better engagement"
+        },
+        {
+          "title": "Test and Optimize",
+          "tip": "Continuously improve based on performance data"
+        }
+      ]
+    },
+    "warning": {
+      "heading": "Important Compliance Reminder",
+      "description": "Always ensure you have explicit consent before messaging customers on WhatsApp. Violating WhatsApp's business policies can result in account restrictions or bans.",
+      "points": [
+        "Never purchase contact lists",
+        "Always provide opt-out options",
+        "Respect the 24-hour messaging window",
+        "Use approved message templates for promotional content"
+      ]
+    },
+    "cta": {
+      "heading": "Ready to Implement These Best Practices?",
+      "subtitle": "Start applying these proven strategies with Whatsway today",
+      "button": "Start Free Trial"
+    },
+    "practices": {
+      "messaging": [
+        {
+          "title": "Keep Messages Concise and Clear",
+          "description": "WhatsApp users prefer short, direct messages. Aim for 160 characters or less when possible.",
+          "tips": [
+            "Use bullet points for multiple items",
+            "Include clear call-to-action",
+            "Avoid jargon and complex language",
+            "Use emojis sparingly but effectively"
+          ],
+          "impact": "Increases read rates by 40%"
+        },
+        {
+          "title": "Personalize Your Messages",
+          "description": "Use customer data to create personalized experiences that resonate with your audience.",
+          "tips": [
+            "Include customer names in greetings",
+            "Reference past purchases or interactions",
+            "Segment audiences for targeted messaging",
+            "Use dynamic content based on user behavior"
+          ],
+          "impact": "Improves engagement by 60%"
+        },
+        {
+          "title": "Use Rich Media Effectively",
+          "description": "Images, videos, and documents can significantly enhance your message impact.",
+          "tips": [
+            "Optimize images for mobile viewing",
+            "Keep videos under 30 seconds",
+            "Use high-quality visuals",
+            "Include captions for accessibility"
+          ],
+          "impact": "Increases conversion by 35%"
+        }
+      ],
+      "automation": [
+        {
+          "title": "Set Up Welcome Sequences",
+          "description": "Create automated welcome messages for new subscribers to set expectations.",
+          "tips": [
+            "Send welcome message within 5 minutes",
+            "Explain what subscribers can expect",
+            "Provide opt-out instructions",
+            "Include helpful resources or links"
+          ],
+          "impact": "Reduces unsubscribe rate by 25%"
+        },
+        {
+          "title": "Implement Smart Triggers",
+          "description": "Use behavioral triggers to send relevant messages at the right time.",
+          "tips": [
+            "Cart abandonment reminders",
+            "Post-purchase follow-ups",
+            "Birthday and anniversary messages",
+            "Re-engagement campaigns for inactive users"
+          ],
+          "impact": "Increases revenue by 45%"
+        },
+        {
+          "title": "Create Drip Campaigns",
+          "description": "Nurture leads with a series of automated messages over time.",
+          "tips": [
+            "Space messages 2-3 days apart",
+            "Provide value in each message",
+            "Include social proof and testimonials",
+            "End with a clear call-to-action"
+          ],
+          "impact": "Improves lead conversion by 50%"
+        }
+      ],
+      "engagement": [
+        {
+          "title": "Encourage Two-Way Conversations",
+          "description": "Make your WhatsApp presence interactive to build stronger relationships.",
+          "tips": [
+            "Ask questions in your messages",
+            "Respond quickly to customer inquiries",
+            "Use polls and surveys",
+            "Share user-generated content"
+          ],
+          "impact": "Increases customer loyalty by 30%"
+        },
+        {
+          "title": "Provide Excellent Customer Support",
+          "description": "Use WhatsApp as a customer service channel to resolve issues quickly.",
+          "tips": [
+            "Set up automated responses for common queries",
+            "Train support team on WhatsApp etiquette",
+            "Use quick replies for faster responses",
+            "Escalate complex issues to phone or email"
+          ],
+          "impact": "Improves satisfaction by 55%"
+        },
+        {
+          "title": "Share Valuable Content",
+          "description": "Provide content that educates, entertains, or solves problems for your audience.",
+          "tips": [
+            "Share industry insights and tips",
+            "Provide exclusive offers and previews",
+            "Send helpful tutorials and guides",
+            "Curate relevant news and updates"
+          ],
+          "impact": "Increases brand trust by 40%"
+        }
+      ],
+      "compliance": [
+        {
+          "title": "Obtain Proper Consent",
+          "description": "Always get explicit permission before adding contacts to your WhatsApp list.",
+          "tips": [
+            "Use double opt-in processes",
+            "Clearly explain what users will receive",
+            "Provide easy opt-out options",
+            "Keep records of consent"
+          ],
+          "impact": "Reduces spam complaints by 80%"
+        },
+        {
+          "title": "Follow WhatsApp Business Policies",
+          "description": "Adhere to WhatsApp's terms of service and business policies.",
+          "tips": [
+            "Use approved message templates",
+            "Respect the 24-hour messaging window",
+            "Don't send promotional content without consent",
+            "Monitor your quality rating regularly"
+          ],
+          "impact": "Prevents account restrictions"
+        },
+        {
+          "title": "Maintain Data Privacy",
+          "description": "Protect customer data and comply with privacy regulations.",
+          "tips": [
+            "Implement data encryption",
+            "Limit access to customer information",
+            "Regularly audit data usage",
+            "Provide data deletion options"
+          ],
+          "impact": "Builds customer trust"
+        }
+      ],
+      "timing": [
+        {
+          "title": "Send Messages at Optimal Times",
+          "description": "Time your messages when your audience is most likely to be active.",
+          "tips": [
+            "Analyze your audience's time zones",
+            "Test different sending times",
+            "Avoid early morning and late night messages",
+            "Consider local holidays and events"
+          ],
+          "impact": "Increases open rates by 25%"
+        },
+        {
+          "title": "Respect Frequency Limits",
+          "description": "Don't overwhelm your audience with too many messages.",
+          "tips": [
+            "Limit to 2-3 messages per week maximum",
+            "Space promotional messages appropriately",
+            "Monitor unsubscribe rates",
+            "Allow users to set frequency preferences"
+          ],
+          "impact": "Reduces unsubscribe rate by 35%"
+        },
+        {
+          "title": "Plan Seasonal Campaigns",
+          "description": "Align your messaging with seasonal trends and events.",
+          "tips": [
+            "Create holiday-specific campaigns",
+            "Plan back-to-school promotions",
+            "Leverage local events and festivals",
+            "Prepare end-of-year sales messages"
+          ],
+          "impact": "Increases seasonal sales by 60%"
+        }
+      ],
+      "optimization": [
+        {
+          "title": "A/B Test Your Messages",
+          "description": "Continuously test different message variations to improve performance.",
+          "tips": [
+            "Test subject lines and opening messages",
+            "Try different call-to-action phrases",
+            "Experiment with message length",
+            "Test sending times and frequencies"
+          ],
+          "impact": "Improves performance by 30%"
+        },
+        {
+          "title": "Monitor Key Metrics",
+          "description": "Track important metrics to measure and improve your WhatsApp marketing.",
+          "tips": [
+            "Monitor delivery and read rates",
+            "Track click-through rates",
+            "Measure conversion rates",
+            "Analyze customer lifetime value"
+          ],
+          "impact": "Enables data-driven decisions"
+        },
+        {
+          "title": "Segment Your Audience",
+          "description": "Divide your audience into groups for more targeted messaging.",
+          "tips": [
+            "Segment by demographics",
+            "Group by purchase behavior",
+            "Create engagement-based segments",
+            "Use geographic segmentation"
+          ],
+          "impact": "Increases relevance by 45%"
+        }
+      ]
+    }
+  },
+  "privacy_policy": {
+    "hero": {
+      "title": "Privacy Policy"
+    },
+    "intro": {
+      "text": "At StyleHub, we are committed to protecting your privacy. This policy explains how we collect, use, and safeguard your personal information when you visit and make purchases from our website."
+    },
+    "sections": {
+      "informationWeCollect": {
+        "title": "1. Information We Collect",
+        "paragraphs": {
+          "intro": "We collect information you directly provide to us:",
+          "personalIdentifiers": {
+            "label": "Personal Identifiers:",
+            "text": "Name, shipping address, email address, and phone number when you place an order or create an account."
+          },
+          "paymentInformation": {
+            "label": "Payment Information:",
+            "text": "Credit/debit card details or other payment information. Payments are processed securely by our payment processors (e.g., Stripe, PayPal). We do not store full card details on our servers."
+          },
+          "orderHistory": {
+            "label": "Order History:",
+            "text": "A record of the products you purchase."
+          },
+          "communication": {
+            "label": "Communication:",
+            "text": "Any communication you send us, including support requests."
+          },
+          "autoIntro": "We also automatically collect certain information when you visit our site:",
+          "technicalData": {
+            "label": "Technical Data:",
+            "text": "IP address, browser type, device info, and your interactions with our website (e.g., pages viewed), collected via cookies and similar technologies."
+          }
+        }
+      },
+      "howWeUseInfo": {
+        "title": "2. How We Use Your Information",
+        "list": [
+          "To process and fulfill your orders",
+          "To provide invoices, receipts, and order confirmations",
+          "To respond to inquiries and provide customer support",
+          "To analyze site usage and improve our store",
+          "For marketing (only with your consent). You can opt out anytime."
+        ]
+      },
+      "sharingInfo": {
+        "title": "3. Sharing Your Information",
+        "intro": "We do not sell your personal information. We share it only in limited circumstances:",
+        "list": [
+          {
+            "label": "Service Providers:",
+            "text": "Shipping carriers, payment processors, email platforms, etc."
+          },
+          {
+            "label": "Legal Obligations:",
+            "text": "When required by law or legal proceedings."
+          }
+        ]
+      },
+      "cookies": {
+        "title": "4. Cookies",
+        "text": "We use cookies to remember preferences, analyze traffic, and improve your shopping experience. You can disable cookies in your browser settings, but some site features may not work properly."
+      },
+      "dataRetention": {
+        "title": "5. Data Retention",
+        "text": "We retain your information only as long as necessary to fulfill the purposes for which it was collected, including legal, accounting, or reporting requirements."
+      },
+      "yourRights": {
+        "title": "6. Your Rights",
+        "intro": "You may have rights depending on your location:",
+        "list": [
+          "Access and correct personal information",
+          "Request deletion of your data",
+          "Opt out of marketing emails anytime",
+          "Request your information in a portable format"
+        ],
+        "contact": "To exercise these rights, contact us at:"
+      },
+      "dataSecurity": {
+        "title": "7. Data Security",
+        "text": "We use industry-standard security measures to protect your data. However, no method of transmission over the internet is 100% secure."
+      },
+      "changes": {
+        "title": "8. Changes to This Policy",
+        "text": "We may update this policy from time to time. Updates will be shown on this page along with a revised \"Last Updated\" date."
+      }
+    }
+  },
+  "terms": {
+    "hero": {
+      "title": "Terms & Conditions",
+      "lastUpdated": "Last Updated: January 01, 2025"
+    },
+    "intro": {
+      "text": "Please read these Terms and Conditions carefully before using the StyleHub website and services. By accessing or using our platform, you agree to be bound by these Terms."
+    },
+    "sections": {
+      "generalConditions": {
+        "title": "1. General Conditions",
+        "text": "We reserve the right to refuse service to anyone for any reason at any time. You understand that your content (excluding payment information) may be transferred unencrypted and adapted to technical requirements for transmission."
+      },
+      "accountCreation": {
+        "title": "2. Account Creation & Security",
+        "text": "You may be required to create an account to access certain features. You are responsible for maintaining confidentiality of your account and password. You must be at least the age of majority in your region to use this site."
+      },
+      "productsServices": {
+        "title": "3. Products & Services",
+        "items": [
+          "We may limit product sales to any person, region, or jurisdiction.",
+          "We make every effort to accurately display product images and colors.",
+          "All prices are subject to change without notice."
+        ]
+      },
+      "billingOrders": {
+        "title": "4. Billing & Order Information",
+        "text": "You agree to provide complete and accurate purchase and account information for all transactions. We reserve the right to refuse or cancel any order."
+      },
+      "thirdPartyLinks": {
+        "title": "5. Third-Party Links",
+        "text": "We are not responsible for third-party content, websites, or services accessed via links on our platform."
+      },
+      "userComments": {
+        "title": "6. User Comments",
+        "text": "Any comments or submissions you send to us may be used without restriction. We are not obligated to maintain comments in confidence or compensate you."
+      },
+      "prohibitedUses": {
+        "title": "7. Prohibited Uses",
+        "items": [
+          "Engaging in unlawful activities",
+          "Violating applicable laws and regulations",
+          "Infringing on our intellectual property or others’ rights",
+          "Abusive, harmful, or discriminatory conduct"
+        ]
+      },
+      "disclaimer": {
+        "title": "8. Disclaimer of Warranties & Liability",
+        "text": "We do not guarantee uninterrupted, secure, or error-free service. You agree your use of the service is at your sole risk. All services are provided “as is” without warranties."
+      },
+      "indemnification": {
+        "title": "9. Indemnification",
+        "text": "You agree to indemnify and hold harmless StyleHub and its employees and partners from any claims arising from your breach of these Terms."
+      },
+      "severability": {
+        "title": "10. Severability",
+        "text": "If any provision in these Terms is found unenforceable, the remaining provisions remain valid and enforceable."
+      },
+      "termination": {
+        "title": "11. Termination",
+        "text": "These Terms remain effective unless terminated by either party. Obligations before termination survive."
+      },
+      "governingLaw": {
+        "title": "12. Governing Law",
+        "text": "These Terms are governed by the laws of India."
+      },
+      "changes": {
+        "title": "13. Changes to These Terms",
+        "text": "We may update these Terms at any time by posting changes on this page. It is your responsibility to review them periodically."
+      }
+    }
+  },
+  "cookiePolicy": {
+    "hero": {
+      "title": "Cookie Policy",
+      "lastUpdated": "January 15, 2025"
+    },
+    "sections": {
+      "whatAreCookies": {
+        "title": "What Are Cookies",
+        "paragraphs": [
+          "Cookies are small text files that are stored on your device when you visit our website. They help us provide you with a better experience by remembering your preferences and understanding how you use our service.",
+          "This Cookie Policy explains what cookies are, how we use them, the types of cookies we use, and how you can control your cookie preferences."
+        ]
+      },
+      "howWeUseCookies": {
+        "title": "How We Use Cookies",
+        "intro": "We use cookies for several purposes:",
+        "list": [
+          "To ensure our website functions properly",
+          "To remember your login status and preferences",
+          "To analyze website traffic and usage patterns",
+          "To improve our services and user experience",
+          "To provide personalized content and features",
+          "To measure the effectiveness of our marketing campaigns"
+        ]
+      },
+      "typesOfCookies": {
+        "title": "Types of Cookies We Use",
+        "essential": {
+          "title": "Essential Cookies",
+          "text": "These cookies are necessary for the website to function properly. They enable core functionality such as security, network management, and accessibility. You cannot opt out of these cookies.",
+          "examples": "Examples: Session cookies, authentication cookies, load balancing cookies"
+        },
+        "performance": {
+          "title": "Performance Cookies",
+          "text": "These cookies collect information about how visitors use our website, such as which pages are visited most often and if users get error messages. This helps us improve our website's performance.",
+          "examples": "Examples: Google Analytics, page load time tracking, error reporting"
+        },
+        "functional": {
+          "title": "Functional Cookies",
+          "text": "These cookies allow the website to remember choices you make and provide enhanced, more personal features. They may be set by us or by third-party providers whose services we have added to our pages.",
+          "examples": "Examples: Language preferences, theme settings, form data"
+        },
+        "marketing": {
+          "title": "Marketing Cookies",
+          "text": "These cookies are used to track visitors across websites to display relevant advertisements and measure the effectiveness of marketing campaigns.",
+          "examples": "Examples: Facebook Pixel, Google Ads, retargeting cookies"
+        }
+      },
+      "thirdPartyCookies": {
+        "title": "Third-Party Cookies",
+        "intro": "We may use third-party services that set cookies on your device. These services include:",
+        "list": [
+          "Google Analytics: For website analytics and performance monitoring",
+          "Intercom: For customer support and live chat functionality",
+          "Stripe: For payment processing and fraud prevention",
+          "Facebook: For social media integration and advertising"
+        ],
+        "outro": "These third parties have their own privacy policies and cookie policies. We recommend reviewing their policies to understand how they use cookies."
+      },
+      "cookieDuration": {
+        "title": "Cookie Duration",
+        "intro": "Cookies can be either session cookies or persistent cookies:",
+        "list": [
+          "Session Cookies: These are temporary cookies that are deleted when you close your browser",
+          "Persistent Cookies: These remain on your device for a set period or until you delete them manually"
+        ],
+        "extra": "The duration of persistent cookies varies depending on their purpose, typically ranging from 30 days to 2 years."
+      },
+      "managingCookies": {
+        "title": "Managing Your Cookie Preferences",
+        "intro": "You have several options for managing cookies:",
+        "browserSettings": {
+          "title": "Browser Settings",
+          "text": "Most web browsers allow you to control cookies through their settings. You can:",
+          "list": [
+            "Block all cookies",
+            "Block third-party cookies",
+            "Delete existing cookies",
+            "Set up notifications when cookies are being sent"
+          ]
+        },
+        "consentManager": {
+          "title": "Cookie Consent Manager",
+          "text": "When you first visit our website, you'll see a cookie consent banner that allows you to accept or decline different types of cookies. You can change your preferences at any time by clicking the \"Cookie Settings\" link in our footer."
+        },
+        "optOutLinks": {
+          "title": "Opt-Out Links",
+          "intro": "You can opt out of specific third-party cookies:",
+          "links": [
+            {
+              "label": "Google Analytics:",
+              "text": "Google Analytics Opt-out",
+              "href": "https://tools.google.com/dlpage/gaoptout"
+            },
+            {
+              "label": "Facebook:",
+              "text": "Facebook Ad Preferences",
+              "href": "https://www.facebook.com/settings?tab=ads"
+            }
+          ]
+        }
+      },
+      "impactDisabling": {
+        "title": "Impact of Disabling Cookies",
+        "intro": "While you can disable cookies, please note that doing so may affect your experience on our website:",
+        "list": [
+          "Some features may not work properly",
+          "You may need to re-enter information more frequently",
+          "Personalized content and recommendations may not be available",
+          "We may not be able to remember your preferences"
+        ]
+      },
+      "updates": {
+        "title": "Updates to This Policy",
+        "paragraphs": [
+          "We may update this Cookie Policy from time to time to reflect changes in our practices or for other operational, legal, or regulatory reasons. We will notify you of any material changes by posting the updated policy on our website.",
+          "We encourage you to review this policy periodically to stay informed about how we use cookies."
+        ]
+      },
+      "contact": {
+        "title": "Contact Us",
+        "intro": "If you have any questions about our use of cookies or this Cookie Policy, please contact us at:",
+        "emailLabel": "Email:",
+        "email": "privacy@whatsway.com",
+        "addressLabel": "Address:",
+        "address": "123 Business Ave, Suite 100, San Francisco, CA 94105",
+        "phoneLabel": "Phone:",
+        "phone": "+1 (555) 123-4567"
+      }
+    }
   }
 }
