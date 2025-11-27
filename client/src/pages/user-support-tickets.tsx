@@ -786,12 +786,13 @@ export default function UserSupportTicketsNew() {
                       placeholder="Type your reply..."
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
+                      disabled={selectedTicket.status !== "open"}
                       className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
                       rows={3}
                     />
                     <button
                       onClick={handleSendMessage}
-                      disabled={
+                      disabled={ selectedTicket.status !== "open" || 
                         !newMessage.trim() || addMessageMutation.isPending
                       }
                       className="bg-green-500 text-white p-3 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"

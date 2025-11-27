@@ -220,7 +220,7 @@ export function AccountSettings() {
       </Card>
 
       {/* Security */}
-      <Card>
+      {/* <Card>
         <CardHeader>
           <CardTitle>Security</CardTitle>
           <CardDescription>Manage your security preferences</CardDescription>
@@ -245,7 +245,7 @@ export function AccountSettings() {
             </Button>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Password Modal */}
       <Dialog open={isPasswordModalOpen} onOpenChange={setIsPasswordModalOpen}>

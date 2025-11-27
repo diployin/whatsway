@@ -2156,11 +2156,11 @@ export default function WidgetBuilder() {
                                 >
                                   <Send className="h-4 w-4" />
                                 </Button>
-                                {config.enableVoiceCall && (
+                                {/* {config.enableVoiceCall && (
                                   <Button size="icon" variant="outline">
                                     <Phone className="h-4 w-4" />
                                   </Button>
-                                )}
+                                )} */}
                               </div>
                             </div>
                           </div>
