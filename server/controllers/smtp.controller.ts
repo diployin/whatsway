@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { db } from '../db';
 import { smtpConfig } from '@shared/schema';
 import { eq } from 'drizzle-orm';
+import { sendContactEmail } from 'server/services/email.service';
 
 export const upsertSMTPConfig = async (req: Request, res: Response) => {
   try {
@@ -99,3 +100,40 @@ export const getSMTPConfig = async () => {
 }
 return configs[0];
 };
+
+
+
+export const sendMailRoute = async (req: Request, res: Response) => {
+  try {
+    const { name, email, company, subject, message } = req.body;
+
+    if (!name || !email || !subject || !message) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields",
+      });
+    }
+
+    const result = await sendContactEmail({
+      name,
+      email,
+      company,
+      subject,
+      message,
+    });
+
+    console.log("Contact form email sent:", result);
+
+    return res.json({
+      success: true,
+      message: "Message sent successfully",
+      messageId: result.messageId,
+    });
+  } catch (error: any) {
+    console.error("Contact form error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to send message",
+    });
+  }
+}

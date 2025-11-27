@@ -10,8 +10,11 @@ import {
   Headphones,
 } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
+import { toast } from "@/hooks/use-toast";
+import axios from "axios";
 
 const ContactusLanding = () => {
+  const [loading, setLoading] = useState(false);
   const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: "",
@@ -21,10 +24,58 @@ const ContactusLanding = () => {
     message: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
+  
+    setLoading(true);
+  
+    try {
+      const response = await fetch("/api/contact/sendmail", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok || !data?.success) {
+        toast({
+          title: "Failed to send message",
+          description: data?.message || "Something went wrong.",
+          variant: "destructive",
+        });
+        return;
+      }
+  
+      // SUCCESS TOAST
+      toast({
+        title: "Message Sent Successfully",
+        description: "We received your message and will respond shortly.",
+      });
+  
+      // Reset form
+      setFormData({
+        name: "",
+        email: "",
+        company: "",
+        subject: "",
+        message: "",
+      });
+  
+    } catch (error: any) {
+      toast({
+        title: "Error sending message",
+        description: error?.message || "Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
+  
+  
 
   const handleChange = (
     e: React.ChangeEvent<
