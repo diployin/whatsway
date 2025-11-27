@@ -306,7 +306,7 @@ export default function LoginPage() {
                         <p className="text-sm text-gray-700 text-center">
                           Password:{" "}
                           <code className="bg-white px-2 py-1 rounded border border-purple-200 font-mono">
-                            Admin@12345
+                            Admin@123
                           </code>
                         </p>
                       </div>
