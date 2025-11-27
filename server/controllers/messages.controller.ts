@@ -38,6 +38,9 @@ export const createMessage = asyncHandler(async (req: Request, res: Response) =>
   let mediaId: string | null = null;
   let mediaUrl: string | null = null;
 
+let messageStatus: "sent" | "failed" = "sent";
+  
+
   // If message is from user, push it to WhatsApp
   if (fromUser) {
     if (!conversation.channelId) throw new Error("ChannelId is missing");
@@ -111,7 +114,14 @@ export const createMessage = asyncHandler(async (req: Request, res: Response) =>
         msgBody = caption || `[${messageType}]`;
       } else {
         // Plain text
-        result = await whatsappApi.sendTextMessage(conversation.contactPhone, content);
+        // result = await whatsappApi.sendTextMessage(conversation.contactPhone, content);
+        try {
+  result = await whatsappApi.sendTextMessage(conversation.contactPhone, content);
+} catch (error: any) {
+  console.warn("❌ WhatsApp send failed:", error.message || error);
+  messageStatus = "failed"; // mark as failed
+}
+
         msgBody = content;
         messageType = "text";
       }
