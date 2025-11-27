@@ -187,13 +187,6 @@ function getNavItems(role: string): NavItem[] {
         color: "text-blue-400",
         allowedRoles: ["admin"],
       },
-      {
-        href: "/billing",
-        icon: TbInvoice,
-        labelKey: "navigation.billing",
-        color: "text-blue-400",
-        allowedRoles: ["admin"],
-      },
     ];
   } else {
     // Team or default role
@@ -326,19 +319,12 @@ function getNavItems(role: string): NavItem[] {
       {
         href: "/plan-upgrade",
         icon: GiUpgrade,
-        labelKey: "Upgrade Plan",
+        labelKey: "navigation.plan-upgrade",
         requiredPrefix: "planupgrade.",
         color: "text-blue-400",
         allowedRoles: ["admin"],
       },
-      {
-        href: "/billing",
-        icon: TbInvoice,
-        labelKey: "Billing & Credits",
-        requiredPrefix: "billing.",
-        color: "text-blue-400",
-        allowedRoles: ["team"],
-      },
+     
     ];
   }
 }
@@ -413,12 +399,12 @@ const sidebarItemsCategories = [
     path: "/support-tickets",
     color: "text-black-400",
   },
-  {
-    name: "navigation.settings",
-    icon: Settings,
-    path: "/settings",
-    color: "text-purple-400",
-  },
+  // {
+  //   name: "navigation.settings",
+  //   icon: Settings,
+  //   path: "/settings",
+  //   color: "text-purple-400",
+  // },
   {
     name: "navigation.master_subscriptions",
     icon: CheckCircle,
