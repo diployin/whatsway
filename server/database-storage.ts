@@ -69,7 +69,9 @@ export class DatabaseStorage implements IStorage {
   // Sites
   
   async getSite(id: string): Promise<Site | undefined> {
+    console.log("check IDDDDDDDDDDDd", id);
     const [site] = await db.select().from(sites).where(eq(sites.id, id));
+    console.log("check siteeeeeeeeee", site);
     return site || undefined;
   }
 

@@ -294,7 +294,9 @@
   async function fetchWidgetConfig() {
     try {
       const response = await fetch(`${API_BASE}/api/widget/config/${siteId}`);
-      if (response.ok) {
+
+      // console.log('Widget config response:', response);
+      if (response.ok) { 
         const data = await response.json();
         const serverConfig = data.config || {};
         if (serverConfig.featureToggles) {
@@ -309,21 +311,21 @@
         widgetConfig = { ...defaultConfig, ...config, siteId };
       }
     } catch (error) {
-      console.error('Failed to fetch widget config:', error);
+      // console.error('Failed to fetch widget config:', error);
       widgetConfig = { ...defaultConfig, ...config, siteId };
     }
   }
 
-  async function fetchKBArticles() {
-    try {
-      const response = await fetch(`${API_BASE}/api/widget/kb/${siteId}`);
-      if (response.ok) {
-        kbData = await response.json();
-      }
-    } catch (error) {
-      console.error('Failed to fetch KB articles:', error);
-    }
-  }
+  // async function fetchKBArticles() {
+  //   try {
+  //     const response = await fetch(`${API_BASE}/api/widget/kb/${siteId}`);
+  //     if (response.ok) {
+  //       kbData = await response.json();
+  //     }
+  //   } catch (error) {
+  //     console.error('Failed to fetch KB articles:', error);
+  //   }
+  // }
 
   async function fetchArticle(articleId) {
     try {
@@ -839,7 +841,7 @@
       <div class="ai-chat-widget-content">
         ${renderHomeScreen()}
       </div>
-      ${widgetConfig.showPoweredBy ? `<div class="ai-chat-widget-powered">Powered by ${widgetConfig.brandName || widgetConfig.appName || 'AI Chat'}</div>` : ''}
+      <div class="ai-chat-widget-powered">Powered by ${widgetConfig.brandName || widgetConfig.appName}</div>
     `;
 
     container.querySelector('.ai-chat-widget-close').addEventListener('click', closeWidget);
@@ -1219,7 +1221,7 @@
     document.body.appendChild(wrapper);
 
     await fetchWidgetConfig();
-    await fetchKBArticles();
+    // await fetchKBArticles();
     
     createStyles();
     widgetButton = createWidgetButton();

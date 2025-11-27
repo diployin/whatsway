@@ -7,9 +7,11 @@ import type { Express } from "express";
 import { storage } from 'server/storage';
 import OpenAI from 'openai';
 import { requireAuth } from 'server/middlewares/auth.middleware';
-import { insertSiteSchema, sites } from '@shared/schema';
+import { insertSiteSchema, panelConfig, sites } from '@shared/schema';
 import { io } from '../socket';
 import { requireSubscription } from 'server/middlewares/requireSubscription';
+import { eq } from 'drizzle-orm';
+import { db } from 'server/db';
 
 // Initialize OpenAI
 const openai = new OpenAI({
@@ -35,23 +37,33 @@ export function registerWidgetRoutes(app: Express) {
       const { siteId } = req.params;
       const site = await storage.getSite(siteId);
       
+      
       if (!site) {
         return res.status(404).json({ error: "Site not found" });
       }
       
-      const tenant = await storage.getTenant(site.tenantId);
-      const tenantSettings = typeof tenant?.settings === 'object' && tenant.settings !== null ? tenant.settings as any : {};
-      const brandName = tenantSettings.brandName || '';
+
+      const [brandName] = await db
+  .select({
+    name: panelConfig.name
+  })
+  .from(panelConfig);
+
       
-      res.json({
-        config: { ...site.widgetConfig || {}, brandName },
-        siteId: site.id,
-        siteName: site.name
-      });
+      const name = brandName?.name;
+      
+
+res.json({
+  config: { ...(site.widgetConfig || {}), brandName: name },
+  siteId: site.id,
+  siteName: site.name,
+  
+});
     } catch (error: any) {
       res.status(500).json({ error: "Failed to fetch widget configuration" });
     }
   });
+
 
   // Get knowledge base articles
   app.get("/api/widget/kb/:siteId", async (req, res) => {
