@@ -1,8 +1,8 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 // Language codes
-export type Language = 'en' | 'es' | 'fr' | 'de' | 'pt' | 'ar' | 'hi' | 'zh';
+export type Language = "en" | "es" | "fr" | "de" | "pt" | "ar" | "hi" | "zh";
 
 // Translation structure
 export interface Translations {
@@ -87,9 +87,9 @@ export interface Translations {
     newLeads: string;
     thisWeek: string;
     messageAnalytics: string;
-    '7Days': string;
-    '30Days': string;
-    '3Months': string;
+    "7Days": string;
+    "30Days": string;
+    "3Months": string;
     sent: string;
     delivered: string;
     read: string;
@@ -439,26 +439,29 @@ export interface Translations {
 }
 
 // Language configurations
-export const languages: Record<Language, { name: string; nativeName: string; direction: 'ltr' | 'rtl' }> = {
-  en: { name: 'English', nativeName: 'English', direction: 'ltr' },
-  es: { name: 'Spanish', nativeName: 'Español', direction: 'ltr' },
-  fr: { name: 'French', nativeName: 'Français', direction: 'ltr' },
-  de: { name: 'German', nativeName: 'Deutsch', direction: 'ltr' },
-  pt: { name: 'Portuguese', nativeName: 'Português', direction: 'ltr' },
-  ar: { name: 'Arabic', nativeName: 'العربية', direction: 'rtl' },
-  hi: { name: 'Hindi', nativeName: 'हिन्दी', direction: 'ltr' },
-  zh: { name: 'Chinese', nativeName: '中文', direction: 'ltr' },
+export const languages: Record<
+  Language,
+  { name: string; nativeName: string; direction: "ltr" | "rtl" }
+> = {
+  en: { name: "English", nativeName: "En", direction: "ltr" },
+  es: { name: "Spanish", nativeName: "Es", direction: "ltr" },
+  fr: { name: "French", nativeName: "Fr", direction: "ltr" },
+  de: { name: "German", nativeName: "De", direction: "ltr" },
+  pt: { name: "Portuguese", nativeName: "Pt", direction: "ltr" },
+  ar: { name: "Arabic", nativeName: "Ar", direction: "rtl" },
+  hi: { name: "Hindi", nativeName: "Hi", direction: "ltr" },
+  zh: { name: "Chinese", nativeName: "Zh", direction: "ltr" },
 };
 
 // Import all translation files
-import enTranslations from './translations/en.json';
-import esTranslations from './translations/es.json';
-import frTranslations from './translations/fr.json';
-import deTranslations from './translations/de.json';
-import ptTranslations from './translations/pt.json';
-import arTranslations from './translations/ar.json';
-import hiTranslations from './translations/hi.json';
-import zhTranslations from './translations/zh.json';
+import enTranslations from "./translations/en.json";
+import esTranslations from "./translations/es.json";
+import frTranslations from "./translations/fr.json";
+import deTranslations from "./translations/de.json";
+import ptTranslations from "./translations/pt.json";
+import arTranslations from "./translations/ar.json";
+import hiTranslations from "./translations/hi.json";
+import zhTranslations from "./translations/zh.json";
 
 const translations: Record<Language, Translations> = {
   en: enTranslations as unknown as Translations,
@@ -480,12 +483,12 @@ interface I18nState {
 }
 
 export const useI18n = create<I18nState>()((set, get) => ({
-  language: 'en',
+  language: "en",
   translations: translations.en,
   setLanguage: (language: Language) => {
-    set({ 
-      language, 
-      translations: translations[language] 
+    set({
+      language,
+      translations: translations[language],
     });
     // Update document direction for RTL languages
     document.documentElement.dir = languages[language].direction;
@@ -493,15 +496,18 @@ export const useI18n = create<I18nState>()((set, get) => ({
   },
   t: (path: string) => {
     const state = get();
-    const currentTranslations = state.translations || translations[state.language || 'en'] || translations.en;
-    const keys = path.split('.');
+    const currentTranslations =
+      state.translations ||
+      translations[state.language || "en"] ||
+      translations.en;
+    const keys = path.split(".");
     let value: any = currentTranslations;
-    
+
     for (const key of keys) {
       value = value?.[key];
       if (!value) break;
     }
-    
+
     return value || path;
   },
 }));

@@ -1,5 +1,4 @@
-import { Crown, Calendar } from "lucide-react";
-import Header from "./layout/header";
+import { Crown, Calendar, Check, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/contexts/auth-context";
@@ -34,13 +33,21 @@ export default function BillingSubscriptionPage() {
   }
 
   return (
-    <div className="flex-1 min-h-screen bg-gray-50 text-gray-900 dots-bg">
-      <Header
-        title={t("billing_subscription.title")}
-        subtitle={t("billing_subscription.subtitle")}
-      />
-
-      <main className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-6 space-y-6">
+    <div className="flex-1 bg-white text-gray-900 dots-bg">
+      <div className="p-6 pb-0 bg-white border">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="p-2 bg-green-100 rounded-lg">
+            <Crown className="w-6 h-6 text-green-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900">
+            Active Plan Details
+          </h2>
+        </div>
+        <p className="text-gray-500 text-sm ml-14 pb-2">
+          View and manage your current subscription plans
+        </p>
+      </div>
+      <main className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-6">
         {isError ||
         !activeplandata?.success ||
         activeplandata.data.length === 0 ? (
@@ -89,103 +96,162 @@ export default function BillingSubscriptionPage() {
             return (
               <div
                 key={subscription.id}
-                className="bg-white rounded-lg shadow-md border p-4 max-w-sm mx-auto"
+                className="bg-white rounded-xl shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col h-full max-w-sm"
               >
-                <div className="flex items-center gap-2 mb-3 flex-wrap">
-                  <Crown className="w-5 h-5 text-yellow-500" />
-                  <h2 className="text-lg font-semibold truncate">
-                    {planData.name}
-                  </h2>
-                  <span className="bg-green-400 text-green-900 text-xs font-semibold rounded-full px-2 py-0.5 capitalize">
-                    {subscription.status}
-                  </span>
-                </div>
-
-                <p className="text-gray-600 text-sm mb-3 truncate">
-                  {planData.description}
-                </p>
-
-                <div className="flex flex-wrap justify-between text-gray-700 mb-3 text-xs gap-2">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4" />
-                    <span>
-                      {t("billing_subscription.card.billing")}&nbsp;
-                      <b className="capitalize">{subscription.billingCycle}</b>
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4" />
-                    <span>
-                      {t("billing_subscription.card.starts")}&nbsp;
-                      <b>{startDate}</b>
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4" />
-                    <span>
-                      {t("billing_subscription.card.renews")}&nbsp;
-                      <b>{renewsDate}</b>
-                    </span>
-                  </div>
-                </div>
-
-                <div className="mb-3">
-                  <h3 className="text-sm font-medium mb-1">
-                    {t("billing_subscription.card.pricing")}
-                  </h3>
-                  <div className="flex gap-4">
-                    <div className="bg-yellow-100 text-yellow-800 rounded-md px-3 py-1 text-sm font-semibold min-w-[90px] text-center">
-                      {t("billing_subscription.card.monthly")} {currencySymbol}{" "}
-                      {planData.monthlyPrice}
+                {/* Header with gradient */}
+                <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-4 relative">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Crown className="w-5 h-5 text-yellow-300" />
+                      <h2 className="text-lg font-bold">{planData.name}</h2>
                     </div>
-                    <div className="bg-yellow-100 text-yellow-800 rounded-md px-3 py-1 text-sm font-semibold min-w-[90px] text-center">
-                      {t("billing_subscription.card.annual")} {currencySymbol}{" "}
-                      {planData.annualPrice}
+                    <span className="bg-white/20 backdrop-blur-sm text-white text-xs font-semibold rounded-full px-2.5 py-1 capitalize">
+                      {subscription.status}
+                    </span>
+                  </div>
+                  <p className="text-green-100 text-xs line-clamp-2">
+                    {planData.description}
+                  </p>
+                </div>
+
+                {/* Body Content */}
+                <div className="p-4 flex-grow flex flex-col space-y-4">
+                  {/* Date Info - Compact */}
+                  <div className="grid grid-cols-3 gap-2 text-xs">
+                    <div className="bg-blue-50 rounded-lg p-2 text-center">
+                      <Calendar className="w-3.5 h-3.5 text-blue-600 mx-auto mb-1" />
+                      <p className="text-gray-500 text-[10px] mb-0.5">
+                        {t("billing_subscription.card.billing")}
+                      </p>
+                      <p className="font-semibold text-gray-800 capitalize truncate">
+                        {subscription.billingCycle}
+                      </p>
+                    </div>
+                    <div className="bg-green-50 rounded-lg p-2 text-center">
+                      <Calendar className="w-3.5 h-3.5 text-green-600 mx-auto mb-1" />
+                      <p className="text-gray-500 text-[10px] mb-0.5">
+                        {t("billing_subscription.card.starts")}
+                      </p>
+                      <p className="font-semibold text-gray-800 text-[10px]">
+                        {startDate}
+                      </p>
+                    </div>
+                    <div className="bg-purple-50 rounded-lg p-2 text-center">
+                      <Calendar className="w-3.5 h-3.5 text-purple-600 mx-auto mb-1" />
+                      <p className="text-gray-500 text-[10px] mb-0.5">
+                        {t("billing_subscription.card.renews")}
+                      </p>
+                      <p className="font-semibold text-gray-800 text-[10px]">
+                        {renewsDate}
+                      </p>
                     </div>
                   </div>
-                </div>
 
-                <div>
-                  <h3 className="text-sm font-medium mb-1">
-                    {t("billing_subscription.card.details")}
-                  </h3>
+                  {/* Pricing */}
+                  <div>
+                    <h3 className="text-xs font-semibold text-gray-700 mb-2">
+                      {t("billing_subscription.card.pricing")}
+                    </h3>
+                    <div className="flex gap-2">
+                      <div className="flex-1 bg-gradient-to-br from-yellow-100 to-orange-100 border border-yellow-200 rounded-lg px-3 py-2 text-center">
+                        <p className="text-[10px] text-gray-600">
+                          {t("billing_subscription.card.monthly")}
+                        </p>
+                        <p className="text-sm font-bold text-yellow-700">
+                          {currencySymbol} {planData.monthlyPrice}
+                        </p>
+                      </div>
+                      <div className="flex-1 bg-gradient-to-br from-green-100 to-emerald-100 border border-green-200 rounded-lg px-3 py-2 text-center">
+                        <p className="text-[10px] text-gray-600">
+                          {t("billing_subscription.card.annual")}
+                        </p>
+                        <p className="text-sm font-bold text-green-700">
+                          {currencySymbol} {planData.annualPrice}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Permissions */}
                   {planData.permissions && (
-                    <div className="mt-2 space-y-1">
-                      {Object.entries(planData.permissions).map(
-                        ([key, value]) => (
-                          <div
-                            key={key}
-                            className="text-xs text-gray-600 capitalize"
-                          >
-                            ✓ {value} {key}
-                          </div>
-                        )
-                      )}
+                    <div>
+                      <h3 className="text-xs font-semibold text-gray-700 mb-2">
+                        {t("billing_subscription.card.details")}
+                      </h3>
+                      <div className="flex flex-wrap gap-1.5">
+                        {Object.entries(planData.permissions).map(
+                          ([key, value]) => (
+                            <div
+                              key={key}
+                              className="flex items-center gap-1 text-[10px] bg-gray-100 rounded-md px-2 py-1"
+                            >
+                              <Check className="w-3 h-3 text-green-600" />
+                              <span className="text-gray-700 capitalize">
+                                {value} {key}
+                              </span>
+                            </div>
+                          )
+                        )}
+                      </div>
                     </div>
                   )}
+
+                  {/* Features - Scrollable */}
+                  <div className="flex-grow">
+                    <h3 className="text-xs font-semibold text-gray-700 mb-2">
+                      {t("billing_subscription.card.features")}
+                    </h3>
+                    <ul className="space-y-1.5 max-h-32 overflow-y-auto pr-1 custom-scrollbar">
+                      {planData.features.map((feature, idx) => (
+                        <li
+                          key={idx}
+                          className={`flex items-start gap-1.5 text-xs ${
+                            feature.included
+                              ? "text-gray-700"
+                              : "text-gray-400 line-through"
+                          }`}
+                        >
+                          {feature.included ? (
+                            <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0 mt-0.5" />
+                          ) : (
+                            <X className="w-3.5 h-3.5 text-gray-400 flex-shrink-0 mt-0.5" />
+                          )}
+                          <span className="leading-tight">{feature.name}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-sm font-medium mb-1">
-                    {t("billing_subscription.card.features")}
-                  </h3>
-                  <ul className="list-disc list-inside text-gray-600 text-xs max-h-28 overflow-y-auto space-y-1">
-                    {planData.features.map((feature, idx) => (
-                      <li
-                        key={idx}
-                        className={
-                          feature.included ? "" : "line-through text-gray-400"
-                        }
-                      >
-                        {feature.name}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+
+                {/* Footer Button */}
+                {/* <div className="p-4 pt-0 border-t border-gray-100">
+                  <button
+                    onClick={() => setLocation("/plan-upgrade")}
+                    className="w-full py-2 bg-gradient-to-r from-green-600 to-green-700 text-white text-sm font-semibold rounded-lg hover:from-green-700 hover:to-green-800 transition-all shadow-sm hover:shadow-md"
+                  >
+                    Manage Plan
+                  </button>
+                </div> */}
               </div>
             );
           })
         )}
       </main>
+
+      {/* Custom Scrollbar */}
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #10b981;
+          border-radius: 10px;
+        }
+      `}</style>
     </div>
   );
 }

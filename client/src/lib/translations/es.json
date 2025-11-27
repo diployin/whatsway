@@ -2167,5 +2167,339 @@
       "details": "Detalles",
       "features": "Características"
     }
+  },
+  "aboutUs": {
+    "hero": {
+      "badge": "Acerca de Whatsway",
+      "title": "Revolucionando WhatsApp",
+      "titleHighlight": "Marketing para empresas",
+      "subtitle": "Impulsamos a empresas de todo el mundo con automatización de marketing en WhatsApp potente y escalable que genera resultados reales"
+    },
+    "mission": {
+      "badge": "Nuestra misión",
+      "title": "Hacer el marketing de WhatsApp",
+      "titleHighlight": "accesible para todos",
+      "description1": "Creemos que toda empresa, sin importar su tamaño, merece acceso a herramientas de marketing potentes. Nuestra misión es democratizar el marketing en WhatsApp ofreciendo una plataforma intuitiva y asequible con funciones a nivel empresarial.",
+      "description2": "Con Whatsway, las empresas pueden conectar con sus clientes en la plataforma de mensajería más popular del mundo, impulsando el engagement, las ventas y la fidelidad como nunca antes.",
+      "stats": {
+        "businesses": "10K+",
+        "businessesLabel": "Empresas activas",
+        "messages": "5M+",
+        "messagesLabel": "Mensajes enviados"
+      },
+      "card": {
+        "title": "Confiado por líderes de la industria",
+        "description": "Únete a miles de empresas que ya están creciendo con Whatsway",
+        "count": "+10.000 empresas"
+      }
+    },
+    "story": {
+      "badge": "Nuestra historia",
+      "title": "Creado por marketers,",
+      "titleHighlight": "para marketers",
+      "description1": "Whatsway nació de una simple frustración: las herramientas de marketing de WhatsApp existentes eran demasiado caras, demasiado complicadas o carecían de funciones esenciales. Como marketers, sabíamos que tenía que haber una mejor manera.",
+      "description2": "Comenzamos a construir Whatsway en 2023 con una visión clara: crear la plataforma de marketing de WhatsApp más potente, fácil de usar y asequible del mercado. Hoy nos enorgullece servir a más de 10.000 empresas en todo el mundo.",
+      "description3": "Nuestro equipo combina experiencia en automatización de marketing, desarrollo de software y éxito del cliente para innovar continuamente y ofrecer valor a nuestros usuarios.",
+      "globalPresence": "Presencia global",
+      "globalPresenceDesc": "Apoyando empresas en más de 50 países",
+      "journey": {
+        "title": "Nuestro camino",
+        "milestones": [
+          {
+            "year": "2023",
+            "label": "Fundación de la empresa"
+          },
+          {
+            "year": "2024",
+            "label": "10K+ usuarios activos"
+          },
+          {
+            "year": "2025",
+            "label": "Reconocimiento en la industria"
+          }
+        ]
+      }
+    },
+    "values": {
+      "badge": "Nuestros valores",
+      "title": "Lo que nos impulsa",
+      "titleHighlight": "cada día",
+      "list": [
+        {
+          "title": "El cliente primero",
+          "description": "Cada decisión que tomamos comienza con nuestros clientes. Tu éxito es nuestro éxito."
+        },
+        {
+          "title": "Innovación",
+          "description": "Constantemente superamos límites para ofrecer funciones y capacidades de vanguardia."
+        },
+        {
+          "title": "Confianza y seguridad",
+          "description": "La seguridad y privacidad de tus datos son primordiales. Mantenemos estándares de seguridad a nivel empresarial."
+        },
+        {
+          "title": "Soporte 24/7",
+          "description": "Nuestro equipo de soporte dedicado siempre está aquí para ayudarte a tener éxito."
+        }
+      ],
+      "achievements": [
+        {
+          "title": "98% de satisfacción del cliente",
+          "subtitle": "Calificado con 4,9/5 estrellas"
+        },
+        {
+          "title": "300% de ROI promedio",
+          "subtitle": "Para nuestros clientes"
+        },
+        {
+          "title": "50+ países",
+          "subtitle": "Alcance global"
+        }
+      ]
+    },
+    "cta": {
+      "title": "¿Listo para transformar tu",
+      "titleHighlight": "marketing en WhatsApp?",
+      "subtitle": "Únete a miles de empresas que ya están creciendo con Whatsway",
+      "button": "Comenzar prueba gratuita"
+    }
+  },
+  "contactUs": {
+    "hero": {
+      "title": "Ponte en",
+      "titleHighlight": "Contacto",
+      "subtitle": "¿Tienes preguntas sobre WPSaaS? Estamos aquí para ayudarte a tener éxito con el marketing en WhatsApp."
+    },
+    "form": {
+      "heading": "Envíanos un mensaje",
+      "fields": {
+        "name": "Nombre completo",
+        "email": "Correo electrónico",
+        "company": "Empresa",
+        "subject": "Asunto",
+        "message": "Mensaje",
+        "required": "*"
+      },
+      "placeholders": {
+        "selectSubject": "Selecciona un asunto",
+        "message": "Cuéntanos cómo podemos ayudarte..."
+      },
+      "subjects": {
+        "general": "Consulta general",
+        "support": "Soporte técnico",
+        "sales": "Consulta de ventas",
+        "partnership": "Colaboración",
+        "feedback": "Comentarios"
+      },
+      "button": "Enviar mensaje"
+    },
+    "contactInfo": {
+      "heading": "Información de contacto",
+      "list": [
+        {
+          "title": "Envía un correo",
+          "details": "support@whatsway.com",
+          "description": "Envíanos un correo en cualquier momento"
+        },
+        {
+          "title": "Visítanos",
+          "details": "Noida",
+          "description": "India"
+        }
+      ]
+    },
+    "faq": {
+      "heading": "Preguntas frecuentes",
+      "subtitle": "Respuestas rápidas a preguntas comunes sobre WPSaaS",
+      "questions": [
+        {
+          "q": "¿Qué tan rápido puedo comenzar con WPSaaS?",
+          "a": "Estarás listo en menos de 5 minutos. Solo regístrate, conecta tu API de WhatsApp Business de Meta y comienza a enviar campañas."
+        },
+        {
+          "q": "¿Ofrecen API de WhatsApp Business?",
+          "a": "No, debes traer tu propia API de WhatsApp Business de Meta. Así tendrás control total sobre tus datos y costos."
+        },
+        {
+          "q": "¿Qué tipo de soporte ofrecen?",
+          "a": "Ofrecemos soporte por correo electrónico 24/7, chat en vivo durante el horario laboral, documentación completa y tutoriales en vídeo."
+        },
+        {
+          "q": "¿Puedo migrar desde otra plataforma de marketing en WhatsApp?",
+          "a": "¡Sí! Ofrecemos asistencia gratuita para migrar tus contactos, plantillas y campañas desde otras plataformas."
+        },
+        {
+          "q": "¿Hay una prueba gratuita?",
+          "a": "Sí, nuestro plan Starter es completamente gratis para hasta 1.000 contactos. No necesitas tarjeta de crédito para comenzar."
+        }
+      ]
+    }
+  },
+  "careers": {
+    "hero": {
+      "title": "Únete a nuestro",
+      "titleHighlight": "equipo increíble",
+      "subtitle": "Ayúdanos a revolucionar el marketing de WhatsApp y construir el futuro de la comunicación empresarial. Buscamos personas apasionadas para sumarse a nuestro equipo en crecimiento.",
+      "buttons": {
+        "viewPositions": "Ver vacantes",
+        "learnCulture": "Conoce nuestra cultura"
+      }
+    },
+    "stats": [
+      {
+        "number": "50+",
+        "label": "Miembros del equipo"
+      },
+      {
+        "number": "15+",
+        "label": "Países"
+      },
+      {
+        "number": "10.000+",
+        "label": "Clientes Felices"
+      },
+      {
+        "number": "$10M+",
+        "label": "Ingresos generados"
+      }
+    ],
+    "positions": {
+      "heading": "Vacantes abiertas",
+      "subtitle": "Encuentra tu siguiente oportunidad",
+      "departments": [
+        {
+          "id": "all",
+          "name": "Todas las posiciones"
+        },
+        {
+          "id": "engineering",
+          "name": "Ingeniería"
+        },
+        {
+          "id": "product",
+          "name": "Producto"
+        },
+        {
+          "id": "marketing",
+          "name": "Marketing"
+        },
+        {
+          "id": "sales",
+          "name": "Ventas"
+        },
+        {
+          "id": "support",
+          "name": "Soporte"
+        }
+      ],
+      "applyButton": "Postular Ahora",
+      "noResults": {
+        "title": "No se encontraron posiciones",
+        "description": "Prueba otro departamento o vuelve más tarde"
+      }
+    },
+    "benefits": {
+      "heading": "¿Por qué trabajar en WPSaaS?",
+      "subtitle": "Ofrecemos excelentes beneficios y un gran ambiente de trabajo",
+      "list": [
+        {
+          "title": "Salud y Bienestar",
+          "description": "Seguro médico, dental y de visión integral más estipendio de bienestar"
+        },
+        {
+          "title": "Trabajo flexible",
+          "description": "Cultura remote-first con horarios flexibles y vacaciones ilimitadas"
+        },
+        {
+          "title": "Crecimiento y aprendizaje",
+          "description": "$2,000 al año para desarrollo + conferencias"
+        },
+        {
+          "title": "Equidad y propiedad",
+          "description": "Paquete de acciones y programa de compra para empleados"
+        },
+        {
+          "title": "Cultura remota",
+          "description": "Trabaja desde cualquier lugar y participa en retiros trimestrales"
+        },
+        {
+          "title": "Equipamiento",
+          "description": "Portátil, monitor y bono para home office"
+        }
+      ]
+    },
+    "values": {
+      "heading": "Nuestros valores",
+      "subtitle": "Principios que guían todo lo que hacemos",
+      "list": [
+        {
+          "title": "Obsesión por el cliente",
+          "description": "Nuestros clientes están en el centro de todo lo que hacemos"
+        },
+        {
+          "title": "Innovación",
+          "description": "Rompemos límites y adoptamos nuevas tecnologías"
+        },
+        {
+          "title": "Transparencia",
+          "description": "Comunicamos abiertamente y con honestidad"
+        },
+        {
+          "title": "Mentalidad de crecimiento",
+          "description": "Aprendemos de los fracasos y mejoramos continuamente"
+        }
+      ]
+    },
+    "cta": {
+      "heading": "¿No ves el rol indicado?",
+      "subtitle": "Siempre buscamos talento. Envíanos tu currículum y te tendremos en cuenta para futuras oportunidades.",
+      "button": "Enviar currículum"
+    }
+  },
+  "caseStudies": {
+    "hero": {
+      "title": "Historias de",
+      "titleHighlight": "Éxito",
+      "subtitle": "Descubre cómo las empresas de diversas industrias logran resultados extraordinarios con la plataforma de marketing de WhatsApp de WPSaaS."
+    },
+    "cta": {
+      "buttonText": "Leer estudio completo",
+      "modalButtons": {
+        "startStory": "Comienza tu historia de éxito",
+        "share": "Compartir"
+      }
+    },
+    "modal": {
+      "challenge": "Desafío",
+      "solution": "Solución",
+      "keyResults": "Resultados clave",
+      "primaryResult": "Resultado principal"
+    },
+    "stats": {
+      "heading": "Resultados en todas las industrias",
+      "list": [
+        {
+          "number": "300%",
+          "label": "Incremento promedio de ROI"
+        },
+        {
+          "number": "85%",
+          "label": "Engagement del cliente"
+        },
+        {
+          "number": "60%",
+          "label": "Reducción de costos"
+        },
+        {
+          "number": "24/7",
+          "label": "Soporte automatizado"
+        }
+      ]
+    },
+    "ctaBanner": {
+      "heading": "¿Listo para escribir tu historia de éxito?",
+      "subtitle": "Únete a miles de empresas que ya están creciendo con Whatsway",
+      "button": "Comienza tu prueba gratuita"
+    }
   }
 }

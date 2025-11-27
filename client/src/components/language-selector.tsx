@@ -6,20 +6,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Globe } from "lucide-react";
+import { Globe, Languages } from "lucide-react";
 
 export function LanguageSelector() {
   const { language, setLanguage, languages } = useTranslation();
 
   return (
     <Select value={language} onValueChange={(value: any) => setLanguage(value)}>
-      <SelectTrigger className="w-[180px]" data-testid="select-language">
-        <Globe className="h-4 w-4 mr-2" />
+      <SelectTrigger className="w-[100px]" data-testid="select-language">
+        <Languages className="h-4 w-4 mr-2" />
         <SelectValue placeholder="Select language" />
       </SelectTrigger>
       <SelectContent>
         {Object.entries(languages).map(([code, config]) => (
-          <SelectItem key={code} value={code} data-testid={`option-language-${code}`}>
+          <SelectItem
+            key={code}
+            value={code}
+            data-testid={`option-language-${code}`}
+          >
             {config.nativeName}
           </SelectItem>
         ))}

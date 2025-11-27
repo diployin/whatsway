@@ -330,7 +330,7 @@ export default function Contacts() {
   const [currentPage, setCurrentPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const { user } = useAuth();
-  const [, setLocation] = useLocation()
+  const [, setLocation] = useLocation();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -341,16 +341,6 @@ export default function Contacts() {
     console.log("Initial search query from URL:", phone);
   }, []);
 
-  // const { data: contacts, isLoading } = useQuery({
-  //   queryKey: ["/api/contacts", searchQuery, activeChannel?.id],
-  //   queryFn: async () => {
-  //     const response = await api.getContacts(searchQuery, activeChannel?.id);
-  //     return await response.json();
-  //   },
-  //   enabled: !!activeChannel,
-  // });
-
-  // Form for adding contacts
   const form = useForm<InsertContact>({
     resolver: zodResolver(insertContactSchema),
     defaultValues: {
@@ -366,7 +356,7 @@ export default function Contacts() {
   const { data: activeChannel } = useQuery({
     queryKey: ["/api/channels/active"],
     queryFn: async () => {
-      const response = await apiRequest("GET" , "/api/channels/active");
+      const response = await apiRequest("GET", "/api/channels/active");
       if (!response.ok) return null;
       return await response.json();
     },
@@ -422,8 +412,7 @@ export default function Contacts() {
   //   enabled: !!activeChannel,
   // });
 
-
-  const userIdNew =  user?.role === "team" ? user?.createdBy : user?.id
+  const userIdNew = user?.role === "team" ? user?.createdBy : user?.id;
 
   const { data: contactsResponse, isLoading } = useQuery<ContactsResponse>({
     queryKey: [
@@ -447,7 +436,7 @@ export default function Contacts() {
         limit,
         selectedGroup !== "all" && selectedGroup ? selectedGroup : undefined,
         selectedStatus !== "all" && selectedStatus ? selectedStatus : undefined,
-        userIdNew// ✅ ALWAYS sent
+        userIdNew // ✅ ALWAYS sent
       );
 
       return (await response.json()) as ContactsResponse;
@@ -567,18 +556,21 @@ export default function Contacts() {
     },
   });
 
-  console.log("activeChannel?.id" , activeChannel?.id)
+  console.log("activeChannel?.id", activeChannel?.id);
 
   const { data: tempData } = useQuery({
     queryKey: ["/api/templates", activeChannel?.id],
     queryFn: async () => {
-      const response = await apiRequest('GET',`/api/templates?channelId=${activeChannel?.id}&page=1&limit=100`);
+      const response = await apiRequest(
+        "GET",
+        `/api/templates?channelId=${activeChannel?.id}&page=1&limit=100`
+      );
       return await response.json();
     },
     enabled: !!activeChannel,
   });
 
- const availableTemplates = tempData?.data || []; 
+  const availableTemplates = tempData?.data || [];
   // const createContactMutation = useMutation({
   //   mutationFn: async (data: InsertContact) => {
   //     const response = await fetch(
@@ -589,7 +581,7 @@ export default function Contacts() {
   //         body: JSON.stringify(data),
   //       }
   //     );
-  
+
   //     // Read error message from API
   //     if (!response.ok) {
   //       const errorData = await response.json().catch(() => null);
@@ -599,10 +591,10 @@ export default function Contacts() {
   //         "Failed to create contact";
   //       throw new Error(message);
   //     }
-  
+
   //     return response.json();
   //   },
-  
+
   //   onSuccess: () => {
   //     queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
   //     toast({
@@ -612,7 +604,7 @@ export default function Contacts() {
   //     setShowAddDialog(false);
   //     form.reset();
   //   },
-  
+
   //   onError: (error: any) => {
   //     toast({
   //       title: "Error",
@@ -622,58 +614,51 @@ export default function Contacts() {
   //   },
   // });
 
-
   const createContactMutation = useMutation({
-  mutationFn: async (data: InsertContact) => {
+    mutationFn: async (data: InsertContact) => {
+      // 1️⃣ Frontend validation
+      if (!activeChannel?.id) {
+        throw new Error("Please create a channel first.");
+      }
 
-    // 1️⃣ Frontend validation
-    if (!activeChannel?.id) {
-      throw new Error("Please create a channel first.");
-    }
+      const response = await fetch(`/api/contacts`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...data,
+          channelId: activeChannel.id, // 2️⃣ Channel ID now passed in POST body
+        }),
+      });
 
-    const response = await fetch(`/api/contacts`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...data,
-        channelId: activeChannel.id, // 2️⃣ Channel ID now passed in POST body
-      }),
-    });
+      // 3️⃣ Handle backend errors
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        const message =
+          errorData?.error || errorData?.message || "Failed to create contact";
+        throw new Error(message);
+      }
 
-    // 3️⃣ Handle backend errors
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => null);
-      const message =
-        errorData?.error ||
-        errorData?.message ||
-        "Failed to create contact";
-      throw new Error(message);
-    }
+      return response.json();
+    },
 
-    return response.json();
-  },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
+      toast({
+        title: "Contact created",
+        description: "The contact has been successfully added.",
+      });
+      setShowAddDialog(false);
+      form.reset();
+    },
 
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
-    toast({
-      title: "Contact created",
-      description: "The contact has been successfully added.",
-    });
-    setShowAddDialog(false);
-    form.reset();
-  },
-
-  onError: (error: any) => {
-    toast({
-      title: "Error",
-      description: error?.message || "Failed to create contact.",
-      variant: "destructive",
-    });
-  },
-});
-
-
-  
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to create contact.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const deleteContactMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -811,9 +796,7 @@ export default function Contacts() {
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
         const message =
-          errorData?.error ||
-          errorData?.message ||
-          "Failed to create contact";
+          errorData?.error || errorData?.message || "Failed to create contact";
         throw new Error(message);
       }
       return response.json();
@@ -1051,7 +1034,9 @@ export default function Contacts() {
   // ✅ Export All Contacts
   const handleExportAllContacts = async () => {
     try {
-      const response = await fetch(`/api/contacts-all?channelId=${activeChannel?.id}`);
+      const response = await fetch(
+        `/api/contacts-all?channelId=${activeChannel?.id}`
+      );
       if (!response.ok) {
         throw new Error("Failed to fetch contacts");
       }
@@ -1190,7 +1175,7 @@ export default function Contacts() {
 
                     {/* Create Group */}
                     <DropdownMenuItem
-                      onClick={() => setLocation('/groups')}
+                      onClick={() => setLocation("/groups")}
                       className="text-green-600"
                     >
                       <Plus className="h-4 w-4 mr-2" />
@@ -1315,7 +1300,7 @@ export default function Contacts() {
                       asChild
                     >
                       <span>
-                      <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                        <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
                         <span className="hidden sm:inline">
                           {t("contacts.importContacts")}
                         </span>
