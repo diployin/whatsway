@@ -1008,6 +1008,10 @@ async function initializeRazorpayPayment(
     },
   });
 
+
+  console.log("Razorpay Order Created:", order);
+
+
   return {
     orderId: order.id,
     paymentIntentId: null,
@@ -1188,6 +1192,7 @@ export const verifyRazorpayPayment = async (req: Request, res: Response) => {
       transactionId,
     } = req.body;
 
+
     // Get provider details
     const providerData = await db
       .select()
@@ -1202,7 +1207,22 @@ export const verifyRazorpayPayment = async (req: Request, res: Response) => {
     }
 
     const provider = providerData[0];
+
+    
+    const razorpay = new Razorpay({
+      key_id: provider.config.apiKey || process.env.RAZORPAY_KEY_ID,
+      key_secret: provider.config.apiSecret || process.env.RAZORPAY_KEY_SECRET,
+    });
+
+
     const secret = provider.config.apiSecret || process.env.RAZORPAY_KEY_SECRET;
+
+
+
+    // Fetch payment details
+const paymentDetails = await razorpay.payments.fetch(razorpay_payment_id);
+
+// console.log("Payment Details:", paymentDetails);
 
     // Generate signature
     const generated_signature = crypto
@@ -1226,6 +1246,15 @@ export const verifyRazorpayPayment = async (req: Request, res: Response) => {
 
     const transaction = transactionData[0];
 
+    console.log(
+      {
+        status: "failed",
+        metadata: { error: "Invalid signature" },
+        paymentMethod: paymentDetails.method || null,
+        updatedAt: new Date(),
+      }
+    )
+
     // Signature mismatch -> fail transaction
     if (generated_signature !== razorpay_signature) {
       await db
@@ -1233,6 +1262,7 @@ export const verifyRazorpayPayment = async (req: Request, res: Response) => {
         .set({
           status: "failed",
           metadata: { error: "Invalid signature" },
+          paymentMethod: paymentDetails.method || null,
           updatedAt: new Date(),
         })
         .where(eq(transactions.id, transactionId));
@@ -1250,6 +1280,7 @@ export const verifyRazorpayPayment = async (req: Request, res: Response) => {
         status: "completed",
         providerOrderId: razorpay_order_id,
         providerPaymentId: razorpay_payment_id,
+        paymentMethod: paymentDetails.method || null,
         paidAt: new Date(),
         metadata: { verified: true },
         updatedAt: new Date(),
@@ -1273,7 +1304,7 @@ export const verifyRazorpayPayment = async (req: Request, res: Response) => {
     const plan = planData[0];
 
     // Log the plan data for debugging
-    console.log("Fetched plan data:", plan);
+    // console.log("Fetched plan data:", plan);
 
     // Ensure valid plan data, falling back to defaults if necessary
     const planDataObject = {
@@ -1287,7 +1318,7 @@ export const verifyRazorpayPayment = async (req: Request, res: Response) => {
     };
 
     // Log plan data object to check before insertion
-    console.log("Plan data object for subscription:", planDataObject);
+    // console.log("Plan data object for subscription:", planDataObject);
 
     // Calculate subscription dates
     const startDate = new Date();
