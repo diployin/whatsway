@@ -92,10 +92,10 @@ export function TemplatesTable({
         icon={FileText}
         title="No templates yet"
         description="Create your first WhatsApp message template to start sending messages"
-        action={{
-          label: "Create Template",
-          onClick: () => onEditTemplate({} as Template),
-        }}
+        // action={{
+        //   label: "Create Template",
+        //   onClick: () => onEditTemplate({} as Template),
+        // }}
       />
     );
   }
