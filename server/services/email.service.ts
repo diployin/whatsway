@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 // import { getPanelConfigs } from './panel.config';
 import { getSMTPConfig } from 'server/controllers/smtp.controller';
+import { getPanelConfigs } from './panel.config';
 
 const config = await getSMTPConfig();
 
@@ -23,7 +24,7 @@ if (config) {
   });
 }
 
-
+const [configs] = await getPanelConfigs();
 
 function generateOTPEmailHTML(
   companyName?: string,
@@ -31,7 +32,7 @@ function generateOTPEmailHTML(
   otpCode: string,
   name?: string
 ): string {
-  const displayName = companyName || "Your Company";
+  const displayName = configs?.name || "Your Company";
   const headerContent = logo
     ? `<img src="${logo}" alt="${displayName} Logo" style="max-height: 60px; margin-bottom: 10px;">`
     : `<div class="logo">${displayName}</div>`;
@@ -111,7 +112,7 @@ function generateOTPEmailHTML(
       <div class="container">
         <div class="header">
           ${headerContent}
-          <p style="color: #6b7280; margin: 0;">AI Bulk Calling Platform</p>
+          <p style="color: #6b7280; margin: 0;">Our Platform</p>
         </div>
         
         <div class="message">
@@ -158,7 +159,7 @@ If you didn't request this code, please ignore this email.
 
 ---
 ${companyName}
-AI Bulk Calling Platform
+Our Platform
   `.trim();
 }
 
@@ -169,7 +170,7 @@ function generateForgotPasswordEmailHTML(
   otpCode: string,
   name?: string
 ): string {
-  const displayName = companyName || "Your Company";
+  const displayName = configs?.name || "Your Company";
   const headerContent = logo
     ? `<img src="${logo}" alt="${displayName} Logo" style="max-height: 60px; margin-bottom: 10px;">`
     : `<div class="logo">${displayName}</div>`;
@@ -196,7 +197,7 @@ function generateForgotPasswordEmailHTML(
       <div class="container">
         <div class="header">
           ${headerContent}
-          <p style="color: #6b7280; margin: 0;">AI Bulk Calling Platform</p>
+          <p style="color: #6b7280; margin: 0;">Our Platform</p>
         </div>
 
         <div class="message">
@@ -242,7 +243,7 @@ If you didn't request a password reset, please ignore this email.
 
 ---
 ${companyName}
-AI Bulk Calling Platform
+Our Platform
   `.trim();
 }
 
@@ -256,7 +257,7 @@ function extractCompanyName(url: string) {
 
 export async function sendOTPEmail(email: string, otpCode: string, name?: string) {
 //   const [configs] = await getPanelConfigs();
-  const companyName = "diploy";
+  const companyName =  configs?.name || "Your Company";
   const fromName = config?.fromName || companyName;  
   const fromEmail = config?.fromEmail;
 
@@ -293,11 +294,98 @@ export async function sendOTPEmail(email: string, otpCode: string, name?: string
 }
 
 
+export async function sendContactEmail(data: {
+  name: string;
+  email: string;
+  company?: string;
+  subject: string;
+  message: string;
+}) {
+  
+  const { name, email, company, subject, message } = data;
 
+  const companyName = configs?.name || "Your Company";
+  const fromName = config?.fromName || companyName;
+  const fromEmail = config?.fromEmail;
+
+  const html = `
+  <div style="background:#f4f5f7; padding:40px; font-family:Arial, sans-serif;">
+    <div style="max-width:600px; margin:auto; background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.08);">
+      
+      <!-- Header -->
+      <div style="background:#4f46e5; padding:24px; color:#ffffff; text-align:center;">
+        <h2 style="margin:0; font-size:24px; font-weight:600;">New Contact Form Message</h2>
+        <p style="margin:6px 0 0; opacity:0.85;">${companyName}</p>
+      </div>
+
+      <!-- Body -->
+      <div style="padding:30px;">
+        
+        <p style="font-size:16px; color:#111827;">You have received a new message from your website contact form.</p>
+
+        <table style="width:100%; margin-top:20px;">
+          <tr>
+            <td style="padding:10px 0; font-size:16px; font-weight:600; width:150px; color:#374151;">Name:</td>
+            <td style="padding:10px 0; font-size:16px; color:#111827;">${name}</td>
+          </tr>
+
+          <tr>
+            <td style="padding:10px 0; font-size:16px; font-weight:600; color:#374151;">Email:</td>
+            <td style="padding:10px 0; font-size:16px; color:#111827;">${email}</td>
+          </tr>
+
+          <tr>
+            <td style="padding:10px 0; font-size:16px; font-weight:600; color:#374151;">Company:</td>
+            <td style="padding:10px 0; font-size:16px; color:#111827;">${company || "-"}</td>
+          </tr>
+
+          <tr>
+            <td style="padding:10px 0; font-size:16px; font-weight:600; color:#374151;">Subject:</td>
+            <td style="padding:10px 0; font-size:16px; color:#111827;">${subject}</td>
+          </tr>
+        </table>
+
+        <div style="margin-top:30px;">
+          <p style="font-size:16px; font-weight:600; color:#374151; margin-bottom:8px;">Message:</p>
+          <div style="background:#f9fafb; padding:20px; border-radius:10px; font-size:15px; line-height:1.6; color:#111827;">
+            ${message.replace(/\n/g, "<br>")}
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer -->
+      <div style="background:#f3f4f6; padding:18px; text-align:center; font-size:13px; color:#6b7280;">
+        This email was sent from the contact form on <strong>${companyName}</strong>.
+      </div>
+
+    </div>
+  </div>
+`;
+
+
+  const mailOptions = {
+    from: `"${fromName}" <${fromEmail}>`,
+    to: email, // send to admin email
+    subject: `Contact Form: ${subject}`,
+    html,
+    text: `${name} (${email}) says: ${message}`,
+  };
+
+  try {
+   
+    const info = await transporter.sendMail(mailOptions);
+    console.log("✉️ [Contact] Message sent:", info.messageId);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error("❌ [Contact] Failed:", error);
+    throw new Error("Failed to send contact message");
+  }
+}
 
 export async function sendOTPEmailVerify(email: string, otpCode: string, name?: string) {
 //   const [configs] = await getPanelConfigs();
-  const companyName = "diploy";
+  const companyName = configs?.name || "Your Company";
   const fromName = config?.fromName || companyName;  
   const fromEmail = config?.fromEmail;
 
