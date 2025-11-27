@@ -1,4 +1,3 @@
-
 import {
   Bell,
   Plus,
@@ -37,6 +36,7 @@ import {
 } from "firebase/firestore";
 import { getMessaging, getToken } from "firebase/messaging";
 import { useSidebar } from "@/contexts/sidebar-context";
+import { LanguageSelector } from "../language-selector";
 
 interface HeaderProps {
   title: string;
@@ -137,7 +137,7 @@ export default function Header({
   // UI unchanged --------------------------------------
   return (
     <>
-      <header className="bg-white shadow-sm border-b border-gray-100 px-6 py-4">
+      <header className="bg-white shadow-sm border-b border-gray-100  px-4 sm:px-6 py-4">
         <div className="flex items-center justify-between flex-wrap">
           <div className="flex items-center gap-3">
             <button
@@ -158,17 +158,20 @@ export default function Header({
             </div>
           </div>
 
-          <div className="flex items-center space-x-4 ">
-            <div className=" w-fit hidden sm:block ">
+          <div className="flex items-center space-x-2 sm:space-x-4 ">
+            <div className=" w-fit  ">
               {action && (
                 <Button
                   onClick={action.onClick}
-                  className="bg-green-600 text-white "
+                  className="bg-green-600 text-white px-2 py-1 "
                 >
-                  <Plus className="w-4 h-4 " />{" "}
+                  <Plus className=" w-2 h-2 sm:w-4 sm:h-4 " />{" "}
                   <span className="hidden lg:block  ">{action.label}</span>
                 </Button>
               )}
+            </div>
+            <div className=" w-fit hidden sm:block ">
+              <LanguageSelector />
             </div>
 
             {user?.role != "superadmin" && (
@@ -177,7 +180,7 @@ export default function Header({
                   onClick={() => setNotifModal(true)}
                   className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg"
                 >
-                  <Bell className="w-5 h-5" />
+                  <Bell className=" w-4 h-4 sm:w-5 sm:h-5" />
                   {unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
                       {unreadCount}
