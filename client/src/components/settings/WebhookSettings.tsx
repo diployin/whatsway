@@ -421,9 +421,21 @@ export function WebhookSettings() {
     data: webhookConfigs = [],
     isLoading: webhooksLoading,
     refetch: refetchWebhookConfigs,
-  } = useQuery<WebhookConfig[]>({
-    queryKey: ["/api/webhook-configs"],
+  } = useQuery({
+    queryKey: ["webhook-configs"],
+    queryFn: async () => {
+      const res = await fetch("/api/webhook-configs");
+      const json = await res.json();
+  
+      console.log("Fetched JSON:", json);
+  
+      // If your API returns { success, data }
+      return json.data || json;  // return array ONLY
+    }
   });
+  
+
+  // console.log("Webhook Configs:", webhookConfigs , webhooksLoading);
 
   // Delete webhook mutation
   const deleteWebhookMutation = useMutation({
@@ -524,8 +536,12 @@ export function WebhookSettings() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => refetchWebhookConfigs()}
-                  disabled={user?.username === "demouser"}
+                  onClick={() => {
+                    console.log("Manual Refetch Clicked");
+                    refetchWebhookConfigs({ stale: true });
+                  }}
+                  
+                  // disabled={user?.username === "demouser"}
                   className="flex items-center text-xs h-7 rounded-sm px-2 sm:h-9 sm:rounded-md sm:px-3"
                 >
                   <RefreshCw className="w-4 h-4 mr-1" />

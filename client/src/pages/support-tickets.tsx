@@ -33,6 +33,8 @@ import {
   Phone,
   ArrowRight,
   AlertTriangle,
+  Delete,
+  Trash,
 } from "lucide-react";
 import {
   Dialog,
@@ -685,7 +687,7 @@ export default function SupportTicketsNew() {
                           }
                           className="p-2 text-red-400 hover:text-red-600 rounded-lg hover:bg-red-50"
                         >
-                          <MoreVertical className="w-5 h-5" />
+                          <Trash className="w-5 h-5" />
                         </button>
                       )}
                     </div>
@@ -898,13 +900,14 @@ export default function SupportTicketsNew() {
                     <textarea
                       placeholder="Type your reply..."
                       value={newMessage}
+                      disabled={selectedTicket.status !== "open"}
                       onChange={(e) => setNewMessage(e.target.value)}
                       className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
                       rows={3}
                     />
                     <button
                       onClick={handleSendMessage}
-                      disabled={
+                      disabled={selectedTicket.status !== "open" || 
                         !newMessage.trim() || addMessageMutation.isPending
                       }
                       className="bg-green-500 text-white p-3 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
