@@ -84,18 +84,27 @@ export default function Dashboard() {
 
   // Fetch message analytics
   const { data: messageAnalytics, isLoading: analyticsLoading } = useQuery({
-    queryKey: ["/api/analytics/messages", activeChannel?.id, timeRange],
-    queryFn: async () => {
-      const params = new URLSearchParams({
-        days: timeRange.toString(),
-        ...(activeChannel?.id && { channelId: activeChannel.id }),
-      });
-      const response = await fetch(`/api/analytics/messages?${params}`);
-      if (!response.ok) throw new Error("Failed to fetch message analytics");
-      return await response.json();
-    },
-    enabled: !!activeChannel,
-  });
+  queryKey: ["/api/analytics/messages", activeChannel?.id, timeRange],
+
+  queryFn: async () => {
+    const params = new URLSearchParams({
+      days: timeRange.toString(),
+      ...(user?.role !== "superadmin" && activeChannel?.id && {
+        channelId: activeChannel.id,
+      }),
+    });
+
+    const response = await fetch(`/api/analytics/messages?${params}`);
+    if (!response.ok) throw new Error("Failed to fetch message analytics");
+    return await response.json();
+  },
+
+  enabled:
+    user.role === "superadmin"
+      ? true
+      : !!activeChannel?.id,
+});
+
 
   // console.log("this is stats ", stats);
 
