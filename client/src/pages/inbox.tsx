@@ -1726,7 +1726,7 @@ export default function Inbox() {
                     value="chatbot"
                     className="text-[11px] sm:text-xs md:text-sm whitespace-nowrap px-2 sm:px-3 md:px-4 h-full rounded-md"
                   >
-                    Bot
+                    Widget
                   </TabsTrigger>
                   <TabsTrigger
                     value="assigned"

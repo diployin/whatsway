@@ -143,14 +143,14 @@ function getNavItems(role: string): NavItem[] {
         color: "text-teal-600",
         allowedRoles: ["superadmin", "admin"],
       },
-      {
-        href: "/settings",
-        icon: Settings,
-        labelKey: "navigation.settings",
-        color: "text-gray-600",
-        alwaysVisible: true,
-        allowedRoles: ["superadmin", "admin"],
-      },
+      // {
+      //   href: "/settings",
+      //   icon: Settings,
+      //   labelKey: "navigation.settings",
+      //   color: "text-gray-600",
+      //   alwaysVisible: true,
+      //   allowedRoles: ["superadmin", "admin"],
+      // },
 
       {
         href: "/plans",
@@ -289,15 +289,15 @@ function getNavItems(role: string): NavItem[] {
         requiredPrefix: "team.",
         allowedRoles: ["team"],
       },
-      {
-        href: "/settings",
-        icon: Settings,
-        labelKey: "navigation.settings",
-        color: "text-gray-600",
-        alwaysVisible: true,
-        requiredPrefix: "settings.",
-        allowedRoles: ["team"],
-      },
+      // {
+      //   href: "/settings",
+      //   icon: Settings,
+      //   labelKey: "navigation.settings",
+      //   color: "text-gray-600",
+      //   alwaysVisible: true,
+      //   requiredPrefix: "settings.",
+      //   allowedRoles: ["team"],
+      // },
 
       {
         href: "/plans",
