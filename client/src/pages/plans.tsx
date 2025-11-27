@@ -280,9 +280,10 @@ export default function Plans() {
 
   return (
     <div className="flex-1 dots-bg min-h-screen dots-bg">
-      <Header title={t("plans.title")} subtitle={t("plans.subtitle")} />
+      {user?.role === "superadmin" ? <Header title="Subscription Plan" subtitle="Create And Manage Subscription plans" /> : <Header title={t("plans.title")} subtitle={t("plans.subtitle")} />}
+      
 
-      <BillingSubscriptionPage />
+      {user?.role != "superadmin" && (<BillingSubscriptionPage />)}
 
       <main className="p-6 space-y-6">
         {/* Stats Card */}
