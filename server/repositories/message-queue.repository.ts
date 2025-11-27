@@ -84,22 +84,64 @@ export class MessageQueueRepository {
       .orderBy(desc(messageQueue.createdAt));
   }
 
-  // async getForRetry(limit: number = 100): Promise<MessageQueue[]> {
-  //   return await db
-  //     .select()
-  //     .from(messages)
-  //     .where(
-  //       and(
-  //         eq(messages.status, 'failed'),
-  //         lt(messages.retryCount, 3),
-  //         isNull(messages.errorDetails)
-  //       )
-  //     )
-  //     .limit(limit)
-  //     .orderBy(messageQueue.createdAt);
-  // }
+
+
 
   async getMessageStats(): Promise<any> {
+  const now = new Date();
+  const thisMonthStart = startOfMonth(now);
+  const lastMonthStart = startOfMonth(subMonths(now, 1));
+  const lastMonthEnd = thisMonthStart;
+  const todayStart = startOfDay(now);
+
+  // GLOBAL STATS (no channel filter)
+  const result = await db
+    .select({
+      messagesSent: sql<number>`COUNT(CASE WHEN ${messages.status} = 'sent' THEN 1 END)`.mapWith(Number),
+      messagesDelivered: sql<number>`COUNT(CASE WHEN ${messages.status} = 'delivered' THEN 1 END)`.mapWith(Number),
+      messagesFailed: sql<number>`COUNT(CASE WHEN ${messages.status} = 'failed' THEN 1 END)`.mapWith(Number),
+      messagesRead: sql<number>`COUNT(CASE WHEN ${messages.status} = 'read' THEN 1 END)`.mapWith(Number),
+
+      totalMessages: sql<number>`COUNT(*)`.mapWith(Number),
+
+      todayMessages: sql<number>`
+        COUNT(CASE WHEN ${messages.createdAt} >= ${todayStart} THEN 1 END)
+      `.mapWith(Number),
+
+      thisMonthMessages: sql<number>`
+        COUNT(CASE WHEN ${messages.createdAt} >= ${thisMonthStart} THEN 1 END)
+      `.mapWith(Number),
+
+      lastMonthMessages: sql<number>`
+        COUNT(
+          CASE WHEN ${messages.createdAt} >= ${lastMonthStart}
+          AND ${messages.createdAt} < ${lastMonthEnd}
+          THEN 1 END
+        )
+      `.mapWith(Number),
+    })
+    .from(messages); // <-- NO JOIN / NO FILTER
+
+  return (
+    result[0] || {
+      messagesSent: 0,
+      messagesDelivered: 0,
+      messagesFailed: 0,
+      messagesRead: 0,
+      totalMessages: 0,
+      todayMessages: 0,
+      thisMonthMessages: 0,
+      lastMonthMessages: 0,
+    }
+  );
+}
+
+
+
+
+
+
+  async getMessageStatsOld(): Promise<any> {
     const now = new Date();
     const thisMonthStart = startOfMonth(now);
     const lastMonthStart = startOfMonth(subMonths(now, 1));
