@@ -74,7 +74,7 @@
     "widgetBuilder": "Constructor de widgets",
     "website": "Sitio web",
     "tickets_support": "Soporte de tickets",
-    "plan-upgrade": "Facturación y membresía",
+    "plan-upgrade": "Actualizar plan",
     "billing": "Facturación y créditos",
     "users": "Usuarios",
     "master_contacts": "Contactos maestros",
@@ -2500,6 +2500,767 @@
       "heading": "¿Listo para escribir tu historia de éxito?",
       "subtitle": "Únete a miles de empresas que ya están creciendo con Whatsway",
       "button": "Comienza tu prueba gratuita"
+    }
+  },
+  "whatsappGuide": {
+    "hero": {
+      "title": "Marketing en WhatsApp",
+      "titleHighlight": "Guía completa",
+      "subtitle": "Todo lo que necesitas saber sobre WhatsApp Business API, estrategias de marketing y mejores prácticas para hacer crecer tu negocio."
+    },
+    "sections": [
+      {
+        "id": "getting-started",
+        "title": "Primeros pasos"
+      },
+      {
+        "id": "setup",
+        "title": "Configuración API"
+      },
+      {
+        "id": "campaigns",
+        "title": "Crear campañas"
+      },
+      {
+        "id": "automation",
+        "title": "Automatización"
+      },
+      {
+        "id": "best-practices",
+        "title": "Mejores prácticas"
+      },
+      {
+        "id": "compliance",
+        "title": "Cumplimiento"
+      }
+    ],
+    "sidebarTitle": "Secciones de la guía",
+    "navigation": {
+      "previous": "Anterior",
+      "next": "Siguiente"
+    },
+    "content": {
+      "getting-started": {
+        "title": "Comenzando con el marketing de WhatsApp",
+        "items": [
+          {
+            "title": "¿Qué es WhatsApp Business API?",
+            "text": "WhatsApp Business API es una plataforma poderosa que permite a las empresas comunicarse con los clientes a escala. A diferencia de la aplicación regular de WhatsApp Business, la API habilita mensajería automatizada, integraciones y funciones avanzadas."
+          },
+          {
+            "title": "¿Por qué elegir WPSaaS?",
+            "text": "WPSaaS proporciona una interfaz fácil de usar para WhatsApp Business API, permitiéndote crear campañas, automatizar respuestas y rastrear el rendimiento sin complejidad técnica."
+          },
+          {
+            "title": "Requisitos previos",
+            "text": "Antes de comenzar, necesitarás: Una cuenta verificada de WhatsApp Business API de Meta, Un número de teléfono comercial, Comprensión básica de tu público objetivo"
+          }
+        ]
+      },
+      "setup": {
+        "title": "Configurando tu WhatsApp Business API",
+        "items": [
+          {
+            "title": "Paso 1: Obtén tus credenciales de Meta API",
+            "text": "Visita la plataforma Meta Business y crea una cuenta de WhatsApp Business API. Recibirás credenciales API que incluyen tu ID de número de teléfono, token de acceso y URL de webhook."
+          },
+          {
+            "title": "Paso 2: Conectar con WPSaaS",
+            "text": "En tu panel de WPSaaS, navega a Configuración > Configuración de API. Ingresa tus credenciales de Meta API y prueba la conexión para asegurarte de que todo funciona correctamente."
+          },
+          {
+            "title": "Paso 3: Verifica tu empresa",
+            "text": "Completa el proceso de verificación comercial con Meta. Esto generalmente implica proporcionar documentos comerciales y puede tomar de 1 a 3 días hábiles para completarse."
+          }
+        ]
+      },
+      "campaigns": {
+        "title": "Creando campañas efectivas de WhatsApp",
+        "items": [
+          {
+            "title": "Tipos de campañas",
+            "text": "WPSaaS admite varios tipos de campañas: Mensajes de difusión para anuncios, Campañas de goteo para nutrir leads, Mensajes activados basados en acciones del usuario, Campañas promocionales para ventas y ofertas"
+          },
+          {
+            "title": "Plantillas de mensajes",
+            "text": "Crea plantillas en tu Meta Business Manager y sincronízalas con Whatsway. Las plantillas pueden incluir texto, imágenes, videos y botones interactivos."
+          },
+          {
+            "title": "Segmentación de audiencia",
+            "text": "Segmenta tu audiencia según demografía, comportamiento, historial de compras y niveles de participación. Esto asegura que tus mensajes sean relevantes y mejoren las tasas de participación."
+          }
+        ]
+      },
+      "automation": {
+        "title": "Automatización del marketing de WhatsApp",
+        "items": [
+          {
+            "title": "Automatización de flujos de trabajo",
+            "text": "Crea flujos de trabajo automatizados que respondan a las acciones de los clientes. Los ejemplos incluyen secuencias de bienvenida para nuevos suscriptores, recuperación de carritos abandonados, recordatorios de citas y mensajes de seguimiento."
+          },
+          {
+            "title": "Integración de chatbot",
+            "text": "Implementa chatbots impulsados por IA para manejar consultas comunes, calificar leads y proporcionar soporte al cliente 24/7. Los chatbots pueden transferir sin problemas a agentes humanos cuando sea necesario."
+          },
+          {
+            "title": "Mensajería basada en activadores",
+            "text": "Configura activadores basados en el comportamiento del cliente, retrasos de tiempo o eventos externos. Esto garantiza una comunicación oportuna y relevante con tu audiencia."
+          }
+        ]
+      },
+      "best-practices": {
+        "title": "Mejores prácticas de marketing de WhatsApp",
+        "items": [
+          {
+            "title": "Respeta la privacidad del usuario",
+            "text": "Siempre obtén consentimiento explícito antes de enviar mensajes a los usuarios. Proporciona opciones claras de exclusión y respeta las preferencias del usuario. Nunca compres listas de contactos ni envíes mensajes no solicitados."
+          },
+          {
+            "title": "Tiempo y frecuencia",
+            "text": "Envía mensajes en momentos apropiados según la zona horaria de tu audiencia. Evita el exceso de mensajes: la calidad sobre la cantidad es clave. Monitorea las tasas de participación y ajusta la frecuencia en consecuencia."
+          },
+          {
+            "title": "Personalización",
+            "text": "Usa datos del cliente para personalizar mensajes. Incluye nombres, historial de compras y ofertas relevantes. Los mensajes personalizados tienen tasas de participación significativamente más altas."
+          }
+        ]
+      },
+      "compliance": {
+        "title": "Cumplimiento de políticas de WhatsApp Business",
+        "items": [
+          {
+            "title": "Categorías de mensajes",
+            "text": "WhatsApp categoriza los mensajes en: Utilidad (actualizaciones de cuenta, confirmaciones de pedidos), Autenticación (códigos de inicio de sesión, alertas de seguridad), Marketing (promociones, anuncios). Cada categoría tiene reglas y precios específicos."
+          },
+          {
+            "title": "Proceso de aprobación de plantillas",
+            "text": "Todas las plantillas de mensajes deben ser aprobadas por Meta antes de su uso. El proceso de aprobación generalmente toma de 24 a 48 horas. Asegúrate de que las plantillas sigan las pautas de contenido de WhatsApp."
+          },
+          {
+            "title": "Calificación de calidad",
+            "text": "WhatsApp monitorea la calidad de tus mensajes a través de comentarios de usuarios y métricas de participación. Mantén una calificación de calidad alta para evitar restricciones y garantizar la entregabilidad."
+          }
+        ]
+      }
+    },
+    "quickTips": {
+      "heading": "Consejos rápidos para el éxito",
+      "subtitle": "Consejos esenciales para maximizar tus resultados de marketing en WhatsApp",
+      "tips": [
+        {
+          "title": "Construye tu audiencia orgánicamente",
+          "tip": "Enfócate en calidad sobre cantidad. Los suscriptores comprometidos son más valiosos que listas grandes sin compromiso."
+        },
+        {
+          "title": "Crea mensajes convincentes",
+          "tip": "Mantén los mensajes concisos, valiosos y orientados a la acción. Incluye llamadas a la acción claras."
+        },
+        {
+          "title": "Monitorea el rendimiento",
+          "tip": "Rastrea tasas de entrega, lectura y respuesta. Usa datos para optimizar tus campañas."
+        },
+        {
+          "title": "Automatiza sabiamente",
+          "tip": "Automatiza tareas rutinarias pero mantén el toque humano en interacciones complejas."
+        },
+        {
+          "title": "Mantén el cumplimiento",
+          "tip": "Sigue siempre las políticas de WhatsApp y regulaciones locales. El cumplimiento protege tu negocio."
+        },
+        {
+          "title": "Prueba e itera",
+          "tip": "Prueba continuamente diferentes enfoques y optimiza según resultados."
+        }
+      ]
+    },
+    "cta": {
+      "heading": "¿Listo para comenzar tu viaje de marketing en WhatsApp?",
+      "subtitle": "Pon esta guía en acción con la poderosa plataforma de WPSaaS",
+      "button": "Comenzar prueba gratuita"
+    }
+  },
+  "bestPractices": {
+    "hero": {
+      "title": "Marketing no WhatsApp",
+      "titleHighlight": "Melhores Práticas",
+      "subtitle": "Estratégias e técnicas comprovadas para maximizar o sucesso do seu marketing no WhatsApp. Aprenda com especialistas do setor e campanhas de alto desempenho."
+    },
+    "categories": [
+      {
+        "id": "messaging",
+        "name": "Mensagens"
+      },
+      {
+        "id": "automation",
+        "name": "Automatização"
+      },
+      {
+        "id": "engagement",
+        "name": "Engajamento"
+      },
+      {
+        "id": "compliance",
+        "name": "Conformidade"
+      },
+      {
+        "id": "timing",
+        "name": "Tempo"
+      },
+      {
+        "id": "optimization",
+        "name": "Otimização"
+      }
+    ],
+    "implementationTips": "Dicas de implementação:",
+    "expectedImpact": "Impacto esperado",
+    "expectedImpactDesc": "A implementação desta prática geralmente resulta em melhorias mensuráveis no desempenho do seu marketing no WhatsApp.",
+    "quickTips": {
+      "heading": "Dicas rápidas para o sucesso",
+      "subtitle": "Lembretes essenciais para o sucesso do marketing no WhatsApp",
+      "tips": [
+        {
+          "title": "Qualidade em vez de quantidade",
+          "tip": "Concentre-se em assinantes engajados em vez de grandes listas"
+        },
+        {
+          "title": "Tempo é importante",
+          "tip": "Envie mensagens quando seu público estiver mais ativo"
+        },
+        {
+          "title": "Seja pessoal",
+          "tip": "Use os dados do cliente para criar experiências relevantes"
+        },
+        {
+          "title": "Mantenha a conformidade",
+          "tip": "Sempre siga as políticas do WhatsApp e os regulamentos locais"
+        },
+        {
+          "title": "Incentive a interação",
+          "tip": "Torne as conversas bidirecionais para melhor engajamento"
+        },
+        {
+          "title": "Teste e otimize",
+          "tip": "Melhore continuamente com base nos dados de desempenho"
+        }
+      ]
+    },
+    "warning": {
+      "heading": "Lembrete importante de conformidade",
+      "description": "Sempre garanta seu consentimento explícito antes de enviar mensagens aos clientes no WhatsApp. Violar as políticas comerciais do WhatsApp pode resultar em restrições ou banimentos de conta.",
+      "points": [
+        "Nunca compre listas de contatos",
+        "Sempre forneça opções de cancelamento",
+        "Respeite a janela de mensagens de 24 horas",
+        "Use modelos de mensagens aprovados para conteúdo promocional"
+      ]
+    },
+    "cta": {
+      "heading": "Pronto para implementar essas melhores práticas?",
+      "subtitle": "Comece a aplicar essas estratégias comprovadas com Whatsway hoje",
+      "button": "Comece o teste gratuito"
+    },
+    "practices": {
+      "messaging": [
+        {
+          "title": "Mantenha as mensagens concisas e claras",
+          "description": "Usuários do WhatsApp preferem mensagens curtas e diretas. Procure usar 160 caracteres ou menos quando possível.",
+          "tips": [
+            "Use tópicos para vários itens",
+            "Inclua chamadas para ação claras",
+            "Evite jargões e linguagem complexa",
+            "Use emojis com moderação, mas de forma eficaz"
+          ],
+          "impact": "Aumenta as taxas de leitura em 40%"
+        },
+        {
+          "title": "Personalize suas mensagens",
+          "description": "Use os dados do cliente para criar experiências personalizadas que ressoem com seu público.",
+          "tips": [
+            "Inclua nomes dos clientes nas saudações",
+            "Refira-se a compras ou interações passadas",
+            "Segmente o público para mensagens direcionadas",
+            "Use conteúdo dinâmico com base no comportamento do usuário"
+          ],
+          "impact": "Melhora o engajamento em 60%"
+        },
+        {
+          "title": "Use mídias ricas eficazmente",
+          "description": "Imagens, vídeos e documentos podem aumentar significativamente o impacto da sua mensagem.",
+          "tips": [
+            "Otimize imagens para visualização móvel",
+            "Mantenha vídeos com menos de 30 segundos",
+            "Use visuais de alta qualidade",
+            "Inclua legendas para acessibilidade"
+          ],
+          "impact": "Aumenta a conversão em 35%"
+        }
+      ],
+      "automation": [
+        {
+          "title": "Configure sequências de boas-vindas",
+          "description": "Crie mensagens de boas-vindas automatizadas para novos assinantes a fim de estabelecer expectativas.",
+          "tips": [
+            "Envie mensagem de boas-vindas em até 5 minutos",
+            "Explique o que os assinantes podem esperar",
+            "Forneça instruções de cancelamento",
+            "Inclua recursos ou links úteis"
+          ],
+          "impact": "Reduz taxa de cancelamento em 25%"
+        },
+        {
+          "title": "Implemente gatilhos inteligentes",
+          "description": "Use gatilhos comportamentais para enviar mensagens relevantes no momento certo.",
+          "tips": [
+            "Lembretes de abandono de carrinho",
+            "Acompanhamentos pós-compra",
+            "Mensagens de aniversário e aniversário de fidelidade",
+            "Campanhas de reengajamento para usuários inativos"
+          ],
+          "impact": "Aumenta a receita em 45%"
+        },
+        {
+          "title": "Crie campanhas drip",
+          "description": "Nutra leads com uma série de mensagens automatizadas ao longo do tempo.",
+          "tips": [
+            "Espaçe as mensagens em 2-3 dias",
+            "Forneça valor em cada mensagem",
+            "Inclua provas sociais e depoimentos",
+            "Termine com uma chamada clara para ação"
+          ],
+          "impact": "Melhora a conversão de leads em 50%"
+        }
+      ],
+      "engagement": [
+        {
+          "title": "Incentive conversas bidirecionais",
+          "description": "Torne sua presença no WhatsApp interativa para construir relacionamentos mais fortes.",
+          "tips": [
+            "Faça perguntas em suas mensagens",
+            "Responda rapidamente a consultas dos clientes",
+            "Use enquetes e pesquisas",
+            "Compartilhe conteúdo gerado por usuários"
+          ],
+          "impact": "Aumenta a lealdade do cliente em 30%"
+        },
+        {
+          "title": "Forneça excelente suporte ao cliente",
+          "description": "Use o WhatsApp como um canal de atendimento ao cliente para resolver problemas rapidamente.",
+          "tips": [
+            "Configure respostas automáticas para perguntas comuns",
+            "Treine a equipe de suporte na etiqueta do WhatsApp",
+            "Use respostas rápidas para acelerar o atendimento",
+            "Escale questões complexas para telefone ou e-mail"
+          ],
+          "impact": "Melhora a satisfação em 55%"
+        },
+        {
+          "title": "Compartilhe conteúdo valioso",
+          "description": "Forneça conteúdo que eduque, entretenha ou resolva problemas para seu público.",
+          "tips": [
+            "Compartilhe insights e dicas do setor",
+            "Forneça ofertas exclusivas e prévias",
+            "Envie tutoriais e guias úteis",
+            "Curadoria de notícias e atualizações relevantes"
+          ],
+          "impact": "Aumenta a confiança na marca em 40%"
+        }
+      ],
+      "compliance": [
+        {
+          "title": "Obtenha consentimento adequado",
+          "description": "Sempre obtenha permissão explícita antes de adicionar contatos à sua lista do WhatsApp.",
+          "tips": [
+            "Use processos de duplo opt-in",
+            "Explique claramente o que os usuários receberão",
+            "Forneça opções fáceis de cancelamento",
+            "Mantenha registros de consentimento"
+          ],
+          "impact": "Reduz reclamações de spam em 80%"
+        },
+        {
+          "title": "Siga as políticas comerciais do WhatsApp",
+          "description": "Adira aos termos de serviço e políticas comerciais do WhatsApp.",
+          "tips": [
+            "Use modelos de mensagens aprovados",
+            "Respeite a janela de mensagens de 24 horas",
+            "Não envie conteúdo promocional sem consentimento",
+            "Monitore regularmente sua classificação de qualidade"
+          ],
+          "impact": "Previne restrições de conta"
+        },
+        {
+          "title": "Mantenha a privacidade dos dados",
+          "description": "Proteja os dados dos clientes e cumpra as regulamentações de privacidade.",
+          "tips": [
+            "Implemente criptografia de dados",
+            "Limite o acesso às informações dos clientes",
+            "Audite regularmente o uso dos dados",
+            "Forneça opções de exclusão de dados"
+          ],
+          "impact": "Constrói confiança do cliente"
+        }
+      ],
+      "timing": [
+        {
+          "title": "Envie mensagens nos melhores horários",
+          "description": "Envie suas mensagens quando seu público estiver mais ativo.",
+          "tips": [
+            "Analise os fusos horários do seu público",
+            "Teste diferentes horários de envio",
+            "Evite mensagens muito cedo ou muito tarde",
+            "Considere feriados e eventos locais"
+          ],
+          "impact": "Aumenta as taxas de abertura em 25%"
+        },
+        {
+          "title": "Respeite os limites de frequência",
+          "description": "Não sobrecarregue seu público com muitas mensagens.",
+          "tips": [
+            "Limite para 2-3 mensagens por semana no máximo",
+            "Espacie as mensagens promocionais adequadamente",
+            "Monitore as taxas de cancelamento",
+            "Permita que os usuários definam preferências de frequência"
+          ],
+          "impact": "Reduz a taxa de cancelamento em 35%"
+        },
+        {
+          "title": "Planeje campanhas sazonais",
+          "description": "Alinhe suas mensagens com tendências e eventos sazonais.",
+          "tips": [
+            "Crie campanhas específicas para feriados",
+            "Planeje promoções de volta às aulas",
+            "Aproveite eventos e festivais locais",
+            "Prepare mensagens para vendas de final de ano"
+          ],
+          "impact": "Aumenta as vendas sazonais em 60%"
+        }
+      ],
+      "optimization": [
+        {
+          "title": "Faça testes A/B das suas mensagens",
+          "description": "Teste continuamente diferentes variações de mensagem para melhorar o desempenho.",
+          "tips": [
+            "Teste linhas de assunto e mensagens de abertura",
+            "Experimente diferentes frases de call-to-action",
+            "Experimente o comprimento das mensagens",
+            "Teste horários e frequências de envio"
+          ],
+          "impact": "Melhora o desempenho em 30%"
+        },
+        {
+          "title": "Monitore métricas-chave",
+          "description": "Acompanhe métricas importantes para medir e melhorar seu marketing no WhatsApp.",
+          "tips": [
+            "Monitore taxas de entrega e leitura",
+            "Acompanhe taxas de clique",
+            "Meça taxas de conversão",
+            "Analise o valor vitalício do cliente"
+          ],
+          "impact": "Permite decisões baseadas em dados"
+        },
+        {
+          "title": "Segmente seu público",
+          "description": "Divida seu público em grupos para mensagens mais direcionadas.",
+          "tips": [
+            "Segmentação por demografia",
+            "Agrupamento por comportamento de compra",
+            "Crie segmentos baseados em engajamento",
+            "Use segmentação geográfica"
+          ],
+          "impact": "Aumenta a relevância em 45%"
+        }
+      ]
+    }
+  },
+  "privacy_policy": {
+    "hero": {
+      "title": "Política de Privacidad"
+    },
+    "intro": {
+      "text": "En StyleHub, estamos comprometidos con la protección de tu privacidad. Esta política explica cómo recopilamos, usamos y protegemos tu información personal cuando visitas nuestro sitio web y realizas compras."
+    },
+    "sections": {
+      "informationWeCollect": {
+        "title": "1. Información que recopilamos",
+        "paragraphs": {
+          "intro": "Recopilamos la información que nos proporcionas directamente:",
+          "personalIdentifiers": {
+            "label": "Identificadores personales:",
+            "text": "Nombre, dirección de envío, correo electrónico y número de teléfono cuando realizas un pedido o creas una cuenta."
+          },
+          "paymentInformation": {
+            "label": "Información de pago:",
+            "text": "Datos de tarjetas de crédito/débito u otra información de pago. Los pagos se procesan de forma segura a través de nuestros proveedores de pago (por ejemplo, Stripe, PayPal). No almacenamos los datos completos de tu tarjeta en nuestros servidores."
+          },
+          "orderHistory": {
+            "label": "Historial de pedidos:",
+            "text": "Un registro de los productos que compras."
+          },
+          "communication": {
+            "label": "Comunicación:",
+            "text": "Cualquier comunicación que nos envíes, incluidas las solicitudes de soporte."
+          },
+          "autoIntro": "También recopilamos automáticamente cierta información cuando visitas nuestro sitio:",
+          "technicalData": {
+            "label": "Datos técnicos:",
+            "text": "Dirección IP, tipo de navegador, información del dispositivo y tus interacciones con nuestro sitio web (por ejemplo, páginas visitadas), recopilados mediante cookies y tecnologías similares."
+          }
+        }
+      },
+      "howWeUseInfo": {
+        "title": "2. Cómo usamos tu información",
+        "list": [
+          "Procesar y completar tus pedidos",
+          "Proporcionar facturas, recibos y confirmaciones de pedido",
+          "Responder a consultas y brindar atención al cliente",
+          "Analizar el uso del sitio y mejorar nuestra tienda",
+          "Con fines de marketing (solo con tu consentimiento). Puedes darte de baja en cualquier momento."
+        ]
+      },
+      "sharingInfo": {
+        "title": "3. Cómo compartimos tu información",
+        "intro": "No vendemos tu información personal. Solo la compartimos en circunstancias limitadas:",
+        "list": [
+          {
+            "label": "Proveedores de servicios:",
+            "text": "Transportistas, procesadores de pago, plataformas de correo electrónico, etc."
+          },
+          {
+            "label": "Obligaciones legales:",
+            "text": "Cuando lo requiere la ley o un procedimiento legal."
+          }
+        ]
+      },
+      "cookies": {
+        "title": "4. Cookies",
+        "text": "Utilizamos cookies para recordar preferencias, analizar el tráfico y mejorar tu experiencia de compra. Puedes desactivar las cookies en la configuración de tu navegador, pero es posible que algunas funciones del sitio no funcionen correctamente."
+      },
+      "dataRetention": {
+        "title": "5. Conservación de datos",
+        "text": "Conservamos tu información solo durante el tiempo necesario para cumplir los fines para los que se recopiló, incluidos los requisitos legales, contables o de informes."
+      },
+      "yourRights": {
+        "title": "6. Tus derechos",
+        "intro": "Puedes tener ciertos derechos según tu ubicación:",
+        "list": [
+          "Acceder y corregir la información personal",
+          "Solicitar la eliminación de tus datos",
+          "Darte de baja de correos electrónicos de marketing en cualquier momento",
+          "Solicitar tu información en un formato portátil"
+        ],
+        "contact": "Para ejercer estos derechos, contáctanos en:"
+      },
+      "dataSecurity": {
+        "title": "7. Seguridad de los datos",
+        "text": "Utilizamos medidas de seguridad estándar de la industria para proteger tus datos. Sin embargo, ningún método de transmisión por Internet es 100 % seguro."
+      },
+      "changes": {
+        "title": "8. Cambios en esta política",
+        "text": "Podemos actualizar esta política de vez en cuando. Las actualizaciones se mostrarán en esta página junto con una fecha de «Última actualización» revisada."
+      }
+    }
+  },
+  "terms": {
+    "hero": {
+      "title": "Términos y Condiciones",
+      "lastUpdated": "Última actualización: 01 de enero de 2025"
+    },
+    "intro": {
+      "text": "Por favor, lea estos Términos y Condiciones cuidadosamente antes de utilizar el sitio web y los servicios de StyleHub. Al acceder o utilizar nuestra plataforma, usted acepta estar sujeto a estos Términos."
+    },
+    "sections": {
+      "generalConditions": {
+        "title": "1. Condiciones Generales",
+        "text": "Nos reservamos el derecho de rechazar el servicio a cualquier persona, por cualquier motivo y en cualquier momento. Usted entiende que su contenido (excepto la información de pago) puede ser transferido sin cifrado y adaptado a los requisitos técnicos de transmisión."
+      },
+      "accountCreation": {
+        "title": "2. Creación de Cuenta y Seguridad",
+        "text": "Es posible que deba crear una cuenta para acceder a ciertas funciones. Usted es responsable de mantener la confidencialidad de su cuenta y contraseña. Debe tener al menos la edad legal correspondiente en su región para usar este sitio."
+      },
+      "productsServices": {
+        "title": "3. Productos y Servicios",
+        "items": [
+          "Podemos limitar la venta de productos a cualquier persona, región o jurisdicción.",
+          "Hacemos todo lo posible para mostrar con precisión las imágenes y colores de los productos.",
+          "Todos los precios están sujetos a cambios sin previo aviso."
+        ]
+      },
+      "billingOrders": {
+        "title": "4. Facturación e Información de Pedidos",
+        "text": "Usted acepta proporcionar información de compra y cuenta completa y precisa para todas las transacciones. Nos reservamos el derecho de rechazar o cancelar cualquier pedido."
+      },
+      "thirdPartyLinks": {
+        "title": "5. Enlaces de Terceros",
+        "text": "No somos responsables del contenido, sitios web o servicios de terceros que se acceden a través de enlaces en nuestra plataforma."
+      },
+      "userComments": {
+        "title": "6. Comentarios de Usuarios",
+        "text": "Cualquier comentario o envío que nos proporcione puede ser utilizado sin restricciones. No estamos obligados a mantener los comentarios en confidencialidad ni a compensarle."
+      },
+      "prohibitedUses": {
+        "title": "7. Usos Prohibidos",
+        "items": [
+          "Participar en actividades ilegales",
+          "Violar leyes y regulaciones aplicables",
+          "Infringir nuestra propiedad intelectual o los derechos de otros",
+          "Conducta abusiva, dañina o discriminatoria"
+        ]
+      },
+      "disclaimer": {
+        "title": "8. Renuncia de Garantías y Responsabilidad",
+        "text": "No garantizamos un servicio ininterrumpido, seguro o libre de errores. Usted acepta que el uso del servicio es bajo su propio riesgo. Todos los servicios se proporcionan “tal cual”, sin garantías de ningún tipo."
+      },
+      "indemnification": {
+        "title": "9. Indemnización",
+        "text": "Usted acepta indemnizar y mantener indemne a StyleHub, sus empleados y socios, frente a cualquier reclamo derivado del incumplimiento de estos Términos."
+      },
+      "severability": {
+        "title": "10. Divisibilidad",
+        "text": "Si alguna disposición de estos Términos se considera inaplicable, las disposiciones restantes seguirán siendo válidas y aplicables."
+      },
+      "termination": {
+        "title": "11. Terminación",
+        "text": "Estos Términos permanecerán en vigor a menos que sean terminados por cualquiera de las partes. Las obligaciones previas a la terminación continuarán vigentes."
+      },
+      "governingLaw": {
+        "title": "12. Ley Aplicable",
+        "text": "Estos Términos se rigen por las leyes de la India."
+      },
+      "changes": {
+        "title": "13. Cambios en Estos Términos",
+        "text": "Podemos actualizar estos Términos en cualquier momento publicando los cambios en esta página. Es su responsabilidad revisarlos periódicamente."
+      }
+    }
+  },
+  "cookiePolicy": {
+    "hero": {
+      "title": "Política de Cookies",
+      "lastUpdated": "15 de enero de 2025"
+    },
+    "sections": {
+      "whatAreCookies": {
+        "title": "Qué son las Cookies",
+        "paragraphs": [
+          "Las cookies son pequeños archivos de texto que se almacenan en su dispositivo cuando visita nuestro sitio web. Nos ayudan a brindarle una mejor experiencia al recordar sus preferencias y comprender cómo utiliza nuestro servicio.",
+          "Esta Política de Cookies explica qué son las cookies, cómo las usamos, los tipos de cookies que utilizamos y cómo puede controlar sus preferencias de cookies."
+        ]
+      },
+      "howWeUseCookies": {
+        "title": "Cómo Usamos las Cookies",
+        "intro": "Usamos cookies para varios propósitos:",
+        "list": [
+          "Para garantizar que nuestro sitio web funcione correctamente",
+          "Para recordar su estado de inicio de sesión y sus preferencias",
+          "Para analizar el tráfico y los patrones de uso del sitio web",
+          "Para mejorar nuestros servicios y la experiencia del usuario",
+          "Para proporcionar contenido y funciones personalizadas",
+          "Para medir la efectividad de nuestras campañas de marketing"
+        ]
+      },
+      "typesOfCookies": {
+        "title": "Tipos de Cookies que Usamos",
+        "essential": {
+          "title": "Cookies Esenciales",
+          "text": "Estas cookies son necesarias para que el sitio web funcione correctamente. Permiten funciones básicas como seguridad, administración de red y accesibilidad. No puede rechazar estas cookies.",
+          "examples": "Ejemplos: Cookies de sesión, cookies de autenticación, cookies de balanceo de carga"
+        },
+        "performance": {
+          "title": "Cookies de Rendimiento",
+          "text": "Estas cookies recopilan información sobre cómo los visitantes usan nuestro sitio web, como qué páginas se visitan con mayor frecuencia o si los usuarios reciben mensajes de error. Esto nos ayuda a mejorar el rendimiento de nuestro sitio.",
+          "examples": "Ejemplos: Google Analytics, seguimiento del tiempo de carga, informes de errores"
+        },
+        "functional": {
+          "title": "Cookies Funcionales",
+          "text": "Estas cookies permiten que el sitio web recuerde las decisiones que usted toma y proporcionan funciones más personalizadas. Pueden ser establecidas por nosotros o por proveedores externos cuyos servicios hemos agregado en nuestras páginas.",
+          "examples": "Ejemplos: Preferencias de idioma, configuración de temas, datos de formularios"
+        },
+        "marketing": {
+          "title": "Cookies de Marketing",
+          "text": "Estas cookies se utilizan para rastrear a los visitantes en diferentes sitios web, mostrar anuncios relevantes y medir la efectividad de campañas publicitarias.",
+          "examples": "Ejemplos: Facebook Pixel, Google Ads, cookies de retargeting"
+        }
+      },
+      "thirdPartyCookies": {
+        "title": "Cookies de Terceros",
+        "intro": "Podemos usar servicios de terceros que colocan cookies en su dispositivo. Estos servicios incluyen:",
+        "list": [
+          "Google Analytics: Para análisis del sitio web y monitoreo de rendimiento",
+          "Intercom: Para soporte al cliente y chat en vivo",
+          "Stripe: Para procesamiento de pagos y prevención de fraude",
+          "Facebook: Para integración de redes sociales y publicidad"
+        ],
+        "outro": "Estos terceros tienen sus propias políticas de privacidad y cookies. Le recomendamos revisar sus políticas para comprender cómo utilizan las cookies."
+      },
+      "cookieDuration": {
+        "title": "Duración de las Cookies",
+        "intro": "Las cookies pueden ser cookies de sesión o cookies persistentes:",
+        "list": [
+          "Cookies de Sesión: Son temporales y se eliminan cuando cierra su navegador",
+          "Cookies Persistentes: Permanecen en su dispositivo durante un período definido o hasta que las elimine manualmente"
+        ],
+        "extra": "La duración de las cookies persistentes varía según su propósito y generalmente oscila entre 30 días y 2 años."
+      },
+      "managingCookies": {
+        "title": "Gestión de Preferencias de Cookies",
+        "intro": "Tiene varias opciones para administrar las cookies:",
+        "browserSettings": {
+          "title": "Configuración del Navegador",
+          "text": "La mayoría de los navegadores permiten controlar las cookies a través de sus configuraciones. Puede:",
+          "list": [
+            "Bloquear todas las cookies",
+            "Bloquear cookies de terceros",
+            "Eliminar cookies existentes",
+            "Configurar notificaciones cuando se envían cookies"
+          ]
+        },
+        "consentManager": {
+          "title": "Administrador de Consentimiento de Cookies",
+          "text": "Cuando visite nuestro sitio por primera vez, verá un banner de consentimiento de cookies que le permitirá aceptar o rechazar diferentes tipos de cookies. Puede cambiar sus preferencias en cualquier momento haciendo clic en el enlace \"Configuración de Cookies\" en nuestro pie de página."
+        },
+        "optOutLinks": {
+          "title": "Enlaces de Exclusión",
+          "intro": "Puede optar por excluir cookies específicas de terceros:",
+          "links": [
+            {
+              "label": "Google Analytics:",
+              "text": "Inhabilitar Google Analytics",
+              "href": "https://tools.google.com/dlpage/gaoptout"
+            },
+            {
+              "label": "Facebook:",
+              "text": "Preferencias de anuncios de Facebook",
+              "href": "https://www.facebook.com/settings?tab=ads"
+            }
+          ]
+        }
+      },
+      "impactDisabling": {
+        "title": "Impacto de Deshabilitar las Cookies",
+        "intro": "Aunque puede deshabilitar las cookies, tenga en cuenta que esto puede afectar su experiencia en nuestro sitio web:",
+        "list": [
+          "Algunas funciones pueden no funcionar correctamente",
+          "Puede necesitar ingresar información con mayor frecuencia",
+          "El contenido personalizado y las recomendaciones pueden no estar disponibles",
+          "Es posible que no podamos recordar sus preferencias"
+        ]
+      },
+      "updates": {
+        "title": "Actualizaciones a Esta Política",
+        "paragraphs": [
+          "Podemos actualizar esta Política de Cookies ocasionalmente para reflejar cambios en nuestras prácticas o por motivos operativos, legales o regulatorios. Le notificaremos cualquier cambio importante publicando la política actualizada en nuestro sitio web.",
+          "Le recomendamos revisar esta política periódicamente para mantenerse informado sobre cómo usamos las cookies."
+        ]
+      },
+      "contact": {
+        "title": "Contáctenos",
+        "intro": "Si tiene alguna pregunta sobre nuestro uso de cookies o esta Política de Cookies, contáctenos en:",
+        "emailLabel": "Correo electrónico:",
+        "email": "privacy@whatsway.com",
+        "addressLabel": "Dirección:",
+        "address": "123 Business Ave, Suite 100, San Francisco, CA 94105",
+        "phoneLabel": "Teléfono:",
+        "phone": "+1 (555) 123-4567"
+      }
     }
   }
 }
