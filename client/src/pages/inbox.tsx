@@ -1224,7 +1224,6 @@ useEffect(() => {
 
     // Accept both: new-message OR any event that contains conversationId
     if (data.type === "new-message" || data.conversationId) {
-
       // Refresh conversation list
       queryClient.invalidateQueries({
         queryKey: ["/api/conversations"],
@@ -1251,7 +1250,8 @@ useEffect(() => {
       wsRef.current.close();
     }
   };
-}, [selectedConversation?.id]); 
+}, [selectedConversation?.id]);
+
 
 
   // Join conversation room when selected
