@@ -99,11 +99,14 @@ export default function AutomationFlowBuilder({
   const templates =
     templateData?.filter((t: Template) => t.status === "APPROVED") || [];
 
-  const { data: members = [] } = useQuery({
+  const { data: teamMembers } = useQuery({
     queryKey: ["/api/team/members"],
     queryFn: () =>
       apiRequest("GET", "/api/team/members").then((res) => res.json()),
   });
+
+  
+  const members = teamMembers?.data || [];
 
   const addNode = (kind: NodeKind) => {
     const id = uid();
