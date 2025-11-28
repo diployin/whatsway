@@ -75,13 +75,12 @@ const Footer: React.FC = () => {
           {/* Brand Section */}
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center space-x-2 sm:space-x-3">
-              {brandSettings?.logo ? (
+              {brandSettings?.logo2 ? (
                 <img
-                  src={brandSettings?.logo}
+                  src={brandSettings?.logo2}
                   alt="Logo"
-                  className="h-24 w-24 object-contain"
+                  className="h-12 object-contain"
                   style={{ filter: "brightness(0) invert(1)" }}
-
                 />
               ) : (
                 <div className="bg-green-800 text-primary-foreground rounded-full p-3">

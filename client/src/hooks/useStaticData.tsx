@@ -27,7 +27,7 @@ const useStaticData = () => {
         },
         {
           title: t("Landing.header.resourcesMenuItems.1.title"),
-          path: "/case-studies",
+          path: "/terms",
           description: t("Landing.header.resourcesMenuItems.0.description"),
           icon: TrendingUp,
           image:

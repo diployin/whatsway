@@ -59,6 +59,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/auth-context";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import Header from "@/components/layout/header";
+import { useTranslation } from "@/lib/i18n";
 
 interface AdminUser {
   id: string;
@@ -111,6 +112,8 @@ export default function SupportTicketsNew() {
   const [isInternalNote, setIsInternalNote] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+
+  const { t } = useTranslation();
 
   const [createFormData, setCreateFormData] = useState({
     title: "",
@@ -407,14 +410,14 @@ export default function SupportTicketsNew() {
   return (
     <div className="min-h-screen bg-gray-50 dots-bg">
       <Header
-        title={"Support Tickets"}
+        title={t("support_tickets.headTitle")}
         subtitle={
           isAdmin
-            ? "Manage all support tickets from users and listeners"
-            : "View and manage your support tickets"
+            ? t("support_tickets.headTitleAdmin")
+            : t("support_tickets.headTitleuser")
         }
         action={{
-          label: "Create Ticket",
+          label: t("support.createTicket"),
           onClick: () => setShowCreateDialog(true),
         }}
       />
@@ -424,26 +427,26 @@ export default function SupportTicketsNew() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           {[
             {
-              title: "Total Tickets",
+              title: t("support.stats.totalTickets"),
               value: tickets.length.toString(),
               color: "blue",
             },
             {
-              title: "Open Tickets",
+              title: t("support.stats.openTickets"),
               value: tickets
                 .filter((t) => t.status === "open")
                 .length.toString(),
               color: "yellow",
             },
             {
-              title: "In Progress",
+              title: t("support.stats.inProgress"),
               value: tickets
                 .filter((t) => t.status === "in_progress")
                 .length.toString(),
               color: "green",
             },
             {
-              title: "Resolved",
+              title: t("support.stats.resolved"),
               value: tickets
                 .filter((t) => t.status === "resolved")
                 .length.toString(),
@@ -907,8 +910,10 @@ export default function SupportTicketsNew() {
                     />
                     <button
                       onClick={handleSendMessage}
-                      disabled={selectedTicket.status !== "open" || 
-                        !newMessage.trim() || addMessageMutation.isPending
+                      disabled={
+                        selectedTicket.status !== "open" ||
+                        !newMessage.trim() ||
+                        addMessageMutation.isPending
                       }
                       className="bg-green-500 text-white p-3 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
@@ -952,10 +957,10 @@ export default function SupportTicketsNew() {
               <div className="bg-white p-12 rounded-xl shadow-sm border border-gray-200 text-center">
                 <Headphones className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No ticket selected
+                  {t("support.empty.noSelection")}
                 </h3>
                 <p className="text-gray-500 mb-4">
-                  Select a ticket from the list to view details and respond
+                  {t("support.empty.selectTicket")}
                 </p>
               </div>
             )}

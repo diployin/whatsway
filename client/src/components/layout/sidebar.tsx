@@ -28,7 +28,6 @@ import { LanguageSelector } from "@/components/language-selector";
 import { useAuth } from "@/contexts/auth-context";
 // import logo from "../../images/logo1924.jpg";
 import { GiUpgrade } from "react-icons/gi";
-import { TbInvoice } from "react-icons/tb";
 import { RiSecurePaymentFill } from "react-icons/ri";
 import { AiOutlineTransaction } from "react-icons/ai";
 import { MdOutlineSupportAgent, MdGroups } from "react-icons/md";
@@ -680,45 +679,24 @@ export default function Sidebar() {
       >
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-            {/* <div
-              onClick={() => setLocation("/")}
-              className="flex items-center space-x-3"
-            >
-              {brandSettings?.logo ? (
-                <img
-                  src={brandSettings?.logo}
-                  alt="Logo"
-                  className="h-12 w-12 object-contain"
-                />
-              ) : (
-                <div className="bg-green-800 text-primary-foreground rounded-full p-3">
-                  <MessageSquare className="h-8 w-8" />
-                </div>
-              )}
-              <h1 className="text-xl font-bold text-gray-900">Whatsway</h1>
-            </div> */}
-
             <Link
               href="/dashboard"
-              className="flex items-center space-x-2 sm:space-x-3"
+              className="flex items-center flex-col space-x-2 sm:space-x-3"
             >
               {brandSettings?.logo ? (
                 <img
                   src={brandSettings?.logo}
                   alt="Logo"
-                  className="h-8 w-8 object-contain"
+                  className=" h-10 object-contain"
                 />
               ) : (
                 <div className="bg-green-800 text-primary-foreground rounded-full p-3">
                   <MessageSquare className="h-8 w-8" />
                 </div>
               )}
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">Whatsway</h1>
-                <span className="text-xs mb-2">
-                  Building amazing experiences
-                </span>
-              </div>
+              <span className=" text-[10px] sm:text-xs pl-8">
+                Building amazing experiences
+              </span>
             </Link>
             <button
               onClick={toggle}
