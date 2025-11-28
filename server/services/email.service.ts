@@ -1,11 +1,14 @@
 import nodemailer from 'nodemailer';
 // import { getPanelConfigs } from './panel.config';
 import { getSMTPConfig } from 'server/controllers/smtp.controller';
-import { getPanelConfigs } from './panel.config';
+import { getFirstPanelConfig, getPanelConfigs } from './panel.config';
 
 const config = await getSMTPConfig();
 
 let transporter:any;
+
+
+const getData =  await getFirstPanelConfig()
 
 if (config) {
   transporter = nodemailer.createTransport({
@@ -366,7 +369,7 @@ export async function sendContactEmail(data: {
 
   const mailOptions = {
     from: `"${fromName}" <${fromEmail}>`,
-    to: email, // send to admin email
+    to: fromEmail, // send to admin email
     subject: `Contact Form: ${subject}`,
     html,
     text: `${name} (${email}) says: ${message}`,

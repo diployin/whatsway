@@ -41,6 +41,7 @@ interface BrandSettings {
   updatedAt?: string;
   country?: string;
   currency?: string;
+  supportEmail?: string;
   firebase?: {};
 }
 
@@ -76,6 +77,7 @@ export function GeneralSettings(): JSX.Element {
     favicon: "",
     country: "IN",
     currency: "INR",
+    supportEmail: "",
     updatedAt: new Date().toISOString(),
   };
 
@@ -88,6 +90,7 @@ export function GeneralSettings(): JSX.Element {
         favicon: displayData.favicon,
         currency: displayData.currency,
         country: displayData.country,
+        supportEmail: displayData.supportEmail,
         description: displayData.tagline,
         keywords: `${displayData.title} ${displayData?.tagline}`,
       });
@@ -492,6 +495,27 @@ export function GeneralSettings(): JSX.Element {
                   {!displayData.currency && (
                     <p className="text-xs text-gray-500 mt-1">
                       {t("settings.general_setting.currencyHelper")}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* supportEmail */}
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Tag className="w-4 h-4 text-green-500" />
+                  <Label className="font-medium">
+                    {t("settings.general_setting.supportEmail")}
+                  </Label>
+                </div>
+                <div className="p-4 bg-gray-50 rounded-lg border">
+                  <p className="text-sm text-gray-700">
+                    {displayData.supportEmail ||
+                      t("settings.general_setting.notConfigured")}
+                  </p>
+                  {!displayData.supportEmail && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      {t("settings.general_setting.supportEmailHelper")}
                     </p>
                   )}
                 </div>
