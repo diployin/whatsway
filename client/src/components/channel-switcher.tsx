@@ -184,9 +184,6 @@
 //   );
 // }
 
-
-
-
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
@@ -203,7 +200,12 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useChannelContext } from "@/contexts/channel-context";
 import { useAuth } from "@/contexts/auth-context";
-import { Dialog, DialogContent, DialogTitle, DialogHeader } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogHeader,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 
 interface ChannelsResponse {
@@ -215,7 +217,9 @@ interface ChannelsResponse {
 }
 
 export function ChannelSwitcher() {
-  const [selectedChannelId, setSelectedChannelId] = useState<string | null>(null);
+  const [selectedChannelId, setSelectedChannelId] = useState<string | null>(
+    null
+  );
   const [page, setPage] = useState<number>(1);
   const limit = 100;
   const [, setLocation] = useLocation();
@@ -242,7 +246,9 @@ export function ChannelSwitcher() {
     keepPreviousData: true,
   });
 
-  const channels: Channel[] = Array.isArray(response?.data) ? response.data : [];
+  const channels: Channel[] = Array.isArray(response?.data)
+    ? response.data
+    : [];
   const totalPages = response?.totalPages || 1;
 
   // Fetch active channel
@@ -270,7 +276,7 @@ export function ChannelSwitcher() {
 
   // Sync selected channel when selectedChannelId changes
   useEffect(() => {
-    const channel = channels.find(c => c.id === selectedChannelId);
+    const channel = channels.find((c) => c.id === selectedChannelId);
     if (channel) {
       setSelectedChannel(channel);
     }
@@ -282,7 +288,9 @@ export function ChannelSwitcher() {
       if (isActive) {
         await Promise.all(
           channels.map(async (channel) => {
-            await apiRequest("PUT", `/api/channels/${channel.id}`, { isActive: false });
+            await apiRequest("PUT", `/api/channels/${channel.id}`, {
+              isActive: false,
+            });
           })
         );
       }
@@ -293,7 +301,9 @@ export function ChannelSwitcher() {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["/api/channels"] });
-      await queryClient.invalidateQueries({ queryKey: ["/api/channels/active"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["/api/channels/active"],
+      });
       toast({
         title: "Channel switched",
         description: "Active channel has been updated successfully.",
@@ -313,14 +323,18 @@ export function ChannelSwitcher() {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
-        <Select value={selectedChannelId || ""} onValueChange={handleChannelChange}>
+        <Select
+          value={selectedChannelId || ""}
+          onValueChange={handleChannelChange}
+        >
           <SelectTrigger className="w-48">
             <SelectValue placeholder="Select channel">
-              {selectedChannelId && channels.find(c => c.id === selectedChannelId) ? (
+              {selectedChannelId &&
+              channels.find((c) => c.id === selectedChannelId) ? (
                 <div className="flex items-center gap-2">
                   <Phone className="w-4 h-4" />
-                  <span className="truncate">
-                    {channels.find(c => c.id === selectedChannelId)?.name}
+                  <span className="truncate max-w-20 ">
+                    {channels.find((c) => c.id === selectedChannelId)?.name}
                   </span>
                 </div>
               ) : (
@@ -334,7 +348,9 @@ export function ChannelSwitcher() {
                 <div className="flex items-center gap-2">
                   <Phone className="w-4 h-4" />
                   <span>{channel.name}</span>
-                  {channel.isActive && <Check className="w-3 h-3 text-green-600 ml-auto" />}
+                  {channel.isActive && (
+                    <Check className="w-3 h-3 text-green-600 ml-auto" />
+                  )}
                 </div>
               </SelectItem>
             ))}

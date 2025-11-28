@@ -1130,8 +1130,8 @@
       ],
       "Navlinks": [
         "Home",
-        "Company",
-        "Legal",
+        "About",
+        "Resources",
         "Login",
         "Dashboard"
       ]
@@ -2390,8 +2390,7 @@
       "titleHighlight": "Amazing Team",
       "subtitle": "Help us revolutionize WhatsApp marketing and build the future of business communication. We're looking for passionate people to join our growing team.",
       "buttons": {
-        "viewPositions": "View Open Positions",
-        "learnCulture": "Learn About Culture"
+        "viewPositions": "View Open Positions"
       }
     },
     "stats": [

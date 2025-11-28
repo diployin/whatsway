@@ -13,6 +13,7 @@ import {
   Clock,
 } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
+import { Link } from "wouter";
 
 const AboutUs: React.FC = () => {
   const { t } = useTranslation();
@@ -310,9 +311,12 @@ const AboutUs: React.FC = () => {
           <p className="text-xl text-white/90 mb-8">
             {t("aboutUs.cta.subtitle")}
           </p>
-          <button className="bg-white text-green-600 px-8 py-4 rounded-xl font-bold hover:bg-gray-100 transition-all transform hover:scale-105 shadow-xl text-lg">
+          <Link
+            href="/contact"
+            className="bg-white w-fit text-green-600 px-8 py-4 rounded-xl font-bold hover:bg-gray-100 transition-all transform hover:scale-105 shadow-xl text-lg"
+          >
             {t("aboutUs.cta.button")}
-          </button>
+          </Link>
         </div>
       </section>
     </div>

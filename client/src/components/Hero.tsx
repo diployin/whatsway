@@ -98,7 +98,7 @@ const Hero = () => {
 
           <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
             {t("Landing.heroSec.headline")}{" "}
-            <span className="block bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mt-2">
+            <span className="block bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mt-2 pb-4">
               {t("Landing.heroSec.highlightText")}
             </span>
           </h1>
