@@ -46,6 +46,7 @@ interface BrandSettings {
   title?: string;
   tagline?: string;
   logo?: string;
+  logo2?: string;
   favicon?: string;
   updatedAt?: string;
   country?: string;
@@ -59,6 +60,7 @@ interface BrandFormValues {
   country: string;
   currency: string;
   logo: File | null;
+  logo2: File | null;
   favicon: File | null;
 }
 
@@ -87,6 +89,7 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
     title: "",
     tagline: "",
     logo: null,
+    logo2: null,
     favicon: null,
     currency: "",
     country: "",
@@ -94,6 +97,7 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
   const [logoPreview, setLogoPreview] = useState<string>("");
   const [faviconPreview, setFaviconPreview] = useState<string>("");
   const [errors, setErrors] = useState<ValidationErrors>({});
+  const [logo2Preview, setLogo2Preview] = useState<string>("");
   const [uploadStatus, setUploadStatus] = useState<{
     logo?: "uploading" | "success" | "error";
     favicon?: "uploading" | "success" | "error";
@@ -126,9 +130,11 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
         country: brandSettings.country || "",
         currency: brandSettings.currency || "",
         logo: null, // no File yet
+        logo2: null,
         favicon: null, // no File yet
       });
       setLogoPreview(brandSettings.logo || "");
+      setLogo2Preview(brandSettings.logo2 || "");
       setFaviconPreview(brandSettings.favicon || "");
       setErrors({});
       setUploadStatus({});
@@ -185,7 +191,7 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
 
   const handleFileUpload = (
     file: File | null,
-    type: "logo" | "favicon"
+    type: "logo" | "logo2" | "favicon"
   ): void => {
     if (!file) return;
 
@@ -198,10 +204,13 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
     // Create preview URL
     const previewUrl = URL.createObjectURL(file);
     if (type === "logo") {
-      setLogoPreview(previewUrl);
-    } else {
-      setFaviconPreview(previewUrl);
-    }
+  setLogoPreview(previewUrl);
+} else if (type === "logo2") {
+  setLogo2Preview(previewUrl); 
+} else {
+  setFaviconPreview(previewUrl);
+}
+
 
     setUploadStatus((prev) => ({ ...prev, [type]: "success" }));
   };
@@ -235,6 +244,7 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
     formDataToSend.append("currency", formData.currency);
 
     if (formData.logo) formDataToSend.append("logo", formData.logo);
+    if (formData.logo2) formDataToSend.append("logo2", formData.logo2);
     if (formData.favicon) formDataToSend.append("favicon", formData.favicon);
 
     updateBrandMutation.mutate(formDataToSend);
@@ -247,30 +257,27 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
       title: "",
       tagline: "",
       logo: null,
+      logo2: null,
       favicon: null,
       currency: "",
       country: "",
     });
     setLogoPreview("");
+    setLogo2Preview("");
     setFaviconPreview("");
     setErrors({});
     setUploadStatus({});
   };
 
-  const removeImage = (type: "logo" | "favicon"): void => {
-    setFormData((prev) => ({
-      ...prev,
-      [type]: "",
-    }));
+  const removeImage = (type: "logo" | "logo2" | "favicon"): void => {
+  setFormData((prev) => ({ ...prev, [type]: null }));
 
-    if (type === "logo") {
-      setLogoPreview("");
-    } else {
-      setFaviconPreview("");
-    }
+  if (type === "logo") setLogoPreview("");
+  else if (type === "logo2") setLogo2Preview("");
+  else setFaviconPreview("");
 
-    setUploadStatus((prev) => ({ ...prev, [type]: undefined }));
-  };
+  setUploadStatus((prev) => ({ ...prev, [type]: undefined }));
+};
 
   const handleFileInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -410,6 +417,59 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
               </p>
             )}
           </div>
+
+
+          {/* Secondary Logo Upload */}
+<div className="space-y-2">
+  <Label className="flex items-center font-medium">
+    <ImageIcon className="w-4 h-4 mr-2 text-pink-500" />
+    Secondary Logo
+    {getUploadStatusIcon("logo2") && (
+      <span className="ml-2">{getUploadStatusIcon("logo2")}</span>
+    )}
+  </Label>
+  <Card className="border-dashed border-2">
+    <CardContent className="p-4">
+      {logo2Preview ? (
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <img
+              src={logo2Preview}
+              alt="Secondary logo preview"
+              className="w-12 h-12 object-contain rounded border"
+            />
+            <span className="text-sm text-gray-600">
+              Secondary logo uploaded
+            </span>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => removeImage("logo2")}
+            type="button"
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+      ) : (
+        <div className="text-center py-4">
+          <Upload className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+          <p className="text-sm text-gray-600 mb-2">
+            Upload secondary logo
+          </p>
+          <p className="text-xs text-gray-400">PNG, JPG, SVG up to 2MB</p>
+        </div>
+      )}
+      <Input
+        type="file"
+        accept="image/png,image/jpeg,image/jpg,image/svg+xml"
+        onChange={(e) => handleFileInputChange(e, "logo2")}
+        className="mt-2"
+      />
+    </CardContent>
+  </Card>
+</div>
+
 
           {/* Favicon Upload */}
           <div className="space-y-2">

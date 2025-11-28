@@ -52,6 +52,6 @@ export function registerPanelConfigRoutes(app: Express) {
 
   // Brand settings endpoints (aliases for frontend compatibility)
   app.get("/api/brand-settings", panelController.getBrandSettings);
-  app.put("/api/brand-settings",upload.fields([{ name: "logo", maxCount: 1 }, { name: "favicon", maxCount: 1 }]),handleDigitalOceanUpload, panelController.updateBrandSettings);
-  app.post("/api/brand-settings",upload.fields([{ name: "logo", maxCount: 1 }, { name: "favicon", maxCount: 1 }]),handleDigitalOceanUpload, panelController.createBrandSettings);
+  app.put("/api/brand-settings",upload.fields([{ name: "logo", maxCount: 1 },{name: "logo2", maxCount:1}, { name: "favicon", maxCount: 1 }]),handleDigitalOceanUpload, panelController.updateBrandSettings);
+  app.post("/api/brand-settings",upload.fields([{ name: "logo", maxCount: 1 }, {name: "logo2", maxCount:1}, { name: "favicon", maxCount: 1 }]),handleDigitalOceanUpload, panelController.createBrandSettings);
 }

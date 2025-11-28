@@ -1,0 +1,1 @@
+ALTER TABLE "panel_config" RENAME COLUMN "log02" TO "logo2";

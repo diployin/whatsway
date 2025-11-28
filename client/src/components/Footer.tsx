@@ -79,19 +79,21 @@ const Footer: React.FC = () => {
                 <img
                   src={brandSettings?.logo}
                   alt="Logo"
-                  className="h-12 w-12 object-contain"
+                  className="h-24 w-24 object-contain"
+                  style={{ filter: "brightness(0) invert(1)" }}
+
                 />
               ) : (
                 <div className="bg-green-800 text-primary-foreground rounded-full p-3">
                   <MessageSquare className="h-8 w-8" />
                 </div>
               )}
-              <div>
+              {/* <div>
                 <h1 className="text-xl font-bold text-white">Whatsway</h1>
                 <span className="text-xs mb-2">
                   Building amazing experiences
                 </span>
-              </div>
+              </div> */}
             </Link>
             <p className="text-gray-300 mt-2 mb-10 max-w-md ">
               {t("Landing.footerSec.brandSection.description")}

@@ -933,6 +933,7 @@ export const panelConfig = pgTable("panel_config", {
   tagline: varchar("tagline"),
   description: text("description"),
   logo: varchar("logo"),
+  logo2: varchar("logo2"),
   favicon: varchar("favicon"),
   defaultLanguage: varchar("default_language", { length: 5 }).default("en"),
   supportedLanguages: jsonb("supported_languages").default(sql`'["en"]'`),

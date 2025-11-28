@@ -236,18 +236,18 @@ export default function GroupsUI() {
   // if (activeChannel.id) {
   //   return <StateDisplay />;
   // }
-  if (!activeChannel.id) {
-    return (
-      <StateDisplay
-        variant="error"
-        icon={AlertCircle}
-        title="Failed to Load Channels"
-        description={"Something went wrong while fetching Channels."}
-        buttonText="Try Again"
-        onButtonClick={() => window.location.reload()}
-      />
-    );
-  }
+  // if (!activeChannel || !activeChannel.id) {
+  //   return (
+  //     <StateDisplay
+  //       variant="error"
+  //       icon={AlertCircle}
+  //       title="Failed to Load Channels"
+  //       description={"Something went wrong while fetching Channels."}
+  //       buttonText="Try Again"
+  //       onButtonClick={() => window.location.reload()}
+  //     />
+  //   );
+  // }
 
   return (
     <div className="flex-1 dots-bg min-h-screen">

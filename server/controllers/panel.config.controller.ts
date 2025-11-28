@@ -30,6 +30,7 @@ export const brandSettingsSchema = z.object({
   title: z.string().min(1, "Title is required"),
   tagline: z.string().optional(),
   logo: z.string().optional(),
+  logo2: z.string().optional(),
   favicon: z.string().optional(),
   currency: z.string().min(1).default("INR"), // e.g. USD, INR
   country: z.string().length(2).default("IN"), // ISO2 country code
@@ -248,6 +249,7 @@ export const getBrandSettings = async (_req: Request, res: Response) => {
         title: "Your App Name",
         tagline: "Building amazing experiences",
         logo: "",
+        logo2:"",
         favicon: "",
         updatedAt: new Date().toISOString(),
       });
@@ -262,6 +264,9 @@ export const getBrandSettings = async (_req: Request, res: Response) => {
       logo: config.logo?.startsWith("https")
         ? config.logo
         : `/uploads/${config.logo}`,
+      logo2: config.logo2?.startsWith("https")
+        ? config.logo2
+        : `/uploads/${config.logo2}`,  
       favicon: config.favicon?.startsWith("https")
         ? config.favicon
         : `/uploads/${config.favicon}`,
@@ -284,6 +289,7 @@ export const createBrandSettings = async (req: Request, res: Response) => {
       | undefined;
 
     let logoPath: string | undefined;
+    let logo2Path: string | undefined;
     let faviconPath: string | undefined;
 
     // ✅ 1. Handle uploaded logo
@@ -301,6 +307,17 @@ export const createBrandSettings = async (req: Request, res: Response) => {
       logoPath = (await processBase64Image(parsed.logo, "logo")) ?? undefined;
       console.log(`🖼️ Logo (Base64 processed): ${logoPath}`);
     }
+
+    // ========== SECOND LOGO (logo2) ==========
+    if (files?.logo2?.[0]) {
+      const file = files.logo2[0];
+      logo2Path =
+        file.cloudUrl ||
+        `/uploads/${path.basename(path.dirname(file.path))}/${file.filename}`;
+    } else if (parsed.logo2?.includes("base64,")) {
+      logo2Path = await processBase64Image(parsed.logo2, "logo2");
+    }
+
 
     // ✅ 3. Handle uploaded favicon
     if (files?.favicon?.[0]) {
@@ -331,6 +348,7 @@ export const createBrandSettings = async (req: Request, res: Response) => {
       defaultLanguage: "en",
       supportedLanguages: ["en"],
       logo: logoPath,
+      logo2: logo2Path,
       favicon: faviconPath,
       country: "IN",
       currency: "INR",
@@ -343,6 +361,7 @@ export const createBrandSettings = async (req: Request, res: Response) => {
       title: config.name || parsed.title,
       tagline: config.tagline || "",
       logo: config.logo || "",
+      logo2: config.logo2,
       favicon: config.favicon || "",
       country: config.country || "",
       currency: config.currency || "",
@@ -356,7 +375,7 @@ export const createBrandSettings = async (req: Request, res: Response) => {
   }
 };
 
-export const updateBrandSettings = async (req: Request, res: Response) => {
+export const updateBrandSettingsOld = async (req: Request, res: Response) => {
   try {
     // console.log("Parsed Body:", req.body);
     // console.log("Parsed Files:", req.files);
@@ -420,3 +439,93 @@ export const updateBrandSettings = async (req: Request, res: Response) => {
     res.status(400).json({ error: err.errors || err.message });
   }
 };
+
+
+
+export const updateBrandSettings = async (req: Request, res: Response) => {
+  try {
+    const parsed = brandSettingsSchema.parse(req.body);
+
+    const files = req.files as
+      | Record<string, (Express.Multer.File & { cloudUrl?: string })[]>
+      | undefined;
+
+    let logoPath: string | undefined;
+    let logo2Path: string | undefined; // 👈 ADDED
+    let faviconPath: string | undefined;
+
+    // =============================
+    // ✅ 1. MAIN LOGO (logo)
+    // =============================
+    if (files?.logo?.[0]) {
+      const logoFile = files.logo[0];
+      logoPath = logoFile.cloudUrl || `/uploads/${logoFile.filename}`;
+      console.log(`🖼️ Updated Logo: ${logoPath}`);
+    } else if (parsed.logo && parsed.logo.includes("base64,")) {
+      logoPath = await processBase64Image(parsed.logo, "logo");
+    }
+
+    // =============================
+    // ✅ 2. SECONDARY LOGO (logo2)
+    // =============================
+    if (files?.logo2?.[0]) {
+      const logo2File = files.logo2[0];
+      logo2Path = logo2File.cloudUrl || `/uploads/${logo2File.filename}`;
+      console.log(`🖼️ Updated Secondary Logo: ${logo2Path}`);
+    } else if (parsed.logo2 && parsed.logo2.includes("base64,")) {
+      logo2Path = await processBase64Image(parsed.logo2, "logo2");
+    }
+
+    // =============================
+    // ✅ 3. FAVICON
+    // =============================
+    if (files?.favicon?.[0]) {
+      const faviconFile = files.favicon[0];
+      faviconPath = faviconFile.cloudUrl || `/uploads/${faviconFile.filename}`;
+      console.log(`🌐 Updated Favicon: ${faviconPath}`);
+    } else if (parsed.favicon && parsed.favicon.includes("base64,")) {
+      faviconPath = await processBase64Image(parsed.favicon, "favicon");
+    }
+
+    // =============================
+    // ✅ 4. Panel Config Update
+    // =============================
+    const panelData = {
+      name: parsed.title,
+      tagline: parsed.tagline || "",
+      logo: logoPath,
+      logo2: logo2Path, // 👈 ADDED
+      favicon: faviconPath,
+      country: parsed.country || "",
+      currency: parsed.currency || "",
+    };
+
+    const config = await updateFirstPanelConfig(panelData);
+
+    // =============================
+    // ✅ 5. Response (Frontend format)
+    // =============================
+    const brandSettings = {
+      title: config.name || parsed.title,
+      tagline: config.tagline || "",
+      country: config.country || "",
+      currency: config.currency || "",
+      logo: config.logo?.startsWith("https")
+        ? config.logo
+        : `/uploads/${config.logo}`,
+      logo2: config.logo2?.startsWith("https")
+        ? config.logo2
+        : `/uploads/${config.logo2}`, // 👈 ADDED
+      favicon: config.favicon?.startsWith("https")
+        ? config.favicon
+        : `/uploads/${config.favicon}`,
+      updatedAt: config.updatedAt?.toISOString() || new Date().toISOString(),
+    };
+
+    res.json(brandSettings);
+  } catch (err: any) {
+    console.error("❌ Update Brand Settings Error:", err);
+    res.status(400).json({ error: err.errors || err.message });
+  }
+};
+

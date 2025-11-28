@@ -36,6 +36,7 @@ interface BrandSettings {
   title?: string;
   tagline?: string;
   logo?: string;
+  logo2?: string; 
   favicon?: string;
   updatedAt?: string;
   country?: string;
@@ -372,6 +373,46 @@ export function GeneralSettings(): JSX.Element {
                 </div>
               </div>
 
+
+              {/* Logo 2 */}
+<div className="space-y-3">
+  <div className="flex items-center space-x-2">
+    <Image className="w-4 h-4 text-purple-500" />
+    <Label className="font-medium">Logo 2</Label>
+  </div>
+  <div className="p-4 bg-gray-50 rounded-lg border">
+    {displayData.logo2 ? (
+      <div className="flex items-center space-x-3">
+        <img
+          src={displayData.logo2}
+          alt="Secondary Logo"
+          className="w-12 h-12 object-contain rounded border bg-white"
+          onError={(e) => {
+            e.currentTarget.style.display = "none";
+          }}
+        />
+        <div>
+          <span className="text-sm font-medium text-gray-700">
+            Logo 2 uploaded
+          </span>
+          <p className="text-xs text-gray-500 mt-1">
+            Recommended transparent PNG or SVG
+          </p>
+        </div>
+      </div>
+    ) : (
+      <div className="text-center py-4">
+        <Image className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+        <p className="text-sm text-gray-500">No Logo 2 uploaded</p>
+        <p className="text-xs text-gray-400 mt-1">
+          Upload a second brand logo.
+        </p>
+      </div>
+    )}
+  </div>
+</div>
+
+
               {/* Favicon */}
               <div className="space-y-3">
                 <div className="flex items-center space-x-2">
@@ -519,6 +560,18 @@ export function GeneralSettings(): JSX.Element {
                   }}
                 />
               )}
+
+              {displayData.logo2 && (
+  <img
+    src={displayData.logo2}
+    alt="Brand Logo 2"
+    className="w-16 h-16 object-contain"
+    onError={(e) => {
+      e.currentTarget.style.display = "none";
+    }}
+  />
+)}
+
               <div>
                 <h3 className="text-2xl font-bold text-gray-900">
                   {displayData.title}
