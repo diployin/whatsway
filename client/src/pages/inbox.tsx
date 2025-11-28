@@ -1215,22 +1215,23 @@ useEffect(() => {
 
   ws.onmessage = (event) => {
     let data;
+
     try {
       data = JSON.parse(event.data);
-    } catch (err) {
+    } catch {
       console.error("Invalid WebSocket message:", event.data);
       return;
     }
 
-    // Accept both: new-message OR any event that contains conversationId
     if (data.type === "new-message" || data.conversationId) {
-      // Refresh conversation list
       queryClient.invalidateQueries({
         queryKey: ["/api/conversations"],
       });
 
-      // If current conversation is open, refresh its messages
-      if (selectedConversation?.id === data.conversationId) {
+      if (
+        selectedConversation?.id &&
+        data.conversationId === selectedConversation.id
+      ) {
         queryClient.invalidateQueries({
           queryKey: [
             "/api/conversations",
@@ -1242,15 +1243,16 @@ useEffect(() => {
     }
   };
 
-  ws.onerror = (error) => console.error("WebSocket error:", error);
+  ws.onerror = (e) => console.error("WebSocket error:", e);
   ws.onclose = () => console.log("WebSocket disconnected");
 
   return () => {
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.close();
     }
   };
 }, [selectedConversation?.id]);
+
 
 
 
