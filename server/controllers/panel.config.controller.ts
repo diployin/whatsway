@@ -32,6 +32,7 @@ export const brandSettingsSchema = z.object({
   logo: z.string().optional(),
   logo2: z.string().optional(),
   favicon: z.string().optional(),
+  supportEmail: z.string().email().optional().or(z.literal("")),
   currency: z.string().min(1).default("INR"), // e.g. USD, INR
   country: z.string().length(2).default("IN"), // ISO2 country code
 });
@@ -48,6 +49,7 @@ interface ParsedPanelConfig
     supportEmail: string;
     logo: string;
     favicon: string;
+    supportEmail: string;
     currency: string;
     country: string;
   }> {}
@@ -251,6 +253,7 @@ export const getBrandSettings = async (_req: Request, res: Response) => {
         logo: "",
         logo2:"",
         favicon: "",
+        supportEmail: "",
         updatedAt: new Date().toISOString(),
       });
     }
@@ -261,6 +264,7 @@ export const getBrandSettings = async (_req: Request, res: Response) => {
       tagline: config.tagline || "",
       currency: config.currency || "",
       country: config.country || "",
+      supportEmail: config.supportEmail || "",
       logo: config.logo?.startsWith("https")
         ? config.logo
         : `/uploads/${config.logo}`,
@@ -365,6 +369,7 @@ export const createBrandSettings = async (req: Request, res: Response) => {
       favicon: config.favicon || "",
       country: config.country || "",
       currency: config.currency || "",
+      supportEmail: config.supportEmail || "",
       updatedAt: config.updatedAt?.toISOString() || new Date().toISOString(),
     };
 
@@ -413,6 +418,7 @@ export const updateBrandSettingsOld = async (req: Request, res: Response) => {
       logo: logoPath,
       favicon: faviconPath,
       country: parsed.country || "",
+      supportEmail: parsed.supportEmail || "",
       currency: parsed.currency || "",
     };
 
@@ -424,6 +430,7 @@ export const updateBrandSettingsOld = async (req: Request, res: Response) => {
       tagline: config.tagline || "",
       country: config.country || "",
       currency: config.currency || "",
+      supportEmail: config.supportEmail || "",
       logo: config.logo?.startsWith("https")
         ? config.logo
         : `/uploads/${config.logo}`,
@@ -497,6 +504,7 @@ export const updateBrandSettings = async (req: Request, res: Response) => {
       logo2: logo2Path, // 👈 ADDED
       favicon: faviconPath,
       country: parsed.country || "",
+      supportEmail: parsed.supportEmail || "",
       currency: parsed.currency || "",
     };
 
@@ -510,6 +518,7 @@ export const updateBrandSettings = async (req: Request, res: Response) => {
       tagline: config.tagline || "",
       country: config.country || "",
       currency: config.currency || "",
+      supportEmail: config.supportEmail || "",
       logo: config.logo?.startsWith("https")
         ? config.logo
         : `/uploads/${config.logo}`,
