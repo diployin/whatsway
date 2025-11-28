@@ -1158,100 +1158,48 @@ export default function Inbox() {
   }, [user?.id, activeChannel?.id]);
 
   // WebSocket connection for WhatsApp (keep existing)
-  // useEffect(() => {
-  //   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-  //   const wsUrl = `${protocol}//${window.location.host}/ws`;
-  //   const ws = new WebSocket(wsUrl);
-  //   wsRef.current = ws;
+  useEffect(() => {
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    const ws = new WebSocket(wsUrl);
+    wsRef.current = ws;
 
-  //   ws.onopen = () => {
-  //     console.log("WebSocket connected (WhatsApp)");
-  //     ws.send(JSON.stringify({ type: "join-all-conversations" }));
-  //   };
+    ws.onopen = () => {
+      console.log("WebSocket connected (WhatsApp)");
+      ws.send(JSON.stringify({ type: "join-all-conversations" }));
+    };
 
-  //   ws.onmessage = (event) => {
-  //     const data = JSON.parse(event.data);
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
 
-  //     if (data.type === "new-message") {
-  //       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      if (data.type === "new-message") {
+        queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
 
-  //       if (
-  //         selectedConversation &&
-  //         data.conversationId === selectedConversation.id
-  //       ) {
-  //         queryClient.invalidateQueries({
-  //           queryKey: [
-  //             "/api/conversations",
-  //             selectedConversation.id,
-  //             "messages",
-  //           ],
-  //         });
-  //       }
-  //     }
-  //   };
-
-  //   ws.onerror = (error) => console.error("WebSocket error:", error);
-  //   ws.onclose = () => console.log("WebSocket disconnected");
-
-  //   return () => {
-  //     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-  //       wsRef.current.close();
-  //     }
-  //   };
-  // }, []);
-
-
-  // WebSocket connection for WhatsApp (keep existing)
-useEffect(() => {
-  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-  const wsUrl = `${protocol}//${window.location.host}/ws`;
-  const ws = new WebSocket(wsUrl);
-  wsRef.current = ws;
-
-  ws.onopen = () => {
-    console.log("WebSocket connected (WhatsApp)");
-    ws.send(JSON.stringify({ type: "join-all-conversations" }));
-  };
-
-  ws.onmessage = (event) => {
-    let data;
-
-    try {
-      data = JSON.parse(event.data);
-    } catch {
-      console.error("Invalid WebSocket message:", event.data);
-      return;
-    }
-
-    if (data.type === "new-message" || data.conversationId) {
-      queryClient.invalidateQueries({
-        queryKey: ["/api/conversations"],
-      });
-
-      if (
-        selectedConversation?.id &&
-        data.conversationId === selectedConversation.id
-      ) {
-        queryClient.invalidateQueries({
-          queryKey: [
-            "/api/conversations",
-            selectedConversation.id,
-            "messages",
-          ],
-        });
+        if (
+          selectedConversation &&
+          data.conversationId === selectedConversation.id
+        ) {
+          queryClient.invalidateQueries({
+            queryKey: [
+              "/api/conversations",
+              selectedConversation.id,
+              "messages",
+            ],
+          });
+        }
       }
-    }
-  };
+    };
 
-  ws.onerror = (e) => console.error("WebSocket error:", e);
-  ws.onclose = () => console.log("WebSocket disconnected");
+    ws.onerror = (error) => console.error("WebSocket error:", error);
+    ws.onclose = () => console.log("WebSocket disconnected");
 
-  return () => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.close();
-    }
-  };
-}, [selectedConversation?.id]);
+    return () => {
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        wsRef.current.close();
+      }
+    };
+  }, []);
+
 
 
 
