@@ -7,7 +7,7 @@ import {
   DEFAULT_PERMISSIONS,
   Permission,
 } from "@shared/schema";
-import { eq, desc, and, sql, ne } from "drizzle-orm";
+import { eq, desc, and, sql, ne, or, ilike } from "drizzle-orm";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { validateRequest } from "../middlewares/validateRequest.middleware";
@@ -156,8 +156,6 @@ router.get(
         return res.status(401).json({ error: "Unauthorized: User not found" });
       }
 
-      // ✓ Admin → apni id
-      // ✓ Team → createdBy id
       const ownerUserId =
         loggedInUser.role === "team"
           ? loggedInUser.createdBy
@@ -167,6 +165,19 @@ router.get(
       const limit = parseInt(req.query.limit as string) || 10;
       const offset = (page - 1) * limit;
 
+      const search = (req.query.search as string) || "";
+
+      // OPTIONAL search condition
+      const searchFilter = search
+        ? or(
+            ilike(users.firstName, `%${search}%`),
+            ilike(users.lastName, `%${search}%`),
+            ilike(users.username, `%${search}%`),
+            ilike(users.email, `%${search}%`)
+          )
+        : undefined;
+
+      // MAIN QUERY
       const members = await db
         .select({
           id: users.id,
@@ -184,15 +195,20 @@ router.get(
           createdBy: users.createdBy,
         })
         .from(users)
-        .where(eq(users.createdBy, ownerUserId)) // <--- updated
+        .where(
+          and(eq(users.createdBy, ownerUserId), searchFilter ?? undefined)
+        )
         .orderBy(desc(users.createdAt))
         .limit(limit)
         .offset(offset);
 
+      // COUNT
       const countResult = await db
         .select({ count: sql<number>`COUNT(*)` })
         .from(users)
-        .where(eq(users.createdBy, ownerUserId)); // <--- updated
+        .where(
+          and(eq(users.createdBy, ownerUserId), searchFilter ?? undefined)
+        );
 
       const total = countResult[0]?.count ?? 0;
 

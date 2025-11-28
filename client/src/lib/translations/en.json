@@ -659,6 +659,7 @@
     "subTitle": "Manage your WhatsApp business configuration",
     "general_setting": {
       "tabName": "General Setting",
+      "supportEmail": "Support Email",
       "title": "General Configuration",
       "description": "Manage your application's brand identity and appearance",
       "loadingText": "Loading settings...",
