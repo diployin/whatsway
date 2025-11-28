@@ -284,6 +284,7 @@ import {
   MessageCircle,
 } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
+import { Link } from "wouter";
 
 const UseCases = () => {
   const [activeUseCase, setActiveUseCase] = useState(0);
@@ -471,10 +472,14 @@ const UseCases = () => {
               ))}
             </div>
 
-            <button className="mt-6 bg-gradient-to-r from-gray-900 to-gray-800 text-white px-6 py-3 rounded-lg hover:from-gray-800 hover:to-gray-700 transition-all flex items-center group">
+            <Link
+              href="/case-studies"
+              className=" w-fit mt-6 bg-gradient-to-r from-gray-900 to-gray-800 text-white px-6 py-3 rounded-lg hover:from-gray-800 hover:to-gray-700 transition-all flex items-center group"
+            >
+              {t("useCasesSec.cta.viewCaseStudyButton")}
               View Case Study
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-            </button>
+            </Link>
           </div>
 
           {/* Success Stories */}

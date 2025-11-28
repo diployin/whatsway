@@ -58,6 +58,10 @@
   }
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 @layer components {
   .dots-bg {
     background-image: radial-gradient(

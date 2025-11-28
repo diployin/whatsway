@@ -10,6 +10,7 @@ import {
   ArrowRight,
   ExternalLink,
 } from "lucide-react";
+import { Link } from "wouter";
 
 const CaseStudies = () => {
   const { t } = useTranslation();
@@ -141,7 +142,7 @@ const CaseStudies = () => {
       {/* Hero Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-green-50 via-white to-blue-50">
         <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 inline-flex gap-2">
             {t("caseStudies.hero.title")}
             <span className="block bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
               {t("caseStudies.hero.titleHighlight")}
@@ -309,7 +310,7 @@ const CaseStudies = () => {
                   </div>
                 </div>
               </div>
-
+              {/* 
               <div className="flex space-x-4">
                 <button className="flex-1 bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition-colors">
                   {t("caseStudies.cta.modalButtons.startStory")}
@@ -318,7 +319,7 @@ const CaseStudies = () => {
                   <ExternalLink className="w-4 h-4 mr-2" />
                   {t("caseStudies.cta.modalButtons.share")}
                 </button>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
@@ -353,9 +354,13 @@ const CaseStudies = () => {
           <p className="text-xl text-white/90 mb-8">
             {t("caseStudies.ctaBanner.subtitle")}
           </p>
-          <button className="bg-white text-green-600 px-8 py-4 rounded-xl font-bold hover:bg-gray-100 transition-all transform hover:scale-105 shadow-xl">
+          <Link
+            href="/contact"
+            className="w-fit
+             bg-white text-green-600 px-8 py-4 rounded-xl font-bold hover:bg-gray-100 transition-all transform hover:scale-105 shadow-xl"
+          >
             {t("caseStudies.ctaBanner.button")}
-          </button>
+          </Link>
         </div>
       </section>
     </div>

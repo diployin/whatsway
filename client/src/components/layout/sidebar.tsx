@@ -324,7 +324,6 @@ function getNavItems(role: string): NavItem[] {
         color: "text-blue-400",
         allowedRoles: ["admin"],
       },
-     
     ];
   }
 }
@@ -761,7 +760,7 @@ export default function Sidebar() {
                   )}
           </nav>
 
-          <div className="w-[180px] px-4 py-2 border-t border-gray-100">
+          <div className="w-[180px] px-4 py-2 border-t border-gray-100 sm:hidden ">
             <LanguageSelector />
           </div>
           {/* {isAdmin ? (

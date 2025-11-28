@@ -12,6 +12,7 @@ import {
   ArrowRight,
   Search,
 } from "lucide-react";
+import { Link } from "wouter";
 
 const Careers = () => {
   const { t } = useTranslation();
@@ -158,12 +159,12 @@ const Careers = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-green-500 text-white px-8 py-4 rounded-xl font-bold hover:bg-green-600 transition-all transform hover:scale-105 shadow-xl">
+            <a
+              href="#careers"
+              className="bg-green-500 text-white px-8 py-4 rounded-xl font-bold hover:bg-green-600 transition-all transform hover:scale-105 shadow-xl"
+            >
               {t("careers.hero.buttons.viewPositions")}
-            </button>
-            <button className="border-2 border-green-500 text-green-600 px-8 py-4 rounded-xl font-bold hover:bg-green-50 transition-all">
-              {t("careers.hero.buttons.learnCulture")}
-            </button>
+            </a>
           </div>
         </div>
       </section>
@@ -185,7 +186,7 @@ const Careers = () => {
       </section>
 
       {/* Open Positions */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
+      <section id="careers" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
@@ -265,10 +266,13 @@ const Careers = () => {
                   </div>
 
                   <div className="mt-6 lg:mt-0 lg:ml-8">
-                    <button className="w-full lg:w-auto bg-green-500 text-white px-8 py-3 rounded-lg hover:bg-green-600 transition-all flex items-center justify-center group">
+                    <Link
+                      href="/contact"
+                      className="w-fit lg:w-auto bg-green-500 text-white px-8 py-3 rounded-lg hover:bg-green-600 transition-all flex items-center justify-center group"
+                    >
                       {t("careers.positions.applyButton")}
                       <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                    </button>
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -357,9 +361,12 @@ const Careers = () => {
           <p className="text-xl text-white/90 mb-8">
             {t("careers.cta.subtitle")}
           </p>
-          <button className="bg-white text-green-600 px-8 py-4 rounded-xl font-bold hover:bg-gray-100 transition-all transform hover:scale-105 shadow-xl">
+          <Link
+            href="/contact"
+            className="bg-white text-green-600 px-8 py-4 rounded-xl font-bold hover:bg-gray-100 transition-all transform hover:scale-105 shadow-xl"
+          >
             {t("careers.cta.button")}
-          </button>
+          </Link>
         </div>
       </section>
     </div>
