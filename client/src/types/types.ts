@@ -178,6 +178,7 @@ export interface AppSettings {
   currency: string;
   country: string;
   logo: string | null;
+  logo2: string | null;
   favicon: string | null;
   updatedAt: string;
 }

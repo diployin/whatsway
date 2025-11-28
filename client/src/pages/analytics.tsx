@@ -292,14 +292,14 @@ export default function Analytics() {
               {t("analytics.OverviewTab.title")}
             </TabsTrigger>
             <TabsTrigger value="messages" className="text-xs sm:text-sm py-2">
-              Messages
+              {t("analytics.messageTab.title")}
             </TabsTrigger>
             {user?.role !== "superadmin" && (
               <TabsTrigger
                 value="campaigns"
                 className="text-xs sm:text-sm py-2"
               >
-                Campaigns
+                {t("analytics.CampaignsTab.title")}
               </TabsTrigger>
             )}
           </TabsList>

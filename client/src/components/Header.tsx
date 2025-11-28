@@ -216,16 +216,13 @@ const Header = () => {
                 <img
                   src={brandSettings?.logo}
                   alt="Logo"
-                  className="h-12 w-12 object-contain"
+                  className="h-12  object-contain"
                 />
               ) : (
                 <div className="bg-green-800 text-primary-foreground rounded-full p-3">
                   <MessageSquare className="h-8 w-8" />
                 </div>
               )}
-              <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-                Whatsway
-              </span>
             </Link>
 
             {/* Desktop Navigation */}
