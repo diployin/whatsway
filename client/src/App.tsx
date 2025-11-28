@@ -85,7 +85,7 @@ const ROUTE_PERMISSIONS: Record<string, string> = {
   "/team": "team.view",
   "/automation": "automations.view",
   "/analytics": "analytics.view",
-  "/analytics/campaign/:campaignId": "analytics.view",
+  // "/analytics/campaign/:campaignId": "analytics.view",
   "/logs": "logs.view",
   "/settings": "settings.view",
   "/account": "",
@@ -272,6 +272,12 @@ function ProtectedRoutes() {
             <PermissionRoute
               component={Settings}
               requiredPermission="settings:view"
+            />
+          </Route>
+          <Route path="/analytics/campaign/:campaignId">
+            <PermissionRoute
+              component={CampaignAnalytics}
+              // requiredPermission="settings:view"
             />
           </Route>
           <Route path="/account">
