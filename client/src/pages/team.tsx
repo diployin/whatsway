@@ -117,7 +117,11 @@ export default function TeamPage() {
   const limit = 10; // Number of items per page
 
   // Fetch team members with pagination
-  const { data: teamUserRes, isLoading } = useQuery<TeamUserResponse>({
+  const {
+    data: teamUserRes,
+    isLoading,
+    refetch: temberAPIRef,
+  } = useQuery<TeamUserResponse>({
     queryKey: ["teamMembers", page, limit], // query key
     queryFn: () => fetchTeamMembers(page, limit), // query function
   });
@@ -151,6 +155,7 @@ export default function TeamPage() {
     },
 
     onSuccess: async () => {
+      temberAPIRef();
       queryClient.invalidateQueries({
         queryKey: ["teamMembers"], // MUST match useQuery key
       });
@@ -184,6 +189,7 @@ export default function TeamPage() {
       return apiRequest("DELETE", `/api/team/members/${memberId}`);
     },
     onSuccess: () => {
+      temberAPIRef();
       queryClient.invalidateQueries({ queryKey: ["/api/team/members"] });
       toast({
         title: "Member removed",
@@ -213,6 +219,7 @@ export default function TeamPage() {
       });
     },
     onSuccess: () => {
+      temberAPIRef();
       queryClient.invalidateQueries({ queryKey: ["/api/team/members"] });
       toast({
         title: "Status updated",
@@ -259,12 +266,12 @@ export default function TeamPage() {
 
   const getOnlineStatusColor = (status: string) => {
     switch (status) {
-      case "online":
+      case "active":
         return "bg-green-500";
-      case "away":
-        return "bg-yellow-500";
+      case "inactive":
+        return "bg-gray-500";
       default:
-        return "bg-gray-400";
+        return "bg-yellow-400";
     }
   };
 
@@ -371,7 +378,7 @@ export default function TeamPage() {
                                     </Avatar>
                                     <div
                                       className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white ${getOnlineStatusColor(
-                                        "offline"
+                                        member.status
                                       )}`}
                                     />
                                   </div>

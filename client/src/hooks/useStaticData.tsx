@@ -19,7 +19,7 @@ const useStaticData = () => {
       resourcesMenuItems: [
         {
           title: t("Landing.header.resourcesMenuItems.0.title"),
-          path: "/templates",
+          path: "/privacy-policy",
           description: t("Landing.header.resourcesMenuItems.0.description"),
           icon: FileText,
           image:

@@ -15,6 +15,11 @@ import { useAuth } from "@/contexts/auth-context";
 import { api } from "@/lib/api";
 import { useTranslation } from "@/lib/i18n";
 
+type SyncFail = {
+  status: string;
+  message: string;
+};
+
 export default function Templates() {
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(
     null
@@ -153,10 +158,30 @@ export default function Templates() {
         description: `Synced ${data.synced || 0} templates from WhatsApp`,
       });
     },
-    onError: (error: any) => {
+    onError: (error) => {
+      let errorData = error?.response?.data;
+
+      // If response.data is missing, try to extract JSON from error.message
+      if (!errorData && typeof error?.message === "string") {
+        try {
+          const match = error.message.match(/\{.*\}/);
+          if (match) {
+            errorData = JSON.parse(match[0]);
+          }
+        } catch (e) {
+          console.error("Failed to parse error JSON:", e);
+        }
+      }
+
+      console.log("Channel mutation error:", errorData, error);
+
       toast({
-        title: "Sync failed",
-        description: error.message,
+        title: "Error",
+        description:
+          errorData?.error ||
+          errorData?.message ||
+          error?.message ||
+          "Something went wrong while saving the channel.",
         variant: "destructive",
       });
     },

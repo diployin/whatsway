@@ -9,11 +9,7 @@ import {
 export function WebhookFlowDiagram() {
   return (
     <div className="bg-white rounded-lg border ">
-      <h3 className="text-lg font-semibold mb-4 text-center sm:text-left">
-        How Webhooks Work
-      </h3>
-
-      <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0 sm:space-x-4">
+      <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0 sm:space-x-4 py-4">
         {/* Step 1 */}
         <div className="flex flex-col items-center text-center flex-1">
           <div className="w-12 h-12 sm:w-16 sm:h-16 bg-green-100 rounded-full flex items-center justify-center mb-2">

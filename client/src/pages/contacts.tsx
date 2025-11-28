@@ -1962,7 +1962,16 @@ export default function Contacts() {
                   <FormItem>
                     <FormLabel>{t("contacts.addContact.phone")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="+1234567890" {...field} />
+                      <Input
+                        type="tel"
+                        placeholder="+1234567890"
+                        {...field}
+                        maxLength={10}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, "");
+                          field.onChange(value);
+                        }}
+                      />
                     </FormControl>
                     <FormDescription>
                       {t("contacts.addContact.phoneDesc")}
@@ -1971,6 +1980,7 @@ export default function Contacts() {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="email"
