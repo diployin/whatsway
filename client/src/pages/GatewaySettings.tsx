@@ -425,6 +425,7 @@ export default function GatewaySettings() {
               </div>
 
               {/* Test API Keys Section */}
+              {!paymentForm.watch("isLive") && (
               <div className="space-y-4 p-4 border-2 border-orange-200 rounded-lg bg-orange-50">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
@@ -503,11 +504,67 @@ export default function GatewaySettings() {
                   </div>
                 </div>
               </div>
+              )}
+
+
+               {paymentForm.watch("isLive") && (
+  <div className="space-y-4 p-4 border-2 border-green-200 rounded-lg bg-green-50">
+    <div className="flex items-center gap-2">
+      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+      <h3 className="text-lg font-semibold text-green-900">
+        {t("gateway.form.liveCredentials")}
+      </h3>
+    </div>
+
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Live API Key */}
+      <div className="space-y-2">
+        <Label htmlFor="apiKey">{t("gateway.form.liveApiKey")}</Label>
+        <div className="relative">
+          <Input
+            id="apiKey"
+            {...paymentForm.register("apiKey")}
+            type={showApiKey ? "text" : "password"}
+            className="pr-10"
+          />
+          <button
+            type="button"
+            className="absolute right-3 top-1/2 -translate-y-1/2"
+            onClick={() => setShowApiKey(!showApiKey)}
+          >
+            {showApiKey ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        </div>
+      </div>
+
+      {/* Live API Secret */}
+      <div className="space-y-2">
+        <Label htmlFor="apiSecret">{t("gateway.form.liveApiSecret")}</Label>
+        <div className="relative">
+          <Input
+            id="apiSecret"
+            {...paymentForm.register("apiSecret")}
+            type={showApiSecret ? "text" : "password"}
+            className="pr-10"
+          />
+          <button
+            type="button"
+            className="absolute right-3 top-1/2 -translate-y-1/2"
+            onClick={() => setShowApiSecret(!showApiSecret)}
+          >
+            {showApiSecret ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
 
               {/* Live API Keys Section - Similar pattern */}
               {/* ... continuing with live credentials section ... */}
 
               {/* Active Toggle */}
+              
               <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
                 <div>
                   <Label htmlFor="isActive" className="font-medium">
@@ -527,7 +584,9 @@ export default function GatewaySettings() {
                   }
                   className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                 />
-              </div>
+              </div> 
+
+
 
               {/* Provider Information */}
               {paymentForm.watch("provider") === "razorpay" && (
