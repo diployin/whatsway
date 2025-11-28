@@ -216,14 +216,14 @@ export function GeneralSettings(): JSX.Element {
                   ? t("settings.general_setting.refreshing")
                   : t("settings.general_setting.refresh")}
               </Button>
-              {/* <Button
+              <Button
                 onClick={handleEditClick}
                 // disabled={isUsingStaticData}
                 className="flex items-center text-xs h-7 rounded-sm px-2 sm:h-9 sm:rounded-md sm:px-3"
               >
                 <Edit className="w-4 h-4 mr-2" />
                 {t("settings.general_setting.editSettings")}
-              </Button> */}
+              </Button>
             </div>
           </div>
           <CardDescription className="mt-2 sm:mt-0 text-xs sm:text-sm">
