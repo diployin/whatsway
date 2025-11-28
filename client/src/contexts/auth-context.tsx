@@ -2,7 +2,7 @@ import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
-import { AppSettings, CountryCurrency } from "@/types/types";
+import { AppSettings, CountryCurrency, SubscriptionResponse } from "@/types/types";
 
 interface User {
   id: string;
@@ -14,6 +14,7 @@ interface User {
   permissions: string[];
   avatar?: string;
   createdAt?: string;
+  
 }
 
 interface BrandSettings {
@@ -34,6 +35,8 @@ interface AuthContextType {
   currency: string; // Direct access to currency
   logout: () => void;
   currencySymbol: string | undefined;
+  userPlans: any[];  
+  isUserPlansLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -62,6 +65,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     retry: false,
   });
+
+
+const {
+    data: userPlans,
+    isLoading: isUserPlansLoading
+  } = useQuery<SubscriptionResponse>({
+    queryKey: [`api/subscriptions/user/${user?.id}`],
+    queryFn: () =>
+      apiRequest("GET", `api/subscriptions/user/${user?.id}`).then((res) =>
+        res.json()
+      ),
+    enabled: !!user?.id,
+  });
+
 
   // Brand Settings Query
   const { data: brandSettings, isLoading: isBrandSettingsLoading } =
@@ -124,6 +141,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         currency: brandSettings?.currency || "INR",
         currencySymbol: currency?.symbol,
         logout,
+        userPlans: userPlans || [],
+        isUserPlansLoading,
+
       }}
     >
       {children}

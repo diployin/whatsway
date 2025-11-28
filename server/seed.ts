@@ -236,7 +236,7 @@ async function seed() {
       email: "demouser@whatsway.com",
       firstName: "Demo",
       lastName: "User",
-      role: "admin",
+      role: "user",
       status: "active",
       isEmailVerified: true,
       permissions: ['contacts:view', 'campaigns:view', 'templates:view', 'analytics:view', 'inbox:view'],
