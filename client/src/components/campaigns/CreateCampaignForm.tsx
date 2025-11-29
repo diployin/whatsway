@@ -53,7 +53,7 @@ export function CreateCampaignForm({
   };
 
   
-  const activeTemplates = templates.filter(
+  const activeTemplates = templates?.filter(
   (t: any) => t.status?.toLowerCase() === "approved"
 );
 

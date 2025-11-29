@@ -6,6 +6,7 @@ import {
   messages,
   subscriptions,
   transactions,
+  webhookConfigs,
 } from "@shared/schema";
 import { AppError, asyncHandler } from "../middlewares/error.middleware";
 import crypto from "crypto";
@@ -22,18 +23,27 @@ export const getWebhookConfigs = asyncHandler(
   }
 );
 
+export const getWebhookConfigsByChannelId = asyncHandler(
+  async (req: Request, res: Response) => {
+    const channelId = req.params.id;
+    console.log("Fetching webhook configs for channel ID:", channelId);
+    const configs = await db.select().from(webhookConfigs).where(eq(webhookConfigs.channelId, channelId));
+    res.json(configs);
+  }
+);
+
 export const getGlobalWebhookUrl = asyncHandler(
   async (req: Request, res: Response) => {
     const protocol = req.protocol;
     const host = req.get("host");
-    const webhookUrl = `${protocol}://${host}/webhook/d420e261-9c12-4cee-9d65-253cda8ab4bc`;
+    const webhookUrl = `${protocol}://${host}/webhook/:id`;
     res.json({ webhookUrl });
   }
 );
 
 export const createWebhookConfig = asyncHandler(
   async (req: Request, res: Response) => {
-    const { verifyToken, appSecret, events } = req.body;
+    const { verifyToken, appSecret, events , channelId } = req.body;
 
     if (!verifyToken) {
       throw new AppError(400, "Verify token is required");
@@ -41,7 +51,7 @@ export const createWebhookConfig = asyncHandler(
 
     const protocol = req.protocol;
     const host = req.get("host");
-    const webhookUrl = `${protocol}://${host}/webhook/d420e261-9c12-4cee-9d65-253cda8ab4bc`;
+    const webhookUrl = `${protocol}://${host}/webhook/${channelId || ':id'}`;
 
     const config = await storage.createWebhookConfig({
       webhookUrl,
@@ -53,7 +63,7 @@ export const createWebhookConfig = asyncHandler(
         "message_template_status_update",
       ],
       isActive: true,
-      channelId: null, // Global webhook
+      channelId: channelId, // Global webhook
     });
 
     res.json(config);
