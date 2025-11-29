@@ -152,7 +152,7 @@ const deliveryRate =
 
 
   const readRate =
-    messageMetrics.totalDelivered > 0
+    messageMetrics.totalRead > 0
       ? Math.min(
           ((messageMetrics.totalRead || 0) / messageMetrics.totalMessages) *
             100,
