@@ -39,6 +39,15 @@ export function WebhookSettings() {
   const { toast } = useToast();
   const { user } = useAuth();
 
+  const { data: activeChannel } = useQuery({
+    queryKey: ["/api/channels/active"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/channels/active");
+      if (!response.ok) return null;
+      return await response.json();
+    },
+  });
+
   // Fetch webhook configs
   const {
     data: webhookConfigs = [],
@@ -47,7 +56,7 @@ export function WebhookSettings() {
   } = useQuery({
     queryKey: ["webhook-configs"],
     queryFn: async () => {
-      const res = await fetch("/api/webhook-configs");
+      const res = await fetch("/api/webhook-configs" + (activeChannel ? `-channel-id/${activeChannel.id}` : ""));
       const json = await res.json();
 
       console.log("Fetched JSON:", json);
@@ -390,6 +399,7 @@ export function WebhookSettings() {
       </div>
 
       <WebhookDialog
+      channelId={activeChannel?.id}
         open={showWebhookDialog}
         onOpenChange={setShowWebhookDialog}
         editingWebhook={editingWebhook}

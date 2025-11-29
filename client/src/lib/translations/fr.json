@@ -1762,6 +1762,8 @@
   "plans": {
     "title": "Plans Tarifaires",
     "subtitle": "Créez et gérez vos plans tarifaires",
+    "adminTitle": "Plan d'Abonnement",
+    "adminSubTitle": "Créez et gérez votre facturation et votre adhésion",
     "stats": {
       "totalPlans": "Total des Plans",
       "featured": "En vedette",
