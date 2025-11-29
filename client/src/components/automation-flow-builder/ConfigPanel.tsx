@@ -43,6 +43,9 @@ export function ConfigPanel({
   templates,
   members,
 }: ConfigPanelProps) {
+
+  console.log("ConfigPanel members:", members);
+  
   if (!selected || selected.data.kind === "start") {
     return (
       <div className="h-full flex items-center justify-center text-gray-500">

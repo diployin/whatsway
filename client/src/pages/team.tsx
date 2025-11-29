@@ -90,18 +90,21 @@ type TeamMemberFormState = {
 };
 
 // Function to fetch team members with pagination
-const fetchTeamMembers = async (page: number = 1, limit: number = 10) => {
-  const response = await fetch(`/api/team/members?page=${page}&limit=${limit}`);
+const fetchTeamMembers = async (page: number = 1, limit: number = 10, search: string = "") => {
+  const response = await fetch(`/api/team/members?page=${page}&limit=${limit}&search=${search}`);
   if (!response.ok) {
     throw new Error("Failed to fetch team members");
   }
-  return response.json(); // Expect { data, total, page, limit, totalPages }
+  return response.json();
 };
+
 
 export default function TeamPage() {
   const { toast } = useToast();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingMember, setEditingMember] = useState<User | null>(null);
+  const [search, setSearch] = useState("");
+
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState(
     user?.role == "superadmin" ? "activity" : "members"
@@ -117,14 +120,11 @@ export default function TeamPage() {
   const limit = 10; // Number of items per page
 
   // Fetch team members with pagination
-  const {
-    data: teamUserRes,
-    isLoading,
-    refetch: temberAPIRef,
-  } = useQuery<TeamUserResponse>({
-    queryKey: ["teamMembers", page, limit], // query key
-    queryFn: () => fetchTeamMembers(page, limit), // query function
+  const { data: teamUserRes, isLoading } = useQuery<TeamUserResponse>({
+    queryKey: ["teamMembers", page, limit, search],
+    queryFn: () => fetchTeamMembers(page, limit, search),
   });
+
   // Destructure `data` into `teamMembers` with a default empty array
   const teamMembers = teamUserRes?.data;
   const totalPages = teamUserRes?.totalPages || 1; // Total pages from API response
@@ -316,14 +316,36 @@ export default function TeamPage() {
           </TabsList>
           <TabsContent value="members" className="mt-4 sm:mt-6">
             <Card>
-              <CardHeader>
-                <CardTitle className="text-lg sm:text-xl">
-                  {t("team.teamMember")}
-                </CardTitle>
-                <CardDescription className="text-sm">
-                  {t("team.manage_Team")}
-                </CardDescription>
-              </CardHeader>
+            <CardHeader>
+  <div>
+    <CardTitle className="text-lg sm:text-xl">
+      {t("team.teamMember")}
+    </CardTitle>
+    <CardDescription className="text-sm">
+      {t("team.manage_Team")}
+    </CardDescription>
+  </div>
+
+  {/* Search + Add Member Row */}
+  <div className="mt-4 flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
+    <Input
+      placeholder="Search members..."
+      value={search}
+      onChange={(e) => {
+        setSearch(e.target.value);
+        setPage(1);
+      }}
+      className="w-full sm:w-72"
+    />
+
+    <Button className="whitespace-nowrap" onClick={() => handleOpenDialog()}>
+      <UserPlus className="mr-2 h-4 w-4" />
+      Add Member
+    </Button>
+  </div>
+</CardHeader>
+
+
               <CardContent>
                 {isLoading ? (
                   <div className="text-center py-12">

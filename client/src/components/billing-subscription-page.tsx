@@ -32,6 +32,9 @@ export default function BillingSubscriptionPage() {
     );
   }
 
+
+  console.log("Active Plan Data:", activeplandata);
+
   return (
     <div className="flex-1 bg-white text-gray-900 dots-bg">
       <div className="p-6 pb-0 bg-white border">

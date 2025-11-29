@@ -1233,11 +1233,15 @@ export default function AutomationFlowBuilderXYFlow({
   const templates =
     templateData?.filter((t: Template) => t.status === "APPROVED") || [];
 
-  const { data: members = [] } = useQuery({
+  const { data: teamMembers } = useQuery({
     queryKey: ["/api/team/members"],
     queryFn: () =>
       apiRequest("GET", "/api/team/members").then((res) => res.json()),
   });
+
+  const members = teamMembers?.data || [];
+
+  console.log("Loaded members:", members);
 
   // Add node actions
   // const addNode = (kind: NodeKind) => {

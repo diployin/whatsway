@@ -34,6 +34,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "@/lib/i18n";
 import BillingSubscriptionPage from "@/components/billing-subscription-page";
 
+
 // Interfaces
 interface FormData {
   name: string;
@@ -61,7 +62,16 @@ export default function Plans() {
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
-  const { user, currencySymbol } = useAuth();
+  const { user, currencySymbol, userPlans } = useAuth();
+
+const purchasedPlans = userPlans?.data?.map((p) => ({
+  planId: p.subscription.planId,
+  name: p.subscription.planData?.name,
+  status: p.subscription.status, // active / expired
+})) || [];
+
+
+  console.log("userPlans in plans page:", purchasedPlans);
 
   const isSuper = user?.role === "superadmin";
 
@@ -837,6 +847,15 @@ export default function Plans() {
                     const IconComponent = iconMap[plan.icon] || Zap;
                     const isPopular = plan.popular;
 
+                    // ⭐ Check if user already purchased this plan
+    const isActivePlan =
+      userPlans?.data?.some(
+        (p) =>
+          p.subscription.planId === plan.id &&
+          p.subscription.status === "active"
+      ) || false;
+
+
                     return (
                       <div
                         key={plan.id}
@@ -916,13 +935,43 @@ export default function Plans() {
                                 </li>
                               ))}
                           </ul>
+                          {!isSuper && (
+                            // <button
+                            //   onClick={() => handleSelectPlan(plan)}
+                            //   className={`w-full py-3 rounded-xl font-semibold transition-all transform hover:scale-105 ${plan.buttonColor} text-white`}
+                            // >
+                            //   {Number.parseFloat(plan.monthlyPrice) === 0
+                            //     ? t("plans.buttons.getStartedFree")
+                            //     : t("plans.buttons.buy")}
+                            // </button>
 
-                          {/* Button Container - Always at bottom */}
-                          <div className="mt-auto">
-                            {!isSuper && (
-                              <button
-                                onClick={() => handleSelectPlan(plan)}
-                                className={`w-full py-3 rounded-xl font-semibold transition-all transform hover:scale-105 ${plan.buttonColor} text-white`}
+                             <>
+    {isActivePlan ? (
+      <Button className="w-full bg-green-600 text-white" disabled>
+        Active
+      </Button>
+    ) : (
+      <Button className="w-full" onClick={() => handleSelectPlan(plan)}>
+       {t("plans.buttons.buy")}
+      </Button>
+    )}
+  </>
+                          )}
+                          {isSuper && (
+                            <div className="grid grid-cols-2 gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEdit(plan)}
+                              >
+                                <Edit className="w-3 h-3 mr-1" />
+                                {t("plans.buttons.edit")}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDelete(plan.id)}
+                                className="text-red-600 hover:bg-red-50"
                               >
                                 {Number.parseFloat(plan.monthlyPrice) === 0
                                   ? t("plans.buttons.getStartedFree")

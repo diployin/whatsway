@@ -6,6 +6,7 @@ import {
   Filter,
   Download,
   DollarSign,
+  ArrowUpFromLine,
   CreditCard,
   CheckCircle,
   XCircle,
@@ -292,7 +293,9 @@ function TransactionsPage() {
     bg-blue-500 text-white rounded-lg flex items-center justify-center gap-2
     ${isDemoUser(user?.username) ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-600"}`}
 >
-  <Download className="w-4 h-4 sm:w-5 sm:h-5" />
+  
+  <ArrowUpFromLine className="w-4 h-4 sm:w-5 sm:h-5" />
+
   <span className="hidden sm:inline">
     {t("transactions.search.export")}
   </span>
