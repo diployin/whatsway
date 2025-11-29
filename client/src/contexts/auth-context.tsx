@@ -5,6 +5,7 @@ import { useLocation } from "wouter";
 import { AppSettings, CountryCurrency, SubscriptionResponse } from "@/types/types";
 
 interface User {
+  createdBy: any;
   id: string;
   username: string;
   email: string;
