@@ -83,7 +83,7 @@
     "transactions_logs": "Transaktionsprotokolle",
     "payment_gateway": "Zahlungsgateway",
     "support_tickets": "Support-Tickets",
-    "master_subscriptions": "Master-Abonnements"
+    "master_subscriptions": "Abonnementdaten"
   },
   "widget": {
     "title": "Widget-Builder",
