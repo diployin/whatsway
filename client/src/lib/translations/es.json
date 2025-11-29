@@ -391,7 +391,9 @@
     "downloadSampleCSV": "Descargar muestra CSV",
     "csvPreview": "Vista previa CSV",
     "rows": "filas",
-    "tabContent": " Las campañas API permiten que aplicaciones externas activen mensajes utilizando tus plantillas. Después de crear la campaña, recibirás un endpoint y una clave de API."
+    "tabContent": " Las campañas API permiten que aplicaciones externas activen mensajes utilizando tus plantillas. Después de crear la campaña, recibirás un endpoint y una clave de API.",
+    "campaignfilterlabel": "Filtrar campaña por grupo",
+    "allGroup": "Todos los grupos"
   },
   "templates": {
     "title": "Plantillas",

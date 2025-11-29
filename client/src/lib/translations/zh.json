@@ -381,7 +381,9 @@
     "downloadSampleCSV": "下载示例 CSV",
     "csvPreview": "CSV 预览",
     "rows": "行",
-    "tabContent": "API 活动允许外部应用使用您的模板触发消息。创建活动后，您将收到一个 API 端点和密钥。"
+    "tabContent": "API 活动允许外部应用使用您的模板触发消息。创建活动后，您将收到一个 API 端点和密钥。",
+    "campaignfilterlabel": "按组筛选活动",
+    "allGroup": "所有组"
   },
   "templates": {
     "title": "模板",

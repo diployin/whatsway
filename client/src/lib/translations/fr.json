@@ -381,7 +381,9 @@
     "downloadSampleCSV": "Télécharger un CSV exemple",
     "csvPreview": "Aperçu CSV",
     "rows": "lignes",
-    "tabContent": "Les campagnes API permettent aux applications externes de déclencher des messages en utilisant vos modèles. Après la création de la campagne, vous recevrez un endpoint API et une clé."
+    "tabContent": "Les campagnes API permettent aux applications externes de déclencher des messages en utilisant vos modèles. Après la création de la campagne, vous recevrez un endpoint API et une clé.",
+    "campaignfilterlabel": "Filtrer la campagne par groupe",
+    "allGroup": "Tous les groupes"
   },
   "templates": {
     "title": "Modèles",

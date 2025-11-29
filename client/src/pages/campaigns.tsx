@@ -40,6 +40,11 @@ export default function Campaigns() {
 
   const { data: activeChannel } = useQuery({
     queryKey: ["/api/channels/active"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/channels/active");
+      if (!response.ok) return null;
+      return await response.json();
+    },
   });
 
   const channelId = activeChannel?.id;
@@ -78,7 +83,7 @@ export default function Campaigns() {
       try {
         const response = await fetch(`/api/templates?channelId=${channelId}`);
         const res = await response.json();
-
+console.log("Templates response:", res.data);
         // IMPORTANT FIX
         return Array.isArray(res.data) ? res.data : [];
       } catch (error) {
@@ -104,6 +109,7 @@ export default function Campaigns() {
       return res.json();
     },
   });
+
   const contacts = contactsResponse?.data || [];
 
   // Create campaign mutation
@@ -152,6 +158,22 @@ export default function Campaigns() {
       });
     },
   });
+
+  
+  const { data: groupsFormateData } = useQuery({
+    queryKey: ["/api/groups", activeChannel?.id],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/groups" + `?channelId=${activeChannel?.id}`);
+      const data = await response.json();
+      console.log("groupsFormateData response", data);
+      return data
+    },
+    enabled: !!activeChannel?.id, 
+  });
+
+  // console.log("groupsFormateData", groupsFormateData);
+
+  const groupsData = groupsFormateData?.groups || [];
 
   // Handle create campaign
   const handleCreateCampaign = async (campaignData: any) => {
@@ -346,6 +368,7 @@ export default function Campaigns() {
       </div>
 
       <CreateCampaignDialog
+      groups={groupsData}
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
         templates={templates}
