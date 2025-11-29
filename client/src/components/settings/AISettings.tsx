@@ -247,6 +247,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loading } from "@/components/ui/loading";
 import AISettingsModal from "../modals/AISettingsModal";
 import { useTranslation } from "@/lib/i18n";
+import { apiRequest } from "@/lib/queryClient";
 
 interface AIConfig {
   id?: string;
@@ -266,16 +267,37 @@ export default function AISettings(): JSX.Element {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const { toast } = useToast();
 
-  const { data, isLoading, error, refetch, isFetching } = useQuery<AIConfig[]>({
-    queryKey: ["/api/ai-settings"],
+  const { data: activeChannel } = useQuery({
+    queryKey: ["/api/channels/active"],
     queryFn: async () => {
-      const res = await fetch("/api/ai-settings");
-      if (!res.ok) throw new Error("Failed to fetch settings");
-      return res.json();
+      const response = await apiRequest("GET", "/api/channels/active");
+      if (!response.ok) return null;
+      return await response.json();
     },
   });
 
-  const aiConfig = data?.[0]; // Using first active or first record
+  const {
+    data,
+    isLoading,
+    error,
+    refetch,
+    isFetching,
+  } = useQuery<AIConfig>({
+    queryKey: ["/api/ai-settings", activeChannel?.id],
+    queryFn: async () => {
+      const res = await apiRequest(
+        "GET",
+        `/api/ai-settings/channel/${activeChannel?.id}`
+      );
+      if (!res.ok) throw new Error("Failed to fetch settings");
+      return res.json();
+    },
+    enabled: !!activeChannel?.id, // ✅ Only run when channel is ready
+  });
+  
+
+  console.log("AI Settings Data:", data);
+  const aiConfig = data; // Using first active or first record
 
   const handleEditClick = () => setShowEditDialog(true);
 
@@ -423,6 +445,7 @@ export default function AISettings(): JSX.Element {
       </Card>
 
       <AISettingsModal
+    activeChannel={activeChannel}
         open={showEditDialog}
         onOpenChange={setShowEditDialog}
         existingData={aiConfig}

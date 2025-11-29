@@ -21,6 +21,8 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Save } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 const aiSettingsSchema = z.object({
   provider: z.string().min(1, "Provider is required"),
@@ -57,6 +59,7 @@ export default function AISettingsModal({
   onOpenChange,
   existingData,
   onSuccess,
+  activeChannel
 }: Readonly<Props>) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -80,6 +83,7 @@ export default function AISettingsModal({
     },
   });
 
+
   const onSubmit = async (values: AISettingsFormValues) => {
     try {
       setIsSubmitting(true);
@@ -91,7 +95,7 @@ export default function AISettingsModal({
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify({...values , channelId: activeChannel?.id || null }),
       });
 
       if (!res.ok) throw new Error();
@@ -138,9 +142,9 @@ export default function AISettingsModal({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="openai">OpenAI</SelectItem>
-                  <SelectItem value="anthropic">Anthropic</SelectItem>
+                  {/* <SelectItem value="anthropic">Anthropic</SelectItem>
                   <SelectItem value="google">Google Gemini</SelectItem>
-                  <SelectItem value="azure">Azure OpenAI</SelectItem>
+                  <SelectItem value="azure">Azure OpenAI</SelectItem> */}
                 </SelectContent>
               </Select>
               {errors.provider && (
