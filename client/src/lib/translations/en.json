@@ -1730,6 +1730,8 @@
   "plans": {
     "title": "Billing and Membership",
     "subtitle": "Create and manage your Billing and Membership",
+    "adminTitle": "Subscription Plan",
+    "adminSubTitle": "Create And Manage Subscription plans",
     "stats": {
       "totalPlans": "Total Plans",
       "featured": "Featured",

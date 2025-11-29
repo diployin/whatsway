@@ -1761,6 +1761,8 @@
   "plans": {
     "title": "Planos de Preços",
     "subtitle": "Crie e gerencie seus planos de preços",
+    "adminTitle": "Plano de Assinatura",
+    "adminSubTitle": "Crie e gerencie sua faturação e adesão",
     "stats": {
       "totalPlans": "Total de Planos",
       "featured": "Destaque",
