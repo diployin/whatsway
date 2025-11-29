@@ -402,7 +402,7 @@ export function CampaignsTable({
               return (
                 <TableRow key={campaign.id}>
                   <TableCell className="font-medium">{campaign.name}</TableCell>
-                  <TableCell>{campaign.createdBy}</TableCell>
+                  <TableCell>{campaign.createdByName}</TableCell>
                   <TableCell>{getStatusBadge(campaign.status)}</TableCell>
                   <TableCell>{campaign.templateName || "-"}</TableCell>
                   <TableCell>{campaign.recipientCount || 0}</TableCell>
