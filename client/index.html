@@ -7,12 +7,15 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+<!-- AI Chat Widget -->
     <script>
       window.aiChatConfig = {
-          siteId: "a466bb3c-7a0c-470b-b3a6-8f750a12bcb9"
+       siteId: "3af56dd1-ee82-4914-b143-b879391c6f15",
+        channelId:"35f7b44c-d422-4246-b016-21edf9c08bea",
+        url: "https://whatsway.diploy.in",
       };
-  </script>
-  <script src="http://localhost:5000/widget/widget.js"></script>
+    </script>
+<script src="https://whatsway.diploy.in/widget/widget.js" async></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/firebase-messaging-sw.js");
