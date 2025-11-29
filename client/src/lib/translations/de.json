@@ -381,7 +381,9 @@
     "downloadSampleCSV": "Beispiel-CSV herunterladen",
     "csvPreview": "CSV-Vorschau",
     "rows": "Zeilen",
-    "tabContent": " API-Kampagnen ermöglichen es externen Anwendungen, Nachrichten mit Ihren Vorlagen auszulösen. Nach dem Erstellen der Kampagne erhalten Sie einen API-Endpunkt und einen Schlüssel."
+    "tabContent": " API-Kampagnen ermöglichen es externen Anwendungen, Nachrichten mit Ihren Vorlagen auszulösen. Nach dem Erstellen der Kampagne erhalten Sie einen API-Endpunkt und einen Schlüssel.",
+    "campaignfilterlabel": "Kampagne nach Gruppe filtern",
+    "allGroup": "Alle Gruppen"
   },
   "templates": {
     "title": "Vorlagen",

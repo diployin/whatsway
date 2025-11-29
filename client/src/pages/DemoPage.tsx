@@ -13,7 +13,9 @@ const DemoPage = () => {
       themeColor="#16A34A"
       infoNote={
         <>
-          <strong>Access the WhatsWay demo using the login details below</strong>
+          <strong>
+            Access the WhatsWay demo using the login details below
+          </strong>
           <br />
           Explore our powerful messaging tools, automation flows, and channel
           management features. Certain actions may be limited for demo safety.
@@ -31,8 +33,12 @@ const DemoPage = () => {
       }
       demoUrl="https://whatsway.diploy.in/login"
       superAdmin={{
-        username: "demouser",
-        password: "Demo@12345",
+        username: "demoadmin",
+        password: "Admin@123",
+      }}
+      tenant={{
+        username: "raman",
+        password: "Raman@123",
       }}
       buttonLabel="🚀 Try WhatsWay Demo"
       buttonLink="https://whatsway.diploy.in/"

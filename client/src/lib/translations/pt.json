@@ -380,7 +380,9 @@
     "downloadSampleCSV": "Baixar CSV de exemplo",
     "csvPreview": "Pré-visualização CSV",
     "rows": "linhas",
-    "tabContent": "As campanhas API permitem que aplicativos externos acionem mensagens usando seus modelos. Após criar a campanha, você receberá um endpoint API e uma chave."
+    "tabContent": "As campanhas API permitem que aplicativos externos acionem mensagens usando seus modelos. Após criar a campanha, você receberá um endpoint API e uma chave.",
+    "campaignfilterlabel": "Filtrar campanha por grupo",
+    "allGroup": "Todos os grupos"
   },
   "templates": {
     "title": "Modelos",

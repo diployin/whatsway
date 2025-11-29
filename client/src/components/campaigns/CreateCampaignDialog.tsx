@@ -153,9 +153,10 @@ export function CreateCampaignDialog({
   };
 
   // Filter contacts based on selected group
-  const filteredContacts = selectedGroup === "all" 
-    ? contacts 
-    : contacts.filter((contact: any) => contact.group_id === selectedGroup);
+  const filteredContacts =
+    selectedGroup === "all"
+      ? contacts
+      : contacts.filter((contact: any) => contact.group_id === selectedGroup);
 
   return (
     <Dialog
@@ -167,9 +168,9 @@ export function CreateCampaignDialog({
     >
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{t('campaigns.dialogTitle')}</DialogTitle>
+          <DialogTitle>{t("campaigns.dialogTitle")}</DialogTitle>
           <DialogDescription>
-            {t('campaigns.dialogDescription')}
+            {t("campaigns.dialogDescription")}
           </DialogDescription>
         </DialogHeader>
 
@@ -180,11 +181,11 @@ export function CreateCampaignDialog({
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="contacts" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
-              {t('campaigns.contactsImport')}
+              {t("campaigns.contactsImport")}
             </TabsTrigger>
             <TabsTrigger value="csv" className="flex items-center gap-2">
               <FileSpreadsheet className="h-4 w-4" />
-              {t('campaigns.csvImport')}
+              {t("campaigns.csvImport")}
             </TabsTrigger>
           </TabsList>
 
@@ -205,13 +206,17 @@ export function CreateCampaignDialog({
           >
             <TabsContent value="contacts" className="space-y-4">
               <div>
-                <Label className="mb-2 block">{t('campaigns.filterByGroup')}</Label>
+                <Label className="mb-2 block">
+                  {t("campaigns.campaignfilterlabel")}
+                </Label>
                 <Select value={selectedGroup} onValueChange={setSelectedGroup}>
                   <SelectTrigger>
-                    <SelectValue placeholder={t('campaigns.selectGroup')} />
+                    <SelectValue placeholder={t("campaigns.selectGroup")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">{t('campaigns.allGroups')}</SelectItem>
+                    <SelectItem value="all">
+                      {t("campaigns.allGroup")}
+                    </SelectItem>
                     {groups.map((group: any) => (
                       <SelectItem key={group.id} value={group.id}>
                         {group.name} ({group.contact_count || 0})
@@ -223,7 +228,7 @@ export function CreateCampaignDialog({
 
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <Label>{t('campaigns.selectConatcts')}</Label>
+                  <Label>{t("campaigns.selectConatcts")}</Label>
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       checked={
@@ -232,21 +237,23 @@ export function CreateCampaignDialog({
                       }
                       onCheckedChange={(checked) => {
                         if (checked) {
-                          setSelectedContacts(filteredContacts.map((c: any) => c.id));
+                          setSelectedContacts(
+                            filteredContacts.map((c: any) => c.id)
+                          );
                         } else {
                           setSelectedContacts([]);
                         }
                       }}
                     />
                     <Label className="font-normal text-sm">
-                      {t('campaigns.selectAll')} ({filteredContacts.length})
+                      {t("campaigns.selectAll")} ({filteredContacts.length})
                     </Label>
                   </div>
                 </div>
                 <ScrollArea className="h-64 border rounded-md p-4">
                   {filteredContacts.length === 0 ? (
                     <div className="text-center text-muted-foreground py-8">
-                      {t('campaigns.noContactsInGroup')}
+                      {t("campaigns.noContactsInGroup")}
                     </div>
                   ) : (
                     filteredContacts.map((contact: any) => (
@@ -264,16 +271,22 @@ export function CreateCampaignDialog({
                               ]);
                             } else {
                               setSelectedContacts(
-                                selectedContacts.filter((id) => id !== contact.id)
+                                selectedContacts.filter(
+                                  (id) => id !== contact.id
+                                )
                               );
                             }
                           }}
                         />
                         <Label className="font-normal">
-                          {user?.username === 'demouser' ? (
+                          {user?.username === "demouser" ? (
                             <>
-                              {contact.name.slice(0, -1).replace(/./g, "*") + contact.name.slice(-1)} (
-                              {contact.phone.slice(0, -4).replace(/\d/g, "*") + contact.phone.slice(-4)})
+                              {contact.name.slice(0, -1).replace(/./g, "*") +
+                                contact.name.slice(-1)}{" "}
+                              (
+                              {contact.phone.slice(0, -4).replace(/\d/g, "*") +
+                                contact.phone.slice(-4)}
+                              )
                             </>
                           ) : (
                             <>
@@ -290,7 +303,7 @@ export function CreateCampaignDialog({
 
             <TabsContent value="csv" className="space-y-4">
               <div>
-                <Label htmlFor="csvFile">{t('campaigns.uploadCSVFile')}</Label>
+                <Label htmlFor="csvFile">{t("campaigns.uploadCSVFile")}</Label>
                 <Input
                   id="csvFile"
                   type="file"
@@ -306,14 +319,17 @@ export function CreateCampaignDialog({
                     }}
                     className="text-blue-500 hover:underline"
                   >
-                    {t('campaigns.downloadSampleCSV')}
+                    {t("campaigns.downloadSampleCSV")}
                   </a>
                 </p>
               </div>
 
               {csvData.length > 0 && (
                 <div>
-                  <Label>{t('campaigns.csvPreview')} ({csvData.length} {t('campaigns.rows')})</Label>
+                  <Label>
+                    {t("campaigns.csvPreview")} ({csvData.length}{" "}
+                    {t("campaigns.rows")})
+                  </Label>
                   <ScrollArea className="h-64 border rounded-md">
                     <Table>
                       <TableHeader>
@@ -341,7 +357,7 @@ export function CreateCampaignDialog({
             <TabsContent value="api" className="space-y-4">
               <div className="bg-blue-50 p-4 rounded-md">
                 <p className="text-sm text-blue-800">
-                  {t('campaigns.tabContent')}
+                  {t("campaigns.tabContent")}
                 </p>
               </div>
             </TabsContent>
