@@ -995,7 +995,7 @@ export const aiSettings = pgTable("ai_settings", {
   id: varchar("id")
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-
+  channelId: varchar("channel_id").references(() => channels.id),
   provider: text("provider").notNull().default("openai"),
   apiKey: text("api_key").notNull(),
   model: text("model").notNull().default("gpt-4o-mini"),
