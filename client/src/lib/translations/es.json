@@ -1772,6 +1772,8 @@
   "plans": {
     "title": "Planes de Precios",
     "subtitle": "Crea y gestiona tus planes de precios",
+    "adminTitle": "Plan de Suscripción",
+    "adminSubTitle": "Crea y gestiona tu facturación y membresía",
     "stats": {
       "totalPlans": "Total de Planes",
       "featured": "Destacado",

@@ -1762,6 +1762,8 @@
   "plans": {
     "title": "价格方案",
     "subtitle": "创建和管理你的价格方案",
+    "adminTitle": "订阅计划",
+    "adminSubTitle": "创建和管理您的账单和会员资格",
     "stats": {
       "totalPlans": "总方案数",
       "featured": "特色",

@@ -1762,6 +1762,8 @@
   "plans": {
     "title": "Preispläne",
     "subtitle": "Erstelle und verwalte deine Preispläne",
+    "adminTitle": "Abonnementplan",
+    "adminSubTitle": "Erstellen und verwalten Sie Ihre Abrechnung und Mitgliedschaft",
     "stats": {
       "totalPlans": "Gesamt-Pläne",
       "featured": "Hervorgehoben",
