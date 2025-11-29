@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -40,9 +40,10 @@ interface WebhookDialogProps {
   onOpenChange: (open: boolean) => void;
   editingWebhook: WebhookConfig | null;
   onSuccess: () => void;
+  channelId?: string;
 }
 
-export function WebhookDialog({ open, onOpenChange, editingWebhook, onSuccess }: WebhookDialogProps) {
+export function WebhookDialog({ open, onOpenChange, editingWebhook, onSuccess , channelId }: WebhookDialogProps) {
   const { toast } = useToast();
 const {user} = useAuth()
   const webhookForm = useForm<z.infer<typeof webhookFormSchema>>({
@@ -52,6 +53,7 @@ const {user} = useAuth()
       events: ["messages", "message_status"],
     },
   });
+
 
   useEffect(() => {
     if (editingWebhook) {
@@ -78,13 +80,13 @@ const {user} = useAuth()
         return await apiRequest("PATCH", `/api/webhook-configs/${editingWebhook.id}`, {
           ...data,
           webhookUrl,
-          channelId: null, // Global webhook - not tied to a specific channel
+          channelId, // Global webhook - not tied to a specific channel
         });
       } else {
         return await apiRequest("POST", "/api/webhook-configs", { 
           ...data, 
           webhookUrl,
-          channelId: null, // Global webhook - not tied to a specific channel
+          channelId, // Global webhook - not tied to a specific channel
         });
       }
     },
@@ -187,7 +189,7 @@ const {user} = useAuth()
                       <div key={event.value} className="flex items-center space-x-3">
                         <Checkbox
                           checked={field.value?.includes(event.value)}
-                          onCheckedChange={(checked) => {
+                          onCheckedChange={(checked: any) => {
                             const currentValues = field.value || [];
                             if (checked) {
                               field.onChange([...currentValues, event.value]);
