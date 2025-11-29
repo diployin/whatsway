@@ -140,16 +140,21 @@ export default function Analytics() {
   const campaignMetrics = campaignAnalytics?.summary || {};
 
   // Calculate rates
-  const deliveryRate =
-    messageMetrics.totalMessages > 0
-      ? ((messageMetrics.totalDelivered || 0) / messageMetrics.totalMessages) *
-        100
-      : 0;
+const deliveryRate =
+  messageMetrics.totalMessages > 0
+    ? (
+        (Number(messageMetrics.totalMessages) -
+          Number(messageMetrics.totalRead) +
+          Number(messageMetrics.totalFailed)) /
+        Number(messageMetrics.totalMessages)
+      ) * 100
+    : 0;
+
 
   const readRate =
     messageMetrics.totalDelivered > 0
       ? Math.min(
-          ((messageMetrics.totalRead || 0) / messageMetrics.totalDelivered) *
+          ((messageMetrics.totalRead || 0) / messageMetrics.totalMessages) *
             100,
           100
         )
