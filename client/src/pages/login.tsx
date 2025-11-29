@@ -295,7 +295,7 @@ export default function LoginPage() {
                     {/* Admin Credentials */}
                     <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
                       <p className="text-sm font-semibold text-purple-900 text-center mb-2">
-                        🔐 Admin Demo Credentials
+                        🔐 Admin Demo
                       </p>
                       <div className="space-y-1">
                         <p className="text-sm text-gray-700 text-center">
@@ -313,24 +313,45 @@ export default function LoginPage() {
                       </div>
                     </div>
 
-                    {/* User Credentials */}
-                    <div className="p-4 bg-gradient-to-r from-green-50 to-teal-50 rounded-lg border border-green-200">
-                      <p className="text-sm font-semibold text-green-900 text-center mb-2">
-                        👤 User Demo Credentials
-                      </p>
-                      <div className="space-y-1">
-                        <p className="text-sm text-gray-700 text-center">
-                          Username:{" "}
-                          <code className="bg-white px-2 py-1 rounded border border-green-200 font-mono">
-                            raman
-                          </code>
+                    <div className="flex justify-between items-center gap-2">
+                      {/* User Credentials */}
+                      <div className="p-4 bg-gradient-to-r from-green-50 to-teal-50 rounded-lg border border-green-200">
+                        <p className="text-sm font-semibold text-green-900 text-center mb-2">
+                          👤 Demo User1
                         </p>
-                        <p className="text-sm text-gray-700 text-center">
-                          Password:{" "}
-                          <code className="bg-white px-2 py-1 rounded border border-green-200 font-mono">
-                            Raman@123
-                          </code>
+                        <div className="space-y-1">
+                          <p className="text-sm text-gray-700 text-center">
+                            Username:{" "}
+                            <code className="bg-white px-2 py-1 rounded border border-green-200 font-mono">
+                              demouser
+                            </code>
+                          </p>
+                          <p className="text-sm text-gray-700 text-center">
+                            Password:{" "}
+                            <code className="bg-white px-2 py-1 rounded border border-green-200 font-mono">
+                              Demo@12345
+                            </code>
+                          </p>
+                        </div>
+                      </div>
+                      <div className="p-4 bg-gradient-to-r from-green-50 to-teal-50 rounded-lg border border-green-200">
+                        <p className="text-sm font-semibold text-green-900 text-center mb-2">
+                          👤 Demo User2
                         </p>
+                        <div className="space-y-1">
+                          <p className="text-sm text-gray-700 text-center">
+                            Username:{" "}
+                            <code className="bg-white px-2 py-1 rounded border border-green-200 font-mono">
+                              raman
+                            </code>
+                          </p>
+                          <p className="text-sm text-gray-700 text-center">
+                            Password:{" "}
+                            <code className="bg-white px-2 py-1 rounded border border-green-200 font-mono">
+                              Raman@123
+                            </code>
+                          </p>
+                        </div>
                       </div>
                     </div>
 
