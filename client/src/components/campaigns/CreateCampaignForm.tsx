@@ -53,9 +53,11 @@ export function CreateCampaignForm({
   };
 
   
-  const activeTemplates = templates?.filter(
-  (t: any) => t.status?.toLowerCase() === "approved"
-);
+  const activeTemplates = Array.isArray(templates)
+  ? templates.filter((t: any) => t.status?.toLowerCase() === "approved")
+  : [];
+
+
 
   const {user} = useAuth()
 
