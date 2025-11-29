@@ -83,7 +83,7 @@
     "transactions_logs": "交易日志",
     "payment_gateway": "支付网关",
     "support_tickets": "支持工单",
-    "master_subscriptions": "主订阅"
+    "master_subscriptions": "订阅数据"
   },
   "widget": {
     "title": "小部件构建器",

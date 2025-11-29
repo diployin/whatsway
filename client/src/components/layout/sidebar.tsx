@@ -380,6 +380,13 @@ const sidebarItemsCategories = [
     color: "text-blue-400",
   },
   {
+    name: "navigation.master_subscriptions",
+    icon: CheckCircle,
+    path: "/master-subscriptions",
+    badge: "",
+    color: "text-green-600",
+  },
+  {
     name: "navigation.transactions_logs",
     icon: AiOutlineTransaction,
     path: "/transactions-logs",
@@ -396,19 +403,6 @@ const sidebarItemsCategories = [
     icon: MdOutlineSupportAgent,
     path: "/support-tickets",
     color: "text-black-400",
-  },
-  // {
-  //   name: "navigation.settings",
-  //   icon: Settings,
-  //   path: "/settings",
-  //   color: "text-purple-400",
-  // },
-  {
-    name: "navigation.master_subscriptions",
-    icon: CheckCircle,
-    path: "/master-subscriptions",
-    badge: "",
-    color: "text-green-600",
   },
 ];
 
@@ -466,22 +460,6 @@ export default function Sidebar() {
 
     // SUPERADMIN sees everything
     if (role === "superadmin") return true;
-
-    // // TEAM role must ONLY use permissions — ignore allowedRoles & alwaysVisible
-    // if (role === "team") {
-    //   if (!item.requiredPrefix) return false;
-    //   if (!user.permissions) return false;
-
-    //   const perms = Array.isArray(user.permissions)
-    //     ? user.permissions
-    //     : Object.keys(user.permissions);
-
-    //   const normalize = (str: string) => str.replace(".", ":");
-
-    //   return perms.some((perm) =>
-    //     perm.startsWith(normalize(item.requiredPrefix!))
-    //   );
-    // }
 
     // TEAM role must ONLY use permissions — but allow alwaysVisible items
     if (role === "team") {
@@ -746,18 +724,12 @@ export default function Sidebar() {
             ""
           )} */}
 
-          {isAdmin && (
+          {/* {isAdmin && (
             <div className="px-3 py-2">
               <AdminCreditBox />
             </div>
-          )}
-          {/* {isAdmin && !aiSettings && (
-            <div className="p-4">
-              <div className="text-center text-red-500 text-sm font-medium">
-                Please add your AI setting data first, then you can edit this.
-              </div>
-            </div>
           )} */}
+
           {/* Smaller Toggle Button with Green Color */}
           {isAdmin && (
             <div className="p-2 border-t border-gray-100">
@@ -845,6 +817,11 @@ export default function Sidebar() {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
+                {isAdmin && (
+                  <div className="px-3 py-2">
+                    <AdminCreditBox />
+                  </div>
+                )}
                 <DropdownMenuLabel>{t("common.myAccount")}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>

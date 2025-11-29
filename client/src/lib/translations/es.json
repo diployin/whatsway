@@ -83,7 +83,7 @@
     "transactions_logs": "Registros de transacciones",
     "payment_gateway": "Pasarela de pago",
     "support_tickets": "Tickets de soporte",
-    "master_subscriptions": "Suscripciones maestras"
+    "master_subscriptions": "Datos de Suscripciones"
   },
   "widget": {
     "title": "Constructor de Widget de Chat de WhatsApp",
