@@ -286,7 +286,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
               // ✅ Use setTimeout to ensure modal closes before navigation
               setTimeout(() => {
-                setLocation("/billing");
+                setLocation("/plan-upgrade");
               }, 100);
             } else {
               throw new Error(

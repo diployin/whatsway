@@ -309,7 +309,7 @@ export default function Notifications() {
           </Card>
         </div>
 
-        <Card className="shadow-sm">
+        <Card className="shadow-sm mt-4">
           <CardHeader className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-b border-gray-200">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <CardTitle className="text-base sm:text-lg">

@@ -292,7 +292,7 @@ interface Campaign {
   createdAt: string;
   completedAt?: string;
   scheduledAt?: string;
-  createdByName: string;
+  createdBy: string;
 }
 
 interface CampaignsTableProps {
@@ -402,7 +402,7 @@ export function CampaignsTable({
               return (
                 <TableRow key={campaign.id}>
                   <TableCell className="font-medium">{campaign.name}</TableCell>
-                  <TableCell>{campaign.createdByName}</TableCell>
+                  <TableCell>{campaign.createdBy}</TableCell>
                   <TableCell>{getStatusBadge(campaign.status)}</TableCell>
                   <TableCell>{campaign.templateName || "-"}</TableCell>
                   <TableCell>{campaign.recipientCount || 0}</TableCell>
@@ -437,8 +437,8 @@ export function CampaignsTable({
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Progress value={deliveryRate} className="w-20" />
+                    <div className="flex items-center gap-2 justify-center">
+                      {/* <Progress value={deliveryRate} className="w-20" /> */}
                       <span className="text-sm font-medium">
                         {deliveryRate}%
                       </span>

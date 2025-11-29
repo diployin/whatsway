@@ -11,6 +11,8 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { Link } from "wouter";
+import { RiProfileFill } from "react-icons/ri";
+import { FaUserCircle } from "react-icons/fa";
 
 const CaseStudies = () => {
   const { t } = useTranslation();
@@ -299,7 +301,10 @@ const CaseStudies = () => {
                   "{selectedStudy.testimonial.quote}"
                 </blockquote>
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
+                  <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
+                    <FaUserCircle className="text-gray-700 text-3xl" />
+                  </div>
+
                   <div>
                     <div className="font-semibold text-gray-900">
                       {selectedStudy.testimonial.author}

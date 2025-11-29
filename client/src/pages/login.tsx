@@ -94,6 +94,7 @@ export default function LoginPage() {
       window.location.href = "/dashboard";
     },
     onError: (error: any) => {
+      console.log("error", error);
       let errorMessage = error?.message || "Login failed. Please try again.";
 
       if (error.message.includes("401")) {
@@ -153,7 +154,7 @@ export default function LoginPage() {
                 <img
                   src={brandSettings?.logo}
                   alt="Logo"
-                  className="h-16 w-16 object-contain"
+                  className="h-16  object-contain"
                 />
               ) : (
                 <div className="bg-green-800 text-primary-foreground rounded-full p-3">
