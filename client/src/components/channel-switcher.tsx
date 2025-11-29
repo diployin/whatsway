@@ -222,7 +222,12 @@ export function ChannelSwitcher() {
               <Button variant="outline" onClick={() => setShowModal(false)}>
                 Close
               </Button>
-              <Button onClick={() => setShowModal(false)}>Okay</Button>
+              <Button onClick={() => {
+            if (channels.length > 0) {
+              handleChannelChange(channels[0].id); // pehla channel active
+            }
+            setShowModal(false); // modal close
+          }}>Okay</Button>
             </div>
           </DialogContent>
         </Dialog>
