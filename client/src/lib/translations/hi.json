@@ -83,7 +83,7 @@
     "transactions_logs": "लेनदेन लॉग",
     "payment_gateway": "पेमेंट गेटवे",
     "support_tickets": "सपोर्ट टिकट",
-    "master_subscriptions": "मास्टर सदस्यताएं"
+    "master_subscriptions": "सदस्यता डेटा"
   },
   "widget": {
     "title": "विजेट बिल्डर",

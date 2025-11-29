@@ -221,6 +221,11 @@ function EditContactForm({
                   <Input
                     {...field}
                     value={maskedValue}
+                    maxLength={20}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, "");
+                      field.onChange(value);
+                    }}
                     readOnly={isDemoUser} // Optional: prevent editing if in demo
                   />
                 </FormControl>
@@ -362,18 +367,6 @@ export default function Contacts() {
     },
   });
 
-  // console.log("checkk active channelllll",activeChannel?.id);
-
-  // First, get the active channel
-  // const { data: groupsData } = useQuery({
-  //   queryKey: ["/api/groups"],
-  //   queryFn: async () => {
-  //     const response =  await apiRequest("GET",`/api/groups?channelId=${activeChannel?.id}`);
-  //     if (!response.ok) return null;
-  //     return await response.json();
-  //   },
-  // });
-
   const { data: groupsFormateData } = useQuery({
     queryKey: ["/api/groups", activeChannel?.id],
     queryFn: async () => {
@@ -385,32 +378,6 @@ export default function Contacts() {
 
   const groupsData = groupsFormateData?.groups;
   // console.log(groupsData);
-
-  // Updated query to fetch contacts with proper server-side filtering
-  // const { data: contactsResponse, isLoading } = useQuery<ContactsResponse>({
-  //   queryKey: [
-  //     "/api/contacts",
-  //     activeChannel?.id,
-  //     currentPage,
-  //     limit,
-  //     selectedGroup,
-  //     selectedStatus,
-  //     searchQuery,
-  //   ],
-  //   queryFn: async () => {
-  //     const response = await api.getContacts(
-  //       searchQuery || undefined,
-  //       activeChannel?.id,
-  //       currentPage,
-  //       limit,
-  //       selectedGroup !== "all" && selectedGroup ? selectedGroup : undefined,
-  //       selectedStatus !== "all" && selectedStatus ? selectedStatus : undefined
-  //     );
-  //     return (await response.json()) as ContactsResponse;
-  //   },
-  //   placeholderData: (prev) => prev,
-  //   enabled: !!activeChannel,
-  // });
 
   const userIdNew = user?.role === "team" ? user?.createdBy : user?.id;
 
@@ -571,49 +538,6 @@ export default function Contacts() {
   });
 
   const availableTemplates = tempData?.data || [];
-  // const createContactMutation = useMutation({
-  //   mutationFn: async (data: InsertContact) => {
-  //     const response = await fetch(
-  //       `/api/contacts${activeChannel?.id ? `?channelId=${activeChannel.id}` : ""}`,
-  //       {
-  //         method: "POST",
-  //         headers: { "Content-Type": "application/json" },
-  //         body: JSON.stringify(data),
-  //       }
-  //     );
-
-  //     // Read error message from API
-  //     if (!response.ok) {
-  //       const errorData = await response.json().catch(() => null);
-  //       const message =
-  //         errorData?.error ||
-  //         errorData?.message ||
-  //         "Failed to create contact";
-  //       throw new Error(message);
-  //     }
-
-  //     return response.json();
-  //   },
-
-  //   onSuccess: () => {
-  //     queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
-  //     toast({
-  //       title: "Contact created",
-  //       description: "The contact has been successfully added.",
-  //     });
-  //     setShowAddDialog(false);
-  //     form.reset();
-  //   },
-
-  //   onError: (error: any) => {
-  //     toast({
-  //       title: "Error",
-  //       description: error?.message || "Failed to create contact.",
-  //       variant: "destructive",
-  //     });
-  //   },
-  // });
-
   const createContactMutation = useMutation({
     mutationFn: async (data: InsertContact) => {
       // 1️⃣ Frontend validation
@@ -1966,7 +1890,7 @@ export default function Contacts() {
                         type="tel"
                         placeholder="+1234567890"
                         {...field}
-                        maxLength={10}
+                        maxLength={20}
                         onChange={(e) => {
                           const value = e.target.value.replace(/\D/g, "");
                           field.onChange(value);
