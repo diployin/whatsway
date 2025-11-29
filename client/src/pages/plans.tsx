@@ -846,7 +846,6 @@ export default function Plans() {
                     const IconComponent = iconMap[plan.icon] || Zap;
                     const isPopular = plan.popular;
 
-                    // ⭐ Check if user already purchased this plan
                     const isActivePlan =
                       userPlans?.data?.some(
                         (p) =>
@@ -861,7 +860,7 @@ export default function Plans() {
                           plan.color
                         } hover:shadow-lg transition-all duration-300 overflow-hidden ${
                           isPopular ? "ring-2 ring-blue-500 ring-offset-2" : ""
-                        }`}
+                        } flex flex-col h-full`}
                       >
                         {plan.badge && (
                           <div className="absolute top-0 right-0 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
@@ -869,7 +868,7 @@ export default function Plans() {
                           </div>
                         )}
 
-                        <div className="p-6">
+                        <div className="p-6 flex flex-col flex-1">
                           <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg mb-4">
                             <IconComponent className="w-6 h-6 text-blue-600" />
                           </div>
@@ -909,7 +908,7 @@ export default function Plans() {
                               </div>
                             )}
                           </div>
-                          <ul className="space-y-2 mb-6">
+                          <ul className="space-y-2 mb-6 flex-1">
                             {plan.features &&
                               plan.features.slice(0, 4).map((feature, idx) => (
                                 <li
@@ -933,55 +932,48 @@ export default function Plans() {
                                 </li>
                               ))}
                           </ul>
-                          {!isSuper && (
-                            // <button
-                            //   onClick={() => handleSelectPlan(plan)}
-                            //   className={`w-full py-3 rounded-xl font-semibold transition-all transform hover:scale-105 ${plan.buttonColor} text-white`}
-                            // >
-                            //   {Number.parseFloat(plan.monthlyPrice) === 0
-                            //     ? t("plans.buttons.getStartedFree")
-                            //     : t("plans.buttons.buy")}
-                            // </button>
-
-                            <>
-                              {isActivePlan ? (
+                          <div className="mt-auto">
+                            {!isSuper && (
+                              <>
+                                {isActivePlan ? (
+                                  <Button
+                                    className="w-full bg-green-600 text-white"
+                                    disabled
+                                  >
+                                    Active
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    className="w-full"
+                                    onClick={() => handleSelectPlan(plan)}
+                                  >
+                                    {t("plans.buttons.buy")}
+                                  </Button>
+                                )}
+                              </>
+                            )}
+                            {isSuper && (
+                              <div className="grid grid-cols-2 gap-2">
                                 <Button
-                                  className="w-full bg-green-600 text-white"
-                                  disabled
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleEdit(plan)}
                                 >
-                                  Active
+                                  <Edit className="w-3 h-3 mr-1" />
+                                  {t("plans.buttons.edit")}
                                 </Button>
-                              ) : (
                                 <Button
-                                  className="w-full"
-                                  onClick={() => handleSelectPlan(plan)}
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleDelete(plan.id)}
+                                  className="text-red-600 hover:bg-red-50"
                                 >
-                                  {t("plans.buttons.buy")}
+                                  <Trash2 className="w-3 h-3 mr-1" />
+                                  {t("plans.buttons.delete")}
                                 </Button>
-                              )}
-                            </>
-                          )}
-                          {isSuper && (
-                            <div className="grid grid-cols-2 gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleEdit(plan)}
-                              >
-                                <Edit className="w-3 h-3 mr-1" />
-                                {t("plans.buttons.edit")}
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleDelete(plan.id)}
-                                className="text-red-600 hover:bg-red-50"
-                              >
-                                <Trash2 className="w-3 h-3 mr-1" />
-                                {t("plans.buttons.delete")}
-                              </Button>
-                            </div>
-                          )}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     );
