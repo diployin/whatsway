@@ -714,7 +714,6 @@ async function checkAndSendAiReply(
   const getAiSettings = await db
   .select()
   .from(aiSettings)
-  .where(eq(aiSettings.channelId, conversation.channelId))
   .limit(1)
   .then((res) => res[0]);
   

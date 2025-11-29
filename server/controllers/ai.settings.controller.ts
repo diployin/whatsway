@@ -14,97 +14,37 @@ export const getAISettings = async (req: Request, res: Response) => {
   }
 };
 
-export const getAISettingByChannelId = async (req: Request, res: Response) => {
-  try {
-    const { channelId } = req.params;
-
-    console.log("Fetching AI setting for channelId:", channelId);
-
-    const settings = await db
-      .select()
-      .from(aiSettings)
-      .where(eq(aiSettings.channelId, channelId))
-      .limit(1);
-
-    if (settings.length === 0) {
-      return res.status(404).json({
-        error: "AI settings not found for this channel",
-      });
-    }
-
-    return res.status(200).json(settings[0]);
-  } catch (error) {
-    console.error("❌ Error fetching AI setting by channelId:", error);
-    return res.status(500).json({
-      error: "Failed to fetch AI settings for channel",
-    });
-  }
-};
-
-
 // ✅ Create new AI settings
 export const createAISettings = async (req: Request, res: Response) => {
   try {
-    const {
-      provider,
-      channelId,
-      apiKey,
-      model,
-      endpoint,
-      temperature,
-      maxTokens,
-      isActive,
-      words
-    } = req.body;
+    const { provider, apiKey, model, endpoint, temperature, maxTokens, isActive, words } = req.body;
 
     if (!apiKey) {
       return res.status(400).json({ error: "API key is required" });
     }
 
-    // 🔥 Prevent multiple settings for same channel
-    if (channelId) {
-      const existing = await db
-        .select()
-        .from(aiSettings)
-        .where(eq(aiSettings.channelId, channelId))
-        .limit(1);
-
-      if (existing.length > 0) {
-        return res.status(400).json({
-          error: "AI settings already exist for this channel",
-          data: existing[0],
-        });
-      }
-    }
-
     // Normalize words input
     let wordsArray: string[] = [];
     if (typeof words === "string") {
+      // Allow comma-separated string or JSON string
       try {
         wordsArray = JSON.parse(words);
       } catch {
-        wordsArray = words
-          .split(",")
-          .map((w: string) => w.trim())
-          .filter(Boolean);
+        wordsArray = words.split(",").map((w: string) => w.trim()).filter(Boolean);
       }
     } else if (Array.isArray(words)) {
       wordsArray = words.map((w) => w.trim()).filter(Boolean);
     }
 
     // If activating this setting, deactivate others
-    if (isActive && channelId) {
-      await db
-        .update(aiSettings)
-        .set({ isActive: false })
-        .where(eq(aiSettings.channelId, channelId));
+    if (isActive) {
+      await db.update(aiSettings).set({ isActive: false }).where(eq(aiSettings.isActive, true));
     }
 
     const [inserted] = await db
       .insert(aiSettings)
       .values({
         provider: provider || "openai",
-        channelId: channelId || null,
         apiKey,
         model: model || "gpt-4o-mini",
         endpoint: endpoint || "https://api.openai.com/v1",
@@ -121,7 +61,6 @@ export const createAISettings = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to create AI setting" });
   }
 };
-
 
 // ✅ Update existing AI settings
 export const updateAISettings = async (req: Request, res: Response) => {
@@ -159,7 +98,6 @@ export const updateAISettings = async (req: Request, res: Response) => {
       .set({
         provider: provider ?? existing.provider,
         apiKey: apiKey ?? existing.apiKey,
-        channelId: existing.channelId,
         model: model ?? existing.model,
         endpoint: endpoint ?? existing.endpoint,
         temperature: temperature?.toString() ?? existing.temperature,

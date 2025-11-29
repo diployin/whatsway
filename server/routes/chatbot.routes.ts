@@ -7,27 +7,16 @@ import type { Express } from "express";
 import { storage } from 'server/storage';
 import OpenAI from 'openai';
 import { requireAuth } from 'server/middlewares/auth.middleware';
-import { aiSettings, insertSiteSchema, panelConfig, sites } from '@shared/schema';
+import { insertSiteSchema, panelConfig, sites } from '@shared/schema';
 import { io } from '../socket';
 import { requireSubscription } from 'server/middlewares/requireSubscription';
 import { eq } from 'drizzle-orm';
 import { db } from 'server/db';
 
-function buildAIClient(aiSetting) {
-  if (aiSetting.provider === "openai") {
-    return new OpenAI({
-      apiKey: aiSetting.apiKey,
-      baseURL: aiSetting.endpoint || "https://api.openai.com/v1",
-    });
-  }
-
-  // Future provider support (Anthropic, Gemini, etc.)
-  return new OpenAI({
-    apiKey: aiSetting.apiKey,
-    baseURL: aiSetting.endpoint || "https://api.openai.com/v1",
-  });
-}
-
+// Initialize OpenAI
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY || ''
+});
 
 export function registerWidgetRoutes(app: Express) {
   
@@ -344,127 +333,97 @@ app.post("/api/widget/chat", async (req, res) => {
       });
     }
 
-// 🔹 If conversation is not assigned, use AI
-if (!isAssigned) {
+    // 🔹 If conversation is not assigned, use AI
+    if (!isAssigned) {
+      const messages = await storage.getConversationMessages(conversation.id);
+      const conversationHistory = messages.slice(-10).map((msg) => ({
+        role: msg.fromUser ? "user" : "assistant",
+        content: msg.content,
+      }));
 
-  const messages = await storage.getConversationMessages(conversation.id);
-  const conversationHistory = messages.slice(-10).map((msg) => ({
-    role: msg.fromUser ? "user" : "assistant",
-    content: msg.content,
-  }));
+      const aiConfig = site.aiTrainingConfig || {};
+      const systemPrompt =
+        aiConfig.systemPrompt ||
+        `You are a helpful customer support assistant for ${site.name}. Be friendly, professional, and concise. If the user's issue requires human assistance, let them know an agent will be with them shortly.`;
 
-  const aiSetting = await db
-  .select()
-  .from(aiSettings)
-  .where(eq(aiSettings.channelId, channelId || ""))
-  .limit(1);
+      try {
+        const completion = await openai.chat.completions.create({
+          model: aiConfig.model || "gpt-3.5-turbo",
+          messages: [
+            { role: "system", content: systemPrompt },
+            ...conversationHistory,
+            { role: "user", content: message },
+          ],
+          temperature: aiConfig.temperature || 0.7,
+          max_tokens: aiConfig.maxTokens || 500,
+        });
 
-let activeAI = aiSetting?.[0];
+        aiResponse =
+          completion.choices[0]?.message?.content ||
+          "I'm sorry, I couldn't generate a response. An agent will assist you shortly.";
 
-if (!activeAI || !activeAI.isActive) {
-  console.warn("⚠ No active AI configured for channel:", channelId);
-}
-
-// Build AI client dynamically
-let aiClient = null;
-if (activeAI?.apiKey) {
-  aiClient = buildAIClient(activeAI);
-}
-
-  const aiConfig = site.aiTrainingConfig || {};
-
-  // Merge AI settings
-  const finalModel = activeAI?.model || aiConfig.model || "gpt-4o-mini";
-  const finalTemp = parseFloat(activeAI?.temperature || aiConfig.temperature || "0.7");
-  const finalMaxTokens = parseInt(activeAI?.maxTokens || aiConfig.maxTokens || "500");
-
-  const systemPrompt =
-    aiConfig.systemPrompt ||
-    `You are a helpful support assistant for ${site.name}. Respond based on past messages.`;
-
-
-  try {
-    if (!aiClient) {
-      throw new Error("AI client is not initialized. Missing API key.");
-    }
-
-    const completion = await aiClient.chat.completions.create({
-      model: finalModel,
-      messages: [
-        { role: "system", content: systemPrompt },
-        ...conversationHistory,
-        { role: "user", content: message },
-      ],
-      temperature: finalTemp,
-      max_tokens: finalMaxTokens,
-    });
-
-    aiResponse =
-      completion.choices?.[0]?.message?.content ||
-      "I'm here, but unable to generate a response right now.";
-
-    const botMessage = await storage.createMessage({
-      conversationId: conversation.id,
-      content: aiResponse,
-      direction: "outbound",
-      fromUser: false,
-      fromType: "bot",
-      type: "text",
-      status: "sent",
-    });
-
-    aiMessageId = botMessage.id;
-
-    if (io) {
-      io.to(`conversation:${conversation.id}`).emit("new_message", {
-        conversationId: conversation.id,
-        message: {
-          id: botMessage.id,
+        const botMessage = await storage.createMessage({
+          conversationId: conversation.id,
           content: aiResponse,
+          direction: "outbound",
           fromUser: false,
           fromType: "bot",
-          fromName: "AI Assistant",
-          createdAt: botMessage.createdAt,
+          type: "text",
           status: "sent",
-        },
-      });
-    }
-  } catch (error) {
-    console.error("AI provider error:", error.message);
+        });
 
-    // Auto-assign fallback
-    const assignedAgent = await assignToRandomAgent(conversation, site);
+        aiMessageId = botMessage.id;
 
-    aiResponse = assignedAgent
-      ? `I'm having difficulty responding. I've connected you with ${assignedAgent.name}.`
-      : "AI is unavailable and no agent is online right now.";
+        if (io) {
+          io.to(`conversation:${conversation.id}`).emit("new_message", {
+            conversationId: conversation.id,
+            message: {
+              id: botMessage.id,
+              content: aiResponse,
+              fromUser: false,
+              fromType: "bot",
+              fromName: "AI Assistant",
+              createdAt: botMessage.createdAt,
+              status: "sent",
+            },
+          });
+        }
+      } catch (error) {
+        console.error("OpenAI error:", error);
 
-    const botMessage = await storage.createMessage({
-      conversationId: conversation.id,
-      content: aiResponse,
-      direction: "outbound",
-      fromUser: false,
-      fromType: "bot",
-      type: "text",
-      status: "sent",
-    });
+        // 🔹 Auto-assign to random agent if AI fails
+        const assignedAgent = await assignToRandomAgent(conversation, site);
 
-    if (io) {
-      io.to(`conversation:${conversation.id}`).emit("new_message", {
-        conversationId: conversation.id,
-        message: {
-          id: botMessage.id,
+        aiResponse = assignedAgent
+          ? `I'm having trouble responding right now. I've connected you with ${assignedAgent.name} from our ${assignedAgent.role} team.`
+          : "I'm having trouble responding right now, and no agent is currently available.";
+
+        const botMessage = await storage.createMessage({
+          conversationId: conversation.id,
           content: aiResponse,
+          direction: "outbound",
           fromUser: false,
           fromType: "bot",
-          fromName: "AI Assistant",
-          createdAt: botMessage.createdAt,
+          type: "text",
           status: "sent",
-        },
-      });
-    }
-  }
-} else {
+        });
+
+        if (io) {
+          io.to(`conversation:${conversation.id}`).emit("new_message", {
+            conversationId: conversation.id,
+            message: {
+              id: botMessage.id,
+              content: aiResponse,
+              fromUser: false,
+              fromType: "bot",
+              fromName: "AI Assistant",
+              createdAt: botMessage.createdAt,
+              status: "sent",
+            },
+          });
+        }
+      }
+    } else {
       aiResponse = null; // assigned conversation handled by human
     }
 
