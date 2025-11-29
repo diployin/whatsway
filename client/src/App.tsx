@@ -419,9 +419,7 @@ function Router() {
       <Switch>
         <Route path="/demo">
           <>
-            <Header />
             <DemoPage />
-            <Footer />
           </>
         </Route>
         <Route path="/login" component={LoginPage} />

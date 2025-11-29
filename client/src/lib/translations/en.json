@@ -437,7 +437,9 @@
     "downloadSampleCSV": "Download Sample CSV",
     "csvPreview": "CSV Preview",
     "rows": "rows",
-    "tabContent": " API campaigns allow external applications to trigger messages using your templates. After creating the campaign, you'll receive an API endpoint and key."
+    "tabContent": " API campaigns allow external applications to trigger messages using your templates. After creating the campaign, you'll receive an API endpoint and key.",
+    "campaignfilterlabel": "Campaign Filter by Group",
+    "allGroup": "All Group"
   },
   "templates": {
     "title": "Templates",

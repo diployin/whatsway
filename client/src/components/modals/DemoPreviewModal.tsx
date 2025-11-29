@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Check, Copy } from "lucide-react"; // <-- Icons
 
 export interface DemoPreviewModalProps {
   screenshot: string;
@@ -45,6 +46,38 @@ const DemoPreviewModal: React.FC<DemoPreviewModalProps> = ({
     queryFn: () => fetch("/api/brand-settings").then((res) => res.json()),
   });
 
+  const CopyField = ({ label, value }: { label: string; value: string }) => {
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = () => {
+      navigator.clipboard.writeText(value);
+      setCopied(true);
+
+      setTimeout(() => setCopied(false), 1200); // reset after 1.2 sec
+    };
+
+    return (
+      <div className="flex items-center justify-between text-sm mt-1">
+        <span className="text-gray-600">{label}:</span>
+
+        <div className="flex items-center gap-2">
+          <code className="text-gray-800">{value}</code>
+
+          <button
+            onClick={handleCopy}
+            className="p-1 rounded hover:bg-slate-200 transition"
+          >
+            {copied ? (
+              <Check size={16} className="text-green-600" />
+            ) : (
+              <Copy size={16} className="text-gray-500" />
+            )}
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   const [fadeIn, setFadeIn] = useState(false);
 
   useEffect(() => {
@@ -73,10 +106,10 @@ const DemoPreviewModal: React.FC<DemoPreviewModalProps> = ({
         className={`relative z-20 flex min-h-screen w-full items-center justify-center px-4 transition-all duration-700 ease-out 
                 ${fadeIn ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
       >
-        <div className="flex w-full max-w-lg flex-col overflow-hidden rounded-xl bg-white shadow-2xl">
+        <div className="flex w-full max-w-2xl  flex-col overflow-hidden rounded-xl bg-white shadow-2xl  ">
           {/* Header */}
           <div
-            className="flex flex-col items-center justify-center py-7"
+            className="flex flex-col items-center justify-center py-7 px-4"
             style={{
               background: `linear-gradient(90deg, ${themeColor}, #25D366)`,
             }}
@@ -84,7 +117,7 @@ const DemoPreviewModal: React.FC<DemoPreviewModalProps> = ({
             {finalLogo && (
               <img
                 src={finalLogo}
-                className="mb-2 h-16 w-16 rounded bg-white border object-contain"
+                className="mb-2 h-10 rounded bg-white border object-contain"
                 alt="Logo"
               />
             )}
@@ -111,7 +144,6 @@ const DemoPreviewModal: React.FC<DemoPreviewModalProps> = ({
                 </a>
               </div>
             )}
-
             {/* Info Note */}
             {infoNote && (
               <div className="mb-4 rounded-lg bg-green-50 p-4 text-sm text-green-800">
@@ -121,10 +153,11 @@ const DemoPreviewModal: React.FC<DemoPreviewModalProps> = ({
                 </div>
               </div>
             )}
+            {/* Demo Details */}
 
             {/* Demo Details */}
             <div className="mb-4 rounded-lg border border-slate-200 bg-slate-50 p-4 text-[15px]">
-              <div className="mb-2">
+              <div className="mb-3">
                 <span className="font-semibold">Demo URL: </span>
                 <a
                   href={demoUrl}
@@ -135,33 +168,44 @@ const DemoPreviewModal: React.FC<DemoPreviewModalProps> = ({
                 </a>
               </div>
 
-              {superAdmin && (
-                <div className="mb-3">
-                  <span className="font-semibold block">Super Admin:</span>
-                  <span>
-                    Username: <code>{superAdmin.username}</code>
-                  </span>
-                  <br />
-                  <span>
-                    Password: <code>{superAdmin.password}</code>
-                  </span>
-                </div>
-              )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
+                {/* SUPER ADMIN */}
 
-              {tenant && (
-                <div>
-                  <span className="font-semibold block">Tenant:</span>
-                  <span>
-                    Email: <code>{tenant.email}</code>
-                  </span>
-                  <br />
-                  <span>
-                    Password: <code>{tenant.password}</code>
-                  </span>
+                <div className="rounded-lg bg-white p-3 shadow-sm border">
+                  <span className="font-semibold block mb-2">Demo User1</span>
+
+                  {/* Email */}
+                  <CopyField label="Email" value={"demouser"} />
+
+                  {/* Password */}
+                  <CopyField label="Password" value={"Demo@12345"} />
+                </div>
+
+                {/* TENANT */}
+                {tenant && (
+                  <div className="rounded-lg bg-white p-3 shadow-sm border">
+                    <span className="font-semibold block mb-2">Demo User2</span>
+
+                    {/* Email */}
+                    <CopyField label="Email" value={tenant.username} />
+
+                    {/* Password */}
+                    <CopyField label="Password" value={tenant.password} />
+                  </div>
+                )}
+              </div>
+              {superAdmin && (
+                <div className="rounded-lg bg-white p-3 shadow-sm border mt-2">
+                  <span className="font-semibold block mb-2">Demo Admin</span>
+
+                  {/* Username */}
+                  <CopyField label="Username" value={superAdmin.username} />
+
+                  {/* Password */}
+                  <CopyField label="Password" value={superAdmin.password} />
                 </div>
               )}
             </div>
-
             {/* CTA */}
             {buttonLink && (
               <a
@@ -173,7 +217,6 @@ const DemoPreviewModal: React.FC<DemoPreviewModalProps> = ({
                 {buttonLabel}
               </a>
             )}
-
             {/* Helper Text */}
             <div className="mt-2 text-center text-xs text-gray-500">
               {bottomHelp ||

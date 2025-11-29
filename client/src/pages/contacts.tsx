@@ -1094,7 +1094,7 @@ export default function Contacts() {
                       onClick={() => setSelectedGroup(null)}
                       className={!selectedGroup ? "bg-gray-100" : ""}
                     >
-                      {t("contacts.allGroups")}
+                      {t("contacts.addYourFirstContact")}
                     </DropdownMenuItem>
 
                     {/* Create Group */}
@@ -1103,7 +1103,7 @@ export default function Contacts() {
                       className="text-green-600"
                     >
                       <Plus className="h-4 w-4 mr-2" />
-                      {t("contacts.createNewGroup")}
+                      {t("contacts.addYourFirstContact")}
                     </DropdownMenuItem>
                     {/* Available Groups */}
                     {groupsData?.length > 0 && (
