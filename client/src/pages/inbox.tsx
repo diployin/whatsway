@@ -862,9 +862,14 @@ const TemplateDialog = ({
     enabled: !!channelId && open,
   });
 
-  const approvedTemplates = templates.filter(
-    (t: any) => t.status === "APPROVED"
-  );
+  // const approvedTemplates = templates.filter(
+  //   (t: any) => t.status === "APPROVED"
+  // );
+
+  const approvedTemplates = Array.isArray(templates)
+  ? templates.filter((t: any) => t?.status === "APPROVED")
+  : [];
+
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -1843,7 +1848,7 @@ export default function Inbox() {
                       </Badge>
                     </div>
                     <p className="text-sm text-gray-500">
-                      {user?.username === "demouser"
+                      {user?.username === "demouser" || user?.username === "raman"
                         ? selectedConversation?.contact?.phone
                           ? selectedConversation.contact.phone
                               .slice(0, -4)
@@ -1863,7 +1868,7 @@ export default function Inbox() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  {user?.username !== "demouser" &&
+                  {user?.username !== "demouser" && user?.username !== "raman" &&
                   selectedConversation.assignedTo !== user?.id ? (
                     <TeamAssignDropdown
                       conversationId={selectedConversation.id}
@@ -1894,14 +1899,14 @@ export default function Inbox() {
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Status</DropdownMenuLabel>
                       <DropdownMenuItem
-                        disabled={user?.username === "demouser"}
+                        disabled={user?.username === "demouser" || user?.username === "raman"}
                         onClick={() => updateConversationStatus("open")}
                       >
                         <MessageCircle className="mr-2 h-4 w-4" />
                         Mark as Open
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        disabled={user?.username === "demouser"}
+                        disabled={user?.username === "demouser" || user?.username === "raman"}
                         onClick={() => updateConversationStatus("resolved")}
                       >
                         <Check className="mr-2 h-4 w-4" />
@@ -1913,14 +1918,14 @@ export default function Inbox() {
                         View Contact
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        disabled={user?.username === "demouser"}
+                        disabled={user?.username === "demouser" || user?.username === "raman"}
                         onClick={() => handleArchiveChat()}
                       >
                         <Archive className="mr-2 h-4 w-4" />
                         Archive Chat
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        disabled={user?.username === "demouser"}
+                        disabled={user?.username === "demouser" || user?.username === "raman"}
                         onClick={() => handleBlockContact()}
                       >
                         <Ban className="mr-2 h-4 w-4" />
@@ -1928,7 +1933,7 @@ export default function Inbox() {
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
-                        disabled={user?.username === "demouser"}
+                        disabled={user?.username === "demouser" || user?.username === "raman"}
                         className="text-red-600"
                         onClick={() => handleDeleteChat()}
                       >
@@ -2038,7 +2043,7 @@ export default function Inbox() {
                               size="icon"
                               className="h-8 w-8 md:h-9 md:w-9"
                               onClick={handleFileAttachment}
-                              disabled={user?.username === "demouser"}
+                              disabled={user?.username === "demouser" || user?.username === "raman"}
                             >
                               <Paperclip className="h-4 w-4" />
                             </Button>
@@ -2055,7 +2060,7 @@ export default function Inbox() {
                         accept="image/*,video/*,audio/*,.pdf,.doc,.docx"
                       />
 
-                      {user?.username === "demouser" ? (
+                      {user?.username === "demouser" || user?.username === "raman" ? (
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -2099,7 +2104,7 @@ export default function Inbox() {
                     }
                   }}
                   disabled={
-                    user?.username === "demouser"
+                    user?.username === "demouser" || user?.username === "raman"
                       ? true
                       : is24HourWindowExpired &&
                         selectedConversation.type === "whatsapp"
@@ -2110,7 +2115,7 @@ export default function Inbox() {
                 <Button
                   onClick={handleSendMessage}
                   disabled={
-                    user?.username === "demouser"
+                    user?.username === "demouser" || user?.username === "raman"
                       ? true
                       : !messageText.trim() ||
                         (is24HourWindowExpired &&

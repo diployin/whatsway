@@ -237,6 +237,7 @@ export function CampaignsTable({
                         <DropdownMenuItem
                           onClick={() => onDeleteCampaign(campaign.id)}
                           className="text-destructive"
+                          disabled={user?.username === "demouser" || user?.username === "raman"}
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           {t("campaigns.delete")}

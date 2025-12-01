@@ -11,6 +11,7 @@ import {
   BarChart3,
   TrendingUp,
   MessageSquare,
+  Upload,
   Eye,
   Reply,
   XCircle,
@@ -242,10 +243,10 @@ const deliveryRate =
                     const dropdown = document.getElementById("export-dropdown");
                     if (dropdown) dropdown.classList.toggle("hidden");
                   }}
-                  disabled={exportLoading}
+                  disabled={exportLoading || user?.username === "demoadmin" || user?.username === "demouser" || user?.username === "raman"}
                   className="w-full sm:w-auto text-xs sm:text-sm"
                 >
-                  <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2" />
+                  <Upload className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2" />
                   {exportLoading ? "Exporting..." : "Export"}
                 </Button>
                 <div

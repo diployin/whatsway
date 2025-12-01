@@ -21,6 +21,7 @@ import { FaCcStripe } from "react-icons/fa";
 import Header from "@/components/layout/header";
 import { Loading } from "@/components/ui/loading";
 import { useTranslation } from "@/lib/i18n";
+import { useAuth } from "@/contexts/auth-context";
 
 interface PaymentProvider {
   id: string;
@@ -61,6 +62,7 @@ export default function GatewaySettings() {
   const [existingProviderId, setExistingProviderId] = useState<string | null>(
     null
   );
+  const { user } = useAuth();
 
   // Payment Gateway Schema with translations
   const paymentGatewaySchema = z.object({
@@ -673,7 +675,7 @@ export default function GatewaySettings() {
               <div className="flex justify-end pt-4 border-t">
                 <Button
                   type="submit"
-                  disabled={upsertMutation.isPending}
+                  disabled={upsertMutation.isPending || user?.username === "demoadmin"}
                   className="min-w-[200px]"
                 >
                   {upsertMutation.isPending

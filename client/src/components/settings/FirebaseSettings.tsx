@@ -23,17 +23,18 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 
-import { Settings, Edit } from "lucide-react";
+import { Settings, Edit, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/lib/i18n";
 import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function FirebaseSettings() {
   const { t } = useTranslation(); // Add translation hook
   const { toast } = useToast();
   const [firebaseData, setFirebaseData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-
+  
   const [openModal, setOpenModal] = useState(false);
 
   // Fetch Firebase Config
@@ -203,6 +204,7 @@ const FirebaseModal = ({ open, onClose, onSave, firebase }: any) => {
 
   const handleChange = (name: string, value: string) =>
     setFormData((prev) => ({ ...prev, [name]: value }));
+    const { user } = useAuth();
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -260,7 +262,7 @@ const FirebaseModal = ({ open, onClose, onSave, firebase }: any) => {
           <Button variant="outline" onClick={onClose}>
             {t("settings.firebase.modal.cancel")}
           </Button>
-          <Button onClick={() => onSave(formData)}>
+          <Button onClick={() => onSave(formData)} disabled={user?.username === "demoadmin" || user?.username === "demouser" || user?.username === "raman"}>
             {t("settings.firebase.modal.save")}
           </Button>
         </DialogFooter>

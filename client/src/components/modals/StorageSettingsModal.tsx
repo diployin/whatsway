@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/auth-context";
 
 interface Props {
   open: boolean;
@@ -36,6 +37,7 @@ export default function StorageSettingsModal({
 
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
 
   const handleChange = (key: string, value: any) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -116,7 +118,7 @@ export default function StorageSettingsModal({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={loading}>
+          <Button onClick={handleSubmit} disabled={loading || user?.username === "demoadmin" || user?.username === "demouser" || user?.username === "raman"}>
             {loading ? "Saving..." : "Save Changes"}
           </Button>
         </div>

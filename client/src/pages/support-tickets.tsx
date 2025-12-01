@@ -416,10 +416,14 @@ export default function SupportTicketsNew() {
             ? t("support_tickets.headTitleAdmin")
             : t("support_tickets.headTitleuser")
         }
-        action={{
+       action={
+    user?.role === "superadmin"
+      ? undefined // superadmin ke liye button hide
+      : {
           label: t("support.createTicket"),
           onClick: () => setShowCreateDialog(true),
-        }}
+        }
+  }
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

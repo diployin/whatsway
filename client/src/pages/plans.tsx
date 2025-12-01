@@ -1005,7 +1005,7 @@ export default function Plans() {
                                   variant="outline"
                                   size="sm"
                                   onClick={() => handleEdit(plan)}
-                                  disabled={user?.username === "demoadmin"}
+                                  // disabled={user?.username === "demoadmin"}
                                 >
                                   <Edit className="w-3 h-3 mr-1" />
                                   {t("plans.buttons.edit")}
@@ -1015,6 +1015,7 @@ export default function Plans() {
                                   size="sm"
                                   onClick={() => handleDelete(plan.id)}
                                   className="text-red-600 hover:bg-red-50"
+                                  disabled={user?.username === "demoadmin"}
                                 >
                                   <Trash2 className="w-3 h-3 mr-1" />
                                   {t("plans.buttons.delete")}

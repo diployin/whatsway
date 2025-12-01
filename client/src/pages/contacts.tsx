@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from "@/lib/i18n";
 import { Textarea } from "@/components/ui/textarea";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,6 +60,7 @@ import {
 import Papa from "papaparse";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
+import { useAuth } from "@/contexts/auth-context";
 import {
   Select,
   SelectContent,
@@ -66,7 +68,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useAuth } from "@/contexts/auth-context";
 import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 
@@ -1176,7 +1177,7 @@ export default function Contacts() {
                   variant="outline"
                   size="sm"
                   onClick={handleExportAllContacts}
-                  disabled={user?.username === "demouser"}
+                  disabled={user?.username === "demouser" || user?.username === "raman"}
                   className="text-xs sm:text-sm"
                 >
                   <Upload className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
@@ -1461,7 +1462,7 @@ export default function Contacts() {
                                   setSelectedContact(contact);
                                   setShowMessageDialog(true);
                                 }}
-                                disabled={!channels || channels.length === 0}
+                                disabled={!channels || channels.length === 0 }
                                 className="h-8 w-8 p-0"
                               >
                                 <MessageSquare className="w-4 h-4 text-blue-600" />
@@ -2105,7 +2106,7 @@ export default function Contacts() {
               </Button>
               <Button
                 disabled={
-                  user?.username === "demouser"
+                  user?.username === "demouser" || user?.username === "raman"
                     ? true
                     : !activeChannel ||
                       sendMessageMutation.isPending ||

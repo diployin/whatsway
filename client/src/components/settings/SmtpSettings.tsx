@@ -137,7 +137,6 @@ export default function SMTPSettings() {
 
               <Button
   size="sm"
-  disabled={user?.username === "demoadmin"}   // <-- Disable if demo admin
   onClick={() => setShowEditDialog(true)}
   className="text-xs"
 >

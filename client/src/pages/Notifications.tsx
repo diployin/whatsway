@@ -47,6 +47,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Notification } from "@shared/schema";
 import { z } from "zod";
 import { useTranslation } from "@/lib/i18n";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function Notifications() {
   const { t } = useTranslation();
@@ -54,6 +55,7 @@ export default function Notifications() {
   const [showDialog, setShowDialog] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(25);
+  const { user } = useAuth();
 
   // Schema with translations
   const formSchema = z.object({
@@ -612,7 +614,7 @@ export default function Notifications() {
               </Button>
               <Button
                 onClick={form.handleSubmit(onSubmit)}
-                disabled={createMutation.isPending}
+                disabled={createMutation.isPending || user?.username === "demoadmin" || user?.username === "demouser" || user?.username === "raman"}
               >
                 {createMutation.isPending ? (
                   <>

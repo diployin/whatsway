@@ -223,7 +223,7 @@ export function GeneralSettings(): JSX.Element {
               </Button>
               <Button
                 onClick={handleEditClick}
-                disabled={user?.username === "demoadmin"}
+                // disabled={user?.username === "demoadmin"}
                 className="flex items-center text-xs h-7 rounded-sm px-2 sm:h-9 sm:rounded-md sm:px-3"
               >
                 <Edit className="w-4 h-4 mr-2" />

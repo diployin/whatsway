@@ -622,7 +622,7 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
           <Button
             onClick={handleSubmit}
             disabled={
-              user?.username === "demouser"
+              user?.username === "demouser" || user?.username === "demoadmin" || user?.username === "raman"
                 ? true
                 : updateBrandMutation.isPending ||
                   uploadStatus.logo === "uploading" ||

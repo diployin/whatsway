@@ -163,7 +163,7 @@ export function CreateCampaignForm({
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit" disabled={user?.username === 'demouser' ? true : isCreating}>
+        <Button type="submit" disabled={user?.username === 'demouser' || user?.username === "raman" ? true : isCreating}>
           {scheduledTime ? "Schedule Campaign" : "Start Campaign"}
         </Button>
       </div>
