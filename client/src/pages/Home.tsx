@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect} from "react";
 import Hero from "@/components/Hero";
 import Features from "@/components/Features";
 import HowItWorks from "@/components/HowItWorks";
@@ -19,6 +19,23 @@ const Home = () => {
       return res.json();
     },
   });
+
+  useEffect(() => {
+    window.aiChatConfig = {
+      siteId: "3af56dd1-ee82-4914-b143-b879391c6f15",
+      channelId: "35f7b44c-d422-4246-b016-21edf9c08bea",
+      url: "https://whatsway.diploy.in",
+    };
+
+    const script = document.createElement("script");
+    script.src = "https://whatsway.diploy.in/widget/widget.js";
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
   return (
     <>
       {/* <Header /> */}
