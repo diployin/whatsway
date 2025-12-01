@@ -136,7 +136,7 @@ function EditContactForm({
           control={form.control}
           name="name"
           render={({ field }) => {
-            const isDemoUser = user?.username === "demouser";
+            const isDemoUser = user?.username === "demouser" || user?.username === "raman";
 
             // Mask name: replace all characters except the last one with '*'
             const maskName = (name: string) => {
@@ -168,7 +168,7 @@ function EditContactForm({
           control={form.control}
           name="email"
           render={({ field }) => {
-            const isDemoUser = user?.username === "demouser";
+            const isDemoUser = user?.username === "demouser" || user?.username === 'raman';
 
             // Mask email: show only the last 3 characters before @ and the domain
             const maskEmail = (email: string | null | undefined) => {
@@ -209,7 +209,7 @@ function EditContactForm({
           control={form.control}
           name="phone"
           render={({ field }) => {
-            const isDemoUser = user?.username === "demouser";
+            const isDemoUser = user?.username === "demouser" || user?.username === 'raman';
             const maskedValue = isDemoUser
               ? field.value?.slice(0, -4).replace(/\d/g, "*") +
                 field.value?.slice(-4)
@@ -293,7 +293,7 @@ function EditContactForm({
           <Button
             type="submit"
             disabled={
-              user?.username === "demouser"
+              user?.username === "demouser" || user?.username === 'raman'
                 ? true
                 : updateContactMutation.isPending
             }
@@ -1188,7 +1188,7 @@ export default function Contacts() {
                 </Button>
 
                 {/* Import Button */}
-                {user?.username === "demouser" ? (
+                {user?.username === "demouser" || user?.username === 'raman' ? (
                   <Button
                     disabled={true}
                     variant="outline"
@@ -1268,7 +1268,7 @@ export default function Contacts() {
                     variant="outline"
                     size="sm"
                     onClick={handleExportSelectedContacts}
-                    disabled={user?.username === "demouser"}
+                    disabled={user?.username === "demouser" || user?.username === "raman"}
                     className="flex-1 sm:flex-none text-xs sm:text-sm"
                   >
                     <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
@@ -1278,7 +1278,7 @@ export default function Contacts() {
                     <span className="sm:hidden">Export</span>
                   </Button>
                   <Button
-                    disabled={user?.username === "demouser"}
+                    disabled={user?.username === "demouser" || user?.username === 'raman'}
                     variant="outline"
                     size="sm"
                     className="flex-1 sm:flex-none text-red-600 text-xs sm:text-sm"
@@ -1379,7 +1379,7 @@ export default function Contacts() {
                               </div>
                               <div className="ml-2 lg:ml-4 min-w-0">
                                 <div className="text-xs lg:text-sm font-medium text-gray-900 truncate">
-                                  {user?.username === "demouser"
+                                  {user?.username === "demouser" || user?.username === 'raman'
                                     ? contact.name
                                         .slice(0, -1)
                                         .replace(/./g, "*") +
@@ -1388,7 +1388,7 @@ export default function Contacts() {
                                 </div>
                                 {contact.email && (
                                   <div className="text-xs text-gray-500 truncate">
-                                    {user?.username === "demouser"
+                                    {user?.username === "demouser" || user?.username === 'raman'
                                       ? contact.email
                                           .split("@")[0]
                                           .slice(0, -2)
@@ -1403,7 +1403,7 @@ export default function Contacts() {
                             </div>
                           </td>
                           <td className="px-3 lg:px-6 py-3 lg:py-4 text-xs lg:text-sm text-gray-900">
-                            {user?.username === "demouser"
+                            {user?.username === "demouser" || user?.username === "raman"
                               ? contact.phone.slice(0, -4).replace(/\d/g, "*") +
                                 contact.phone.slice(-4)
                               : contact.phone}
@@ -1483,7 +1483,7 @@ export default function Contacts() {
                                 size="sm"
                                 onClick={() => handleDeleteContact(contact.id)}
                                 disabled={
-                                  user?.username === "demouser"
+                                  user?.username === "demouser" || user?.username === 'raman'
                                     ? true
                                     : deleteContactMutation.isPending
                                 }
@@ -1538,7 +1538,7 @@ export default function Contacts() {
                                         ? "text-red-600"
                                         : "text-green-600"
                                     }
-                                    disabled={user?.username === "demouser"}
+                                    disabled={user?.username === "demouser" || user?.username === 'raman'}
                                   >
                                     {contact.status === "active" ? (
                                       <>
@@ -1557,7 +1557,7 @@ export default function Contacts() {
                                       handleDeleteContact(contact.id)
                                     }
                                     className="text-red-600"
-                                    disabled={user?.username === "demouser"}
+                                    disabled={user?.username === "demouser" || user?.username === 'raman'}
                                   >
                                     <Trash2 className="h-4 w-4 mr-2" />
                                     {t("contacts.deleteContact.title")}
@@ -1595,14 +1595,14 @@ export default function Contacts() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="text-sm font-semibold text-gray-900 truncate">
-                              {user?.username === "demouser"
+                              {user?.username === "demouser" || user?.username === 'raman'
                                 ? contact.name.slice(0, -1).replace(/./g, "*") +
                                   contact.name.slice(-1)
                                 : contact.name}
                             </div>
                             {contact.email && (
                               <div className="text-xs text-gray-500 truncate">
-                                {user?.username === "demouser"
+                                {user?.username === "demouser" || user?.username === 'raman'
                                   ? contact.email
                                       .split("@")[0]
                                       .slice(0, -2)
@@ -1638,7 +1638,7 @@ export default function Contacts() {
                             Phone:
                           </span>
                           <span className="text-gray-700 text-xs">
-                            {user?.username === "demouser"
+                            {user?.username === "demouser" || user?.username === 'raman'
                               ? contact.phone.slice(0, -4).replace(/\d/g, "*") +
                                 contact.phone.slice(-4)
                               : contact.phone}
@@ -1733,7 +1733,7 @@ export default function Contacts() {
                                   ? "text-red-600"
                                   : "text-green-600"
                               }
-                              disabled={user?.username === "demouser"}
+                              disabled={user?.username === "demouser" || user?.username === 'raman'}
                             >
                               {contact.status === "active" ? (
                                 <>
@@ -1750,7 +1750,7 @@ export default function Contacts() {
                             <DropdownMenuItem
                               onClick={() => handleDeleteContact(contact.id)}
                               className="text-red-600"
-                              disabled={user?.username === "demouser"}
+                              disabled={user?.username === "demouser" || user?.username === 'raman'}
                             >
                               <Trash2 className="h-4 w-4 mr-2" />
                               {t("contacts.deleteContact.title")}
@@ -1934,7 +1934,7 @@ export default function Contacts() {
                 <Button
                   type="submit"
                   disabled={
-                    user?.username === "demouser"
+                    user?.username === "demouser" || user?.username === 'raman'
                       ? true
                       : createContactMutation.isPending
                   }
