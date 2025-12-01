@@ -212,7 +212,13 @@ export function AccountSettings() {
                   </Button>
                 </>
               ) : (
-                <Button onClick={() => setIsEditing(true)}>Edit Account</Button>
+                <Button
+  onClick={() => setIsEditing(true)}
+  disabled={user?.username === "demoadmin"}   // <-- Disable for demo admin
+>
+  Edit Account
+</Button>
+
               )}
             </div>
           </div>

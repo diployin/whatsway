@@ -29,6 +29,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loading } from "@/components/ui/loading";
 import StorageSettingsModal from "../modals/StorageSettingsModal";
 import { useTranslation } from "@/lib/i18n";
+import { useAuth } from "@/contexts/auth-context";
 
 // Types
 interface StorageConfig {
@@ -46,6 +47,7 @@ export default function StorageSettings(): JSX.Element {
   const { t } = useTranslation();
   const [showEditDialog, setShowEditDialog] = useState<boolean>(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const {
     data: storageConfig,
@@ -202,15 +204,16 @@ export default function StorageSettings(): JSX.Element {
                   : t("settings.storage_setting.refresh")}
               </Button>
 
-              <Button
-                onClick={handleEditClick}
-                // disabled={isUsingStaticData}
-                size="sm"
-                className="flex items-center text-xs h-7 rounded-sm px-2 sm:h-9 sm:rounded-md sm:px-3"
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                {t("settings.storage_setting.editStorage")}
-              </Button>
+             <Button
+  onClick={handleEditClick}
+  disabled={user?.username === "demoadmin"}   // <-- Disable for demo admin
+  size="sm"
+  className="flex items-center text-xs h-7 rounded-sm px-2 sm:h-9 sm:rounded-md sm:px-3"
+>
+  <Edit className="w-4 h-4 mr-2" />
+  {t("settings.storage_setting.editStorage")}
+</Button>
+
             </div>
           </div>
 

@@ -28,6 +28,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Loading } from "@/components/ui/loading";
 import SMTPSettingsModal from "../modals/SMTPSettingsModal";
+import { useAuth } from "@/contexts/auth-context";
 
 interface SMTPConfig {
   id?: string;
@@ -45,6 +46,7 @@ interface SMTPConfig {
 export default function SMTPSettings() {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const {
     data: smtpConfig,
@@ -134,14 +136,15 @@ export default function SMTPSettings() {
               </Button>
 
               <Button
-                size="sm"
-                // disabled={isUsingStaticData}
-                onClick={() => setShowEditDialog(true)}
-                className="text-xs"
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                Edit SMTP
-              </Button>
+  size="sm"
+  disabled={user?.username === "demoadmin"}   // <-- Disable if demo admin
+  onClick={() => setShowEditDialog(true)}
+  className="text-xs"
+>
+  <Edit className="w-4 h-4 mr-2" />
+  Edit SMTP
+</Button>
+
             </div>
           </div>
 
