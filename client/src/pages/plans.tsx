@@ -853,6 +853,20 @@ export default function Plans() {
                           p.subscription.status === "active"
                       ) || false;
 
+                    const activePlan = userPlans?.data?.find(
+                      (p) => p.subscription.status === "active"
+                    )?.subscription;
+
+                    // console.log("Active Plan@@@@@@@@@@@@@:", activePlan);
+
+                    const currentPlanPrice = Number(
+                      activePlan?.planData?.monthlyPrice || 0
+                    );
+                    const thisPlanPrice = Number(plan.monthlyPrice);
+
+                    // console.log("Current Plan Price:", currentPlanPrice);
+                    // console.log("This Plan Price:", thisPlanPrice);
+
                     return (
                       <div
                         key={plan.id}
@@ -935,7 +949,7 @@ export default function Plans() {
                           <div className="mt-auto">
                             {!isSuper && (
                               <>
-                                {isActivePlan ? (
+                                {/* {isActivePlan ? (
                                   <Button
                                     className="w-full bg-green-600 text-white"
                                     disabled
@@ -948,6 +962,38 @@ export default function Plans() {
                                     onClick={() => handleSelectPlan(plan)}
                                   >
                                     {t("plans.buttons.buy")}
+                                  </Button>
+                                )} */}
+
+                                {/* Action Button */}
+                                {/* Action Button */}
+                                {!activePlan ? (
+                                  <Button
+                                    className="w-full"
+                                    onClick={() => handleSelectPlan(plan)}
+                                  >
+                                    {t("plans.buttons.buy")}
+                                  </Button>
+                                ) : isActivePlan ? (
+                                  <Button
+                                    className="w-full bg-green-600 text-white"
+                                    disabled
+                                  >
+                                    Current Plan
+                                  </Button>
+                                ) : thisPlanPrice > currentPlanPrice ? (
+                                  <Button
+                                    className="w-full bg-blue-600 text-white"
+                                    onClick={() => handleSelectPlan(plan)}
+                                  >
+                                    Upgrade
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    className="w-full bg-yellow-600 text-white"
+                                    onClick={() => handleSelectPlan(plan)}
+                                  >
+                                    Downgrade
                                   </Button>
                                 )}
                               </>
