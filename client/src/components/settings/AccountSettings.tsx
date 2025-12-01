@@ -205,7 +205,7 @@ export function AccountSettings() {
                   <Button
                     onClick={handleSave}
                     disabled={
-                      handleSaveChanges.isPending || !firstName.trim() || !lastName.trim()
+                      handleSaveChanges.isPending || !firstName.trim() || !lastName.trim() ||  user?.username === "demoadmin"
                     }
                   >
                     {handleSaveChanges.isPending ? "Saving..." : "Save Changes"}

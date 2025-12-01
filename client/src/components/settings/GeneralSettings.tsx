@@ -31,6 +31,7 @@ import { setMeta } from "@/hooks/setMeta";
 import { useAuth } from "@/contexts/auth-context";
 import { useTranslation } from "@/lib/i18n";
 
+
 // Types
 interface BrandSettings {
   title?: string;
@@ -222,7 +223,7 @@ export function GeneralSettings(): JSX.Element {
               </Button>
               <Button
                 onClick={handleEditClick}
-                // disabled={isUsingStaticData}
+                disabled={user?.username === "demoadmin"}
                 className="flex items-center text-xs h-7 rounded-sm px-2 sm:h-9 sm:rounded-md sm:px-3"
               >
                 <Edit className="w-4 h-4 mr-2" />

@@ -51,7 +51,6 @@ interface BrandSettings {
   updatedAt?: string;
   country?: string;
   currency?: string;
-  supportEmail?: string;
 }
 
 // This is only for React state
@@ -60,7 +59,6 @@ interface BrandFormValues {
   tagline: string;
   country: string;
   currency: string;
-  supportEmail: string;
   logo: File | null;
   logo2: File | null;
   favicon: File | null;
@@ -71,7 +69,6 @@ interface ValidationErrors {
   tagline?: string;
   logo?: string;
   favicon?: string;
-  supportEmail?: string;
 }
 
 interface GeneralSettingsModalProps {
@@ -96,7 +93,6 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
     favicon: null,
     currency: "",
     country: "",
-    supportEmail: "",
   });
   const [logoPreview, setLogoPreview] = useState<string>("");
   const [faviconPreview, setFaviconPreview] = useState<string>("");
@@ -133,7 +129,6 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
         tagline: brandSettings.tagline || "",
         country: brandSettings.country || "",
         currency: brandSettings.currency || "",
-        supportEmail: brandSettings.supportEmail || "",
         logo: null, // no File yet
         logo2: null,
         favicon: null, // no File yet
@@ -247,7 +242,6 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
     formDataToSend.append("tagline", formData.tagline);
     formDataToSend.append("country", formData.country);
     formDataToSend.append("currency", formData.currency);
-    formDataToSend.append("supportEmail", formData.supportEmail);
 
     if (formData.logo) formDataToSend.append("logo", formData.logo);
     if (formData.logo2) formDataToSend.append("logo2", formData.logo2);
@@ -267,7 +261,6 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
       favicon: null,
       currency: "",
       country: "",
-      supportEmail: ""
     });
     setLogoPreview("");
     setLogo2Preview("");
@@ -288,7 +281,7 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
 
   const handleFileInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    type: "logo" | "favicon"
+    type: "logo" | "logo2" | "favicon"
   ): void => {
     const file = e.target.files?.[0] || null;
     handleFileUpload(file, type);
@@ -614,27 +607,6 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                 </Command>
               </PopoverContent>
             </Popover>
-          </div>
-{/* Support Email */}
-          <div className="space-y-2">
-            <Label className="flex items-center font-medium">
-              <Tag className="w-4 h-4 mr-2 text-green-500" />
-              Support Email
-            </Label>
-            <Textarea
-              placeholder="Enter your email"
-              value={formData.supportEmail}
-              onChange={(e) => handleInputChange("supportEmail", e.target.value)}
-              className={`min-h-[80px] ${
-                errors.tagline ? "border-red-500" : ""
-              }`}
-            />
-            {errors.supportEmail && (
-              <p className="text-sm text-red-500 flex items-center">
-                <AlertCircle className="w-4 h-4 mr-1" />
-                {errors.supportEmail}
-              </p>
-            )}
           </div>
         </div>
 
