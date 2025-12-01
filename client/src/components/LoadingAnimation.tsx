@@ -5,7 +5,10 @@ import {
   Users,
   TrendingUp,
   CheckCircle,
+  MessageSquare,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { AppSettings } from "@/types/types";
 
 interface LoadingAnimationProps {
   onComplete?: () => void;
@@ -20,6 +23,12 @@ const LoadingAnimation: React.FC<LoadingAnimationProps> = ({
 }) => {
   const [currentStep, setCurrentStep] = React.useState(0);
   const [progress, setProgress] = React.useState(0);
+
+  const { data: brandSettings } = useQuery<AppSettings>({
+    queryKey: ["/api/brand-settings"],
+    queryFn: () => fetch("/api/brand-settings").then((res) => res.json()),
+    staleTime: 5 * 60 * 1000,
+  });
 
   const steps = [
     {
@@ -97,12 +106,20 @@ const LoadingAnimation: React.FC<LoadingAnimationProps> = ({
       <div className="relative z-10 text-center max-w-md mx-auto px-6">
         {/* Logo with Enhanced Animation */}
         <div className="flex items-center justify-center space-x-3 mb-12">
-          <div className="bg-gradient-to-r from-green-400 to-emerald-500 p-4 rounded-2xl shadow-2xl animate-bounce">
-            <MessageCircle className="w-10 h-10 text-white" strokeWidth={1.5} />
-          </div>
-          <span className="text-4xl font-black bg-gradient-to-r from-green-600 via-emerald-600 to-blue-600 bg-clip-text text-transparent drop-shadow-lg">
-            Whatsway
-          </span>
+          {brandSettings?.logo ? (
+            <img
+              src={brandSettings?.logo}
+              alt="Logo"
+              className="h-12  object-contain animate-bounce"
+            />
+          ) : (
+            <div className="bg-gradient-to-r from-green-400 to-emerald-500 p-4 rounded-2xl shadow-2xl ">
+              <MessageCircle
+                className="w-10 h-10 text-white"
+                strokeWidth={1.5}
+              />
+            </div>
+          )}
         </div>
 
         {/* Floating Messages Animation */}
