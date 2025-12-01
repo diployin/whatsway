@@ -196,6 +196,9 @@ export const createUser = async (req: Request, res: Response) => {
 
 
 
+
+
+
 export const verifyEmailOTP = async (req: Request, res: Response) => {
   try {
     const { email, otpCode } = req.body;
@@ -398,5 +401,72 @@ export const deleteUser = async (req: Request, res: Response) => {
     res.status(200).json({ success: true, message: "User deleted successfully" });
   } catch (error) {
     res.status(500).json({ success: false, message: "Error deleting user", error });
+  }
+};
+
+
+
+
+
+// Add user for super admin
+
+export const createUserSuperadmin = async (req: Request, res: Response) => {
+  try {
+    const { username, password, email, firstName, lastName } = req.body;
+
+    if (!username || !password || !email) {
+      return res.status(400).json({
+        success: false,
+        message: "Username, password, and email are required.",
+      });
+    }
+
+    // Check existing user
+    const existingUser = await db
+      .select()
+      .from(users)
+      .where(eq(users.username, username));
+
+    if (existingUser.length > 0) {
+      return res.status(409).json({
+        success: false,
+        message: "Username already exists.",
+      });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create user
+    const newUser = await db
+      .insert(users)
+      .values({
+        username,
+        password: hashedPassword,
+        email,
+        firstName,
+        lastName,
+        role: "admin",
+        permissions: defaultPermissions,
+        isEmailVerified: true,
+      })
+      .returning();
+
+    const user = newUser[0];
+
+
+    return res.status(201).json({
+      success: true,
+      message: "User created.",
+      data: { id: user.id, email },
+    });
+
+  } catch (error) {
+    console.error("Error creating user:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error creating user",
+      error,
+    });
   }
 };

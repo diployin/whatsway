@@ -9,6 +9,7 @@ import { Link } from "wouter";
 import { useTranslation } from "@/lib/i18n";
 import { useAuth } from "@/contexts/auth-context";
 import {isDemoUser, maskValue } from "@/utils/maskUtils";
+import AddUserModal from "@/components/modals/AddUserModal";
 
 interface UserType {
   id: string;
@@ -40,6 +41,7 @@ const User: React.FC = () => {
   const [users, setUsers] = useState<UserType[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
+  const [openAddModal, setOpenAddModal] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const [pagination, setPagination] = useState<PaginationType>({
@@ -148,7 +150,10 @@ const User: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dots-bg">
-      <Header title={t("users.title")} subtitle={t("users.subtitle")} />
+      <Header title={t("users.title")} subtitle={t("users.subtitle")}  action={{
+    label: "Add New User",
+    onClick: () => setOpenAddModal(true),
+  }}  />
 
       <div className="p-4 md:p-6">
         {/* Search */}
@@ -454,6 +459,13 @@ const User: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <AddUserModal
+  open={openAddModal}
+  onOpenChange={setOpenAddModal}
+  onSuccess={() => fetchUsers()}
+/>
+
     </div>
   );
 };
