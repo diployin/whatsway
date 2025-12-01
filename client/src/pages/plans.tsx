@@ -803,11 +803,12 @@ export default function Plans() {
                     >
                       {t("plans.buttons.cancel")}
                     </Button>
-                    <Button onClick={handleSubmit} className="flex-1">
+                    <Button onClick={handleSubmit} className="flex-1" disabled={user?.username === "demoadmin"}>
                       <Save className="w-4 h-4 mr-2" />
                       {editingPlan
                         ? t("plans.buttons.updatePlan")
                         : t("plans.buttons.createPlan")}
+                        
                     </Button>
                   </div>
                 </div>
@@ -1004,6 +1005,7 @@ export default function Plans() {
                                   variant="outline"
                                   size="sm"
                                   onClick={() => handleEdit(plan)}
+                                  disabled={user?.username === "demoadmin"}
                                 >
                                   <Edit className="w-3 h-3 mr-1" />
                                   {t("plans.buttons.edit")}
