@@ -339,7 +339,7 @@ export function AccountSettings() {
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={() => deleteAccount.mutate()}
-                  disabled={user?.username === 'demouser'? true :deleteAccount.isPending}
+                  disabled={user?.username === 'demouser' || user?.username === 'demoadmin' || user?.username === 'raman'? true :deleteAccount.isPending}
                 >
                   {deleteAccount.isPending ? "Deleting..." : "Yes, delete my account"}
                 </AlertDialogAction>
