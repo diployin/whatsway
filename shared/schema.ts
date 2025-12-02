@@ -266,7 +266,7 @@ export const conversations = pgTable(
     status: text("status").default("open"), // open, closed, assigned, pending
     priority: text("priority").default("normal"), // low, normal, high, urgent
     type: text("type").default("whatsapp"), // whatsapp, chatbot, sms, email
-    chatbotId: integer("chatbot_id"),
+    chatbotId: varchar("chatbot_id"),
     sessionId: text("session_id"),
     tags: jsonb("tags").default([]),
     unreadCount: integer("unread_count").default(0), // Track unread messages
@@ -412,7 +412,7 @@ export const trainingData = pgTable("training_data", {
   id: varchar("id")
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  chatbotId: integer("chatbot_id").references(() => chatbots.id),
+  chatbotId: varchar("chatbot_id"),
   type: text("type").notNull(), // 'text', 'pdf', 'website', 'qa'
   title: text("title"),
   content: text("content"),
@@ -709,9 +709,7 @@ export const automationNodes = pgTable(
     id: varchar("id")
       .primaryKey()
       .default(sql`gen_random_uuid()`),
-    automationId: varchar("automation_id")
-      .notNull()
-      .references(() => automations.id, { onDelete: "cascade" }),
+    automationId: varchar("automation_id").notNull().references(() => automations.id, { onDelete: "cascade" }),
     nodeId: varchar("node_id").notNull(),
     type: text("type").notNull(), // trigger, action, condition, delay
     subtype: text("subtype"), // send_template, send_message, wait, etc.
@@ -739,9 +737,7 @@ export const automationEdges = pgTable(
   {
     id: varchar("id").primaryKey(), // This can use the edge ID from your JSON if needed
 
-    automationId: varchar("automation_id")
-      .notNull()
-      .references(() => automations.id, { onDelete: "cascade" }),
+    automationId: varchar("automation_id").notNull().references(() => automations.id, { onDelete: "cascade" }),
 
     sourceNodeId: varchar("source_node_id")
       .notNull()
@@ -775,9 +771,7 @@ export const automationExecutions = pgTable(
     id: varchar("id")
       .primaryKey()
       .default(sql`gen_random_uuid()`),
-    automationId: varchar("automation_id")
-      .notNull()
-      .references(() => automations.id, { onDelete: "cascade" }),
+      automationId: varchar("automation_id").notNull().references(() => automations.id, { onDelete: "cascade" }),
     contactId: varchar("contact_id").references(() => contacts.id),
     conversationId: varchar("conversation_id").references(
       () => conversations.id
@@ -809,9 +803,7 @@ export const automationExecutionLogs = pgTable(
     id: varchar("id")
       .primaryKey()
       .default(sql`gen_random_uuid()`),
-    executionId: varchar("execution_id")
-      .notNull()
-      .references(() => automationExecutions.id, { onDelete: "cascade" }),
+    executionId: varchar("execution_id").notNull(),
     nodeId: varchar("node_id").notNull(),
     nodeType: text("node_type").notNull(),
     status: text("status").notNull(), // started, completed, failed
@@ -819,13 +811,7 @@ export const automationExecutionLogs = pgTable(
     output: jsonb("output").default({}),
     error: text("error"),
     executedAt: timestamp("executed_at").defaultNow(),
-  },
-  (table) => ({
-    logExecutionIdx: index("automation_execution_logs_execution_idx").on(
-      table.executionId
-    ),
-  })
-);
+  });
 
 export const analytics = pgTable("analytics", {
   id: varchar("id")
