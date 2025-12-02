@@ -281,6 +281,27 @@
       "when": 1764652261691,
       "tag": "0039_hot_captain_stacy",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1764661542335,
+      "tag": "0040_real_ikaris",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1764674207320,
+      "tag": "0041_dry_leader",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1764674322670,
+      "tag": "0042_safe_diamondback",
+      "breakpoints": true
     }
   ]
 }
