@@ -703,20 +703,28 @@ export const automations = pgTable(
 );
 
 // ─── Automation Nodes ─────────────────────────
+
 export const automationNodes = pgTable(
   "automation_nodes",
   {
     id: varchar("id")
       .primaryKey()
       .default(sql`gen_random_uuid()`),
-    automationId: varchar("automation_id").notNull().references(() => automations.id, { onDelete: "cascade" }),
-    nodeId: varchar("node_id").notNull(),
-    type: text("type").notNull(), // trigger, action, condition, delay
-    subtype: text("subtype"), // send_template, send_message, wait, etc.
-    position: jsonb("position").default({}), // {x, y}
-    measured: jsonb("measured").default({}), // {x, y}
-    data: jsonb("data").default({}), // node config
-    connections: jsonb("connections").default([]), // array of next nodeIds
+
+    automationId: varchar("automation_id")
+      .notNull()
+      .references(() => automations.id, { onDelete: "cascade" }),
+
+    nodeId: varchar("node_id")
+      .notNull()
+      .unique(),   // <-- MUST HAVE UNIQUE FOR FK
+
+    type: text("type").notNull(),
+    subtype: text("subtype"),
+    position: jsonb("position").default({}),
+    measured: jsonb("measured").default({}),
+    data: jsonb("data").default({}),
+    connections: jsonb("connections").default([]),
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
   },
@@ -730,6 +738,34 @@ export const automationNodes = pgTable(
     ),
   })
 );
+
+// export const automationNodes = pgTable(
+//   "automation_nodes",
+//   {
+//     id: varchar("id")
+//       .primaryKey()
+//       .default(sql`gen_random_uuid()`),
+//     automationId: varchar("automation_id").notNull().references(() => automations.id, { onDelete: "cascade" }),
+//     nodeId: varchar("node_id").notNull(),
+//     type: text("type").notNull(), // trigger, action, condition, delay
+//     subtype: text("subtype"), // send_template, send_message, wait, etc.
+//     position: jsonb("position").default({}), // {x, y}
+//     measured: jsonb("measured").default({}), // {x, y}
+//     data: jsonb("data").default({}), // node config
+//     connections: jsonb("connections").default([]), // array of next nodeIds
+//     createdAt: timestamp("created_at").defaultNow(),
+//     updatedAt: timestamp("updated_at").defaultNow(),
+//   },
+//   (table) => ({
+//     nodeAutomationIdx: index("automation_nodes_automation_idx").on(
+//       table.automationId
+//     ),
+//     nodeUniqueIdx: unique("automation_nodes_unique_idx").on(
+//       table.automationId,
+//       table.nodeId
+//     ),
+//   })
+// );
 
 // ─── Automation Edges ─────────────────────────
 export const automationEdges = pgTable(

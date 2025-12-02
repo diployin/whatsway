@@ -302,6 +302,13 @@
       "when": 1764674322670,
       "tag": "0042_safe_diamondback",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1764679624354,
+      "tag": "0043_spotty_virginia_dare",
+      "breakpoints": true
     }
   ]
 }
