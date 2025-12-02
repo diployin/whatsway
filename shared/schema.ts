@@ -376,9 +376,7 @@ export const sentNotifications = pgTable("sent_notifications", {
     .references(() => notifications.id, { onDelete: "cascade" })
     .notNull(),
 
-  userId: uuid("user_id")
-    .references(() => users.id, { onDelete: "cascade" })
-    .notNull(),
+  userId: varchar("user_id"),
 
   isRead: boolean("is_read").default(false),
   readAt: timestamp("read_at"),

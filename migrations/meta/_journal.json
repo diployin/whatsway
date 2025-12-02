@@ -274,6 +274,13 @@
       "when": 1764395220604,
       "tag": "0038_nappy_blue_marvel",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1764652261691,
+      "tag": "0039_hot_captain_stacy",
+      "breakpoints": true
     }
   ]
 }
