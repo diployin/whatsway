@@ -13,6 +13,8 @@ import {
 import { Link } from "wouter";
 import { RiProfileFill } from "react-icons/ri";
 import { FaUserCircle } from "react-icons/fa";
+import { useQuery } from "@tanstack/react-query";
+import { AppSettings } from "@/types/types";
 
 const CaseStudies = () => {
   const { t } = useTranslation();
@@ -23,6 +25,14 @@ const CaseStudies = () => {
     number: string;
     label: string;
   }>;
+
+  const { data: brandSettings } = useQuery<AppSettings>({
+    queryKey: ["/api/brand-settings"],
+    queryFn: () => fetch("/api/brand-settings").then((res) => res.json()),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const appName = brandSettings?.title ?? "";
 
   // Case studies data (keep as is - these are specific case studies)
   const caseStudies = [
@@ -357,7 +367,9 @@ const CaseStudies = () => {
             {t("caseStudies.ctaBanner.heading")}
           </h2>
           <p className="text-xl text-white/90 mb-8">
-            {t("caseStudies.ctaBanner.subtitle")}
+            {t("caseStudies.ctaBanner.subtitle", {
+              appName,
+            })}
           </p>
           <Link
             href="/contact"

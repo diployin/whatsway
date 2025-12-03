@@ -14,10 +14,19 @@ import {
 } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { AppSettings } from "@/types/types";
 
 const AboutUs: React.FC = () => {
   const { t } = useTranslation();
 
+  const { data: brandSettings } = useQuery<AppSettings>({
+    queryKey: ["/api/brand-settings"],
+    queryFn: () => fetch("/api/brand-settings").then((res) => res.json()),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const appName = brandSettings?.title ?? "";
   // Get values and journey data
   const valuesList = t("aboutUs.values.list") as unknown as Array<{
     title: string;
@@ -47,7 +56,9 @@ const AboutUs: React.FC = () => {
         <div className="max-w-7xl mx-auto text-center">
           <div className="inline-flex items-center bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium mb-8">
             <MessageCircle className="w-4 h-4 mr-2" />
-            {t("aboutUs.hero.badge")}
+            {t("aboutUs.hero.badge", {
+              appName,
+            })}
           </div>
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
             {t("aboutUs.hero.title")}
@@ -80,7 +91,9 @@ const AboutUs: React.FC = () => {
                 {t("aboutUs.mission.description1")}
               </p>
               <p className="text-lg text-gray-600 mb-8">
-                {t("aboutUs.mission.description2")}
+                {t("aboutUs.mission.description2", {
+                  appName,
+                })}
               </p>
               <div className="grid grid-cols-2 gap-6">
                 <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
@@ -112,7 +125,9 @@ const AboutUs: React.FC = () => {
                       {t("aboutUs.mission.card.title")}
                     </h3>
                     <p className="text-gray-600 mb-6">
-                      {t("aboutUs.mission.card.description")}
+                      {t("aboutUs.mission.card.description", {
+                        appName,
+                      })}
                     </p>
                     <div className="flex items-center space-x-4">
                       <div className="flex -space-x-2">
@@ -191,10 +206,14 @@ const AboutUs: React.FC = () => {
                 </span>
               </h2>
               <p className="text-lg text-gray-600 mb-6">
-                {t("aboutUs.story.description1")}
+                {t("aboutUs.story.description1", {
+                  appName,
+                })}
               </p>
               <p className="text-lg text-gray-600 mb-6">
-                {t("aboutUs.story.description2")}
+                {t("aboutUs.story.description2", {
+                  appName,
+                })}
               </p>
               <p className="text-lg text-gray-600 mb-8">
                 {t("aboutUs.story.description3")}
@@ -309,7 +328,9 @@ const AboutUs: React.FC = () => {
             <span className="block">{t("aboutUs.cta.titleHighlight")}</span>
           </h2>
           <p className="text-xl text-white/90 mb-8">
-            {t("aboutUs.cta.subtitle")}
+            {t("aboutUs.cta.subtitle", {
+              appName,
+            })}
           </p>
           <Link
             href="/contact"

@@ -8,6 +8,8 @@ import {
   Users,
   TrendingUp,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { AppSettings } from "@/types/types";
 
 interface SignupPopupProps {
   onClose: () => void;
@@ -27,6 +29,14 @@ const SignupPopup: React.FC<SignupPopupProps> = ({ onClose }) => {
     }
   };
 
+  const { data: brandSettings } = useQuery<AppSettings>({
+    queryKey: ["/api/brand-settings"],
+    queryFn: () => fetch("/api/brand-settings").then((res) => res.json()),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const appName = brandSettings?.title ?? "";
+
   if (isSubmitted) {
     return (
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -34,11 +44,9 @@ const SignupPopup: React.FC<SignupPopupProps> = ({ onClose }) => {
           <div className="bg-green-100 p-4 rounded-full w-fit mx-auto mb-4">
             <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
+
           <h3 className="text-2xl font-bold text-gray-900 mb-2">
-            Welcome to WPSaaS!
-          </h3>
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">
-            Welcome to Whatsway!
+            Welcome to {appName}!
           </h3>
           <p className="text-gray-600">
             Check your email for next steps to get started with your free

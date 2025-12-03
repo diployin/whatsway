@@ -1004,7 +1004,7 @@
     "header": {
       "getstart": "免费开始",
       "redystart": "准备好开始了吗？",
-      "join": "加入已经与 Whatsway 一起成长的数千家企业",
+      "join": "加入已经与 {{appName}} 一起成长的数千家企业",
       "start": "开始免费试用",
       "Learn": "了解更多",
       "dash": "仪表板",
@@ -1262,6 +1262,8 @@
       "headlinePre": "适合每个",
       "headlineHighlight": "行业和企业",
       "subHeadline": "了解不同行业的企业如何使用 WhatsApp 营销来推动增长并改善客户参与度",
+      "keyFeatures": "主要功能",
+      "quickStatsTitle": "快速统计",
       "useCases": [
         {
           "icon": "ShoppingCart",
@@ -1578,8 +1580,8 @@
       },
       "brandSection": {
         "brandNames": [
-          "WPSaaS",
-          "Whatsway"
+          "",
+          ""
         ],
         "description": "最强大的 WhatsApp 营销平台。通过自动化活动、高级分析和无缝 API 集成扩展您的业务。"
       },
@@ -1625,7 +1627,7 @@
         ]
       },
       "bottomBar": {
-        "copyrightText": "© 2025 Whatsway. 保留所有权利。",
+        "copyrightText": "© 2025 {{appName}}. 保留所有权利。",
         "termsLink": "服务条款",
         "privacyLink": "隐私政策",
         "cookieLink": "Cookie 政策"
@@ -2164,7 +2166,7 @@
   },
   "aboutUs": {
     "hero": {
-      "badge": "关于 Whatsway",
+      "badge": "关于 {{appName}}",
       "title": "重塑 WhatsApp",
       "titleHighlight": "企业营销方式",
       "subtitle": "通过强大且可扩展的 WhatsApp 营销自动化，帮助全球企业获取真正的业务成果"
@@ -2183,7 +2185,7 @@
       },
       "card": {
         "title": "行业领袖的共同选择",
-        "description": "加入数以千计正在通过 Whatsway 实现增长的企业",
+        "description": "加入数以千计正在通过 {{appName}} 实现增长的企业",
         "count": "+10,000 家企业"
       }
     },
@@ -2191,7 +2193,7 @@
       "badge": "我们的故事",
       "title": "由营销人打造，",
       "titleHighlight": "为营销人服务",
-      "description1": "Whatsway 源于一个简单的困扰：现有的 WhatsApp 营销工具要么价格昂贵，要么过于复杂，要么缺少关键功能。作为营销从业者，我们知道一定有更好的解决方案。",
+      "description1": "{{appName}} 源于一个简单的困扰：现有的 WhatsApp 营销工具要么价格昂贵，要么过于复杂，要么缺少关键功能。作为营销从业者，我们知道一定有更好的解决方案。",
       "description2": "我们于 2023 年开始打造 Whatsway，目标清晰：打造市场上最强大、最易用、且价格亲民的 WhatsApp 营销平台。如今，我们已自豪地为全球超过 10,000 家企业提供服务。",
       "description3": "我们的团队融合了营销自动化、软件开发和客户成功等领域的专业能力，不断创新，为用户持续创造价值。",
       "globalPresence": "全球布局",
@@ -2254,7 +2256,7 @@
     "cta": {
       "title": "准备好彻底升级你的",
       "titleHighlight": "WhatsApp 营销了吗？",
-      "subtitle": "加入数千家已经通过 Whatsway 实现增长的企业",
+      "subtitle": "加入数千家已经通过 {{appName}} 实现增长的企业",
       "button": "开始免费试用"
     }
   },
@@ -2292,7 +2294,7 @@
       "list": [
         {
           "title": "发邮件给我们",
-          "details": "support@whatsway.com",
+          "details": "",
           "description": "随时给我们发送邮件"
         },
         {
@@ -2492,7 +2494,7 @@
     },
     "ctaBanner": {
       "heading": "准备好书写你的成功故事了吗？",
-      "subtitle": "加入数千家已在 Whatsway 成长的企业",
+      "subtitle": "加入数千家已在 {{appName}} 成长的企业",
       "button": "开始免费试用"
     }
   },
@@ -2577,7 +2579,7 @@
           },
           {
             "title": "消息模板",
-            "text": "在您的 Meta Business Manager 中创建模板并与 Whatsway 同步。模板可以包括文本、图片、视频和互动按钮。"
+            "text": "在您的 Meta Business Manager 中创建模板并与 {{appName}} 同步。模板可以包括文本、图片、视频和互动按钮。"
           },
           {
             "title": "受众细分",
@@ -2750,7 +2752,7 @@
     },
     "cta": {
       "heading": "准备好实施这些最佳实践了吗？",
-      "subtitle": "立即开始使用 Whatsway 应用这些经过验证的策略",
+      "subtitle": "立即开始使用 {{appName}} 应用这些经过验证的策略",
       "button": "开始免费试用"
     },
     "practices": {
@@ -3249,7 +3251,7 @@
         "title": "联系我们",
         "intro": "如果您对我们使用 Cookies 或此 Cookie 政策有任何疑问，请联系我们：",
         "emailLabel": "电子邮件：",
-        "email": "privacy@whatsway.com",
+        "email": "{{suportEmail}}",
         "addressLabel": "地址：",
         "address": "123 Business Ave, Suite 100, San Francisco, CA 94105",
         "phoneLabel": "电话：",

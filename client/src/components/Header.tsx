@@ -181,7 +181,9 @@ const Header = () => {
                   {t("Landing.header.redystart")}
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
-                  {t("Landing.header.join")}
+                  {t("Landing.header.join", {
+                    appName: brandSettings?.title ?? "",
+                  })}
                 </p>
               </div>
               <Link
