@@ -3,13 +3,15 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { FaEllipsisH, FaEye, FaBan, FaSearch, FaCheck } from "react-icons/fa";
+import { FaEllipsisH, FaEye, FaBan, FaSearch, FaCheck, FaCrown } from "react-icons/fa";
 import Header from "@/components/layout/header";
 import { Link } from "wouter";
 import { useTranslation } from "@/lib/i18n";
 import { useAuth } from "@/contexts/auth-context";
 import {isDemoUser, maskValue } from "@/utils/maskUtils";
 import AddUserModal from "@/components/modals/AddUserModal";
+import AssignPlanModal from "@/components/modals/AssignPlanModal";
+
 
 interface UserType {
   id: string;
@@ -43,7 +45,10 @@ const User: React.FC = () => {
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [openAddModal, setOpenAddModal] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, userPlans } = useAuth();
+  const [plans, setPlans] = useState([]);
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
+  const [selectedUserForPlan, setSelectedUserForPlan] = useState(null);
   const [pagination, setPagination] = useState<PaginationType>({
     page: 1,
     limit: 10,
@@ -87,6 +92,11 @@ const User: React.FC = () => {
       });
     }
   };
+
+
+  
+  
+  
 
   const fetchUsers = async (
     page = 1,
@@ -147,6 +157,34 @@ const User: React.FC = () => {
       return newSet;
     });
   };
+
+
+  
+
+
+const fetchPlans = async () => {
+  try {
+    const response = await apiRequest("GET", "/api/admin/plans");
+    const data = await response.json();
+    if (data.success) {
+      setPlans(data.data);
+    }
+  } catch (err) {
+    console.error("Plan fetch error:", err);
+  }
+};
+
+useEffect(() => {
+  fetchPlans();
+}, []);
+
+const openAssignPlanModal = (user: any) => {
+  setSelectedUserForPlan(user);
+  setAssignModalOpen(true);
+};
+
+
+
 
   return (
     <div className="min-h-screen bg-gray-50 dots-bg">
@@ -290,6 +328,14 @@ const User: React.FC = () => {
                         <Link href={`/users/${u.id}`}>
                           <FaEye className="cursor-pointer hover:text-green-600" />
                         </Link>
+
+                         {/* PLAN ASSIGN DROPDOWN */}
+   <FaCrown
+  onClick={() => openAssignPlanModal(u)}
+  className="cursor-pointer text-yellow-500 hover:text-yellow-600"
+  title="Assign Plan"
+/>
+
                         {u.status === "active" ? (
                           <FaBan
                             onClick={() => handleToggleStatus(u)}
@@ -465,6 +511,17 @@ const User: React.FC = () => {
   onOpenChange={setOpenAddModal}
   onSuccess={() => fetchUsers()}
 />
+
+
+<AssignPlanModal
+  open={assignModalOpen}
+  onOpenChange={setAssignModalOpen}
+  user={selectedUserForPlan}
+  plans={plans}
+  subscriptions={userPlans}  
+  onSuccess={fetchUsers}
+/>
+
 
     </div>
   );

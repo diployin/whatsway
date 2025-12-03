@@ -5,6 +5,7 @@ import {
   getSubscriptionById,
   getSubscriptionsByUserId,
   createSubscription,
+  AssignSubscription,
   updateSubscription,
   cancelSubscription,
   renewSubscription,
@@ -28,6 +29,9 @@ export function registerSubscriptionsRoutes(app: Express) {
 
   // POST create a new subscription (triggered after payment verification)
   app.post("/api/subscriptions", requireAuth, createSubscription);
+
+
+  app.post("/api/assignSubscription", AssignSubscription);
 
   // PUT update a subscription by ID (Admin only)
   app.put("/api/admin/subscriptions/:id", requireAuth, updateSubscription);

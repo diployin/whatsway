@@ -193,6 +193,82 @@ export const getActiveSubscriptionByUserId = async (req: Request, res: Response)
   }
 };
 
+
+
+
+
+export const AssignSubscription = async (req: Request, res: Response) => {
+  try {
+    const { userId, planId } = req.body;
+
+    // 1️⃣ Fetch plan details
+    const plan = await db.query.plans.findFirst({
+      where: (p) => eq(p.id, planId)
+    });
+
+    if (!plan) {
+      return res.status(404).json({ success: false, message: "Plan not found" });
+    }
+
+    // 2️⃣ Cancel previous active subscriptions
+    // await db
+    //   .update(subscriptions)
+    //   .set({ status: "cancelled", updatedAt: new Date() })
+    //   .where(
+    //     and(
+    //       eq(subscriptions.userId, userId),
+    //       eq(subscriptions.status, "active")
+    //     )
+    //   );
+
+    // 3️⃣ Auto-generate subscription meta
+    const billingCycle = "monthly";
+    const startDate = new Date();
+    const endDate = new Date();
+    endDate.setMonth(endDate.getMonth() + 1);
+    const autoRenew = true;
+
+    // 4️⃣ Insert new subscription
+    const newSubscription = await db
+      .insert(subscriptions)
+      .values({
+        userId,
+        planId,
+        planData: {
+          name: plan.name,
+          description: plan.description,
+          monthlyPrice: plan.monthlyPrice,
+          annualPrice: plan.annualPrice,
+          permissions: plan.permissions,
+          features: plan.features,
+        },
+        status: "active",
+        billingCycle,
+        startDate,
+        endDate,
+        autoRenew,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+
+    return res.status(201).json({
+      success: true,
+      message: "Subscription assigned successfully",
+      data: newSubscription[0],
+    });
+
+  } catch (error) {
+    console.log("Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error creating subscription",
+      error,
+    });
+  }
+};
+
+
 // Create subscription (usually done through transaction completion)
 export const createSubscription = async (req: Request, res: Response) => {
   try {
