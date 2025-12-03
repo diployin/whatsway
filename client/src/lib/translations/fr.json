@@ -1004,7 +1004,7 @@
     "header": {
       "getstart": "Commencer Gratuitement",
       "redystart": "Prêt à commencer ?",
-      "join": "Rejoignez des milliers d'entreprises qui se développent déjà avec Whatsway",
+      "join": "Rejoignez des milliers d'entreprises qui se développent déjà avec {{appName}}",
       "start": "Démarrer l'Essai Gratuit",
       "Learn": "En Savoir Plus",
       "dash": "Tableau de Bord",
@@ -1262,6 +1262,8 @@
       "headlinePre": "Parfait pour chaque",
       "headlineHighlight": "secteur & entreprise",
       "subHeadline": "Découvrez comment les entreprises de différents secteurs utilisent le marketing WhatsApp pour stimuler la croissance et améliorer l'engagement client",
+      "keyFeatures": "Caractéristiques Clés",
+      "quickStatsTitle": "Statistiques Rapides",
       "useCases": [
         {
           "icon": "ShoppingCart",
@@ -1578,8 +1580,8 @@
       },
       "brandSection": {
         "brandNames": [
-          "WPSaaS",
-          "Whatsway"
+          "",
+          ""
         ],
         "description": "La plateforme de marketing WhatsApp la plus puissante. Développez votre entreprise avec des campagnes automatisées, des analyses avancées et une intégration API transparente."
       },
@@ -1625,7 +1627,7 @@
         ]
       },
       "bottomBar": {
-        "copyrightText": "© 2025 Whatsway. Tous droits réservés.",
+        "copyrightText": "© 2025 {{appName}}. Tous droits réservés.",
         "termsLink": "Conditions d'utilisation",
         "privacyLink": "Politique de confidentialité",
         "cookieLink": "Politique de cookies"
@@ -2164,7 +2166,7 @@
   },
   "aboutUs": {
     "hero": {
-      "badge": "À propos de Whatsway",
+      "badge": "À propos de {{appName}}",
       "title": "Révolutionner le marketing",
       "titleHighlight": "WhatsApp pour les entreprises",
       "subtitle": "Nous aidons les entreprises du monde entier grâce à une automatisation du marketing WhatsApp puissante et évolutive qui génère de vrais résultats"
@@ -2174,7 +2176,7 @@
       "title": "Rendre le marketing WhatsApp",
       "titleHighlight": "accessible à tous",
       "description1": "Nous pensons que chaque entreprise, quelle que soit sa taille, mérite d'accéder à des outils marketing puissants. Notre mission est de démocratiser le marketing WhatsApp en offrant une plateforme intuitive, abordable et dotée de fonctionnalités de niveau entreprise.",
-      "description2": "Avec Whatsway, les entreprises peuvent se connecter à leurs clients sur la plateforme de messagerie la plus populaire au monde, en stimulant l'engagement, les ventes et la fidélité comme jamais auparavant.",
+      "description2": "Avec {{appName}}, les entreprises peuvent se connecter à leurs clients sur la plateforme de messagerie la plus populaire au monde, en stimulant l'engagement, les ventes et la fidélité comme jamais auparavant.",
       "stats": {
         "businesses": "10K+",
         "businessesLabel": "Entreprises actives",
@@ -2183,7 +2185,7 @@
       },
       "card": {
         "title": "Plébiscité par les leaders du secteur",
-        "description": "Rejoignez des milliers d'entreprises qui se développent déjà avec Whatsway",
+        "description": "Rejoignez des milliers d'entreprises qui se développent déjà avec {{appName}}",
         "count": "+10 000 entreprises"
       }
     },
@@ -2191,8 +2193,8 @@
       "badge": "Notre histoire",
       "title": "Créé par des marketeurs,",
       "titleHighlight": "pour des marketeurs",
-      "description1": "Whatsway est né d'une simple frustration : les outils de marketing WhatsApp existants étaient trop chers, trop complexes ou manquaient de fonctionnalités essentielles. En tant que marketeurs, nous savions qu'il devait exister une meilleure solution.",
-      "description2": "Nous avons commencé à construire Whatsway en 2023 avec une vision claire : créer la plateforme de marketing WhatsApp la plus puissante, la plus facile à utiliser et la plus abordable du marché. Aujourd'hui, nous sommes fiers de servir plus de 10 000 entreprises dans le monde.",
+      "description1": "{{appName}} est né d'une simple frustration : les outils de marketing WhatsApp existants étaient trop chers, trop complexes ou manquaient de fonctionnalités essentielles. En tant que marketeurs, nous savions qu'il devait exister une meilleure solution.",
+      "description2": "Nous avons commencé à construire {{appName}} en 2023 avec une vision claire : créer la plateforme de marketing WhatsApp la plus puissante, la plus facile à utiliser et la plus abordable du marché. Aujourd'hui, nous sommes fiers de servir plus de 10 000 entreprises dans le monde.",
       "description3": "Notre équipe combine une expertise en automatisation marketing, développement logiciel et succès client afin d'innover en continu et d'apporter de la valeur à nos utilisateurs.",
       "globalPresence": "Présence mondiale",
       "globalPresenceDesc": "Nous accompagnons des entreprises dans plus de 50 pays",
@@ -2254,7 +2256,7 @@
     "cta": {
       "title": "Prêt à transformer votre",
       "titleHighlight": "marketing WhatsApp ?",
-      "subtitle": "Rejoignez des milliers d'entreprises qui se développent déjà avec Whatsway",
+      "subtitle": "Rejoignez des milliers d'entreprises qui se développent déjà avec {{appName}}",
       "button": "Commencer l'essai gratuit"
     }
   },
@@ -2292,7 +2294,7 @@
       "list": [
         {
           "title": "Envoyez-nous un e-mail",
-          "details": "support@whatsway.com",
+          "details": "",
           "description": "Écrivez-nous à tout moment"
         },
         {
@@ -2492,7 +2494,7 @@
     },
     "ctaBanner": {
       "heading": "Prêt à écrire votre histoire de succès ?",
-      "subtitle": "Rejoignez des milliers d’entreprises qui se développent déjà avec Whatsway",
+      "subtitle": "Rejoignez des milliers d’entreprises qui se développent déjà avec {{appName}}",
       "button": "Démarrer l’essai gratuit"
     }
   },
@@ -2577,7 +2579,7 @@
           },
           {
             "title": "Modèles de messages",
-            "text": "Créez des modèles dans votre Meta Business Manager et synchronisez-les avec Whatsway. Les modèles peuvent inclure du texte, des images, des vidéos et des boutons interactifs."
+            "text": "Créez des modèles dans votre Meta Business Manager et synchronisez-les avec {{appName}}. Les modèles peuvent inclure du texte, des images, des vidéos et des boutons interactifs."
           },
           {
             "title": "Segmentation de l'audience",
@@ -2750,7 +2752,7 @@
     },
     "cta": {
       "heading": "Prêt à mettre en œuvre ces meilleures pratiques ?",
-      "subtitle": "Commencez à appliquer ces stratégies éprouvées avec Whatsway dès aujourd’hui",
+      "subtitle": "Commencez à appliquer ces stratégies éprouvées avec {{appName}} dès aujourd’hui",
       "button": "Commencer l’essai gratuit"
     },
     "practices": {
@@ -3249,7 +3251,7 @@
         "title": "Contactez-nous",
         "intro": "Si vous avez des questions concernant notre utilisation des cookies ou cette Politique de Cookies, veuillez nous contacter à :",
         "emailLabel": "E-mail :",
-        "email": "privacy@whatsway.com",
+        "email": "{{suportEmail}}",
         "addressLabel": "Adresse :",
         "address": "123 Business Ave, Suite 100, San Francisco, CA 94105",
         "phoneLabel": "Téléphone :",

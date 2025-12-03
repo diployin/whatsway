@@ -1,26 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-<!-- AI Chat Widget -->
-    <!-- <script>
-      window.aiChatConfig = {
-       siteId: "3af56dd1-ee82-4914-b143-b879391c6f15",
-        channelId:"35f7b44c-d422-4246-b016-21edf9c08bea",
-        url: "https://whatsway.diploy.in",
-      };
-    </script>
-<script src="https://whatsway.diploy.in/widget/widget.js" async></script> -->
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/firebase-messaging-sw.js");
     }
   </script>
-  
-  </body>
+
+</body>
+
 </html>

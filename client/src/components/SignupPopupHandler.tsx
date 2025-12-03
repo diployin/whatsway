@@ -10,6 +10,8 @@ import {
   Users,
   TrendingUp,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { AppSettings } from "@/types/types";
 
 export function SignupPopupHandler() {
   const { isAuthenticated } = useAuth();
@@ -66,6 +68,14 @@ export function SignupPopupHandler() {
     }
   };
 
+  const { data: brandSettings } = useQuery<AppSettings>({
+    queryKey: ["/api/brand-settings"],
+    queryFn: () => fetch("/api/brand-settings").then((res) => res.json()),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const appName = brandSettings?.title ?? "";
+
   // Don't show if authenticated or popup not triggered
   if (!showPopup || isAuthenticated) return null;
 
@@ -78,7 +88,7 @@ export function SignupPopupHandler() {
             <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
           <h3 className="text-2xl font-bold text-gray-900 mb-2">
-            Welcome to Whatsway!
+            Welcome to {appName}!
           </h3>
           <p className="text-gray-600">
             Redirecting you to complete your registration...
@@ -107,7 +117,7 @@ export function SignupPopupHandler() {
                 <div className="bg-white/20 p-2 rounded-lg">
                   <MessageCircle className="w-6 h-6" />
                 </div>
-                <span className="text-xl font-bold">Whatsway</span>
+                <span className="text-xl font-bold">{appName}</span>
               </div>
 
               <h2 className="text-2xl font-bold mb-4">

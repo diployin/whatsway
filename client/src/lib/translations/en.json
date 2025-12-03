@@ -933,7 +933,7 @@
       },
       "documentation": {
         "title": "API Documentation",
-        "description": "Learn how to use the WhatsWay API",
+        "description": "Learn how to use the {{appName}} API",
         "baseUrl": "Base URL",
         "authentication": "Authentication",
         "authDesc": "Include your API key in the Authorization header:",
@@ -1079,7 +1079,7 @@
     "header": {
       "getstart": "Get Started Free",
       "redystart": "Ready to get started?",
-      "join": "Join thousands of businesses already growing with Whatsway",
+      "join": "Join thousands of businesses already growing with {{appName}}",
       "start": " Start Free Trial",
       "Learn": " Learn more",
       "dash": "Dashboard",
@@ -1339,6 +1339,8 @@
       "headlinePre": "Perfect for Every",
       "headlineHighlight": "Industry & Business",
       "subHeadline": "Discover how businesses across different industries are using WhatsApp marketing to drive growth and improve customer engagement",
+      "keyFeatures": "Key Features",
+      "quickStatsTitle": "Quick Stats",
       "useCases": [
         {
           "icon": "ShoppingCart",
@@ -1655,8 +1657,8 @@
       },
       "brandSection": {
         "brandNames": [
-          "WPSaaS",
-          "Whatsway"
+          "",
+          ""
         ],
         "description": "The most powerful WhatsApp marketing platform. Scale your business with automated campaigns, advanced analytics, and seamless API integration."
       },
@@ -1702,7 +1704,7 @@
         ]
       },
       "bottomBar": {
-        "copyrightText": "© 2025 Whatsway. All rights reserved.",
+        "copyrightText": "© 2025 {{appName}}. All rights reserved.",
         "termsLink": "Terms of Service",
         "privacyLink": "Privacy Policy",
         "cookieLink": "Cookie Policy"
@@ -2223,7 +2225,7 @@
   },
   "aboutUs": {
     "hero": {
-      "badge": "About Whatsway",
+      "badge": "About {{appName}}",
       "title": "Revolutionizing WhatsApp",
       "titleHighlight": "Marketing for Businesses",
       "subtitle": "Empowering businesses worldwide with powerful, scalable WhatsApp marketing automation that drives real results"
@@ -2233,7 +2235,7 @@
       "title": "Making WhatsApp Marketing",
       "titleHighlight": "Accessible to All",
       "description1": "We believe every business, regardless of size, deserves access to powerful marketing tools. Our mission is to democratize WhatsApp marketing by providing an intuitive, affordable platform that delivers enterprise-level features.",
-      "description2": "With Whatsway, businesses can connect with their customers on the world's most popular messaging platform, driving engagement, sales, and loyalty like never before.",
+      "description2": "With {{appName}}, businesses can connect with their customers on the world's most popular messaging platform, driving engagement, sales, and loyalty like never before.",
       "stats": {
         "businesses": "10K+",
         "businessesLabel": "Active Businesses",
@@ -2242,7 +2244,7 @@
       },
       "card": {
         "title": "Trusted by Industry Leaders",
-        "description": "Join thousands of businesses already growing with Whatsway",
+        "description": "Join thousands of businesses already growing with {{appName}}",
         "count": "+10,000 businesses"
       }
     },
@@ -2250,8 +2252,8 @@
       "badge": "Our Story",
       "title": "Built by Marketers,",
       "titleHighlight": "For Marketers",
-      "description1": "Whatsway was born from a simple frustration: existing WhatsApp marketing tools were either too expensive, too complicated, or lacked essential features. As marketers ourselves, we knew there had to be a better way.",
-      "description2": "We started building Whatsway in 2023 with a clear vision: create the most powerful, user-friendly, and affordable WhatsApp marketing platform in the market. Today, we're proud to serve over 10,000 businesses worldwide.",
+      "description1": "{{appName}} was born from a simple frustration: existing WhatsApp marketing tools were either too expensive, too complicated, or lacked essential features. As marketers ourselves, we knew there had to be a better way.",
+      "description2": "We started building {{appName}} in 2023 with a clear vision: create the most powerful, user-friendly, and affordable WhatsApp marketing platform in the market. Today, we're proud to serve over 10,000 businesses worldwide.",
       "description3": "Our team combines expertise in marketing automation, software development, and customer success to continuously innovate and deliver value to our users.",
       "globalPresence": "Global Presence",
       "globalPresenceDesc": "Supporting businesses in 50+ countries",
@@ -2313,7 +2315,7 @@
     "cta": {
       "title": "Ready to Transform Your",
       "titleHighlight": "WhatsApp Marketing?",
-      "subtitle": "Join thousands of businesses already growing with Whatsway",
+      "subtitle": "Join thousands of businesses already growing with {{appName}}",
       "button": "Start Your Free Trial"
     }
   },
@@ -2351,13 +2353,8 @@
       "list": [
         {
           "title": "Email Us",
-          "details": "support@whatsway.com",
+          "details": "",
           "description": "Send us an email anytime"
-        },
-        {
-          "title": "Visit Us",
-          "details": "Noida",
-          "description": "India"
         }
       ]
     },
@@ -2550,7 +2547,7 @@
     },
     "ctaBanner": {
       "heading": "Ready to Write Your Success Story?",
-      "subtitle": "Join thousands of businesses already growing with Whatsway",
+      "subtitle": "Join thousands of businesses already growing with {{appName}}",
       "button": "Start Your Free Trial"
     }
   },
@@ -2635,7 +2632,7 @@
           },
           {
             "title": "Message Templates",
-            "text": "Create templates in your Meta Business Manager and sync them with Whatsway. Templates can include text, images, videos, and interactive buttons."
+            "text": "Create templates in your Meta Business Manager and sync them. Templates can include text, images, videos, and interactive buttons."
           },
           {
             "title": "Audience Segmentation",
@@ -2808,7 +2805,7 @@
     },
     "cta": {
       "heading": "Ready to Implement These Best Practices?",
-      "subtitle": "Start applying these proven strategies with Whatsway today",
+      "subtitle": "Start applying these proven strategies with {{appName}} today",
       "button": "Start Free Trial"
     },
     "practices": {
@@ -3307,7 +3304,7 @@
         "title": "Contact Us",
         "intro": "If you have any questions about our use of cookies or this Cookie Policy, please contact us at:",
         "emailLabel": "Email:",
-        "email": "privacy@whatsway.com",
+        "email": "{{suportEmail}}",
         "addressLabel": "Address:",
         "address": "123 Business Ave, Suite 100, San Francisco, CA 94105",
         "phoneLabel": "Phone:",

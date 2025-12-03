@@ -1,27 +1,26 @@
-import nodemailer from 'nodemailer';
+import nodemailer from "nodemailer";
 // import { getPanelConfigs } from './panel.config';
-import { getSMTPConfig } from 'server/controllers/smtp.controller';
-import { getFirstPanelConfig, getPanelConfigs } from './panel.config';
+import { getSMTPConfig } from "server/controllers/smtp.controller";
+import { getFirstPanelConfig, getPanelConfigs } from "./panel.config";
 
 const config = await getSMTPConfig();
 
-let transporter:any;
+let transporter: any;
 
-
-const getData =  await getFirstPanelConfig()
+const getData = await getFirstPanelConfig();
 
 if (config) {
   transporter = nodemailer.createTransport({
     host: config.host,
     port: parseInt(config.port, 10),
-    secure: config.secure === 'true',
+    secure: config.secure === "true",
     auth: {
       user: config.user,
       pass: config.password,
     },
   });
 } else {
-  console.warn('Using fallback SMTP settings (emails will not be sent)');
+  console.warn("Using fallback SMTP settings (emails will not be sent)");
   transporter = nodemailer.createTransport({
     jsonTransport: true, // just for development, logs emails instead of sending
   });
@@ -119,7 +118,7 @@ function generateOTPEmailHTML(
         </div>
         
         <div class="message">
-          ${name ? `<p>Hello <strong>${name}</strong>,</p>` : '<p>Hello,</p>'}
+          ${name ? `<p>Hello <strong>${name}</strong>,</p>` : "<p>Hello,</p>"}
           <p>${messageText}</p>
         </div>
         
@@ -147,10 +146,13 @@ function generateOTPEmailHTML(
   `;
 }
 
-
-function generateOTPEmailText(companyName: string, otpCode: string, name?: string): string {
+function generateOTPEmailText(
+  companyName: string,
+  otpCode: string,
+  name?: string
+): string {
   return `
-Hello${name ? ' ' + name : ''},
+Hello${name ? " " + name : ""},
 
 Thank you for signing up for ${companyName}!
 
@@ -165,7 +167,6 @@ ${companyName}
 Our Platform
   `.trim();
 }
-
 
 function generateForgotPasswordEmailHTML(
   companyName?: string,
@@ -204,7 +205,7 @@ function generateForgotPasswordEmailHTML(
         </div>
 
         <div class="message">
-          ${name ? `<p>Hello <strong>${name}</strong>,</p>` : '<p>Hello,</p>'}
+          ${name ? `<p>Hello <strong>${name}</strong>,</p>` : "<p>Hello,</p>"}
           <p>You requested to reset your password. Use the verification code below to reset your password.</p>
         </div>
 
@@ -232,9 +233,13 @@ function generateForgotPasswordEmailHTML(
   `;
 }
 
-function generateForgotPasswordEmailText(companyName: string, otpCode: string, name?: string): string {
+function generateForgotPasswordEmailText(
+  companyName: string,
+  otpCode: string,
+  name?: string
+): string {
   return `
-Hello${name ? ' ' + name : ''},
+Hello${name ? " " + name : ""},
 
 You requested to reset your password for ${companyName}.
 
@@ -250,18 +255,21 @@ Our Platform
   `.trim();
 }
 
-
 function extractCompanyName(url: string) {
-  let domain = url.replace(/^https?:\/\//, '');
-  domain = domain.replace(/^www\./, '');
-  const companyName = domain.split('.')[0];
+  let domain = url.replace(/^https?:\/\//, "");
+  domain = domain.replace(/^www\./, "");
+  const companyName = domain.split(".")[0];
   return companyName;
 }
 
-export async function sendOTPEmail(email: string, otpCode: string, name?: string) {
-//   const [configs] = await getPanelConfigs();
-  const companyName =  configs?.name || "Your Company";
-  const fromName = config?.fromName || companyName;  
+export async function sendOTPEmail(
+  email: string,
+  otpCode: string,
+  name?: string
+) {
+  //   const [configs] = await getPanelConfigs();
+  const companyName = configs?.name || "Your Company";
+  const fromName = config?.fromName || companyName;
   const fromEmail = config?.fromEmail;
 
   // console.log(
@@ -281,21 +289,25 @@ export async function sendOTPEmail(email: string, otpCode: string, name?: string
     from: `"${fromName}" <${fromEmail}>`,
     to: email,
     subject: `Your ${companyName} Verification Code`,
-    html: generateForgotPasswordEmailHTML(companyName, "whatsway", otpCode, name),
+    html: generateForgotPasswordEmailHTML(
+      companyName,
+      "whatsway",
+      otpCode,
+      name
+    ),
     text: generateForgotPasswordEmailText(companyName, otpCode, name),
   };
 
   try {
     const info = await transporter.sendMail(mailOptions);
     // console.log(info)
-    console.log('✉️ [Email] OTP sent to:', email);
+    console.log("✉️ [Email] OTP sent to:", email);
     return { success: true, messageId: info.messageId };
   } catch (error) {
-    console.error('❌ [Email] Failed to send OTP:', error);
-    throw new Error('Failed to send verification email');
+    console.error("❌ [Email] Failed to send OTP:", error);
+    throw new Error("Failed to send verification email");
   }
 }
-
 
 export async function sendContactEmail(data: {
   name: string;
@@ -304,7 +316,6 @@ export async function sendContactEmail(data: {
   subject: string;
   message: string;
 }) {
-  
   const { name, email, company, subject, message } = data;
 
   const companyName = configs?.name || "Your Company";
@@ -339,7 +350,9 @@ export async function sendContactEmail(data: {
 
           <tr>
             <td style="padding:10px 0; font-size:16px; font-weight:600; color:#374151;">Company:</td>
-            <td style="padding:10px 0; font-size:16px; color:#111827;">${company || "-"}</td>
+            <td style="padding:10px 0; font-size:16px; color:#111827;">${
+              company || "-"
+            }</td>
           </tr>
 
           <tr>
@@ -366,7 +379,6 @@ export async function sendContactEmail(data: {
   </div>
 `;
 
-
   const mailOptions = {
     from: `"${fromName}" <${fromEmail}>`,
     to: fromEmail, // send to admin email
@@ -376,7 +388,6 @@ export async function sendContactEmail(data: {
   };
 
   try {
-   
     const info = await transporter.sendMail(mailOptions);
     console.log("✉️ [Contact] Message sent:", info.messageId);
     return { success: true, messageId: info.messageId };
@@ -386,10 +397,14 @@ export async function sendContactEmail(data: {
   }
 }
 
-export async function sendOTPEmailVerify(email: string, otpCode: string, name?: string) {
-//   const [configs] = await getPanelConfigs();
+export async function sendOTPEmailVerify(
+  email: string,
+  otpCode: string,
+  name?: string
+) {
+  //   const [configs] = await getPanelConfigs();
   const companyName = configs?.name || "Your Company";
-  const fromName = config?.fromName || companyName;  
+  const fromName = config?.fromName || companyName;
   const fromEmail = config?.fromEmail;
 
   // console.log(
@@ -416,35 +431,28 @@ export async function sendOTPEmailVerify(email: string, otpCode: string, name?: 
   try {
     const info = await transporter.sendMail(mailOptions);
     // console.log(info)
-    console.log('✉️ [Email] OTP sent to:', email);
+    console.log("✉️ [Email] OTP sent to:", email);
     return { success: true, messageId: info.messageId };
   } catch (error) {
-    console.error('❌ [Email] Failed to send OTP:', error);
-    throw new Error('Failed to send verification email');
+    console.error("❌ [Email] Failed to send OTP:", error);
+    throw new Error("Failed to send verification email");
   }
 }
-
-
-
 
 export async function verifyEmailConfiguration(): Promise<boolean> {
   try {
     await transporter.verify();
-    console.log('✅ [Email] SMTP configuration is valid');
+    console.log("✅ [Email] SMTP configuration is valid");
     return true;
   } catch (error) {
-    console.error('❌ [Email] SMTP configuration error:', error);
+    console.error("❌ [Email] SMTP configuration error:", error);
     return false;
   }
 }
 
+// route.ts  file
 
-
-
- // route.ts  file
- 
- 
- // OTP endpoints for email verification
+// OTP endpoints for email verification
 // app.post("/api/auth/send-otp", async (req: Request, res: Response) => {
 //   try {
 //     const { email, name } = req.body;

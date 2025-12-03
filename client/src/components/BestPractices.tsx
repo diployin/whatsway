@@ -13,6 +13,8 @@ import {
   Star,
 } from "lucide-react";
 import { Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { AppSettings } from "@/types/types";
 
 type CategoryId =
   | "messaging"
@@ -77,6 +79,14 @@ const BestPractices = () => {
     MessageCircle,
     TrendingUp,
   ];
+
+  const { data: brandSettings } = useQuery<AppSettings>({
+    queryKey: ["/api/brand-settings"],
+    queryFn: () => fetch("/api/brand-settings").then((res) => res.json()),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const appName = brandSettings?.title ?? "";
 
   const currentPractices = practices[activeCategory] || [];
 
@@ -260,7 +270,9 @@ const BestPractices = () => {
             {t("bestPractices.cta.heading")}
           </h2>
           <p className="text-xl text-white/90 mb-8">
-            {t("bestPractices.cta.subtitle")}
+            {t("bestPractices.cta.subtitle", {
+              appName,
+            })}
           </p>
           <Link
             href="/contact"
