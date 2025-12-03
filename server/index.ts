@@ -5,14 +5,14 @@ import { pool } from "./db";
 import { registerRoutes } from "./routes/index";
 import { setupVite, serveStatic, log } from "./vite";
 import { MessageStatusUpdater } from "./services/message-status-updater";
-import 'dotenv/config';
+import "dotenv/config";
 import { initializeUploadsDirectory } from "./middlewares/upload.middleware";
-import cors from 'cors';
+import cors from "cors";
 import path from "path";
-import { createServer } from 'http';
+import { createServer } from "http";
 // import { initializeSocket, setSocketIO } from './socket';
 import { storage } from "./storage";
-import { Server as SocketIOServer } from 'socket.io';
+import { Server as SocketIOServer } from "socket.io";
 
 const app = express();
 const httpServer = createServer(app);
@@ -24,11 +24,11 @@ const io = new SocketIOServer(httpServer, {
   cors: {
     origin: "*", // In production, specify your domains
     methods: ["GET", "POST"],
-    credentials: true
+    credentials: true,
   },
-  transports: ['websocket', 'polling'],
+  transports: ["websocket", "polling"],
   pingTimeout: 60000,
-  pingInterval: 25000
+  pingInterval: 25000,
 });
 
 // Store connected users
@@ -36,8 +36,8 @@ const connectedUsers = new Map();
 const conversationRooms = new Map();
 
 // Socket.io connection handler
-io.on('connection', (socket) => {
-  console.log('Socket.io client connected:', socket.id);
+io.on("connection", (socket) => {
+  console.log("Socket.io client connected:", socket.id);
 
   const { userId, role, siteId } = socket.handshake.query;
 
@@ -45,8 +45,8 @@ io.on('connection', (socket) => {
   const user = {
     socketId: socket.id,
     userId: userId as string,
-    role: (role as string) || 'agent',
-    siteId: siteId as string
+    role: (role as string) || "agent",
+    siteId: siteId as string,
   };
 
   connectedUsers.set(socket.id, user);
@@ -62,97 +62,102 @@ io.on('connection', (socket) => {
   // ==========================================
 
   // Agent joins a conversation
-  socket.on('agent_join_conversation', async ({ conversationId, agentId, agentName }) => {
-    console.log(`Agent ${agentName} joining conversation ${conversationId}`);
-    
-    socket.join(`conversation:${conversationId}`);
-    
-    const user = connectedUsers.get(socket.id);
-    if (user) {
-      user.conversationId = conversationId;
-      user.agentName = agentName;
-    }
-    
-    if (!conversationRooms.has(conversationId)) {
-      conversationRooms.set(conversationId, new Set());
-    }
-    conversationRooms.get(conversationId)?.add(socket.id);
+  socket.on(
+    "agent_join_conversation",
+    async ({ conversationId, agentId, agentName }) => {
+      console.log(`Agent ${agentName} joining conversation ${conversationId}`);
 
-    // Notify others in the conversation
-    socket.to(`conversation:${conversationId}`).emit('agent_joined', {
-      conversationId,
-      agentId,
-      agentName
-    });
+      socket.join(`conversation:${conversationId}`);
 
-    // Update database - assign conversation
-    try {
-      // You'll need to implement this in your storage
-      await storage.updateConversation(conversationId, {
-        status: 'assigned',
-        assignedTo: agentId,
-        assignedToName: agentName
+      const user = connectedUsers.get(socket.id);
+      if (user) {
+        user.conversationId = conversationId;
+        user.agentName = agentName;
+      }
+
+      if (!conversationRooms.has(conversationId)) {
+        conversationRooms.set(conversationId, new Set());
+      }
+      conversationRooms.get(conversationId)?.add(socket.id);
+
+      // Notify others in the conversation
+      socket.to(`conversation:${conversationId}`).emit("agent_joined", {
+        conversationId,
+        agentId,
+        agentName,
       });
-    } catch (error) {
-      console.error('Error updating conversation:', error);
+
+      // Update database - assign conversation
+      try {
+        // You'll need to implement this in your storage
+        await storage.updateConversation(conversationId, {
+          status: "assigned",
+          assignedTo: agentId,
+          assignedToName: agentName,
+        });
+      } catch (error) {
+        console.error("Error updating conversation:", error);
+      }
     }
-  });
+  );
 
   // Agent is typing
-  socket.on('agent_typing', ({ conversationId, agentName }) => {
+  socket.on("agent_typing", ({ conversationId, agentName }) => {
     console.log(`Agent typing in ${conversationId}`);
-    socket.to(`conversation:${conversationId}`).emit('agent_typing', {
+    socket.to(`conversation:${conversationId}`).emit("agent_typing", {
       conversationId,
-      agentName
+      agentName,
     });
   });
 
   // Agent stopped typing
-  socket.on('agent_stopped_typing', ({ conversationId }) => {
-    socket.to(`conversation:${conversationId}`).emit('agent_stopped_typing', {
-      conversationId
+  socket.on("agent_stopped_typing", ({ conversationId }) => {
+    socket.to(`conversation:${conversationId}`).emit("agent_stopped_typing", {
+      conversationId,
     });
   });
 
   // Agent sends message
-  socket.on('agent_send_message', async ({ conversationId, content, agentId, agentName }) => {
-    console.log(`Agent message in ${conversationId}:`, content);
+  socket.on(
+    "agent_send_message",
+    async ({ conversationId, content, agentId, agentName }) => {
+      console.log(`Agent message in ${conversationId}:`, content);
 
-    try {
-      // Message is already saved by API endpoint, just broadcast it
-      const message = {
-        id: `msg_${Date.now()}`, // This will be replaced by actual DB ID
-        conversationId,
-        content,
-        fromUser: false,
-        fromType: 'agent',
-        fromName: agentName,
-        createdAt: new Date().toISOString(),
-        status: 'sent'
-      };
+      try {
+        // Message is already saved by API endpoint, just broadcast it
+        const message = {
+          id: `msg_${Date.now()}`, // This will be replaced by actual DB ID
+          conversationId,
+          content,
+          fromUser: false,
+          fromType: "agent",
+          fromName: agentName,
+          createdAt: new Date().toISOString(),
+          status: "sent",
+        };
 
-      // Broadcast to all participants in the conversation
-      io.to(`conversation:${conversationId}`).emit('new_message', {
-        conversationId,
-        message
-      });
+        // Broadcast to all participants in the conversation
+        io.to(`conversation:${conversationId}`).emit("new_message", {
+          conversationId,
+          message,
+        });
 
-      // Confirm to sender
-      socket.emit('message_sent', {
-        conversationId,
-        status: 'delivered'
-      });
-
-    } catch (error) {
-      console.error('Error sending agent message:', error);
-      socket.emit('message_error', {
-        error: 'Failed to send message'
-      });
+        // Confirm to sender
+        socket.emit("message_sent", {
+          conversationId,
+          status: "delivered",
+        });
+      } catch (error) {
+        console.error("Error sending agent message:", error);
+        socket.emit("message_error", {
+          error: "Failed to send message",
+        });
+      }
     }
-  });
+  );
 
   // Close conversation
-  socket.on('close_conversation', async ({ conversationId, agentId }) => {
+  socket.on("close_conversation", async ({ conversationId, agentId }) => {
     console.log(`Closing conversation ${conversationId}`);
 
     try {
@@ -162,12 +167,15 @@ io.on('connection', (socket) => {
       // });
 
       // Notify all participants
-      io.to(`conversation:${conversationId}`).emit('conversation_status_changed', {
-        conversationId,
-        status: 'closed'
-      });
+      io.to(`conversation:${conversationId}`).emit(
+        "conversation_status_changed",
+        {
+          conversationId,
+          status: "closed",
+        }
+      );
     } catch (error) {
-      console.error('Error closing conversation:', error);
+      console.error("Error closing conversation:", error);
     }
   });
 
@@ -176,70 +184,75 @@ io.on('connection', (socket) => {
   // ==========================================
 
   // Visitor joins conversation
-  socket.on('join_conversation', ({ conversationId }) => {
+  socket.on("join_conversation", ({ conversationId }) => {
     console.log(`Visitor joining conversation ${conversationId}`);
     socket.join(`conversation:${conversationId}`);
-    
+
     if (!conversationRooms.has(conversationId)) {
       conversationRooms.set(conversationId, new Set());
     }
-          // Broadcast to all participants in the conversation
-          io.to(`conversation:${conversationId}`).emit('new_message', {
-            conversationId
-          });
+    // Broadcast to all participants in the conversation
+    io.to(`conversation:${conversationId}`).emit("new_message", {
+      conversationId,
+    });
     conversationRooms.get(conversationId)?.add(socket.id);
   });
 
   // Visitor is typing
-  socket.on('user_typing', ({ conversationId }) => {
-    socket.to(`conversation:${conversationId}`).emit('user_typing', {
-      conversationId
+  socket.on("user_typing", ({ conversationId }) => {
+    socket.to(`conversation:${conversationId}`).emit("user_typing", {
+      conversationId,
     });
   });
 
   // Visitor stopped typing
-  socket.on('user_stopped_typing', ({ conversationId }) => {
-    socket.to(`conversation:${conversationId}`).emit('user_stopped_typing', {
-      conversationId
+  socket.on("user_stopped_typing", ({ conversationId }) => {
+    socket.to(`conversation:${conversationId}`).emit("user_stopped_typing", {
+      conversationId,
     });
   });
 
   // Conversation opened (mark as read)
-  socket.on('conversation_opened', async ({ conversationId }) => {
+  socket.on("conversation_opened", async ({ conversationId }) => {
     console.log(`Conversation opened: ${conversationId}`);
-    
+
     try {
       // Mark messages as read
       await storage.markMessagesAsRead(conversationId);
-      
-      socket.to(`conversation:${conversationId}`).emit('messages_read', {
-        conversationId
+
+      socket.to(`conversation:${conversationId}`).emit("messages_read", {
+        conversationId,
       });
     } catch (error) {
-      console.error('Error marking messages as read:', error);
+      console.error("Error marking messages as read:", error);
     }
   });
 
   // Message read
-  socket.on('message_read', async ({ conversationId, messageId }) => {
+  socket.on("message_read", async ({ conversationId, messageId }) => {
     try {
       // Update message status
-      await storage.updateMessage(messageId, { status: 'read', readAt: new Date() });
-      
-      socket.to(`conversation:${conversationId}`).emit('message_status_update', {
-        messageId,
-        status: 'read'
+      await storage.updateMessage(messageId, {
+        status: "read",
+        readAt: new Date(),
       });
+
+      socket
+        .to(`conversation:${conversationId}`)
+        .emit("message_status_update", {
+          messageId,
+          status: "read",
+        });
     } catch (error) {
-      console.error('Error updating message status:', error);
+      console.error("Error updating message status:", error);
     }
   });
 
   // ==========================================
   // DISCONNECT
   // ==========================================
-  socket.on('disconnect', () => {
-    console.log('Socket.io client disconnected:', socket.id);
+  socket.on("disconnect", () => {
+    console.log("Socket.io client disconnected:", socket.id);
 
     const user = connectedUsers.get(socket.id);
     if (user?.conversationId) {
@@ -252,9 +265,9 @@ io.on('connection', (socket) => {
       }
 
       // Notify others
-      if (user.role === 'visitor') {
-        socket.to(`conversation:${user.conversationId}`).emit('user_left', {
-          conversationId: user.conversationId
+      if (user.role === "visitor") {
+        socket.to(`conversation:${user.conversationId}`).emit("user_left", {
+          conversationId: user.conversationId,
         });
       }
     }
@@ -264,10 +277,10 @@ io.on('connection', (socket) => {
 });
 
 // Helper functions
-io.getOnlineAgents = function(siteId?: string) {
+io.getOnlineAgents = function (siteId?: string) {
   const agents: any[] = [];
-  connectedUsers.forEach(user => {
-    if (user.role === 'agent' || user.role === 'admin') {
+  connectedUsers.forEach((user) => {
+    if (user.role === "agent" || user.role === "admin") {
       if (!siteId || user.siteId === siteId) {
         agents.push(user);
       }
@@ -276,7 +289,7 @@ io.getOnlineAgents = function(siteId?: string) {
   return agents;
 };
 
-io.isConversationActive = function(conversationId: string) {
+io.isConversationActive = function (conversationId: string) {
   const room = conversationRooms.get(conversationId);
   return room && room.size > 0;
 };
@@ -285,17 +298,19 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use("/uploads", express.static("uploads"));
 
-
-app.use('/widget', express.static(path.join(process.cwd(), 'public'), {
-  setHeaders: (res) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  }
-}));
+app.use(
+  "/widget",
+  express.static(path.join(process.cwd(), "public"), {
+    setHeaders: (res) => {
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+      res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    },
+  })
+);
 
 // Get online agents
-app.get('/api/agents/online', (req, res) => {
+app.get("/api/agents/online", (req, res) => {
   const { siteId } = req.query;
   const agents = io.getOnlineAgents?.(siteId as string) || [];
   res.json({ agents });
@@ -312,15 +327,14 @@ app.use(
       pool,
       createTableIfMissing: true,
     }),
-    secret: process.env.SESSION_SECRET || "whatsway-secret-key-change-in-production",
+    secret:
+      process.env.SESSION_SECRET || "your-secret-key-change-in-production",
     resave: false,
     saveUninitialized: false,
     cookie: {
       secure: false,
-      // secure: process.env.NODE_ENV === "production" && process.env.FORCE_HTTPS !== "false",
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000, // 24 hour
-      // maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     },
   })
 );
@@ -379,7 +393,7 @@ app.use((req, res, next) => {
   // Other ports are firewalled. Default to 5000 if not specified.
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || '5000', 10);
+  const port = parseInt(process.env.PORT || "5000", 10);
   // server.listen({
   //   port,
   //   host: process.env.NODE_ENV === "production" ? "0.0.0.0" : "127.0.0.1",
@@ -390,12 +404,12 @@ app.use((req, res, next) => {
   // if (process.platform !== "win32" && process.env.NODE_ENV !== "production") {
   //   listenOptions.reusePort = true;
   // }
-    
+
   //   // Start the message status updater cron job
   //   const messageStatusUpdater = new MessageStatusUpdater();
   //   messageStatusUpdater.startCronJob(60); // Run every 60 seconds instead of 10
   //   log('Message status updater cron job started');
-    
+
   //   // Start channel health monitor
   //   const { channelHealthMonitor } = await import('./cron/channel-health-monitor');
   //   channelHealthMonitor.start();
@@ -405,20 +419,22 @@ app.use((req, res, next) => {
     port,
     host: process.env.NODE_ENV === "production" ? "0.0.0.0" : "127.0.0.1",
   };
-  
+
   // Only use reusePort if the platform supports it
   if (process.platform !== "win32" && process.env.NODE_ENV !== "production") {
     listenOptions.reusePort = true;
   }
-  
+
   httpServer.listen(listenOptions, async () => {
     log(`serving on port ${port}`);
-    
+
     // Start the message status updater cron job
     const messageStatusUpdater = new MessageStatusUpdater();
     messageStatusUpdater.startCronJob(60);
-  
-    const { channelHealthMonitor } = await import("./cron/channel-health-monitor");
+
+    const { channelHealthMonitor } = await import(
+      "./cron/channel-health-monitor"
+    );
     channelHealthMonitor.start();
   });
 })();

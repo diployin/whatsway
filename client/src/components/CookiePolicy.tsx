@@ -1,6 +1,8 @@
 import React from "react";
 import PolicyLayout, { PolicySection } from "./PolicyLayout";
 import { useTranslation } from "@/lib/i18n";
+import { useQuery } from "@tanstack/react-query";
+import { AppSettings } from "@/types/types";
 
 const CookiePolicy = () => {
   const { t } = useTranslation();
@@ -39,6 +41,14 @@ const CookiePolicy = () => {
   const updatesParagraphs = t("cookiePolicy.sections.updates.paragraphs", {
     returnObjects: true,
   }) as string[];
+
+  const { data: brandSettings } = useQuery<AppSettings>({
+    queryKey: ["/api/brand-settings"],
+    queryFn: () => fetch("/api/brand-settings").then((res) => res.json()),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const suportEmail = brandSettings?.supportEmail ?? "";
 
   return (
     <PolicyLayout
@@ -229,7 +239,9 @@ const CookiePolicy = () => {
               href={`mailto:${t("cookiePolicy.sections.contact.email")}`}
               className="text-green-600 hover:underline"
             >
-              {t("cookiePolicy.sections.contact.email")}
+              {t("cookiePolicy.sections.contact.email", {
+                suportEmail,
+              })}
             </a>
           </p>
           <p>

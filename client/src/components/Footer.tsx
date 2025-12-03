@@ -87,12 +87,6 @@ const Footer: React.FC = () => {
                   <MessageSquare className="h-8 w-8" />
                 </div>
               )}
-              {/* <div>
-                <h1 className="text-xl font-bold text-white">Whatsway</h1>
-                <span className="text-xs mb-2">
-                  Building amazing experiences
-                </span>
-              </div> */}
             </Link>
             <p className="text-gray-300 mt-2 mb-10 max-w-md ">
               {t("Landing.footerSec.brandSection.description")}
@@ -231,7 +225,9 @@ const Footer: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col sm:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
-              {t("Landing.footerSec.bottomBar.copyrightText")}
+              {t("Landing.footerSec.bottomBar.copyrightText", {
+                appName: brandSettings?.title ?? "",
+              })}
             </p>
             <div className="flex items-center space-x-6 mt-4 sm:mt-0">
               <Link

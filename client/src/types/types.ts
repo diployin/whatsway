@@ -181,6 +181,7 @@ export interface AppSettings {
   logo2: string | null;
   favicon: string | null;
   updatedAt: string;
+  supportEmail: string;
 }
 
 export interface CountryCurrency {

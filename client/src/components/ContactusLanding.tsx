@@ -11,7 +11,8 @@ import {
 } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { toast } from "@/hooks/use-toast";
-import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
+import { AppSettings } from "@/types/types";
 
 const ContactusLanding = () => {
   const [loading, setLoading] = useState(false);
@@ -24,11 +25,17 @@ const ContactusLanding = () => {
     message: "",
   });
 
+  const { data: brandSettings } = useQuery<AppSettings>({
+    queryKey: ["/api/brand-settings"],
+    queryFn: () => fetch("/api/brand-settings").then((res) => res.json()),
+    staleTime: 5 * 60 * 1000,
+  });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+
     setLoading(true);
-  
+
     try {
       const response = await fetch("/api/contact/sendmail", {
         method: "POST",
@@ -37,9 +44,9 @@ const ContactusLanding = () => {
         },
         body: JSON.stringify(formData),
       });
-  
+
       const data = await response.json();
-  
+
       if (!response.ok || !data?.success) {
         toast({
           title: "Failed to send message",
@@ -48,13 +55,13 @@ const ContactusLanding = () => {
         });
         return;
       }
-  
+
       // SUCCESS TOAST
       toast({
         title: "Message Sent Successfully",
         description: "We received your message and will respond shortly.",
       });
-  
+
       // Reset form
       setFormData({
         name: "",
@@ -63,7 +70,6 @@ const ContactusLanding = () => {
         subject: "",
         message: "",
       });
-  
     } catch (error: any) {
       toast({
         title: "Error sending message",
@@ -74,8 +80,6 @@ const ContactusLanding = () => {
       setLoading(false);
     }
   };
-  
-  
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -243,6 +247,11 @@ const ContactusLanding = () => {
                 <div className="space-y-6">
                   {contactInfo.map((info, index) => {
                     const Icon = iconMap[index];
+                    const details =
+                      info.title === "Email Us"
+                        ? brandSettings?.supportEmail
+                        : info.details;
+
                     return (
                       <div key={index} className="flex items-start space-x-4">
                         <div className="bg-green-100 p-3 rounded-lg">
@@ -252,9 +261,7 @@ const ContactusLanding = () => {
                           <h3 className="font-semibold text-gray-900">
                             {info.title}
                           </h3>
-                          <p className="text-gray-700 font-medium">
-                            {info.details}
-                          </p>
+                          <p className="text-gray-700 font-medium">{details}</p>
                           <p className="text-gray-600 text-sm">
                             {info.description}
                           </p>
