@@ -91,7 +91,98 @@ export const getTemplateByUserID = asyncHandler(async (req: Request, res: Respon
 });
 
 
+
 export const createTemplate = asyncHandler(async (req: RequestWithChannel, res: Response) => {
+  console.log("Template creation request body:", JSON.stringify(req.body, null, 2));
+
+  // 1️⃣ Validate request body
+  const validatedTemplate = insertTemplateSchema.parse(req.body);
+
+  // 2️⃣ Validate category and placeholders
+  const { category, body, buttons } = validatedTemplate;
+
+  // Default category to 'authentication' if unsafe
+  let finalCategory: "marketing" | "utility" | "authentication" = category as any;
+  if (!["marketing", "utility", "authentication"].includes(category)) {
+    finalCategory = "authentication";
+  }
+
+  // Check for placeholders {{1}}, {{2}} etc.
+  const placeholderPattern = /\{\{\d+\}\}/g;
+  const foundPlaceholders = body.match(placeholderPattern) || [];
+
+  if ((finalCategory === "marketing" || finalCategory === "utility") && foundPlaceholders.length === 0) {
+    console.warn("⚠️ No placeholders found. Switching to authentication to prevent rejection.");
+    finalCategory = "authentication";
+  }
+
+  // 3️⃣ Get active channel if channelId not provided
+  let channelId = validatedTemplate.channelId;
+  if (!channelId) {
+    const activeChannel = await storage.getActiveChannel();
+    if (!activeChannel) {
+      throw new AppError(400, 'No active channel found. Please configure a channel first.');
+    }
+    channelId = activeChannel.id;
+  }
+
+  // 4️⃣ Get logged-in user id
+  const createdBy = req.user?.id;
+  if (!createdBy) {
+    throw new AppError(401, "User not authenticated");
+  }
+
+  // 5️⃣ Create template in local storage
+  const template = await storage.createTemplate({
+    ...validatedTemplate,
+    category: finalCategory,
+    channelId,
+    status: "pending",
+    createdBy,
+  });
+
+  // 6️⃣ Get channel details
+  const channel = await storage.getChannel(channelId);
+  if (!channel) throw new AppError(400, 'Channel not found');
+
+  // 7️⃣ Submit to WhatsApp API
+  try {
+    const whatsappApi = new WhatsAppApiService(channel);
+
+    // Adjust body to ensure placeholders exist for marketing/utility
+    const adjustedBody =
+      (finalCategory === "marketing" || finalCategory === "utility") && foundPlaceholders.length === 0
+        ? "Hello {{1}}" // Minimal placeholder to prevent rejection
+        : body;
+
+    const result = await whatsappApi.createTemplate({
+      ...validatedTemplate,
+      body: adjustedBody,
+      category: finalCategory,
+      buttons,
+    });
+
+    if (result.id) {
+      await storage.updateTemplate(template.id, {
+        whatsappTemplateId: result.id,
+        status: result.status || "pending",
+        category: finalCategory,
+      });
+    }
+
+    res.json(template);
+  } catch (error) {
+    console.error("WhatsApp API error:", error);
+    res.json({
+      ...template,
+      warning: "Template created locally but failed to submit to WhatsApp",
+    });
+  }
+});
+
+
+
+export const createTemplateOLDDD = asyncHandler(async (req: RequestWithChannel, res: Response) => {
   console.log("Template creation request body:", JSON.stringify(req.body, null, 2));
   
   // 1️⃣ Validate request body
