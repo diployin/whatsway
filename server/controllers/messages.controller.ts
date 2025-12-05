@@ -22,8 +22,349 @@ export const getMessages = asyncHandler(async (req: Request, res: Response) => {
   
 //   console.log("Req body : ===> "  , req.body)
 
-
 export const createMessage = asyncHandler(async (req: Request, res: Response) => {
+  const { conversationId } = req.params;
+  const { content, fromUser, caption, templateName, parameters } = req.body;
+  const file = (req as any).file as Express.Multer.File & { cloudUrl?: string };
+
+  const conversation = await storage.getConversation(conversationId);
+  if (!conversation) throw new AppError(404, "Conversation not found");
+
+  let msgBody = content;
+  let messageType: string = "text";
+  let result: any = null;
+  let mediaId: string | null = null;
+  let mediaUrl: string | null = null;
+  let messageStatus: "sent" | "failed" = "sent";
+
+  if (fromUser) {
+    if (!conversation.channelId) throw new Error("ChannelId is missing");
+    if (!conversation.contactPhone) throw new Error("Contact phone is missing");
+
+    const channel = await storage.getChannel(conversation.channelId);
+    if (!channel) throw new AppError(404, "Channel not found");
+
+    const whatsappApi = new WhatsAppApiService(channel);
+
+    try {
+      // TEMPLATE MESSAGE
+      if (templateName) {
+        result = await whatsappApi.sendMessage(conversation.contactPhone, templateName, parameters || []);
+        const template = await storage.getTemplatesByName(templateName);
+        msgBody = template[0]?.body || `[template: ${templateName}]`;
+        messageType = "template";
+
+      // MEDIA MESSAGE
+      } else if (file) {
+        const mimeType = file.mimetype;
+
+        // Determine full URL for WhatsApp
+        const baseUrl = process.env.BASE_URL || 'http://localhost:5001';
+        const fileUrl = file.cloudUrl
+          ? `${baseUrl}/uploads/${file.cloudUrl}`   // cloud or local URL
+          : `${baseUrl}/uploads/${file.filename || file.originalname}`;
+
+        console.log(`📤 Processing media for WhatsApp: ${fileUrl}`);
+
+        // Fetch buffer from URL
+        const response = await fetch(fileUrl);
+        const buffer = Buffer.from(await response.arrayBuffer());
+
+        // Upload to WhatsApp
+        mediaId = await whatsappApi.uploadMediaBuffer(buffer, mimeType, file.originalname);
+        console.log("✅ Media uploaded to WhatsApp, ID:", mediaId);
+
+        // Get WhatsApp media URL
+        try {
+          mediaUrl = await whatsappApi.getMediaUrl(mediaId);
+          console.log("🌐 WhatsApp media URL:", mediaUrl);
+        } catch (err) {
+          console.warn("⚠️ Failed to get WhatsApp media URL, using local/cloud URL instead");
+          mediaUrl = fileUrl;
+        }
+
+        // Determine message type
+        if (mimeType.startsWith("image")) messageType = "image";
+        else if (mimeType.startsWith("video")) messageType = "video";
+        else if (mimeType.startsWith("audio")) messageType = "audio";
+        else messageType = "document";
+
+        // Send media message
+        result = await whatsappApi.sendMediaMessage(
+          conversation.contactPhone,
+          mediaId,
+          messageType as any,
+          caption || content
+        );
+        msgBody = caption || `[${messageType}]`;
+
+      // PLAIN TEXT
+      } else {
+        try {
+          result = await whatsappApi.sendTextMessage(conversation.contactPhone, content);
+        } catch (err: any) {
+          console.warn("❌ WhatsApp send failed:", err.message || err);
+          messageStatus = "failed";
+        }
+        msgBody = content;
+        messageType = "text";
+      }
+
+      // Save message in DB
+      const message = await storage.createMessage({
+        conversationId,
+        fromUser: true,
+        content: msgBody,
+        status: messageStatus,
+        whatsappMessageId: result?.messages?.[0]?.id,
+        messageType,
+        type: messageType,
+        mediaId: mediaId || undefined,
+        mediaUrl: mediaUrl || file?.cloudUrl || undefined,
+        mediaMimeType: file?.mimetype || undefined,
+        metadata: file
+          ? {
+              mimeType: file.mimetype,
+              originalName: file.originalname,
+              cloudUrl: file.cloudUrl,
+              isCloud: !!file.cloudUrl,
+              fileSize: file.size,
+            }
+          : {}
+      });
+
+      await storage.updateConversation(conversationId, {
+        lastMessageAt: new Date(),
+        lastMessageText: msgBody
+      });
+
+      if ((global as any).broadcastToConversation) {
+        (global as any).broadcastToConversation(conversationId, {
+          type: "new-message",
+          message
+        });
+      }
+
+      return res.json(message);
+
+    } catch (error) {
+      console.error("❌ Error sending WhatsApp message:", error);
+      throw new AppError(500, error instanceof Error ? error.message : "Failed to send message");
+    }
+
+  } else {
+    // Incoming messages
+    const validatedMessage = insertMessageSchema.parse({
+      ...req.body,
+      conversationId
+    });
+
+    const message = await storage.createMessage(validatedMessage);
+    await storage.updateConversation(conversationId, {
+      lastMessageAt: new Date(),
+      lastMessageText: msgBody
+    });
+
+    if ((global as any).broadcastToConversation) {
+      (global as any).broadcastToConversation(conversationId, {
+        type: "new-message",
+        message
+      });
+    }
+
+    return res.json(message);
+  }
+});
+
+
+export const createMessageeee = asyncHandler(async (req: Request, res: Response) => {
+  const { conversationId } = req.params;
+  const { content, fromUser, caption, templateName, parameters } = req.body;
+  const file = (req as any).file as Express.Multer.File & { cloudUrl?: string };
+
+  // Get conversation
+  const conversation = await storage.getConversation(conversationId);
+  if (!conversation) throw new AppError(404, "Conversation not found");
+
+  let msgBody = content || "";
+  let messageType: "text" | "image" | "video" | "audio" | "document" | "template" = "text";
+  let result: any = null;
+  let mediaId: string | null = null;
+  let mediaUrl: string | null = null;
+  let messageStatus: "sent" | "failed" = "sent";
+
+  // If message is from user, push it to WhatsApp
+  if (fromUser) {
+    if (!conversation.channelId) throw new Error("ChannelId is missing");
+    if (!conversation.contactPhone) throw new Error("Contact phone is missing");
+
+    const channel = await storage.getChannel(conversation.channelId);
+    if (!channel) throw new AppError(404, "Channel not found");
+
+    const whatsappApi = new WhatsAppApiService(channel);
+
+    try {
+      if (templateName) {
+        // Send template
+        result = await whatsappApi.sendMessage(conversation.contactPhone, templateName, parameters || []);
+        const newMsg = await storage.getTemplatesByName(templateName);
+        msgBody = newMsg[0]?.body || `[template: ${templateName}]`;
+        messageType = "template";
+      } else if (file) {
+        const mimeType = file.mimetype;
+
+        // Determine if cloudUrl exists
+        const isCloudFile = !!file.cloudUrl;
+        const filePath = file.cloudUrl || file.path;
+
+        console.log(`📤 Processing media: ${isCloudFile ? "Cloud" : "Local"}`);
+        console.log(`   File location: ${filePath}`);
+        console.log(`   MIME type: ${mimeType}`);
+
+        // Upload media to WhatsApp
+        try {
+          if (isCloudFile) {
+            // Download from cloud URL
+            console.log("⬇️ Downloading from cloud for WhatsApp upload...");
+            const response = await fetch(file.cloudUrl!);
+            const buffer = Buffer.from(await response.arrayBuffer());
+            mediaId = await whatsappApi.uploadMediaBuffer(buffer, mimeType, file.originalname);
+            console.log("✅ Media uploaded to WhatsApp, ID:", mediaId);
+          } else {
+            // Upload from local file
+            console.log("📁 Uploading local file to WhatsApp...");
+            mediaId = await whatsappApi.uploadMedia(file.path, mimeType);
+            console.log("✅ Media uploaded to WhatsApp, ID:", mediaId);
+          }
+
+          // Get media URL from WhatsApp
+          try {
+            mediaUrl = await whatsappApi.getMediaUrl(mediaId!);
+            console.log("🌐 WhatsApp media URL retrieved:", mediaUrl);
+          } catch (err) {
+            console.warn("⚠️ Failed to get WhatsApp media URL, using fallback:", err);
+            // Use absolute fallback URL if cloudUrl exists
+            const host = process.env.SERVER_HOST || "http://localhost:3000";
+            mediaUrl = file.cloudUrl ? file.cloudUrl : `${host}/uploads/${path.basename(path.dirname(file.path))}/${file.filename}`;
+          }
+
+          // Determine message type
+          if (mimeType.startsWith("image")) messageType = "image";
+          else if (mimeType.startsWith("video")) messageType = "video";
+          else if (mimeType.startsWith("audio")) messageType = "audio";
+          else messageType = "document";
+
+          // Only send if mediaId is available
+          if (!mediaId) throw new AppError(500, "Media upload failed, cannot send message");
+
+          result = await whatsappApi.sendMediaMessage(
+            conversation.contactPhone,
+            mediaId,
+            messageType,
+            caption || content || `[${messageType}]`
+          );
+          msgBody = caption || `[${messageType}]`;
+
+        } catch (err: any) {
+          console.error("❌ WhatsApp send failed:", err.message || err);
+          messageStatus = "failed";
+          msgBody = `[${messageType}] Media not sent`;
+        }
+
+      } else {
+        // Plain text
+        try {
+          result = await whatsappApi.sendTextMessage(conversation.contactPhone, content || "[No Content]");
+        } catch (err: any) {
+          console.warn("❌ WhatsApp send failed:", err.message || err);
+          messageStatus = "failed";
+          msgBody = "[Failed to send text message]";
+        }
+        messageType = "text";
+      }
+
+      // Save message
+      const message = await storage.createMessage({
+        conversationId,
+        fromUser: true,
+        content: msgBody,
+        status: messageStatus,
+        whatsappMessageId: result?.messages?.[0]?.id,
+        messageType,
+        type: messageType,
+        mediaId: mediaId || undefined,
+        mediaUrl: mediaUrl || file?.cloudUrl || undefined,
+        mediaMimeType: file?.mimetype || undefined,
+        metadata: file
+          ? {
+              mimeType: file.mimetype,
+              originalName: file.originalname,
+              cloudUrl: file.cloudUrl,
+              isCloud: !!file.cloudUrl,
+              fileSize: file.size,
+            }
+          : {},
+      });
+
+      await storage.updateConversation(conversationId, {
+        lastMessageAt: new Date(),
+        lastMessageText: msgBody,
+      });
+
+      if ((global as any).broadcastToConversation) {
+        (global as any).broadcastToConversation(conversationId, {
+          type: "new-message",
+          message,
+        });
+      }
+
+      return res.json(message);
+
+    } catch (error: any) {
+      console.error("❌ Error sending WhatsApp message:", error);
+      throw new AppError(500, error.message || "Failed to send message");
+    }
+
+  } else {
+    // Incoming message flow
+    const validatedMessage = insertMessageSchema.parse({ ...req.body, conversationId });
+
+    const message = await storage.createMessage(validatedMessage);
+
+    try {
+      if (!conversation.channelId) throw new Error("ChannelId is missing");
+      if (!conversation.contactId) throw new Error("contactId is missing");
+
+      await triggerService.handleMessageReceived(
+        conversationId,
+        message,
+        conversation.channelId,
+        conversation.contactId
+      );
+      console.log(`✅ Triggered automations for message: ${message.id}`);
+    } catch (error) {
+      console.error("❌ Failed to trigger message automations:", error);
+    }
+
+    await storage.updateConversation(conversationId, {
+      lastMessageAt: new Date(),
+      lastMessageText: msgBody,
+    });
+
+    if ((global as any).broadcastToConversation) {
+      (global as any).broadcastToConversation(conversationId, {
+        type: "new-message",
+        message,
+      });
+    }
+
+    return res.json(message);
+  }
+});
+
+
+
+export const createMessageOld = asyncHandler(async (req: Request, res: Response) => {
   const { conversationId } = req.params;
   const { content, fromUser, caption, templateName, parameters } = req.body;
   const file = (req as any).file as Express.Multer.File & { cloudUrl?: string };

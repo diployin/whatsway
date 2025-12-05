@@ -857,18 +857,21 @@ const TemplateDialog = ({
     queryFn: async () => {
       const response = await api.getTemplates(channelId);
       const data = await response.json();
-      return Array.isArray(data) ? data : [];
+      
+      return Array.isArray(data.data) ? data.data : [];
     },
     enabled: !!channelId && open,
   });
 
-  // const approvedTemplates = templates.filter(
-  //   (t: any) => t.status === "APPROVED"
-  // );
+  
 
   const approvedTemplates = Array.isArray(templates)
-  ? templates.filter((t: any) => t?.status === "APPROVED")
+  ? templates.filter((t: any) =>
+      typeof t?.status === "string" &&
+      t.status.toLowerCase().includes("approve")
+    )
   : [];
+
 
 
   return (

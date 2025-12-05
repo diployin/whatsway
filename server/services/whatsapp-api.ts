@@ -19,15 +19,35 @@ export class WhatsAppApiService {
   private baseUrl: string;
   private headers: Record<string, string>;
 
+  // constructor(channel: Channel) {
+  //   this.channel = channel;
+  //   const apiVersion = process.env.WHATSAPP_API_VERSION || "v23.0";
+  //   this.baseUrl = `https://graph.facebook.com/${apiVersion}`;
+  //   this.headers = {
+  //     Authorization: `Bearer ${channel.accessToken}`,
+  //     "Content-Type": "application/json",
+  //   };
+  // }
+
+
   constructor(channel: Channel) {
-    this.channel = channel;
-    const apiVersion = process.env.WHATSAPP_API_VERSION || "v23.0";
-    this.baseUrl = `https://graph.facebook.com/${apiVersion}`;
-    this.headers = {
-      Authorization: `Bearer ${channel.accessToken}`,
-      "Content-Type": "application/json",
-    };
+  this.channel = channel;
+  const apiVersion = process.env.WHATSAPP_API_VERSION || "v23.0";
+  this.baseUrl = `https://graph.facebook.com/${apiVersion}`;
+
+  // Prefer channel token, but fallback to ENV token
+  const token = channel.accessToken || process.env.WHATSAPP_ACCESS_TOKEN;
+
+  if (!token) {
+    throw new Error("Missing WhatsApp access token");
   }
+
+  this.headers = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+}
+
 
   // Static method for sending template messages
   static async sendTemplateMessage(
@@ -242,6 +262,9 @@ export class WhatsAppApiService {
         headers: this.headers,
       }
     );
+
+    console.log("WhatsApp API Headers:", this.headers);
+
 
     if (!response.ok) {
       const error = await response.json();
