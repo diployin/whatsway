@@ -98,6 +98,95 @@ export const createTemplate = asyncHandler(async (req: RequestWithChannel, res: 
   // 1️⃣ Validate request body
   const validatedTemplate = insertTemplateSchema.parse(req.body);
 
+  // 2️⃣ Validate category
+  let category = validatedTemplate.category.toLowerCase();
+  if (!["marketing", "utility", "authentication"].includes(category)) {
+    category = "authentication";
+  }
+
+  // 3️⃣ Extract placeholders from body
+  const placeholderPattern = /\{\{\d+\}\}/g;
+  const placeholders = validatedTemplate.body.match(placeholderPattern) || [];
+
+  // 4️⃣ Generate sample values for WhatsApp API
+  const sampleValues = placeholders.map((p, i) => `sample_${i + 1}`);
+  
+  // 5️⃣ Get active channel if channelId not provided
+  let channelId = validatedTemplate.channelId;
+  if (!channelId) {
+    const activeChannel = await storage.getActiveChannel();
+    if (!activeChannel) throw new AppError(400, 'No active channel found. Please configure a channel first.');
+    channelId = activeChannel.id;
+  }
+
+  // 6️⃣ Get logged-in user id
+  const createdBy = req.user?.id;
+  if (!createdBy) throw new AppError(401, "User not authenticated");
+
+  // 7️⃣ Create template in local storage
+  const template = await storage.createTemplate({
+    ...validatedTemplate,
+    category,
+    channelId,
+    status: "pending",
+    createdBy,
+  });
+
+  // 8️⃣ Get channel details
+  const channel = await storage.getChannel(channelId);
+  if (!channel) throw new AppError(400, 'Channel not found');
+
+  // 9️⃣ Submit to WhatsApp API
+  try {
+    const whatsappApi = new WhatsAppApiService(channel);
+
+    // Construct payload for WhatsApp API with sample values
+    const templatePayload = {
+      name: validatedTemplate.name,
+      category: category.toUpperCase(),
+      language: validatedTemplate.language,
+      components: [
+        {
+          type: "BODY",
+          text: validatedTemplate.body,
+          example: {
+            body_text: [sampleValues]
+          }
+        }
+      ],
+      header: validatedTemplate.header ? [{ type: "TEXT", text: validatedTemplate.header }] : undefined,
+      footer: validatedTemplate.footer ? [{ type: "TEXT", text: validatedTemplate.footer }] : undefined,
+      buttons: validatedTemplate.buttons || undefined
+    };
+
+    const result = await whatsappApi.createTemplate(templatePayload);
+
+    if (result.id) {
+      await storage.updateTemplate(template.id, {
+        whatsappTemplateId: result.id,
+        status: result.status || "pending",
+        category,
+      });
+    }
+
+    res.json(template);
+  } catch (error) {
+    console.error("WhatsApp API error:", error);
+    res.json({
+      ...template,
+      warning: "Template created locally but failed to submit to WhatsApp",
+    });
+  }
+});
+
+
+
+export const createTemplateOLD = asyncHandler(async (req: RequestWithChannel, res: Response) => {
+  console.log("Template creation request body:", JSON.stringify(req.body, null, 2));
+
+  // 1️⃣ Validate request body
+  const validatedTemplate = insertTemplateSchema.parse(req.body);
+
   // 2️⃣ Validate category and placeholders
   const { category, body, buttons } = validatedTemplate;
 
