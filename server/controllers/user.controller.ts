@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { db } from "../db";
 import {users} from "@shared/schema";
-import { eq, or, like, sql, and, desc } from "drizzle-orm";
+import { eq, or, like, sql, and, desc} from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
 import { otpVerifications } from "@shared/schema";
@@ -116,7 +116,6 @@ export const getUserById = async (req: Request, res: Response) => {
 
 
 
-
 export const createUser = async (req: Request, res: Response) => {
   try {
     const { username, password, email, firstName, lastName, role, avatar } = req.body;
@@ -128,23 +127,96 @@ export const createUser = async (req: Request, res: Response) => {
       });
     }
 
-    // Check existing user
-    const existingUser = await db
+    // 1️⃣ Check if email exists
+    const existingUserByEmail = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, email));
+
+    if (existingUserByEmail.length > 0) {
+      const user = existingUserByEmail[0];
+
+      if (!user.isEmailVerified) {
+        // Email unverified → allow updating username, password, etc.
+
+        // Check if new username is taken by another account
+        const usernameTaken = await db
+          .select()
+          .from(users)
+          .where(and(
+            eq(users.username, username),
+            sql`${users.id} != ${user.id}` // exclude current user
+          ));
+
+        if (usernameTaken.length > 0) {
+          return res.status(409).json({
+            success: false,
+            message: "Username already exists.",
+          });
+        }
+
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Update existing unverified user
+        await db
+          .update(users)
+          .set({
+            username,
+            password: hashedPassword,
+            firstName: firstName || user.firstName,
+            lastName: lastName || user.lastName,
+            avatar: avatar || user.avatar,
+            role: role || user.role,
+          })
+          .where(eq(users.id, user.id));
+
+        // Remove old OTPs
+        await db.delete(otpVerifications).where(eq(otpVerifications.userId, user.id));
+
+        // Generate new OTP
+        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+        console.log(`Resending OTP for ${email}: ${otpCode} (expires at ${expiresAt.toISOString()})`);
+
+        await db.insert(otpVerifications).values({
+          userId: user.id,
+          otpCode,
+          expiresAt,
+          isUsed: false,
+        });
+
+        await sendOTPEmailVerify(email, otpCode, firstName || user.firstName);
+
+        return res.status(200).json({
+          success: true, // ✅ treat OTP resend as success
+          message: "Email already exists but not verified. OTP resent and account updated.",
+        });
+      } else {
+        return res.status(409).json({
+          success: false,
+          message: "Email already exists.",
+        });
+      }
+    }
+
+    // 2️⃣ Check username for new accounts
+    const existingUserByUsername = await db
       .select()
       .from(users)
       .where(eq(users.username, username));
 
-    if (existingUser.length > 0) {
+    if (existingUserByUsername.length > 0) {
       return res.status(409).json({
         success: false,
         message: "Username already exists.",
       });
     }
 
-    // Hash password
+    // 3️⃣ Create new user
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
     const newUser = await db
       .insert(users)
       .values({
@@ -162,12 +234,12 @@ export const createUser = async (req: Request, res: Response) => {
 
     const user = newUser[0];
 
-    // ----- Generate OTP -----
+    // Generate OTP
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
     console.log(`Generated OTP for ${email}: ${otpCode} (expires at ${expiresAt.toISOString()})`);
-    // Save OTP
+
     await db.insert(otpVerifications).values({
       userId: user.id,
       otpCode,
@@ -175,26 +247,21 @@ export const createUser = async (req: Request, res: Response) => {
       isUsed: false,
     });
 
-    // Send OTP Email
     await sendOTPEmailVerify(email, otpCode, firstName);
 
     return res.status(201).json({
       success: true,
       message: "User created. Verification OTP sent to email.",
-      data: { id: user.id, email },
     });
 
   } catch (error) {
     console.error("Error creating user:", error);
     return res.status(500).json({
       success: false,
-      message: "Error creating user",
-      error,
+      message: "Error creating user. Please try again.",
     });
   }
 };
-
-
 
 
 

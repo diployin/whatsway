@@ -64,39 +64,61 @@ const Signup: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // ✅ Handle signup API
+
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateForm()) return;
+  e.preventDefault();
+  if (!validateForm()) return;
 
-    setIsLoading(true);
-    setErrors({});
+  setIsLoading(true);
+  setErrors({});
 
-    try {
-      const res = await apiRequest("POST", "/api/users/create", {
-        username: formData.username,
-        password: formData.password,
-        email: formData.email,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        role: "admin",
-        avatar: "",
-      });
+  try {
+    const res = await apiRequest("POST", "/api/users/create", {
+      username: formData.username,
+      password: formData.password,
+      email: formData.email,
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      role: "admin",
+      avatar: "",
+    });
 
-      const data = await res.json();
-      console.log("User created:", data);
+    const data = await res.json();
+    console.log("User created:", data);
 
-      // Redirect to verify email page
+    // If success (new user or OTP resent), redirect to verify email page
+    if (data.success) {
       setLocation(`/verify-email?email=${encodeURIComponent(formData.email)}`);
-    } catch (error: any) {
-      console.error("Signup error:", error);
-      setErrors({
-        general: error.message || "Signup failed. Please try again.",
-      });
-    } finally {
-      setIsLoading(false);
+      return;
     }
-  };
+
+    // Show only the server message
+    setErrors({ general: data.message });
+
+  } catch (error: any) {
+    console.error("Signup error:", error);
+
+    let message = "";
+
+    if (error?.message) {
+      try {
+        // Remove the status code prefix (e.g., "409: ") before parsing JSON
+        const jsonPart = error.message.replace(/^\d+:\s*/, "");
+        const parsed = JSON.parse(jsonPart);
+        message = parsed.message || "";
+      } catch {
+        // fallback if parsing fails
+        message = error.message || "";
+      }
+    }
+
+    // Only show the server message
+    setErrors({ general: message });
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   // ✅ Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
