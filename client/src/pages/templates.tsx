@@ -39,6 +39,8 @@ export default function Templates() {
   });
   const channelId = activeChannel?.id;
 
+  console.log("activeChannel", channelId)
+
   // Fetch templates (paginated)
   const { data: templatesData, isLoading: templatesLoading } = useQuery({
     queryKey: ["templates", userRole, channelId, page, limit],
@@ -145,11 +147,15 @@ export default function Templates() {
     },
   });
 
+  
+
   // Sync templates mutation
   const syncTemplatesMutation = useMutation({
     mutationFn: async () => {
       if (!activeChannel) throw new Error("No active channel");
-      return await apiRequest("POST", `/api/templates/sync`);
+      return await apiRequest("POST", `/api/templates/sync`,  {
+      channelId: activeChannel?.id,
+    });
     },
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["templates"] });
@@ -173,7 +179,7 @@ export default function Templates() {
         }
       }
 
-      console.log("Channel mutation error:", errorData, error);
+      // console.log("Channel mutation error:", errorData, error);
 
       toast({
         title: "Error",

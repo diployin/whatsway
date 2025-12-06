@@ -426,10 +426,12 @@ export const deleteTemplate = asyncHandler(async (req: Request, res: Response) =
 
 export const syncTemplates = asyncHandler(async (req: RequestWithChannel, res: Response) => {
   let channelId = req.body.channelId || req.query.channelId as string || req.channelId;
+  // console.log(channelId, "CHEKJLKKKKKKKKKKKKKKKKKKKKKKKKK")
   
   if (!channelId) {
     // Get active channel if not provided
     const activeChannel = await storage.getActiveChannel();
+    
     if (!activeChannel) {
       throw new AppError(400, 'No active channel found');
     }
@@ -440,12 +442,24 @@ export const syncTemplates = asyncHandler(async (req: RequestWithChannel, res: R
   if (!channel) {
     throw new AppError(404, 'Channel not found');
   }
+
+  console.log("🔍 Channel loaded for template sync:", channel);
+
   
   try {
     const whatsappApi = new WhatsAppApiService(channel);
     const whatsappTemplates = await whatsappApi.getTemplates();
     
-    const existingTemplates = await storage.getTemplatesByChannel(channelId);
+    
+
+
+    // Get existing templates (Paginated)
+const { data: existingTemplatesRaw } = await storage.getTemplatesByChannel(channelId);
+
+// Ensure it's always an array
+const existingTemplates = Array.isArray(existingTemplatesRaw)
+  ? existingTemplatesRaw
+  : [];
     const existingByName = new Map(existingTemplates.map(t => [`${t.name}_${t.language}`, t]));
     
     let updatedCount = 0;

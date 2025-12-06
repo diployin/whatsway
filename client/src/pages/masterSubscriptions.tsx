@@ -207,7 +207,7 @@ export default function AllSubscriptionsPage() {
                   className="hover:bg-gray-50 transition-colors"
                 >
                   <td className="py-3 px-4 text-sm text-gray-900">
-                    {user.username}
+                    {user?.username ?? "N/A"}
                   </td>
                   <td className="py-3 px-4 text-sm text-gray-900">
                     {plan.name}
@@ -270,7 +270,7 @@ export default function AllSubscriptionsPage() {
               <div className="flex justify-between items-start mb-3">
                 <div>
                   <h3 className="font-semibold text-gray-900">
-                    {user.username}
+                    {user?.username ?? "N/A"}
                   </h3>
                   <p className="text-sm text-gray-600">{plan.name}</p>
                 </div>

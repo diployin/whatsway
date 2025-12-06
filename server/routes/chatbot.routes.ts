@@ -187,10 +187,10 @@ app.post("/api/widget/chat", async (req, res) => {
     const { siteId, channelId, sessionId, conversationId, message, visitorInfo } = req.body;
 
      // 🔥 BLOCK ALL MESSAGE SENDING
-  return res.status(403).json({
-    success: false,
-    error: "Messaging is disabled for this widget."
-  });
+  // return res.status(403).json({
+  //   success: false,
+  //   error: "Messaging is disabled for this widget."
+  // });
 
     if (!message || !siteId || !sessionId) {
       return res.status(400).json({ error: "Missing required fields" });

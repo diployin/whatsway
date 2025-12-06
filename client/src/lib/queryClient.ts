@@ -12,16 +12,29 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined
 ): Promise<Response> {
+  const headers: any = data
+    ? { "Content-Type": "application/json" }
+    : {};
+
+  // console.log(">>> API REQUEST");
+  // console.log("URL:", url);
+  // console.log("METHOD:", method);
+  // console.log("HEADERS:", headers);
+  // console.log("BODY:", data ? JSON.stringify(data) : null);
+
   const res = await fetch(url, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers,
     body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
+    credentials: "include", // cookies bhi jayenge
   });
+
+  console.log("<<< API RESPONSE STATUS:", res.status);
 
   await throwIfResNotOk(res);
   return res;
 }
+
 
 type UnauthorizedBehavior = "returnNull" | "throw";
 export const getQueryFn: <T>(options: {

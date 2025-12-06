@@ -36,7 +36,7 @@ export class WhatsAppApiService {
   this.baseUrl = `https://graph.facebook.com/${apiVersion}`;
 
   // Prefer channel token, but fallback to ENV token
-  const token = channel.accessToken || process.env.WHATSAPP_ACCESS_TOKEN;
+  const token = channel.accessToken;
 
   if (!token) {
     throw new Error("Missing WhatsApp access token");
