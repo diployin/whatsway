@@ -6,6 +6,8 @@
 import { Server as SocketIOServer } from 'socket.io';
 import type { Server as HTTPServer } from 'http';
 import { storage } from './storage';
+import { getConversationsFromDB } from './services/conversation.service';
+import { fetchConversationList } from './controllers/conversations.controller';
 
 interface SocketUser {
   socketId: string;
@@ -45,6 +47,36 @@ export function initializeSocket(httpServer: HTTPServer) {
     };
 
     connectedUsers.set(socket.id, user);
+
+
+     socket.on("test_event", (data) => {
+    console.log("🔥 TEST EVENT RECEIVED:", data);
+
+    socket.emit("test_response", { msg: "Server se response aaya!" });
+  });
+
+
+     // ============================================
+  // GET CONVERSATIONS LIST (AGENT SIDE)
+  // ============================================
+  socket.on("get_conversations", async ({ channelId }) => {
+    try {
+      console.log("🔥 get_conversations called for channel:", channelId);
+
+      const list = await fetchConversationList(channelId);
+
+      console.log("🔥 conversations_list sending:", list?.length || 0);
+
+      socket.emit("conversations_list", list);
+
+    } catch (err) {
+      console.error("Error fetching conversations via socket:", err);
+    }
+  });
+
+
+
+
 
     // Join conversation room if conversationId provided
     if (conversationId) {
@@ -317,6 +349,7 @@ export function initializeSocket(httpServer: HTTPServer) {
     socket.on('broadcast_to_site', ({ siteId, event, data }) => {
       io.to(`site:${siteId}`).emit(event, data);
     });
+
 
     // ============================================
     // DISCONNECT

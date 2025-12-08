@@ -1025,6 +1025,7 @@ export default function Inbox() {
     },
   });
 
+
   // Fetch conversations
   const { data: conversations = [], isLoading: conversationsLoading } =
     useQuery({
@@ -1048,6 +1049,8 @@ export default function Inbox() {
     enabled: !!selectedConversation?.id,
   });
 
+  
+
   // Auto-scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -1069,12 +1072,21 @@ export default function Inbox() {
     });
 
     socketInstance.on("connect", () => {
-      console.log("Socket.io connected for agent");
+    console.log("Socket.io connected for agent");
     });
 
+   
     socketInstance.on("disconnect", () => {
       console.log("Socket.io disconnected");
     });
+    
+
+
+socketInstance.on("conversation_created", () => {
+  console.log("🔥 conversation_created event received");
+  queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+});
+
 
     // Listen for new messages (from visitors or AI)
     socketInstance.on("new_message", (data) => {
@@ -1157,6 +1169,9 @@ export default function Inbox() {
         });
       }
     });
+
+
+    
 
     setSocket(socketInstance);
 
@@ -1792,7 +1807,7 @@ export default function Inbox() {
                 )
               )
             )}
-          </ScrollArea>
+          </ScrollArea>                                                 
         </div>
 
         {/* Chat Area - Updated with typing indicator */}

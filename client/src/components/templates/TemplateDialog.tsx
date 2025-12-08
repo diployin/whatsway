@@ -421,38 +421,42 @@ export function TemplateDialog({
                   )}
 
                   <FormField
-                    control={form.control}
-                    name="footer"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Footer (Optional)</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Input
-                              placeholder="Reply STOP to unsubscribe"
-                              {...field}
-                            />
+  control={form.control}
+  name="header"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Header (Optional)</FormLabel>
+      <FormControl>
+        <div className="relative">
+          <Input
+            placeholder="Optional header text (max 60 chars)"
+            maxLength={60} // enforce character limit at input level
+            {...field}
+          />
 
-                            {/* LIVE COUNT */}
-                            <span
-                              className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs ${
-                                (field.value?.length || 0) > 60
-                                  ? "text-red-500"
-                                  : "text-gray-400"
-                              }`}
-                            >
-                              {field.value?.length || 0} / 60
-                            </span>
-                          </div>
-                        </FormControl>
+          {/* LIVE COUNT */}
+          <span
+            className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs ${
+              (field.value?.length || 0) >= 60
+                ? "text-red-500"
+                : "text-gray-400"
+            }`}
+          >
+            {field.value?.length || 0} / 60
+          </span>
+        </div>
+      </FormControl>
 
-                        {/* Optional description */}
-                        <FormDescription>Max 60 characters</FormDescription>
+      {/* Optional description */}
+      <FormDescription>
+        Max 60 characters. Avoid emojis and “STOP” messages.
+      </FormDescription>
 
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+      <FormMessage />
+    </FormItem>
+  )}
+/>
+
 
                   <FormField
                     control={form.control}

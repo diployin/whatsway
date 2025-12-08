@@ -123,6 +123,17 @@ export function ConfigPanel({
     });
   };
 
+
+  const handleButtonClick = (url: string | undefined) => {
+  if (url) {
+    window.open(url, "_blank");  // Open the URL in a new tab
+  } else {
+    // Handle cases where no URL is provided (you can add logic here as needed)
+    console.log("No URL provided");
+  }
+};
+
+
   return (
     <div className="flex flex-col h-screen mt-4">
       <ScrollArea className="flex-1 min-h-0">
@@ -221,7 +232,93 @@ export function ConfigPanel({
             </Card>
           )}
 
-          {d.kind === "custom_reply" && (
+
+
+        {d.kind === "custom_reply" && (
+  <Card className="p-3 space-y-4">
+    <div>
+      <Label>Message</Label>
+      <Textarea
+        rows={4}
+        value={d.message || ""}
+        onChange={(e) => onChange({ message: e.target.value })}
+        placeholder="Hi {{name}},&#10;&#10;Welcome to Product Academy, please share the following information before we proceed."
+      />
+    </div>
+
+    {/* URL Input Field */}
+    <div>
+      <Label>URL (Optional)</Label>
+      <Input
+        type="url"
+        value={d.url || ""}
+        onChange={(e) => onChange({ url: e.target.value })}
+        placeholder="Enter a URL"
+      />
+    </div>
+
+    {/* Attachments */}
+    <div className="space-y-3">
+      <Label>Attachments</Label>
+      <div className="grid grid-cols-2 gap-2">
+        <FileUploadButton
+          accept="image/*"
+          onUpload={handleFileUpload("image")}
+          className="text-green-600 border-green-200 hover:bg-green-50"
+        >
+          <ImageIcon className="w-4 h-4" />
+          Image
+        </FileUploadButton>
+        <FileUploadButton
+          accept="video/*"
+          onUpload={handleFileUpload("video")}
+          className="text-green-600 border-green-200 hover:bg-green-50"
+        >
+          <Video className="w-4 h-4" />
+          Video
+        </FileUploadButton>
+      </div>
+    </div>
+
+    {/* Buttons */}
+    <div className="space-y-3">
+      <Label>Buttons (Optional)</Label>
+      <div className="flex items-center justify-between">
+        <Button size="sm" variant="outline" onClick={addButton}>
+          <Plus className="w-3 h-3 mr-1" />
+          Add Button
+        </Button>
+      </div>
+
+      {d.buttons?.map((button) => (
+        <div key={button.id} className="border rounded-lg p-3 space-y-2">
+          <div className="flex items-center gap-2">
+            <Input
+              value={button.text}
+              onChange={(e) =>
+                updateButton(button.id, { text: e.target.value })
+              }
+              placeholder="Button text"
+              className="flex-1"
+            />
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => handleButtonClick(d.url)} // Redirect to URL
+              className="text-blue-500"
+            >
+              {button.text}
+            </Button>
+          </div>
+        </div>
+      ))}
+    </div>
+  </Card>
+)}
+
+
+
+          {/* {d.kind === "custom_reply" && (
             <Card className="p-3 space-y-4">
               <div>
                 <Label>Message</Label>
@@ -371,7 +468,7 @@ export function ConfigPanel({
                 ))}
               </div>
             </Card>
-          )}
+          )} */}
 
           {d.kind === "time_gap" && (
             <Card className="p-3 space-y-3">

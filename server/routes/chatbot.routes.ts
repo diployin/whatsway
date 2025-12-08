@@ -8,10 +8,11 @@ import { storage } from 'server/storage';
 import OpenAI from 'openai';
 import { requireAuth } from 'server/middlewares/auth.middleware';
 import { aiSettings, insertSiteSchema, panelConfig, sites } from '@shared/schema';
-import { io } from '../socket';
+// import { io } from '../socket';
 import { requireSubscription } from 'server/middlewares/requireSubscription';
 import { eq } from 'drizzle-orm';
 import { db } from 'server/db';
+
 
 function buildAIClient(aiSetting) {
   if (aiSetting.provider === "openai") {
@@ -183,6 +184,11 @@ res.json({
 
 // Handle chat messages - WITH REAL-TIME SUPPORT
 app.post("/api/widget/chat", async (req, res) => {
+  const io = (global as any).io;
+
+  console.log("📡 Checking io:", !!io);  // is io defined?
+  // console.log("📡 Emitting to room:", `site:${siteId}`);
+ 
   try {
     const { siteId, channelId, sessionId, conversationId, message, visitorInfo } = req.body;
 
@@ -242,6 +248,23 @@ app.post("/api/widget/chat", async (req, res) => {
         sessionId: sessionId,
         tags: ["widget-chat"],
       });
+
+       
+  // console.log("📡 Event Data:", {
+  //   conversationId: conversation.id,
+  //   channelId,
+  // });
+
+
+//        // ⭐ REAL-TIME EVENT: Send to all agents of this site
+ // Emit only conversation_created event to all agents in the site room
+      if (io) {
+        io.to(`site:${channelId}`).emit("conversation_created");
+      }
+
+
+
+
     }
 
     // 🔹 Save user message
@@ -255,27 +278,7 @@ app.post("/api/widget/chat", async (req, res) => {
       status: "received",
     });
 
-    // 🔹 Emit user message to agents via Socket.io
-    if (io) {
-      io.to(`conversation:${conversation.id}`).emit("new_message", {
-        conversationId: conversation.id,
-        message: {
-          id: userMessage.id,
-          content: message,
-          fromUser: true,
-          fromType: "user",
-          fromName: visitorInfo?.name || "Visitor",
-          createdAt: userMessage.createdAt,
-          status: "received",
-        },
-      });
-
-      await storage.updateMessage(userMessage.id, {
-        status: "delivered",
-        deliveredAt: new Date(),
-      });
-    }
-
+   
     // 🔹 Helper: Assign random agent
     async function assignToRandomAgent(conversation, site) {
       const teamMembers = site?.widgetConfig?.teamMembers || [];
@@ -290,14 +293,7 @@ app.post("/api/widget/chat", async (req, res) => {
         updatedAt: new Date(),
       });
 
-      if (io) {
-        io.to(`site:${siteId}`).emit("new_conversation_assigned", {
-          conversationId: conversation.id,
-          agentId: randomAgent.id,
-          agentName: randomAgent.name,
-        });
-      }
-
+      
       return randomAgent;
     }
 
@@ -326,20 +322,7 @@ app.post("/api/widget/chat", async (req, res) => {
         status: "sent",
       });
 
-      if (io) {
-        io.to(`conversation:${conversation.id}`).emit("new_message", {
-          conversationId: conversation.id,
-          message: {
-            id: botMessage.id,
-            content: aiResponse,
-            fromUser: false,
-            fromType: "bot",
-            fromName: "AI Assistant",
-            createdAt: botMessage.createdAt,
-            status: "sent",
-          },
-        });
-      }
+      
 
       return res.json({
         success: true,
@@ -421,20 +404,7 @@ if (activeAI?.apiKey) {
 
     aiMessageId = botMessage.id;
 
-    if (io) {
-      io.to(`conversation:${conversation.id}`).emit("new_message", {
-        conversationId: conversation.id,
-        message: {
-          id: botMessage.id,
-          content: aiResponse,
-          fromUser: false,
-          fromType: "bot",
-          fromName: "AI Assistant",
-          createdAt: botMessage.createdAt,
-          status: "sent",
-        },
-      });
-    }
+    
   } catch (error) {
     console.error("AI provider error:", error.message);
 
@@ -455,20 +425,7 @@ if (activeAI?.apiKey) {
       status: "sent",
     });
 
-    if (io) {
-      io.to(`conversation:${conversation.id}`).emit("new_message", {
-        conversationId: conversation.id,
-        message: {
-          id: botMessage.id,
-          content: aiResponse,
-          fromUser: false,
-          fromType: "bot",
-          fromName: "AI Assistant",
-          createdAt: botMessage.createdAt,
-          status: "sent",
-        },
-      });
-    }
+  
   }
 } else {
       aiResponse = null; // assigned conversation handled by human
@@ -497,6 +454,7 @@ if (activeAI?.apiKey) {
     });
   }
 });
+
 
 
   // Get conversation history

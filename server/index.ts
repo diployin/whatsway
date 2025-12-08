@@ -13,6 +13,7 @@ import { createServer } from "http";
 // import { initializeSocket, setSocketIO } from './socket';
 import { storage } from "./storage";
 import { Server as SocketIOServer } from "socket.io";
+import { fetchConversationList } from "./controllers/conversations.controller";
 
 const app = express();
 const httpServer = createServer(app);
@@ -30,6 +31,9 @@ const io = new SocketIOServer(httpServer, {
   pingTimeout: 60000,
   pingInterval: 25000,
 });
+
+// Make io globally available
+(global as any).io = io;
 
 // Store connected users
 const connectedUsers = new Map();
@@ -56,6 +60,36 @@ io.on("connection", (socket) => {
   if (siteId) {
     socket.join(`site:${siteId}`);
   }
+
+
+   socket.on("test_event", (data) => {
+      console.log("🔥 TEST EVENT RECEIVED:", data);
+  
+      socket.emit("test_response", { msg: "Server se response aaya!" });
+    });
+  
+  
+       // ============================================
+    // GET CONVERSATIONS LIST (AGENT SIDE)
+    // ============================================
+    socket.on("get_conversations", async ({ channelId }) => {
+      try {
+        console.log("🔥 get_conversations called for channel:", channelId);
+  
+        const list = await fetchConversationList(channelId);
+  
+        console.log("🔥 conversations_list sending:", list?.length || 0);
+  
+        socket.emit("conversations_list", list);
+  
+      } catch (err) {
+        console.error("Error fetching conversations via socket:", err);
+      }
+    });
+  
+  
+  
+  
 
   // ==========================================
   // AGENT EVENTS
