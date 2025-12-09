@@ -41,8 +41,10 @@ export default function FirebaseSettings() {
   const fetchFirebase = async () => {
     try {
       const res1 = await apiRequest("GET", "/api/firebase");
-      const res = res1.json();
-      setFirebaseData(res.data || null);
+      const res = await res1.json();
+      
+      setFirebaseData(res || null);
+      // console.log("res checkk@@@@@@@@@@@", res)
     } catch (err) {
       console.error("Fetch error:", err);
     } finally {

@@ -743,7 +743,268 @@ export class WhatsAppApiService {
     return { success: true, data };
   }
 
-  private formatTemplateComponents(templateData: any): any[] {
+
+  private formatTemplateComponentsThird(templateData: any): any[] {
+  const components: any[] = [];
+
+  /* ----------------------------------------
+     1) HEADER (Text or Media)
+  ---------------------------------------- */
+  if (templateData.header) {
+    if (templateData.mediaType && templateData.mediaType !== "text") {
+      // Media header
+      components.push({
+        type: "HEADER",
+        format: templateData.mediaType.toUpperCase(),
+        example: templateData.mediaUrl
+          ? { header_handle: [templateData.mediaUrl] }
+          : undefined,
+      });
+    } else {
+      // Text header
+      components.push({
+        type: "HEADER",
+        format: "TEXT",
+        text: templateData.header,
+      });
+    }
+  }
+
+  /* ----------------------------------------
+     2) BODY (Required)
+  ---------------------------------------- */
+  const bodyComponent: any = {
+    type: "BODY",
+    text: templateData.body,
+  };
+
+  // Add variable examples
+  if (templateData.examples && templateData.examples.length > 0) {
+    bodyComponent.example = {
+      body_text: [templateData.examples], // VERY IMPORTANT
+    };
+  }
+
+  components.push(bodyComponent);
+
+  /* ----------------------------------------
+     3) FOOTER (Optional)
+  ---------------------------------------- */
+  if (templateData.footer) {
+    components.push({
+      type: "FOOTER",
+      text: templateData.footer,
+    });
+  }
+
+  /* ----------------------------------------
+     4) BUTTONS (Optional)
+  ---------------------------------------- */
+  if (templateData.buttons && templateData.buttons.length > 0) {
+    components.push({
+      type: "BUTTONS",
+      buttons: templateData.buttons.map((btn: any) => {
+        switch (btn.type.toUpperCase()) {
+          case "URL":
+            return {
+              type: "URL",
+              text: btn.text,
+              url: btn.url,
+            };
+
+          case "PHONE":
+          case "PHONE_NUMBER":
+            return {
+              type: "PHONE_NUMBER",
+              text: btn.text,
+              phone_number: btn.phoneNumber,
+            };
+
+          default:
+            return {
+              type: "QUICK_REPLY",
+              text: btn.text,
+            };
+        }
+      }),
+    });
+  }
+
+  return components;
+}
+
+
+ private formatTemplateComponentsSECONDD(templateData: any): any[] {
+  const components: any[] = [];
+
+  // 1️⃣ HEADER (optional)
+  if (templateData.header) {
+    if (templateData.mediaType && templateData.mediaType !== "text") {
+      // Media header
+      components.push({
+        type: "HEADER",
+        format: templateData.mediaType.toUpperCase(),
+        example: templateData.mediaUrl
+          ? { header_handle: [templateData.mediaUrl] }
+          : undefined,
+      });
+    } else {
+      // Plain text header (NO format allowed)
+      components.push({
+        type: "HEADER",
+        text: templateData.header,
+      });
+    }
+  }
+
+  // 2️⃣ BODY (required)
+  if (templateData.body) {
+    const placeholderCount = (templateData.body.match(/{{\d+}}/g) || []).length;
+
+    const bodyComponent: any = {
+      type: "BODY",
+      text: templateData.body,
+    };
+
+    // Add examples ONLY if placeholders exist
+    if (placeholderCount > 0 && templateData.samples) {
+      bodyComponent.example = {
+        body_text: [templateData.samples],
+      };
+    }
+
+    components.push(bodyComponent);
+  }
+
+  // 3️⃣ FOOTER (optional)
+  if (templateData.footer) {
+    components.push({
+      type: "FOOTER",
+      text: templateData.footer,
+    });
+  }
+
+  // 4️⃣ BUTTONS — Cloud API format
+  if (templateData.buttons && templateData.buttons.length > 0) {
+    const buttonComponents = templateData.buttons.map((btn: any, index: number) => ({
+      type: "BUTTON",
+      sub_type: btn.type.toUpperCase(),
+      index: index.toString(),
+      parameters: btn.type === "URL"
+        ? [{ type: "text", text: btn.url }]
+        : btn.type === "PHONE_NUMBER"
+        ? [{ type: "text", text: btn.phoneNumber }]
+        : []
+    }));
+
+    components.push({
+      type: "BUTTONS",
+      buttons: buttonComponents,
+    });
+  }
+
+  return components;
+}
+
+
+formatTemplateComponents(validatedTemplate: any) {
+  const components: any[] = [];
+
+  // ---------------------------
+  // ⭐ HEADER
+  // ---------------------------
+  if (validatedTemplate.header) {
+    const headerComponent: any = {
+      type: "HEADER",
+      format: validatedTemplate.headerFormat || "TEXT",
+      text: validatedTemplate.headerFormat === "TEXT" ? validatedTemplate.header : undefined,
+    };
+
+    // If header has variables {{1}}
+    const headerVars = validatedTemplate.header.match(/{{\d+}}/g);
+    if (headerVars && headerVars.length > 0) {
+      headerComponent.example = {
+        header_text: validatedTemplate.headerExamples || []
+      };
+    }
+
+    components.push(headerComponent);
+  }
+
+  // ---------------------------
+  // ⭐ BODY
+  // ---------------------------
+  if (validatedTemplate.body) {
+    const bodyComponent: any = {
+      type: "BODY",
+      text: validatedTemplate.body,
+    };
+
+    // Detect variables in BODY
+    const bodyVars = validatedTemplate.body.match(/{{\d+}}/g);
+
+    // Only add example if variables exist
+    if (bodyVars && bodyVars.length > 0) {
+      bodyComponent.example = {
+        body_text: validatedTemplate.bodyExamples || []
+      };
+    }
+
+    components.push(bodyComponent);
+  }
+
+  // ---------------------------
+  // ⭐ FOOTER (no variables allowed)
+  // ---------------------------
+  if (validatedTemplate.footer) {
+    components.push({
+      type: "FOOTER",
+      text: validatedTemplate.footer,
+    });
+  }
+
+  // ---------------------------
+  // ⭐ BUTTONS
+  // ---------------------------
+  if (validatedTemplate.buttons?.length) {
+    const buttonsComponent: any = {
+      type: "BUTTONS",
+      buttons: [],
+    };
+
+    validatedTemplate.buttons.forEach((btn: any, index: number) => {
+      const buttonObj: any = {
+        type: btn.type,
+      };
+
+      if (btn.type === "URL") {
+        buttonObj.text = btn.text;
+        buttonObj.url = btn.url;
+
+        // URL buttons MAY have {{1}} variable
+        const urlVars = btn.url?.match(/{{\d+}}/g);
+        if (urlVars && urlVars.length > 0) {
+          buttonObj.example = {
+            url: btn.urlExamples || []
+          };
+        }
+      }
+
+      if (btn.type === "QUICK_REPLY") {
+        buttonObj.text = btn.text;
+      }
+
+      buttonsComponent.buttons.push(buttonObj);
+    });
+
+    components.push(buttonsComponent);
+  }
+
+  return components;
+}
+
+
+  private formatTemplateComponentsFIRST(templateData: any): any[] {
     const components = [];
 
     // Handle media header if present

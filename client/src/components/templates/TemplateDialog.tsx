@@ -90,6 +90,8 @@ const templateFormSchema = z.object({
     .max(3, "Maximum 3 buttons allowed")
     .default([]),
   variables: z.array(z.string()).default([]),
+  /** 👉 THIS WAS MISSING */
+  samples: z.array(z.string()).default([]),
 });
 
 type TemplateFormData = z.infer<typeof templateFormSchema>;
@@ -110,6 +112,7 @@ export function TemplateDialog({
   isSubmitting = false,
 }: TemplateDialogProps) {
   const { user } = useAuth();
+
   const form = useForm<TemplateFormData>({
     resolver: zodResolver(templateFormSchema),
     defaultValues: {
@@ -135,69 +138,139 @@ export function TemplateDialog({
     name: "buttons",
   });
 
-  useEffect(() => {
-    if (template) {
-      // Extract data from template components if available
-      const headerComponent = template.components?.find(
-        (c) => c.type === "HEADER"
-      );
-      const bodyComponent = template.components?.find((c) => c.type === "BODY");
-      const footerComponent = template.components?.find(
-        (c) => c.type === "FOOTER"
-      );
-      const buttonComponent = template.components?.find(
-        (c) => c.type === "BUTTONS"
-      );
+  // useEffect(() => {
+  //   if (template) {
+  //     const headerComponent = template.components?.find(
+  //       (c) => c.type === "HEADER"
+  //     );
+  //     const bodyComponent = template.components?.find((c) => c.type === "BODY");
+  //     const footerComponent = template.components?.find(
+  //       (c) => c.type === "FOOTER"
+  //     );
+  //     const buttonComponent = template.components?.find(
+  //       (c) => c.type === "BUTTONS"
+  //     );
 
-      form.reset({
-        name: template.name,
-        category: template.category as any,
-        language: template.language || "en_US",
-        mediaType:
-          headerComponent?.format === "IMAGE"
-            ? "image"
-            : headerComponent?.format === "VIDEO"
-            ? "video"
-            : headerComponent?.format === "DOCUMENT"
-            ? "document"
-            : "text",
-        mediaUrl: "",
-        header:
-          headerComponent?.format === "TEXT"
-            ? headerComponent.text || template.header || ""
-            : "",
-        body: bodyComponent?.text || template.body,
-        footer: footerComponent?.text || template.footer || "",
-        buttons:
-          buttonComponent?.buttons?.map((btn: any) => ({
-            type: btn.type,
-            text: btn.text,
-            url: btn.url || "",
-            phoneNumber: btn.phone_number || "",
-          })) || [],
-        variables: [],
-      });
-    } else {
-      form.reset({
-        name: "",
-        category: "MARKETING",
-        language: "en_US",
-        mediaType: "text",
-        mediaUrl: "",
-        header: "",
-        body: "",
-        footer: "",
-        buttons: [],
-        variables: [],
-      });
-    }
-  }, [template, form]);
+  //     form.reset({
+  //       name: template.name,
+  //       category: template.category as any,
+  //       language: template.language || "en_US",
+  //       mediaType:
+  //         headerComponent?.format === "IMAGE"
+  //           ? "image"
+  //           : headerComponent?.format === "VIDEO"
+  //           ? "video"
+  //           : headerComponent?.format === "DOCUMENT"
+  //           ? "document"
+  //           : "text",
+  //       mediaUrl: "",
+  //       header:
+  //         headerComponent?.format === "TEXT"
+  //           ? headerComponent.text || template.header || ""
+  //           : "",
+  //       body: bodyComponent?.text || template.body,
+  //       footer: footerComponent?.text || template.footer || "",
+  //       buttons:
+  //         buttonComponent?.buttons?.map((btn: any) => ({
+  //           type: btn.type,
+  //           text: btn.text,
+  //           url: btn.url || "",
+  //           phoneNumber: btn.phone_number || "",
+  //         })) || [],
+  //       variables: [],
+  //     });
+  //   } else {
+  //     form.reset({
+  //       name: "",
+  //       category: "MARKETING",
+  //       language: "en_US",
+  //       mediaType: "text",
+  //       mediaUrl: "",
+  //       header: "",
+  //       body: "",
+  //       footer: "",
+  //       buttons: [],
+  //       variables: [],
+  //     });
+  //   }
+  // }, [template, form]);
+
+
+
+  useEffect(() => {
+  if (template) {
+    const headerComponent = template.components?.find(c => c.type === "HEADER");
+    const bodyComponent = template.components?.find(c => c.type === "BODY");
+    const footerComponent = template.components?.find(c => c.type === "FOOTER");
+    const buttonComponent = template.components?.find(c => c.type === "BUTTONS");
+
+    // Extract placeholder numbers from body text
+    const extractVariables = (text = "") => {
+      const matches = text.match(/\{\{(\d+)\}\}/g) || [];
+      // Extract unique numbers, sort ascending
+      return Array.from(
+        new Set(matches.map(m => Number(m.replace(/[{}]/g, ""))))
+      ).sort((a, b) => a - b);
+    };
+
+    const variablesFromBody = extractVariables(bodyComponent?.text || "");
+
+    // If you have saved sample values on template (e.g. template.samples), use them; else empty string
+    const samplesFromTemplate = template.samples || [];
+
+    // Create variables array of sample values matching placeholders
+    const variables = variablesFromBody.map((num, i) =>
+      typeof samplesFromTemplate[i] === "string" ? samplesFromTemplate[i] : ""
+    );
+
+    form.reset({
+      name: template.name,
+      category: template.category as any,
+      language: template.language || "en_US",
+      mediaType:
+        headerComponent?.format === "IMAGE"
+          ? "image"
+          : headerComponent?.format === "VIDEO"
+          ? "video"
+          : headerComponent?.format === "DOCUMENT"
+          ? "document"
+          : "text",
+      mediaUrl: "",
+      header:
+        headerComponent?.format === "TEXT"
+          ? headerComponent.text || template.header || ""
+          : "",
+      body: bodyComponent?.text || template.body,
+      footer: footerComponent?.text || template.footer || "",
+      buttons:
+        buttonComponent?.buttons?.map((btn: any) => ({
+          type: btn.type,
+          text: btn.text,
+          url: btn.url || "",
+          phoneNumber: btn.phone_number || "",
+        })) || [],
+      variables,
+    });
+  } else {
+    form.reset({
+      name: "",
+      category: "MARKETING",
+      language: "en_US",
+      mediaType: "text",
+      mediaUrl: "",
+      header: "",
+      body: "",
+      footer: "",
+      buttons: [],
+      variables: [],
+    });
+  }
+}, [template, form]);
+
 
   const extractVariables = (text: string) => {
     const regex = /\{\{(\d+)\}\}/g;
-    const matches = [
-      ...new Set([...text.matchAll(regex)].map((match) => match[1])),
-    ];
+    const matches = [...new Set([...text.matchAll(regex)].map((m) => m[1]))];
     return matches;
   };
 
@@ -292,9 +365,7 @@ export function TemplateDialog({
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="MARKETING">
-                                Marketing
-                              </SelectItem>
+                              <SelectItem value="MARKETING">Marketing</SelectItem>
                               <SelectItem value="UTILITY">Utility</SelectItem>
                               <SelectItem value="AUTHENTICATION">
                                 Authentication
@@ -323,17 +394,11 @@ export function TemplateDialog({
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="en_US">
-                                English (US)
-                              </SelectItem>
-                              <SelectItem value="en_GB">
-                                English (UK)
-                              </SelectItem>
+                              <SelectItem value="en_US">English (US)</SelectItem>
+                              <SelectItem value="en_GB">English (UK)</SelectItem>
                               <SelectItem value="es">Spanish</SelectItem>
                               <SelectItem value="fr">French</SelectItem>
-                              <SelectItem value="pt_BR">
-                                Portuguese (BR)
-                              </SelectItem>
+                              <SelectItem value="pt_BR">Portuguese (BR)</SelectItem>
                               <SelectItem value="hi">Hindi</SelectItem>
                               <SelectItem value="ar">Arabic</SelectItem>
                             </SelectContent>
@@ -420,44 +485,40 @@ export function TemplateDialog({
                     />
                   )}
 
+                  {/* Header */}
                   <FormField
-  control={form.control}
-  name="header"
-  render={({ field }) => (
-    <FormItem>
-      <FormLabel>Header (Optional)</FormLabel>
-      <FormControl>
-        <div className="relative">
-          <Input
-            placeholder="Optional header text (max 60 chars)"
-            maxLength={60} // enforce character limit at input level
-            {...field}
-          />
+                    control={form.control}
+                    name="header"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Header (Optional)</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Input
+                              placeholder="Optional header text (max 60 chars)"
+                              maxLength={60}
+                              {...field}
+                            />
+                            <span
+                              className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs ${
+                                (field.value?.length || 0) >= 60
+                                  ? "text-red-500"
+                                  : "text-gray-400"
+                              }`}
+                            >
+                              {field.value?.length || 0} / 60
+                            </span>
+                          </div>
+                        </FormControl>
+                        <FormDescription>
+                          Max 60 characters. Avoid emojis and “STOP” messages.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-          {/* LIVE COUNT */}
-          <span
-            className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs ${
-              (field.value?.length || 0) >= 60
-                ? "text-red-500"
-                : "text-gray-400"
-            }`}
-          >
-            {field.value?.length || 0} / 60
-          </span>
-        </div>
-      </FormControl>
-
-      {/* Optional description */}
-      <FormDescription>
-        Max 60 characters. Avoid emojis and “STOP” messages.
-      </FormDescription>
-
-      <FormMessage />
-    </FormItem>
-  )}
-/>
-
-
+                  {/* Body */}
                   <FormField
                     control={form.control}
                     name="body"
@@ -480,6 +541,7 @@ export function TemplateDialog({
                     )}
                   />
 
+                  {/* Footer */}
                   <FormField
                     control={form.control}
                     name="footer"
@@ -488,12 +550,7 @@ export function TemplateDialog({
                         <FormLabel>Footer (Optional)</FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <Input
-                              placeholder="Reply STOP to unsubscribe"
-                              {...field}
-                            />
-
-                            {/* LIVE COUNT */}
+                            <Input placeholder="Reply STOP to unsubscribe" {...field} />
                             <span
                               className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs ${
                                 (field.value?.length || 0) > 60
@@ -505,15 +562,54 @@ export function TemplateDialog({
                             </span>
                           </div>
                         </FormControl>
-
-                        {/* Optional description */}
                         <FormDescription>Max 60 characters</FormDescription>
-
                         <FormMessage />
                       </FormItem>
                     )}
                   />
 
+                  {/* Variables */}
+                  {extractVariables(watchedValues.body).length > 0 && (
+                    <div className="space-y-2 mt-4">
+                      <Label className="text-sm font-medium">
+                        Sample Values for Variables
+                      </Label>
+                      {extractVariables(watchedValues.body).map((variable, idx) => (
+                        <FormField
+                          key={variable}
+                          control={form.control}
+                          name={`variables.${idx}`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Value for {`{{${variable}}}`}</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder={`Sample value for {{${variable}}}`}
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Preview with sample values */}
+                  <div className="pt-4">
+                    <Label className="text-sm font-medium">
+                      Preview with Sample Values
+                    </Label>
+                    <p className="text-sm whitespace-pre-wrap bg-gray-50 p-2 rounded">
+                      {watchedValues.body?.replace(/\{\{(\d+)\}\}/g, (_, n) => {
+                        const value = watchedValues.variables?.[Number(n) - 1];
+                        return typeof value === "string" ? value : `{{${n}}}`;
+                      }) || "Template body will appear here..."}
+                    </p>
+                  </div>
+
+                  {/* Detected Variables */}
                   {watchedValues.body &&
                     extractVariables(watchedValues.body).length > 0 && (
                       <div>
@@ -521,25 +617,21 @@ export function TemplateDialog({
                           Detected Variables
                         </Label>
                         <div className="flex flex-wrap gap-2 mt-2">
-                          {extractVariables(watchedValues.body).map(
-                            (variable) => (
-                              <Badge key={variable} variant="secondary">
-                                <Hash className="w-3 h-3 mr-1" />
-                                Variable {variable}
-                              </Badge>
-                            )
-                          )}
+                          {extractVariables(watchedValues.body).map((variable) => (
+                            <Badge key={variable} variant="secondary">
+                              <Hash className="w-3 h-3 mr-1" />
+                              Variable {variable}
+                            </Badge>
+                          ))}
                         </div>
                       </div>
                     )}
                 </div>
 
-                {/* Buttons */}
+                {/* Buttons Section */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-medium text-sm text-gray-700">
-                      Action Buttons
-                    </h3>
+                    <h3 className="font-medium text-sm text-gray-700">Action Buttons</h3>
                     <Button
                       type="button"
                       variant="outline"
@@ -554,8 +646,7 @@ export function TemplateDialog({
 
                   {buttonFields.length === 0 ? (
                     <p className="text-sm text-gray-500 text-center py-4">
-                      No buttons added. Click "Add Button" to create action
-                      buttons.
+                      No buttons added. Click "Add Button" to create action buttons.
                     </p>
                   ) : (
                     <div className="space-y-4">
@@ -626,9 +717,7 @@ export function TemplateDialog({
                                 <FormControl>
                                   <Input placeholder="Click me" {...field} />
                                 </FormControl>
-                                <FormDescription>
-                                  Max 20 characters
-                                </FormDescription>
+                                <FormDescription>Max 20 characters</FormDescription>
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -656,8 +745,7 @@ export function TemplateDialog({
                             />
                           )}
 
-                          {watchedValues.buttons?.[index]?.type ===
-                            "PHONE_NUMBER" && (
+                          {watchedValues.buttons?.[index]?.type === "PHONE_NUMBER" && (
                             <FormField
                               control={form.control}
                               name={`buttons.${index}.phoneNumber`}
@@ -665,14 +753,9 @@ export function TemplateDialog({
                                 <FormItem>
                                   <FormLabel>Phone Number</FormLabel>
                                   <FormControl>
-                                    <Input
-                                      placeholder="+1234567890"
-                                      {...field}
-                                    />
+                                    <Input placeholder="+1234567890" {...field} />
                                   </FormControl>
-                                  <FormDescription>
-                                    Include country code
-                                  </FormDescription>
+                                  <FormDescription>Include country code</FormDescription>
                                   <FormMessage />
                                 </FormItem>
                               )}
@@ -702,27 +785,17 @@ export function TemplateDialog({
                   )}
 
                   <div className="p-4 space-y-2">
-                    {/* Header Text */}
                     {watchedValues.header && (
                       <h3 className="font-semibold text-base">
                         {watchedValues.header}
                       </h3>
                     )}
-
-                    {/* Body */}
                     <p className="text-sm whitespace-pre-wrap">
-                      {watchedValues.body ||
-                        "Template body will appear here..."}
+                      {watchedValues.body || "Template body will appear here..."}
                     </p>
-
-                    {/* Footer */}
                     {watchedValues.footer && (
-                      <p className="text-xs text-gray-500 pt-2">
-                        {watchedValues.footer}
-                      </p>
+                      <p className="text-xs text-gray-500 pt-2">{watchedValues.footer}</p>
                     )}
-
-                    {/* Buttons */}
                     {watchedValues.buttons &&
                       watchedValues.buttons.length > 0 && (
                         <div className="pt-3 space-y-2">

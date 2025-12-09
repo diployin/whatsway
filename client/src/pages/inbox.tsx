@@ -81,6 +81,7 @@ import type { Conversation, Contact, User } from "@shared/schema";
 import { useAuth } from "@/contexts/auth-context";
 import { io, Socket } from "socket.io-client";
 import { useTranslation } from "@/lib/i18n";
+import { WhatsAppDemoQR } from "@/components/demoqr/WhatsAppDemoQR";
 
 // Helper functions
 const formatLastSeen = (date: Date | string | null) => {
@@ -2163,6 +2164,8 @@ socketInstance.on("conversation_created", () => {
           </div>
         )}
       </div>
+      <WhatsAppDemoQR phone="918384008805" message="Hello, I want a demo" />
+
     </div>
   );
 }

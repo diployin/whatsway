@@ -60,72 +60,148 @@ export default function Templates() {
     enabled: userRole === "superadmin" || !!activeChannel,
   });
 
-  // Create template mutation
+
   const createTemplateMutation = useMutation({
-    mutationFn: async (data: any) => {
-      const components = [];
-      if (data.header || data.mediaType !== "text") {
-        components.push({
-          type: "HEADER",
-          format:
-            data.mediaType === "text" ? "TEXT" : data.mediaType.toUpperCase(),
-          text: data.header,
-        });
-      }
-      components.push({ type: "BODY", text: data.body });
-      if (data.footer) components.push({ type: "FOOTER", text: data.footer });
-      if (data.buttons?.length) {
-        components.push({
-          type: "BUTTONS",
-          buttons: data.buttons.map((btn: any) => ({
-            type: btn.type,
-            text: btn.text,
-            url: btn.url,
-            phone_number: btn.phoneNumber,
-          })),
-        });
-      }
+  mutationFn: async (data: any) => {
+    const components = [];
 
-      const payload = {
-        name: data.name,
-        category: data.category,
-        language: data.language,
-        components,
-        header: data.header,
-        body: data.body,
-        footer: data.footer,
-        channelId: activeChannel?.id,
-      };
+    if (data.header || data.mediaType !== "text") {
+      components.push({
+        type: "HEADER",
+        format: data.mediaType === "text" ? "TEXT" : data.mediaType.toUpperCase(),
+        text: data.header,
+      });
+    }
 
-      if (editingTemplate) {
-        return await apiRequest(
-          "PATCH",
-          `/api/templates/${editingTemplate.id}`,
-          payload
-        );
-      } else {
-        return await apiRequest("POST", "/api/templates", payload);
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["templates"] });
-      toast({
-        title: editingTemplate ? "Template updated" : "Template created",
-        description: editingTemplate
-          ? "Your template has been updated successfully."
-          : "Your template has been created and submitted for approval.",
+    components.push({ type: "BODY", text: data.body });
+
+    if (data.footer) components.push({ type: "FOOTER", text: data.footer });
+
+    if (data.buttons?.length) {
+      components.push({
+        type: "BUTTONS",
+        buttons: data.buttons.map((btn: any) => ({
+          type: btn.type,
+          text: btn.text,
+          url: btn.url,
+          phone_number: btn.phoneNumber,
+        })),
       });
-      setShowDialog(false);
-      setEditingTemplate(null);
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+    }
+
+    // Yahan bas user ke sample values bhej do without any change
+    const payload = {
+      name: data.name,
+      category: data.category,
+      language: data.language,
+      components,
+      header: data.header,
+      body: data.body,
+      footer: data.footer,
+      channelId: activeChannel?.id,
+      samples: data.variables , // jo bhi sample values user ne diye hain
+    };
+
+    console.log("CHECK PAYLDOODDDD", payload)
+
+    if (editingTemplate) {
+      return await apiRequest(
+        "PATCH",
+        `/api/templates/${editingTemplate.id}`,
+        payload
+      );
+    } else {
+      return await apiRequest("POST", "/api/templates", payload);
+    }
+  },
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ["templates"] });
+    toast({
+      title: editingTemplate ? "Template updated" : "Template created",
+      description: editingTemplate
+        ? "Your template has been updated successfully."
+        : "Your template has been created and submitted for approval.",
+    });
+    setShowDialog(false);
+    setEditingTemplate(null);
+  },
+  onError: (error: any) => {
+    toast({
+      title: "Error",
+      description: error.message,
+      variant: "destructive",
+    });
+  },
+});
+
+
+
+  // // Create template mutation
+  // const createTemplateMutation = useMutation({
+  //   mutationFn: async (data: any) => {
+  //     const components = [];
+  //     if (data.header || data.mediaType !== "text") {
+  //       components.push({
+  //         type: "HEADER",
+  //         format:
+  //           data.mediaType === "text" ? "TEXT" : data.mediaType.toUpperCase(),
+  //         text: data.header,
+  //       });
+  //     }
+  //     components.push({ type: "BODY", text: data.body });
+  //     if (data.footer) components.push({ type: "FOOTER", text: data.footer });
+  //     if (data.buttons?.length) {
+  //       components.push({
+  //         type: "BUTTONS",
+  //         buttons: data.buttons.map((btn: any) => ({
+  //           type: btn.type,
+  //           text: btn.text,
+  //           url: btn.url,
+  //           phone_number: btn.phoneNumber,
+  //         })),
+  //       });
+  //     }
+
+  //     const payload = {
+  //       name: data.name,
+  //       category: data.category,
+  //       language: data.language,
+  //       components,
+  //       header: data.header,
+  //       body: data.body,
+  //       footer: data.footer,
+  //       channelId: activeChannel?.id,
+  //     };
+
+  //     if (editingTemplate) {
+  //       return await apiRequest(
+  //         "PATCH",
+  //         `/api/templates/${editingTemplate.id}`,
+  //         payload
+  //       );
+  //     } else {
+  //       return await apiRequest("POST", "/api/templates", payload);
+  //     }
+  //   },
+  //   onSuccess: () => {
+  //     queryClient.invalidateQueries({ queryKey: ["templates"] });
+  //     toast({
+  //       title: editingTemplate ? "Template updated" : "Template created",
+  //       description: editingTemplate
+  //         ? "Your template has been updated successfully."
+  //         : "Your template has been created and submitted for approval.",
+  //     });
+  //     setShowDialog(false);
+  //     setEditingTemplate(null);
+  //   },
+  //   onError: (error: any) => {
+  //     toast({
+  //       title: "Error",
+  //       description: error.message,
+  //       variant: "destructive",
+  //     });
+  //   },
+  // });
 
   // Delete template mutation
   const deleteTemplateMutation = useMutation({

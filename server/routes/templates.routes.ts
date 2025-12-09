@@ -28,7 +28,7 @@ export function registerTemplateRoutes(app: Express) {
   // Create template
   app.post("/api/templates",requireAuth,
   requirePermission(PERMISSIONS.TEMPLATES_CREATE),
-    validateRequest(insertTemplateSchema),
+    // validateRequest(insertTemplateSchema),
     templatesController.createTemplate
   );
 

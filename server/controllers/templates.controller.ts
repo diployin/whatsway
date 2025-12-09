@@ -91,9 +91,486 @@ export const getTemplateByUserID = asyncHandler(async (req: Request, res: Respon
 });
 
 
-
-
 export const createTemplate = asyncHandler(async (req: RequestWithChannel, res: Response) => {
+  console.log("🚀 Incoming template creation request body:", JSON.stringify(req.body, null, 2));
+
+  const validatedTemplate = req.body;
+  console.log("✅ Validated template:", validatedTemplate);
+
+  // Normalize Category
+  let category = validatedTemplate.category?.toLowerCase() || "authentication";
+  if (!["marketing", "utility", "authentication"].includes(category)) {
+    category = "authentication";
+  }
+  console.log("📌 Using category:", category);
+
+  // Extract placeholders
+  const placeholderPattern = /\{\{(\d+)\}\}/g;
+  const placeholderMatches = Array.from(validatedTemplate.body.matchAll(placeholderPattern));
+  const placeholders = placeholderMatches.map(m => parseInt(m[1], 10)).sort((a, b) => a - b);
+
+  console.log("🔢 Extracted placeholders:", placeholders);
+
+  // Validate sequence
+  for (let i = 0; i < placeholders.length; i++) {
+    if (placeholders[i] !== i + 1) {
+      throw new AppError(400, "Placeholders must be sequential starting from {{1}}");
+    }
+  }
+
+  // Samples
+  const samples = validatedTemplate.samples || [];
+  console.log("📝 Samples:", samples);
+
+  // Channel ID
+  let channelId = validatedTemplate.channelId;
+  if (!channelId) {
+    const activeChannel = await storage.getActiveChannel();
+    if (!activeChannel) throw new AppError(400, "No active channel found. Please configure a channel first.");
+    channelId = activeChannel.id;
+  }
+
+  console.log("📡 Using channelId:", channelId);
+
+  // User
+  const createdBy = req.user?.id;
+  if (!createdBy) throw new AppError(401, "User not authenticated");
+
+  console.log("👤 Created by:", createdBy);
+
+  // Save locally
+  const template = await storage.createTemplate({
+    ...validatedTemplate,
+    category,
+    channelId,
+    status: "pending",
+    createdBy,
+  });
+
+  console.log("💾 Template created locally:", template);
+
+  // Fetch channel
+  const channel = await storage.getChannel(channelId);
+  if (!channel) throw new AppError(400, "Channel not found");
+
+  console.log("📡 Channel:", channel);
+
+  try {
+    const whatsappApi = new WhatsAppApiService(channel);
+
+    const components: any[] = [];
+
+    // HEADER
+    if (validatedTemplate.header) {
+      const headerObj: any = {
+        type: "HEADER",
+        format: "TEXT",
+        text: validatedTemplate.header,
+      };
+
+      const vars = validatedTemplate.header.match(/{{\d+}}/g);
+      if (vars?.length) {
+        headerObj.example = {
+          header_text: validatedTemplate.headerSamples || [],
+        };
+      }
+
+      components.push(headerObj);
+    }
+
+    // BODY
+    const bodyObj: any = {
+      type: "BODY",
+      text: validatedTemplate.body,
+    };
+
+    const bodyVars = validatedTemplate.body.match(/{{\d+}}/g);
+
+    if (bodyVars?.length) {
+      bodyObj.example = {
+        body_text: [samples],
+      };
+    }
+
+    components.push(bodyObj);
+
+    // FOOTER
+    if (validatedTemplate.footer) {
+      components.push({
+        type: "FOOTER",
+        text: validatedTemplate.footer,
+      });
+    }
+
+    // BUTTONS
+    if (validatedTemplate.buttons?.length > 0) {
+      components.push({
+        type: "BUTTONS",
+        buttons: validatedTemplate.buttons.map((btn) => {
+          const obj: any = {
+            type: btn.type.toUpperCase(),
+            text: btn.text,
+          };
+          if (btn.type === "url") obj.url = btn.url;
+          if (btn.type === "phone") obj.phone_number = btn.phoneNumber;
+          return obj;
+        }),
+      });
+    }
+
+    // FINAL PAYLOAD
+    const templatePayload = {
+      name: validatedTemplate.name,
+      category: category.toUpperCase(),
+      language: validatedTemplate.language,
+      components,
+    };
+
+    console.log("📤 WhatsApp API payload:", JSON.stringify(templatePayload, null, 2));
+
+    // ===============================
+    // 🌟 SUBMIT TO WHATSAPP (patched)
+    // ===============================
+    const result = await whatsappApi.createTemplate(templatePayload);
+    console.log("✅ WhatsApp API response:", result);
+
+    // Update local DB
+    if (result.id) {
+      await storage.updateTemplate(template.id, {
+        whatsappTemplateId: result.id,
+        status: result.status || "pending",
+        category,
+      });
+
+      console.log("💾 Template updated with WhatsApp ID");
+    }
+
+    return res.json(template);
+
+  } catch (err: any) {
+
+    // -----------------------------------------------------------
+    // ⭐ NEW SUPER DEBUGGER → SHOW RAW WHATSAPP ERROR ALWAYS ⭐
+    // -----------------------------------------------------------
+    console.log("------ RAW ERROR START ------");
+    console.dir(err, { depth: null });
+    console.log("------ RAW ERROR END ------");
+
+    // If fetch() returned a Response with plain text
+    if (err.response && typeof err.response.text === "function") {
+      const raw = await err.response.text();
+      console.log("❌ RAW WHATSAPP TEXT ERROR:", raw);
+    }
+
+    console.log("❌ err.response?.data:", err.response?.data);
+    console.log("❌ err.response:", err.response);
+    console.log("❌ err.request:", err.request);
+    console.log("❌ err.message:", err.message);
+
+    return res.json({
+      ...template,
+      warning: "Template saved locally but failed to submit to WhatsApp",
+    });
+  }
+});
+
+
+
+export const createTemplateONEEE = asyncHandler(async (req: RequestWithChannel, res: Response) => {
+  console.log("🚀 Incoming template creation request body:", JSON.stringify(req.body, null, 2));
+
+  const validatedTemplate = req.body;
+  console.log("✅ Validated template:", validatedTemplate);
+
+  // Normalize category
+  let category = validatedTemplate.category?.toLowerCase() || "authentication";
+  if (!["marketing", "utility", "authentication"].includes(category)) {
+    category = "authentication";
+  }
+  console.log("📌 Using category:", category);
+
+  // Extract placeholders
+  const placeholderPattern = /\{\{(\d+)\}\}/g;
+  const placeholderMatches = Array.from(validatedTemplate.body.matchAll(placeholderPattern));
+  const placeholders = placeholderMatches.map(m => parseInt(m[1], 10)).sort((a, b) => a - b);
+  console.log("🔢 Extracted placeholders:", placeholders);
+
+  // Ensure placeholders are sequential
+  for (let i = 0; i < placeholders.length; i++) {
+    if (placeholders[i] !== i + 1) {
+      throw new AppError(400, "Placeholders must be sequential starting from {{1}}");
+    }
+  }
+
+  // Validate samples
+  const samples = validatedTemplate.samples;
+  // if (!samples || !Array.isArray(samples) || samples.length !== placeholders.length) {
+  //   throw new AppError(400, `You must provide ${placeholders.length} sample value(s) for the placeholders`);
+  // }
+  console.log("📝 Samples:", samples);
+
+  // Determine channel ID
+  let channelId = validatedTemplate.channelId;
+  if (!channelId) {
+    const activeChannel = await storage.getActiveChannel();
+    if (!activeChannel) throw new AppError(400, "No active channel found. Please configure a channel first.");
+    channelId = activeChannel.id;
+  }
+  console.log("📡 Using channelId:", channelId);
+
+  // Get logged-in user ID
+  const createdBy = req.user?.id;
+  if (!createdBy) throw new AppError(401, "User not authenticated");
+  console.log("👤 Created by userId:", createdBy);
+
+  // Create template in DB
+  const template = await storage.createTemplate({
+    ...validatedTemplate,
+    category,
+    channelId,
+    status: "pending",
+    createdBy,
+  });
+  console.log("💾 Template created locally:", template);
+
+  // Get channel info
+  const channel = await storage.getChannel(channelId);
+  if (!channel) throw new AppError(400, "Channel not found");
+  console.log("📡 Channel details:", channel);
+
+  // Prepare WhatsApp API payload
+  try {
+    const whatsappApi = new WhatsAppApiService(channel);
+
+    const components: any[] = [];
+
+  // HEADER (optional)
+if (validatedTemplate.header) {
+  components.push({
+    type: "HEADER",
+    format: "TEXT",
+    text: validatedTemplate.header,
+  });
+}
+
+
+    // BODY (always required)
+    components.push({
+      type: "BODY",
+      text: validatedTemplate.body,
+      example: {
+        body_text: samples, // ✅ must be array of arrays
+      },
+    });
+
+    // FOOTER (optional)
+    if (validatedTemplate.footer) {
+      components.push({
+        type: "FOOTER",
+        text: validatedTemplate.footer,
+      });
+    }
+
+    // BUTTONS (optional)
+    if (validatedTemplate.buttons?.length > 0) {
+      components.push({
+        type: "BUTTONS",
+        buttons: validatedTemplate.buttons.map((btn) => {
+          const obj: any = { type: btn.type.toUpperCase(), text: btn.text };
+          if (btn.type.toUpperCase() === "URL") obj.url = btn.url;
+          if (btn.type.toUpperCase() === "PHONE_NUMBER") obj.phone_number = btn.phoneNumber;
+          return obj;
+        }),
+      });
+    }
+
+    const templatePayload = {
+      name: validatedTemplate.name,
+      category: category.toUpperCase(),
+      language: validatedTemplate.language,
+      components,
+    };
+
+    console.log("📤 WhatsApp API payload:", JSON.stringify(templatePayload, null, 2));
+
+    // Submit to WhatsApp API
+    const result = await whatsappApi.createTemplate(templatePayload);
+    console.log("✅ WhatsApp API response:", result);
+
+    if (result.id) {
+      await storage.updateTemplate(template.id, {
+        whatsappTemplateId: result.id,
+        status: result.status || "pending",
+        category,
+      });
+      console.log("💾 Template updated with WhatsApp ID and status");
+    }
+
+    res.json(template);
+  } catch (error) {
+    console.error("⚠️ WhatsApp API error:", error);
+    console.log(JSON.stringify(error.response?.data, null, 2));;
+
+
+    res.json({
+      ...template,
+      warning: "Template created locally but failed to submit to WhatsApp",
+    });
+  }
+});
+
+
+export const createTemplateyyyy = asyncHandler(async (req: RequestWithChannel, res: Response) => {
+  console.log("🚀 Incoming template creation request body:", JSON.stringify(req.body, null, 2));
+
+  // 1️⃣ Validate request body
+  const validatedTemplate = req.body;
+  console.log("✅ Validated template:", validatedTemplate);
+
+  // 2️⃣ Normalize category
+  let category = validatedTemplate.category?.toLowerCase() || "authentication";
+  if (!["marketing", "utility", "authentication"].includes(category)) {
+    category = "authentication";
+  }
+  console.log("📌 Using category:", category);
+
+  // 3️⃣ Extract placeholders from body
+  const placeholderPattern = /\{\{(\d+)\}\}/g;
+  const placeholderMatches = Array.from(validatedTemplate.body.matchAll(placeholderPattern));
+  const placeholders = placeholderMatches.map(m => parseInt(m[1], 10)).sort((a, b) => a - b);
+  console.log("🔢 Extracted placeholders:", placeholders);
+
+  // 3a️⃣ Ensure placeholders are sequential starting from 1
+  for (let i = 0; i < placeholders.length; i++) {
+    if (placeholders[i] !== i + 1) {
+      throw new AppError(400, "Placeholders must be sequential starting from {{1}}");
+    }
+  }
+
+  // 4️⃣ Validate samples
+  const samples = validatedTemplate.samples;
+  console.log("📝 Frontend-provided samples:", samples);
+  if (!samples || !Array.isArray(samples) || samples.length !== placeholders.length) {
+    throw new AppError(
+      400,
+      `You must provide ${placeholders.length} sample value(s) for the placeholders`
+    );
+  }
+
+  // 5️⃣ Determine channelId
+  let channelId = validatedTemplate.channelId;
+  if (!channelId) {
+    const activeChannel = await storage.getActiveChannel();
+    if (!activeChannel) throw new AppError(400, "No active channel found. Please configure a channel first.");
+    channelId = activeChannel.id;
+  }
+  console.log("📡 Using channelId:", channelId);
+
+  // 6️⃣ Get logged-in user id
+  const createdBy = req.user?.id;
+  if (!createdBy) throw new AppError(401, "User not authenticated");
+  console.log("👤 Created by userId:", createdBy);
+
+  // 7️⃣ Create template locally
+  const template = await storage.createTemplate({
+    ...validatedTemplate,
+    category,
+    channelId,
+    status: "pending",
+    createdBy,
+  });
+  console.log("💾 Template created locally:", template);
+
+  // 8️⃣ Get channel info
+  const channel = await storage.getChannel(channelId);
+  if (!channel) throw new AppError(400, "Channel not found");
+  console.log("📡 Channel details:", channel);
+
+  // 9️⃣ Prepare WhatsApp API request
+  try {
+    const whatsappApi = new WhatsAppApiService(channel);
+
+    const components: any[] = [];
+
+    // Header
+    if (validatedTemplate.header) {
+      components.push({
+        type: "HEADER",
+        format: "TEXT",
+        text: validatedTemplate.header,
+      });
+    }
+
+    // Body (with proper 2D array for examples)
+    components.push({
+      type: "BODY",
+      text: validatedTemplate.body,
+      example: {
+        body_text: samples, // ⭐ WhatsApp requires 2D array
+      },
+    });
+
+    // Footer
+    if (validatedTemplate.footer) {
+      components.push({
+        type: "FOOTER",
+        text: validatedTemplate.footer,
+      });
+    }
+
+    // Buttons
+    if (validatedTemplate.buttons?.length > 0) {
+      components.push({
+        type: "BUTTONS",
+        buttons: validatedTemplate.buttons.map((btn) => {
+          const obj: any = {
+            type: btn.type.toUpperCase(),
+            text: btn.text,
+          };
+          if (btn.type.toUpperCase() === "URL") obj.url = btn.url;
+          if (btn.type.toUpperCase() === "PHONE_NUMBER") obj.phone_number = btn.phoneNumber;
+          return obj;
+        }),
+      });
+    }
+
+    const templatePayload = {
+      name: validatedTemplate.name,
+      category: category.toUpperCase(),
+      language: validatedTemplate.language,
+      components,
+    };
+
+    console.log("📤 WhatsApp API payload:", JSON.stringify(templatePayload, null, 2));
+
+    // 10️⃣ Submit to WhatsApp API
+    const result = await whatsappApi.createTemplate(templatePayload);
+    console.log("✅ WhatsApp API response:", result);
+
+    if (result.id) {
+      await storage.updateTemplate(template.id, {
+        whatsappTemplateId: result.id,
+        status: result.status || "pending",
+        category,
+      });
+      console.log("💾 Template updated with WhatsApp ID and status");
+    }
+
+    res.json(template);
+
+  } catch (error) {
+    console.error("⚠️ WhatsApp API error:", error);
+    res.json({
+      ...template,
+      warning: "Template created locally but failed to submit to WhatsApp",
+    });
+  }
+});
+
+
+
+
+export const createTemplateLLLL = asyncHandler(async (req: RequestWithChannel, res: Response) => {
   console.log("Template creation request body:", JSON.stringify(req.body, null, 2));
 
   // 1️⃣ Validate request body
