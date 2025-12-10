@@ -208,7 +208,38 @@ export class WhatsAppApiService {
     );
   }
 
+
+
+
   async createTemplate(templateData: any): Promise<any> {
+      const body = {
+        name: templateData.name,
+        category: templateData.category,
+        language: templateData.language,
+        components: templateData.components,
+      };
+  
+      console.log("🌐 Sending to WhatsApp API:", JSON.stringify(body, null, 2));
+  
+      const response = await fetch(
+        `${this.baseUrl}/${this.channel.whatsappBusinessAccountId}/message_templates`,
+        {
+          method: "POST",
+          headers: this.headers,
+          body: JSON.stringify(body),
+        }
+      );
+  
+      if (!response.ok) {
+        const error = await response.json();
+        console.error("❌ WhatsApp API Error Response:", JSON.stringify(error, null, 2));
+        throw new Error(error.error?.message || "Failed to create template");
+      }
+  
+      return await response.json();
+    }
+
+  async createTemplateOlDDD(templateData: any): Promise<any> {
     const components = this.formatTemplateComponents(templateData);
 
     const body = {
@@ -235,7 +266,75 @@ export class WhatsAppApiService {
     return await response.json();
   }
 
-  async deleteTemplate(templateName: string): Promise<any> {
+
+  async checkTemplateExists(templateName: string): Promise<boolean> {
+  const url = `${this.baseUrl}/${this.channel.whatsappBusinessAccountId}/message_templates?name=${encodeURIComponent(templateName)}`;
+
+  const res = await fetch(url, {
+    method: "GET",
+    headers: this.headers
+  });
+
+  if (res.status === 404) return false;
+
+  const data = await res.json();
+
+  return data.data && data.data.length > 0;
+}
+
+
+
+
+ async deleteTemplate(templateName: string): Promise<any> {
+  console.log("DELETE CHECK:", templateName);
+
+  // Check if template exists
+  const exists = await this.checkTemplateExists(templateName);
+
+  if (!exists) {
+    console.log(`⚠️ Template '${templateName}' does NOT exist on WhatsApp. Skipping delete.`);
+    return { skipped: true };
+  }
+
+  console.log(`🗑 Deleting WhatsApp template: ${templateName}`);
+
+  const url = `${this.baseUrl}/${this.channel.whatsappBusinessAccountId}/message_templates?name=${encodeURIComponent(templateName)}`;
+
+  const response = await fetch(url, {
+    method: "DELETE",
+    headers: this.headers
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    console.error("DELETE ERROR RESPONSE:", error);
+    throw new Error(error.error?.message || "Failed to delete template");
+  }
+
+  return await response.json();
+}
+
+
+async getTemplateStatus(templateName: string): Promise<string> {
+  const url = `${this.baseUrl}/${this.channel.whatsappBusinessAccountId}/message_templates?name=${encodeURIComponent(templateName)}`;
+
+  const res = await fetch(url, {
+    method: "GET",
+    headers: this.headers
+  });
+
+  if (res.status === 404) return "NOT_FOUND";
+
+  const data = await res.json();
+  if (!data.data || data.data.length === 0) return "NOT_FOUND";
+
+  return data.data[0].status || "UNKNOWN";
+}
+
+
+
+
+  async deleteTemplateOLD(templateName: string): Promise<any> {
     // WhatsApp API requires template name to delete
     const response = await fetch(
       `${this.baseUrl}/${
@@ -907,104 +1006,9 @@ export class WhatsAppApiService {
 }
 
 
-formatTemplateComponents(validatedTemplate: any) {
-  const components: any[] = [];
-
-  // ---------------------------
-  // ⭐ HEADER
-  // ---------------------------
-  if (validatedTemplate.header) {
-    const headerComponent: any = {
-      type: "HEADER",
-      format: validatedTemplate.headerFormat || "TEXT",
-      text: validatedTemplate.headerFormat === "TEXT" ? validatedTemplate.header : undefined,
-    };
-
-    // If header has variables {{1}}
-    const headerVars = validatedTemplate.header.match(/{{\d+}}/g);
-    if (headerVars && headerVars.length > 0) {
-      headerComponent.example = {
-        header_text: validatedTemplate.headerExamples || []
-      };
-    }
-
-    components.push(headerComponent);
-  }
-
-  // ---------------------------
-  // ⭐ BODY
-  // ---------------------------
-  if (validatedTemplate.body) {
-    const bodyComponent: any = {
-      type: "BODY",
-      text: validatedTemplate.body,
-    };
-
-    // Detect variables in BODY
-    const bodyVars = validatedTemplate.body.match(/{{\d+}}/g);
-
-    // Only add example if variables exist
-    if (bodyVars && bodyVars.length > 0) {
-      bodyComponent.example = {
-        body_text: validatedTemplate.bodyExamples || []
-      };
-    }
-
-    components.push(bodyComponent);
-  }
-
-  // ---------------------------
-  // ⭐ FOOTER (no variables allowed)
-  // ---------------------------
-  if (validatedTemplate.footer) {
-    components.push({
-      type: "FOOTER",
-      text: validatedTemplate.footer,
-    });
-  }
-
-  // ---------------------------
-  // ⭐ BUTTONS
-  // ---------------------------
-  if (validatedTemplate.buttons?.length) {
-    const buttonsComponent: any = {
-      type: "BUTTONS",
-      buttons: [],
-    };
-
-    validatedTemplate.buttons.forEach((btn: any, index: number) => {
-      const buttonObj: any = {
-        type: btn.type,
-      };
-
-      if (btn.type === "URL") {
-        buttonObj.text = btn.text;
-        buttonObj.url = btn.url;
-
-        // URL buttons MAY have {{1}} variable
-        const urlVars = btn.url?.match(/{{\d+}}/g);
-        if (urlVars && urlVars.length > 0) {
-          buttonObj.example = {
-            url: btn.urlExamples || []
-          };
-        }
-      }
-
-      if (btn.type === "QUICK_REPLY") {
-        buttonObj.text = btn.text;
-      }
-
-      buttonsComponent.buttons.push(buttonObj);
-    });
-
-    components.push(buttonsComponent);
-  }
-
-  return components;
-}
 
 
-  private formatTemplateComponentsFIRST(templateData: any): any[] {
+  private formatTemplateComponents(templateData: any): any[] {
     const components = [];
 
     // Handle media header if present

@@ -61,6 +61,64 @@ export default function Templates() {
   });
 
 
+  const createTemplateMutationnnn = useMutation({
+  mutationFn: async (data: any) => {
+    const components = [];
+
+    if (data.header || data.mediaType !== "text") {
+      components.push({
+        type: "HEADER",
+        format: data.mediaType === "text" ? "TEXT" : data.mediaType.toUpperCase(),
+        text: data.header,
+      });
+    }
+
+    components.push({ type: "BODY", text: data.body });
+
+    if (data.footer) components.push({ type: "FOOTER", text: data.footer });
+
+    if (data.buttons?.length) {
+      components.push({
+        type: "BUTTONS",
+        buttons: data.buttons.map((btn: any) => ({
+          type: btn.type,
+          text: btn.text,
+          url: btn.url,
+          phone_number: btn.phoneNumber,
+        })),
+      });
+    }
+
+    const payload = {
+      name: data.name,
+      category: data.category,
+      language: data.language,
+      components,
+      header: data.header,
+      body: data.body,
+      footer: data.footer,
+      channelId: activeChannel?.id,
+      samples: data.variables,
+    };
+
+    console.log("CHECK PAYLDOODDDD@@@@@@@@@@@@@@", payload);
+
+    // ✅ This was BROKEN before. Now fixed:
+    if (editingTemplate) {
+      return await apiRequest(
+        "PUT",
+        `/api/templates/${editingTemplate.id}`,
+        payload
+      );
+    } else {
+      return await apiRequest("POST", "/api/templates", payload);
+    }
+  },
+});
+
+
+  
+
   const createTemplateMutation = useMutation({
   mutationFn: async (data: any) => {
     const components = [];
@@ -102,11 +160,11 @@ export default function Templates() {
       samples: data.variables , // jo bhi sample values user ne diye hain
     };
 
-    console.log("CHECK PAYLDOODDDD", payload)
+    // console.log("CHECK PAYLDOODDDD@@@@@@@@@@@@@@", payload)
 
     if (editingTemplate) {
       return await apiRequest(
-        "PATCH",
+        "PUT",
         `/api/templates/${editingTemplate.id}`,
         payload
       );
@@ -274,6 +332,7 @@ export default function Templates() {
     setShowDialog(true);
   };
   const handleEditTemplate = (template: Template) => {
+    console.log("check EDDDDDDDDDDDDDD data", template)
     setEditingTemplate(template);
     setShowDialog(true);
   };

@@ -33,12 +33,10 @@ export function registerTemplateRoutes(app: Express) {
   );
 
   // Update template
-  app.put("/api/templates/:id",requireAuth,
-  requirePermission(PERMISSIONS.TEMPLATES_EDIT), templatesController.updateTemplate);
+  app.put("/api/templates/:id",requireAuth, templatesController.updateTemplate);
 
   // Delete template
-  app.delete("/api/templates/:id",requireAuth,
-  requirePermission(PERMISSIONS.TEMPLATES_DELETE), templatesController.deleteTemplate);
+  app.delete("/api/templates/:id",requireAuth, templatesController.deleteTemplate);
 
   // Sync templates with WhatsApp
   app.post("/api/templates/sync",requireAuth,

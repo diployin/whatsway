@@ -90,7 +90,6 @@ const templateFormSchema = z.object({
     .max(3, "Maximum 3 buttons allowed")
     .default([]),
   variables: z.array(z.string()).default([]),
-  /** 👉 THIS WAS MISSING */
   samples: z.array(z.string()).default([]),
 });
 

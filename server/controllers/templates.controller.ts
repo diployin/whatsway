@@ -21,7 +21,7 @@ export const getTemplates = asyncHandler(
 
     // Get page & limit from query params
     const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 10;
+    const limit = Number(req.query.limit) || 100;
 
     let result;
     console.log("Fetching templates for channelId:", channelId, " page:", page, " limit:", limit);
@@ -97,48 +97,46 @@ export const createTemplate = asyncHandler(async (req: RequestWithChannel, res: 
   const validatedTemplate = req.body;
   console.log("✅ Validated template:", validatedTemplate);
 
-  // Normalize Category
+  // Normalize category
   let category = validatedTemplate.category?.toLowerCase() || "authentication";
   if (!["marketing", "utility", "authentication"].includes(category)) {
     category = "authentication";
   }
-  console.log("📌 Using category:", category);
+  category = category.toUpperCase();
 
-  // Extract placeholders
+  // Extract placeholders from body
   const placeholderPattern = /\{\{(\d+)\}\}/g;
   const placeholderMatches = Array.from(validatedTemplate.body.matchAll(placeholderPattern));
   const placeholders = placeholderMatches.map(m => parseInt(m[1], 10)).sort((a, b) => a - b);
 
   console.log("🔢 Extracted placeholders:", placeholders);
 
-  // Validate sequence
+  // Validate sequential placeholders
   for (let i = 0; i < placeholders.length; i++) {
     if (placeholders[i] !== i + 1) {
       throw new AppError(400, "Placeholders must be sequential starting from {{1}}");
     }
   }
 
-  // Samples
   const samples = validatedTemplate.samples || [];
   console.log("📝 Samples:", samples);
 
-  // Channel ID
+  // Validate samples match placeholder count
+  if (placeholders.length > 0 && samples.length !== placeholders.length) {
+    throw new AppError(400, `Expected ${placeholders.length} sample values, got ${samples.length}`);
+  }
+
+  // Channel selection
   let channelId = validatedTemplate.channelId;
   if (!channelId) {
     const activeChannel = await storage.getActiveChannel();
-    if (!activeChannel) throw new AppError(400, "No active channel found. Please configure a channel first.");
+    if (!activeChannel) throw new AppError(400, "No active channel found");
     channelId = activeChannel.id;
   }
 
-  console.log("📡 Using channelId:", channelId);
-
-  // User
   const createdBy = req.user?.id;
   if (!createdBy) throw new AppError(401, "User not authenticated");
 
-  console.log("👤 Created by:", createdBy);
-
-  // Save locally
   const template = await storage.createTemplate({
     ...validatedTemplate,
     category,
@@ -147,13 +145,8 @@ export const createTemplate = asyncHandler(async (req: RequestWithChannel, res: 
     createdBy,
   });
 
-  console.log("💾 Template created locally:", template);
-
-  // Fetch channel
   const channel = await storage.getChannel(channelId);
   if (!channel) throw new AppError(400, "Channel not found");
-
-  console.log("📡 Channel:", channel);
 
   try {
     const whatsappApi = new WhatsAppApiService(channel);
@@ -162,39 +155,55 @@ export const createTemplate = asyncHandler(async (req: RequestWithChannel, res: 
 
     // HEADER
     if (validatedTemplate.header) {
+      const headerVars = validatedTemplate.header.match(/{{\d+}}/g);
       const headerObj: any = {
         type: "HEADER",
-        format: "TEXT",
-        text: validatedTemplate.header,
+        format: validatedTemplate.mediaType?.toUpperCase() || "TEXT",
       };
 
-      const vars = validatedTemplate.header.match(/{{\d+}}/g);
-      if (vars?.length) {
-        headerObj.example = {
-          header_text: validatedTemplate.headerSamples || [],
-        };
+      // For TEXT headers
+      if (!validatedTemplate.mediaType || validatedTemplate.mediaType === "text") {
+        headerObj.text = validatedTemplate.header;
+        
+        // Add examples if header has variables
+        if (headerVars?.length) {
+          if (!validatedTemplate.headerSamples || validatedTemplate.headerSamples.length !== headerVars.length) {
+            throw new AppError(400, `Header has ${headerVars.length} variables but ${validatedTemplate.headerSamples?.length || 0} samples provided`);
+          }
+          headerObj.example = {
+            header_text: validatedTemplate.headerSamples
+          };
+        }
+      } 
+      // For MEDIA headers (IMAGE, VIDEO, DOCUMENT)
+      else {
+        if (validatedTemplate.mediaUrl) {
+          headerObj.example = {
+            header_handle: [validatedTemplate.mediaUrl]
+          };
+        }
       }
 
       components.push(headerObj);
     }
 
-    // BODY
+    // BODY (required)
+    const bodyVars = validatedTemplate.body.match(/{{\d+}}/g);
     const bodyObj: any = {
       type: "BODY",
       text: validatedTemplate.body,
     };
 
-    const bodyVars = validatedTemplate.body.match(/{{\d+}}/g);
-
+    // Add examples if body has variables
     if (bodyVars?.length) {
       bodyObj.example = {
-        body_text: [samples],
+        body_text: [samples] // Array of array format required by WhatsApp
       };
     }
 
     components.push(bodyObj);
 
-    // FOOTER
+    // FOOTER (optional)
     if (validatedTemplate.footer) {
       components.push({
         type: "FOOTER",
@@ -202,70 +211,68 @@ export const createTemplate = asyncHandler(async (req: RequestWithChannel, res: 
       });
     }
 
-    // BUTTONS
+    // BUTTONS (optional)
     if (validatedTemplate.buttons?.length > 0) {
+      const buttons = validatedTemplate.buttons.map((btn: any) => {
+        const buttonObj: any = {
+          type: btn.type.toUpperCase() === "URL" ? "URL" : 
+                btn.type.toUpperCase() === "PHONE" ? "PHONE_NUMBER" : 
+                "QUICK_REPLY",
+          text: btn.text,
+        };
+
+        if (buttonObj.type === "URL") {
+          buttonObj.url = btn.url;
+        } else if (buttonObj.type === "PHONE_NUMBER") {
+          buttonObj.phone_number = btn.phoneNumber;
+        }
+
+        return buttonObj;
+      });
+
       components.push({
         type: "BUTTONS",
-        buttons: validatedTemplate.buttons.map((btn) => {
-          const obj: any = {
-            type: btn.type.toUpperCase(),
-            text: btn.text,
-          };
-          if (btn.type === "url") obj.url = btn.url;
-          if (btn.type === "phone") obj.phone_number = btn.phoneNumber;
-          return obj;
-        }),
+        buttons,
       });
     }
 
-    // FINAL PAYLOAD
+    // FINAL META PAYLOAD - Use actual template data, not static
     const templatePayload = {
       name: validatedTemplate.name,
-      category: category.toUpperCase(),
+      category,
       language: validatedTemplate.language,
       components,
     };
 
-    console.log("📤 WhatsApp API payload:", JSON.stringify(templatePayload, null, 2));
+    console.log("📤 FINAL META PAYLOAD:", JSON.stringify(templatePayload, null, 2));
 
-    // ===============================
-    // 🌟 SUBMIT TO WHATSAPP (patched)
-    // ===============================
+    // Send the actual payload, not the static one
     const result = await whatsappApi.createTemplate(templatePayload);
-    console.log("✅ WhatsApp API response:", result);
 
-    // Update local DB
     if (result.id) {
       await storage.updateTemplate(template.id, {
         whatsappTemplateId: result.id,
         status: result.status || "pending",
         category,
       });
-
-      console.log("💾 Template updated with WhatsApp ID");
     }
 
     return res.json(template);
 
   } catch (err: any) {
-
-    // -----------------------------------------------------------
-    // ⭐ NEW SUPER DEBUGGER → SHOW RAW WHATSAPP ERROR ALWAYS ⭐
-    // -----------------------------------------------------------
     console.log("------ RAW ERROR START ------");
     console.dir(err, { depth: null });
     console.log("------ RAW ERROR END ------");
 
-    // If fetch() returned a Response with plain text
     if (err.response && typeof err.response.text === "function") {
       const raw = await err.response.text();
       console.log("❌ RAW WHATSAPP TEXT ERROR:", raw);
     }
 
-    console.log("❌ err.response?.data:", err.response?.data);
-    console.log("❌ err.response:", err.response);
-    console.log("❌ err.request:", err.request);
     console.log("❌ err.message:", err.message);
+
+    // Optionally delete the locally saved template on API failure
+    // await storage.deleteTemplate(template.id);
 
     return res.json({
       ...template,
@@ -273,6 +280,7 @@ export const createTemplate = asyncHandler(async (req: RequestWithChannel, res: 
     });
   }
 });
+
 
 
 
@@ -940,12 +948,162 @@ export const createTemplateOLDDD = asyncHandler(async (req: RequestWithChannel, 
 });
 
 
+// *************************
+// UPDATE TEMPLATE CONTROLLER
+// *************************
 
+async function waitForTemplateDeletion(api: WhatsAppApiService, templateName: string) {
+  console.log(`⏳ Fully waiting for WhatsApp to finish deleting template: ${templateName}`);
+
+  for (let i = 0; i < 20; i++) {   // wait up to ~100 seconds
+    await new Promise((resolve) => setTimeout(resolve, 5000)); // wait 5 sec
+
+    try {
+      const status = await api.getTemplateStatus(templateName);
+
+      // If template no longer exists → both template + language deleted
+      if (status === "NOT_FOUND") {
+        console.log("✅ Fully deleted (template + language cleared)");
+        return;
+      }
+
+      // Some states you will see while still deleting:
+      if (status === "DELETING" || status === "PENDING_DELETION") {
+        console.log(`⌛ Still deleting language... status=${status}`);
+        continue;
+      }
+
+      console.log(`⌛ Soft deletion…but still present: status=${status}`);
+
+    } catch (err) {
+      // 404 → Not found → deletion complete
+      console.log("✅ Template & its language fully deleted (404)");
+      return;
+    }
+  }
+
+  throw new Error("⚠️ Timeout: template language still deleting after 100 seconds");
+}
+
+
+async function waitForTemplateDeletionOLD(api: WhatsAppApiService, templateName: string) {
+  console.log(`⏳ Waiting for WhatsApp to finish deleting template: ${templateName}`);
+
+  for (let i = 0; i < 12; i++) {   // ~12 × 5 sec = 60 seconds max wait
+    await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
+
+    try {
+      const status = await api.getTemplateStatus(templateName);
+
+      // If template no longer exists, deletion complete
+      if (status === "NOT_FOUND" || status === "DELETED") {
+        console.log("✅ Template deletion confirmed by WhatsApp");
+        return;
+      }
+
+      console.log(`⌛ Still deleting... status = ${status}`);
+    } catch (error) {
+      // 404 → template not found → deletion done
+      console.log("✅ Template deletion completed (404 Not Found)");
+      return;
+    }
+  }
+
+  throw new Error("🚨 Timeout: WhatsApp still deleting template after 60 seconds");
+}
 
 
 export const updateTemplate = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const validatedData = insertTemplateSchema.parse(req.body);
+  const validatedData = req.body;
+
+  const existingTemplate = await storage.getTemplate(id);
+  if (!existingTemplate) throw new AppError(404, "Template not found");
+
+  const updatedTemplate = await storage.updateTemplate(id, validatedData);
+  const channel = await storage.getChannel(updatedTemplate.channelId!);
+  if (!channel) throw new AppError(400, "Channel not found");
+
+  const whatsappApi = new WhatsAppApiService(channel);
+
+  // ============================
+  //     CHECK + DELETE FLOW
+  // ============================
+  if (existingTemplate.whatsappTemplateId) {
+    try {
+      console.log("🗑 Checking if WhatsApp template exists:", existingTemplate.name);
+
+      // NEW: check existing template on WhatsApp
+      const exists = await whatsappApi.checkTemplateExists(existingTemplate.name);
+
+      if (!exists) {
+        console.log(`⚠️ Template ${existingTemplate.name} does NOT exist on WhatsApp. Skipping delete.`);
+      } else {
+        console.log("🗑 Deleting existing WhatsApp template:", existingTemplate.name);
+        await whatsappApi.deleteTemplate(existingTemplate.name);
+
+        // NEW: wait only if delete actually happened
+        await waitForTemplateDeletion(whatsappApi, existingTemplate.name);
+      }
+
+      console.log("🆕 Creating updated WhatsApp template...");
+      const result = await whatsappApi.createTemplate(validatedData);
+
+      if (result.id) {
+        await storage.updateTemplate(updatedTemplate.id, {
+          whatsappTemplateId: result.id,
+          status: result.status || "pending",
+        });
+      }
+
+      return res.json({
+        ...updatedTemplate,
+        message: "Template updated and resubmitted to WhatsApp for approval",
+      });
+
+    } catch (err) {
+      console.error("❌ WhatsApp API error:", err);
+      return res.json({
+        ...updatedTemplate,
+        warning: "Template updated locally but failed to resubmit to WhatsApp",
+      });
+    }
+  }
+
+  // ============================
+  //     NEW TEMPLATE SUBMISSION
+  // ============================
+  try {
+    const result = await whatsappApi.createTemplate(validatedData);
+    if (result.id) {
+      await storage.updateTemplate(updatedTemplate.id, {
+        whatsappTemplateId: result.id,
+        status: result.status || "pending",
+      });
+    }
+
+    return res.json({
+      ...updatedTemplate,
+      message: "Template updated and submitted to WhatsApp for approval",
+    });
+  } catch (err) {
+    console.error("WhatsApp API error:", err);
+    return res.json({
+      ...updatedTemplate,
+      warning: "Template updated locally but failed to submit to WhatsApp",
+    });
+  }
+});
+
+
+export const updateTemplateOLD = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const validatedData = req.body;
+
+  console.log("🔍 API REQUEST:");
+  console.log("➡ Method:", req.method);
+  console.log("➡ URL:", req.url);
+  console.log("➡ Body:", JSON.stringify(validatedData, null, 2));
   
   // Get existing template
   const existingTemplate = await storage.getTemplate(id);
