@@ -247,24 +247,54 @@ const MessageItem = ({
 
   const renderMediaContent = () => {
     // Check if message has media content
-    const hasMedia = message.mediaId || message.mediaUrl;
-    const messageType = message.messageType || message.type;
+const hasMedia = message.mediaId || message.mediaUrl;
+const messageType = message.messageType || message.type;
+const cloudUrl = message?.metadata?.cloudUrl;
+const isAbsolute = (url?: string) => !!url && /^https?:\/\//i.test(url);
 
-    // Use backend proxy for Facebook/WhatsApp URLs, direct URL for others
-    const needsProxy =
-      hasMedia &&
-      message.mediaUrl &&
-      message.mediaUrl.includes("lookaside.fbsbx.com");
-    const mediaUrl = hasMedia
-      ? needsProxy
-        ? `/api/messages/media-proxy?messageId=${message.id}`
-        : message.mediaUrl
-      : null;
-    const downloadUrl = hasMedia
-      ? needsProxy
-        ? `/api/messages/media-proxy?messageId=${message.id}&download=true`
-        : message.mediaUrl
-      : null;
+// console.log("=== DEBUG START ===");
+// console.log("check message url", hasMedia);
+// console.log("message.mediaUrl", message.mediaUrl);
+// console.log("message.metadata?.cloudUrl:", cloudUrl);
+
+const needsProxy =
+  hasMedia &&
+  message.mediaUrl &&
+  message.mediaUrl.includes("lookaside.fbsbx.com");
+
+let mediaUrl: string | null = null;
+let downloadUrl: string | null = null;
+
+if (hasMedia) {
+  // PRIORITY 1: Check cloudUrl first (DigitalOcean Spaces)
+  if (cloudUrl) {
+    if (isAbsolute(cloudUrl)) {
+      // Absolute cloudUrl - use directly
+      mediaUrl = cloudUrl;
+      downloadUrl = cloudUrl;
+    } else {
+      // Relative cloudUrl - use proxy
+      mediaUrl = `/api/messages/media-proxy?messageId=${message.id}`;
+      downloadUrl = `/api/messages/media-proxy?messageId=${message.id}&download=true`;
+    }
+  } 
+  // PRIORITY 2: If no cloudUrl, check if needs proxy
+  else if (needsProxy) {
+    mediaUrl = `/api/messages/media-proxy?messageId=${message.id}`;
+    downloadUrl = `/api/messages/media-proxy?messageId=${message.id}&download=true`;
+  } 
+  // PRIORITY 3: Fallback to mediaUrl
+  else if (message.mediaUrl) {
+    mediaUrl = message.mediaUrl;
+    downloadUrl = message.mediaUrl;
+  }
+}
+
+// console.log("needsProxy:", needsProxy);
+// console.log("Final mediaUrl:", mediaUrl);
+// console.log("=== DEBUG END ===");
+
+
 
     // Helper function to render text content
     const renderTextContent = () => {
@@ -872,6 +902,9 @@ const TemplateDialog = ({
       t.status.toLowerCase().includes("approve")
     )
   : [];
+
+
+  
 
 
 
