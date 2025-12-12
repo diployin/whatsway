@@ -866,10 +866,17 @@ async function handleMessageChange(value: any) {
     if (io) {
       console.log("📢 Broadcasting via IO:", conversation.id);
 
+      // io.to(`conversation_${conversation.id}`).emit("new-message", {
+      //   type: "new-message",
+      //   message: newMessage,
+      // });
+
       io.to(`conversation_${conversation.id}`).emit("new-message", {
-        type: "new-message",
-        message: newMessage,
-      });
+  type: "new-message",
+  conversationId: conversation.id,
+  message: newMessage,
+});
+
 
     } else {
       console.log("❌ IO is not initialized in webhook");

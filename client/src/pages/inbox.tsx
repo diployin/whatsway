@@ -1121,10 +1121,20 @@ socketInstance.on("conversation_created", () => {
   queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
 });
 
-socketInstance.on("new-message", () => {
-  console.log("🔥 new-message event received");
+
+
+socketInstance.on("new-message", (data) => {
+  console.log("🔥 Realtime WA message:", data);
+
   queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+
+  if (selectedConversation?.id === data.conversationId) {
+    queryClient.invalidateQueries({
+      queryKey: ["/api/conversations", selectedConversation.id, "messages"],
+    });
+  }
 });
+
 
 
 
