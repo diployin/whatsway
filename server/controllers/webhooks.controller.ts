@@ -877,6 +877,12 @@ async function handleMessageChange(value: any) {
   message: newMessage,
 });
 
+io.to(`conversation_${conversation.id}`).emit("new_message", {
+  type: "new_message",
+  conversationId: conversation.id,
+  message: newMessage,
+});
+
 
     } else {
       console.log("❌ IO is not initialized in webhook");
