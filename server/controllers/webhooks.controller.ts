@@ -861,32 +861,95 @@ async function handleMessageChange(value: any) {
     // ================================
     //  🔥 REALTIME SEND USING IO
     // ================================
-    const io = (global as any).io;
+//     const io = (global as any).io;
 
-    if (io) {
-      console.log("📢 Broadcasting via IO:", conversation.id);
+// if (io) {
+//   console.log("📢 Broadcasting via IO:", conversation.id);
 
-      // io.to(`conversation_${conversation.id}`).emit("new-message", {
-      //   type: "new-message",
-      //   message: newMessage,
-      // });
+//   const messageData = {
+//     type: "new-message",
+//     conversationId: conversation.id,
+//     message: newMessage,
+//   };
 
-      io.to(`conversation_${conversation.id}`).emit("new-message", {
-  type: "new-message",
-  conversationId: conversation.id,
-  message: newMessage,
-});
+//   // Emit to both room formats
+//   io.to(`conversation_${conversation.id}`).emit("new-message", messageData);
+//   io.to(`conversation:${conversation.id}`).emit("new-message", messageData);
+  
+//   // Channel update
+//   io.to(`channel:${channel.id}`).emit("conversation_updated", {
+//     conversationId: conversation.id,
+//     lastMessage: messageContent,
+//   });
 
-io.to(`conversation_${conversation.id}`).emit("new_message", {
-  type: "new_message",
-  conversationId: conversation.id,
-  message: newMessage,
-});
+//   // New conversation notification
+//   if (isNewConversation) {
+//     io.to(`channel:${channel.id}`).emit("conversation_created", {
+//       conversation: conversation,
+//     });
+//   }
+
+//   console.log("✅ Message broadcasted");
+// } else {
+//   console.log("❌ IO not initialized");
+// }
+
+// ================================
+//  🔥 REALTIME SEND USING IO
+// ================================
+const io = (global as any).io;
+
+if (io) {
+  console.log("📢 Broadcasting message for conversation:", conversation.id);
+  console.log("📢 Channel ID for broadcast:", channel.id);
+  const channelRoom = `channel:${channel.id}`;
+  console.log("checkc channelll", channelRoom)
+  const messageData = {
+    type: "new-message",
+    conversationId: conversation.id,
+    message: newMessage,
+  };
+
+  // Emit + Log
+console.log("Emitting message_sent to room:", `site:${channelRoom}`, "with data:", messageData);
+
+io.to(channelRoom).emit("message_sent", messageData);
 
 
-    } else {
-      console.log("❌ IO is not initialized in webhook");
-    }
+  // Broadcast to specific conversation rooms
+  io.to(`conversation_${conversation.id}`).emit("new-message", messageData);
+  io.to(`conversation:${conversation.id}`).emit("new-message", messageData);
+  
+  console.log(`✅ Emitted to conversation_${conversation.id}`);
+   
+  // 🔥 CRITICAL: Broadcast to channel room (ALL agents)
+  
+  console.log(`📢 Broadcasting to channel room: ${channelRoom}`);
+  
+  io.to(channelRoom).emit("new-message", messageData);
+  io.to(channelRoom).emit("conversation_updated", {
+    conversationId: conversation.id,
+    lastMessage: messageContent,
+    timestamp: new Date(),
+    unreadCount: (conversation.unreadCount || 0) + 1,
+  });
+
+  console.log(`✅ Emitted to ${channelRoom}`);
+
+  // New conversation notification
+  if (isNewConversation) {
+    console.log("📢 NEW CONVERSATION - Broadcasting to channel");
+    io.to(channelRoom).emit("conversation_created", {
+      conversation: conversation,
+    });
+  }
+
+  console.log("✅✅✅ Broadcast complete to all rooms");
+} else {
+  console.error("❌❌❌ IO is not initialized!");
+}
+
+
 
     // AI auto reply
     try {
@@ -965,7 +1028,6 @@ io.to(`conversation_${conversation.id}`).emit("new_message", {
     }
   }
 }
-
 
 // --- AI AUTO-REPLY HELPER FUNCTION (NEW) ---
 async function checkAndSendAiReply(

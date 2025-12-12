@@ -96,12 +96,55 @@ io.on("connection", (socket) => {
   // ==========================================
 
   // Agent joins a conversation
-  socket.on(
+
+   socket.on(
     "agent_join_conversation",
     async ({ conversationId, agentId, agentName }) => {
       console.log(`Agent ${agentName} joining conversation ${conversationId}`);
 
+      // Join BOTH room formats
       socket.join(`conversation:${conversationId}`);
+      socket.join(`conversation_${conversationId}`);  // ADD THIS LINE
+
+      const user = connectedUsers.get(socket.id);
+      if (user) {
+        user.conversationId = conversationId;
+        user.agentName = agentName;
+      }
+
+      if (!conversationRooms.has(conversationId)) {
+        conversationRooms.set(conversationId, new Set());
+      }
+      conversationRooms.get(conversationId)?.add(socket.id);
+
+      // Notify others in the conversation
+      socket.to(`conversation:${conversationId}`).emit("agent_joined", {
+        conversationId,
+        agentId,
+        agentName,
+      });
+
+      // Update database
+      try {
+        await storage.updateConversation(conversationId, {
+          status: "assigned",
+          assignedTo: agentId,
+          assignedToName: agentName,
+        });
+      } catch (error) {
+        console.error("Error updating conversation:", error);
+      }
+      
+      console.log(`✅ Agent joined both room formats for ${conversationId}`);
+    }
+  );
+  socket.on(
+    "agent_join_conversationOLD",
+    async ({ conversationId, agentId, agentName }) => {
+      console.log(`Agent ${agentName} joining conversation ${conversationId}`);
+
+      socket.join(`conversation:${conversationId}`);
+      socket.join(`conversation_${conversationId}`); 
 
       const user = connectedUsers.get(socket.id);
       if (user) {
@@ -218,20 +261,58 @@ io.on("connection", (socket) => {
   // ==========================================
 
   // Visitor joins conversation
-  socket.on("join_conversation", ({ conversationId }) => {
-    console.log(`Visitor joining conversation ${conversationId}`);
-    socket.join(`conversation:${conversationId}`);
+  // socket.on("join_conversation", ({ conversationId }) => {
+  //   console.log(`Visitor joining conversation ${conversationId}`);
+  //   socket.join(`conversation:${conversationId}`);
 
-    if (!conversationRooms.has(conversationId)) {
-      conversationRooms.set(conversationId, new Set());
-    }
-    // Broadcast to all participants in the conversation
-    io.to(`conversation:${conversationId}`).emit("new_message", {
-      conversationId,
-    });
-    conversationRooms.get(conversationId)?.add(socket.id);
+  //   if (!conversationRooms.has(conversationId)) {
+  //     conversationRooms.set(conversationId, new Set());
+  //   }
+  //   // Broadcast to all participants in the conversation
+  //   io.to(`conversation:${conversationId}`).emit("new_message", {
+  //     conversationId,
+  //   });
+  //   conversationRooms.get(conversationId)?.add(socket.id);
+  // });
+
+
+  // ADD THIS AFTER LINE 60 (after test_event handler)
+
+// ADD AFTER LINE 60 - After test_event handler
+
+socket.on('join_all_conversations', ({ channelId, userId }) => {
+  console.log(`✅ JOIN_ALL_CONVERSATIONS: User ${userId} joining channel ${channelId}`);
+  socket.join(`channel:${channelId}`);
+  socket.join(`user:${userId}`);
+  console.log(`✅ Successfully joined channel:${channelId}`);
+  
+  socket.emit('joined_channel', {
+    channelId,
+    userId,
+    message: 'Successfully joined channel room'
   });
+});
 
+socket.on('join_conversation', ({ conversationId, userId }) => {
+  console.log(`✅ JOIN_CONVERSATION: ${userId} joining ${conversationId}`);
+  socket.join(`conversation_${conversationId}`);
+  socket.join(`conversation:${conversationId}`);
+  
+  if (!conversationRooms.has(conversationId)) {
+    conversationRooms.set(conversationId, new Set());
+  }
+  conversationRooms.get(conversationId)?.add(socket.id);
+  console.log(`✅ Joined conversation_${conversationId}`);
+});
+
+socket.on('leave_conversation', ({ conversationId, userId }) => {
+  socket.leave(`conversation_${conversationId}`);
+  socket.leave(`conversation:${conversationId}`);
+  const room = conversationRooms.get(conversationId);
+  if (room) {
+    room.delete(socket.id);
+  }
+});
   // Visitor is typing
   socket.on("user_typing", ({ conversationId }) => {
     socket.to(`conversation:${conversationId}`).emit("user_typing", {

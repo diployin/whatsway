@@ -1116,23 +1116,60 @@ export default function Inbox() {
     
 
 
-socketInstance.on("conversation_created", () => {
-  console.log("🔥 conversation_created event received");
-  queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+// socketInstance.on("conversation_created", () => {
+//   console.log("🔥 conversation_created event received");
+//   queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+// });
+
+
+socketInstance.on("message_sent", (data) => {
+  console.log("📩 message_sent event received:", data);
+
+  // 🔄 Update Conversation List
+  queryClient.invalidateQueries({
+    queryKey: ["/api/conversations"]
+  });
+
+  // 🔄 Update messages ONLY for the active/opened conversation
+  
+    queryClient.invalidateQueries({
+      queryKey: ["/api/conversations", data.conversationId, "messages"]
+    });
+  
 });
 
 
 
-socketInstance.on("new-message", (data) => {
-  console.log("🔥 Realtime WA message:", data);
 
+
+
+
+// Listen for new messages (works for ANY conversation)
+socketInstance.on("new-message", (data) => {
+  console.log("🔥 Realtime WA message received:", data);
+
+  // ALWAYS refresh conversations list (for unread count, last message)
   queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
 
+  // If message is for selected conversation, also refresh messages
   if (selectedConversation?.id === data.conversationId) {
+    console.log("Refreshing messages for selected conversation");
     queryClient.invalidateQueries({
       queryKey: ["/api/conversations", selectedConversation.id, "messages"],
     });
   }
+});
+
+// Listen for conversation updates (new messages in other conversations)
+socketInstance.on("conversation_updated", (data) => {
+  console.log("🔔 Conversation updated:", data.conversationId);
+  queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+});
+
+// Listen for new conversations
+socketInstance.on("conversation_created", (data) => {
+  console.log("🆕 New conversation created:", data.conversation);
+  queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
 });
 
 
@@ -1141,7 +1178,7 @@ socketInstance.on("new-message", (data) => {
 
 
     // Listen for new messages (from visitors or AI)
-    socketInstance.on("new_message", (data) => {
+    socketInstance.on("new-message", (data) => {
       console.log("New message received:", data);
 
       // Refresh conversations list
@@ -1276,6 +1313,7 @@ socketInstance.on("new-message", (data) => {
   }, []);
 
 
+  
 
 
 
