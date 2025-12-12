@@ -1121,6 +1121,14 @@ socketInstance.on("conversation_created", () => {
   queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
 });
 
+socketInstance.on("new-message", () => {
+  console.log("🔥 new-message event received");
+  queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+});
+
+
+
+
 
     // Listen for new messages (from visitors or AI)
     socketInstance.on("new_message", (data) => {
