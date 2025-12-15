@@ -51,6 +51,7 @@ interface BrandSettings {
   updatedAt?: string;
   country?: string;
   currency?: string;
+  supportEmail?: string;
 }
 
 // This is only for React state
@@ -58,6 +59,7 @@ interface BrandFormValues {
   title: string;
   tagline: string;
   country: string;
+  supportEmail: string; 
   currency: string;
   logo: File | null;
   logo2: File | null;
@@ -69,6 +71,7 @@ interface ValidationErrors {
   tagline?: string;
   logo?: string;
   favicon?: string;
+  supportEmail?:string;
 }
 
 interface GeneralSettingsModalProps {
@@ -88,6 +91,7 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
   const [formData, setFormData] = useState<BrandFormValues>({
     title: "",
     tagline: "",
+    supportEmail: "",
     logo: null,
     logo2: null,
     favicon: null,
@@ -127,6 +131,7 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
       setFormData({
         title: brandSettings.title || "",
         tagline: brandSettings.tagline || "",
+        supportEmail: brandSettings.supportEmail || "",
         country: brandSettings.country || "",
         currency: brandSettings.currency || "",
         logo: null, // no File yet
@@ -222,6 +227,14 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
       newErrors.title = "Application title is required";
     }
 
+    if (
+  formData.supportEmail &&
+  !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.supportEmail)
+) {
+  newErrors.supportEmail = "Invalid support email address";
+}
+
+
     if (formData.title.length > 50) {
       newErrors.title = "Title should be less than 50 characters";
     }
@@ -242,6 +255,8 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
     formDataToSend.append("tagline", formData.tagline);
     formDataToSend.append("country", formData.country);
     formDataToSend.append("currency", formData.currency);
+    formDataToSend.append("supportEmail", formData.supportEmail);
+
 
     if (formData.logo) formDataToSend.append("logo", formData.logo);
     if (formData.logo2) formDataToSend.append("logo2", formData.logo2);
@@ -259,6 +274,7 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
       logo: null,
       logo2: null,
       favicon: null,
+      supportEmail:"",
       currency: "",
       country: "",
     });
@@ -358,6 +374,23 @@ const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
               </p>
             )}
           </div>
+
+          {/* Support Email */}
+<div className="space-y-2">
+  <Label className="flex items-center font-medium">
+    <Tag className="w-4 h-4 mr-2 text-indigo-500" />
+    Support Email
+  </Label>
+  <Input
+    type="email"
+    placeholder="support@example.com"
+    value={formData.supportEmail}
+    onChange={(e) =>
+      handleInputChange("supportEmail", e.target.value)
+    }
+  />
+</div>
+
 
           {/* Logo Upload */}
           <div className="space-y-2">
