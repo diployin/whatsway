@@ -433,6 +433,288 @@ export const handleWebhook = asyncHandler(
 // }
 
 // Enhanced webhook handler with AI auto-reply on trigger words
+// async function handleMessageChange(value: any) {
+//   const { messages, contacts, metadata, statuses } = value;
+//   const io = (global as any).io;
+
+//   // Handle message status updates (sent, delivered, read, failed)
+//   if (statuses && statuses.length > 0) {
+//     await handleMessageStatuses(statuses, metadata);
+//     return;
+//   }
+
+//   if (!messages || messages.length === 0) {
+//     return;
+//   }
+
+//   // Find channel by phone number ID
+//   const phoneNumberId = metadata?.phone_number_id;
+//   if (!phoneNumberId) {
+//     console.error("No phone_number_id in webhook");
+//     return;
+//   }
+
+//   const channel = await storage.getChannelByPhoneNumberId(phoneNumberId);
+//   if (!channel) {
+//     console.error(`No channel found for phone_number_id: ${phoneNumberId}`);
+//     return;
+//   }
+
+//   // Create WhatsApp API service instance for fetching media
+//   const waApi = new WhatsAppApiService(channel);
+
+//   for (const message of messages) {
+//     const { from, id: whatsappMessageId, text, type, timestamp, interactive } = message;
+
+//     // Extract message content and interactive data
+//     let messageContent = "";
+//     let interactiveData: any = null;
+
+//     // Media fields
+//     let mediaId: string | null = null;
+//     let mediaUrl: string | null = null;
+//     let mediaMimeType: string | null = null;
+//     let mediaSha256: string | null = null;
+
+//     if (type === "text" && text) {
+//       messageContent = text.body;
+//     } else if (type === "interactive" && interactive) {
+//       if (interactive.type === "button_reply") {
+//         messageContent = interactive.button_reply.title;
+//         interactiveData = interactive;
+//         console.log("Interactive button response:", interactive.button_reply);
+//       } else if (interactive.type === "list_reply") {
+//         messageContent = interactive.list_reply.title;
+//         interactiveData = interactive;
+//         console.log("Interactive list response:", interactive.list_reply);
+//       }
+//     } else if (type === "image" && message.image) {
+//       messageContent = message.image.caption || "[Image]";
+//       mediaId = message.image.id;
+//       mediaMimeType = message.image.mime_type;
+//       mediaSha256 = message.image.sha256;
+//     } else if (type === "document" && message.document) {
+//       messageContent =
+//         message.document.caption ||
+//         `[Document: ${message.document.filename || "file"}]`;
+//       mediaId = message.document.id;
+//       mediaMimeType = message.document.mime_type;
+//       mediaSha256 = message.document.sha256;
+//     } else if (type === "audio" && message.audio) {
+//       messageContent = "[Audio message]";
+//       mediaId = message.audio.id;
+//       mediaMimeType = message.audio.mime_type;
+//       mediaSha256 = message.audio.sha256;
+//     } else if (type === "video" && message.video) {
+//       messageContent = message.video.caption || "[Video]";
+//       mediaId = message.video.id;
+//       mediaMimeType = message.video.mime_type;
+//       mediaSha256 = message.video.sha256;
+//     } else {
+//       messageContent = `[${type} message]`;
+//     }
+
+//     // If media exists, fetch its temporary URL
+//     if (mediaId) {
+//       try {
+//         mediaUrl = await waApi.fetchMediaUrl(mediaId);
+//       } catch (err) {
+//         console.error("❌ Failed to fetch media URL:", err);
+//       }
+//     }
+
+//     // Find or create conversation
+//     let conversation = await storage.getConversationByPhone(from);
+//     let contact = await storage.getContactByPhone(from);
+//     let isNewConversation = false;
+
+//     if (!conversation) {
+//       isNewConversation = true;
+
+//       if (!contact) {
+//         const contactName =
+//           contacts?.find((c: any) => c.wa_id === from)?.profile?.name || from;
+//         contact = await storage.createContact({
+//           name: contactName,
+//           phone: from,
+//           channelId: channel.id,
+//         });
+//       }
+
+//       conversation = await storage.createConversation({
+//         contactId: contact.id,
+//         contactPhone: from,
+//         contactName: contact.name || from,
+//         channelId: channel.id,
+//         unreadCount: 1,
+//       });
+//     } else {
+//       await storage.updateConversation(conversation.id, {
+//         unreadCount: (conversation.unreadCount || 0) + 1,
+//         lastMessageAt: new Date(),
+//         lastMessageText: messageContent,
+//       });
+//     }
+
+//     console.log(
+//       "Webhook Message:",
+//       messageContent,
+//       "Type:",
+//       type,
+//       "Interactive:",
+//       !!interactiveData
+//     );
+
+//     // Create message record
+//     const newMessage = await storage.createMessage({
+//       conversationId: conversation.id,
+//       content: messageContent,
+//       fromUser: false,
+//       direction: "inbound",
+//       status: "received",
+//       whatsappMessageId,
+//       messageType: type,
+//       metadata: interactiveData ? JSON.stringify(interactiveData) : null,
+//       timestamp: new Date(parseInt(timestamp, 10) * 1000),
+
+//       // Media fields
+//       mediaId,
+//       mediaUrl,
+//       mediaMimeType,
+//       mediaSha256,
+//     });
+
+//     // Broadcast new message via WebSocket
+//     if ((global as any).broadcastToConversation) {
+//       (global as any).broadcastToConversation(conversation.id, {
+//         type: "new-message",
+//         message: newMessage,
+//       });
+//     }
+
+//     // --- AI AUTO-REPLY CHECK (NEW) ---
+//     try {
+//       const shouldSendAiReply = await checkAndSendAiReply(
+//         messageContent,
+//         conversation,
+//         contact,
+//         waApi
+//       );
+
+//       if (shouldSendAiReply) {
+//         console.log(`✅ AI auto-reply sent for conversation ${conversation.id}`);
+//         // Continue to prevent automation triggers when AI handles it
+//         continue;
+//       }
+//     } catch (aiError) {
+//       console.error(`❌ AI auto-reply error:`, aiError);
+//       // Continue with normal flow if AI fails
+//     }
+
+//     // --- Automation handling ---
+//     try {
+//       const hasPendingExecution =
+//         triggerService.getExecutionService().hasPendingExecution(conversation.id);
+
+//       if (hasPendingExecution) {
+//         console.log(
+//           `Processing as user response to pending automation execution`
+//         );
+
+//         const result =
+//           await triggerService.getExecutionService().handleUserResponse(
+//             conversation.id,
+//             messageContent,
+//             interactiveData
+//           );
+
+//         if (result && result.success) {
+//           console.log(
+//             `Successfully processed user response for execution ${result.executionId}`
+//           );
+
+//           if ((global as any).broadcastToConversation) {
+//             (global as any).broadcastToConversation(conversation.id, {
+//               type: "automation-resumed",
+//               data: {
+//                 executionId: result.executionId,
+//                 userResponse: result.userResponse,
+//                 savedVariable: result.savedVariable,
+//                 resumedAt: result.resumedAt,
+//               },
+//             });
+//           }
+
+//           continue;
+//         } else {
+//           console.warn(
+//             `Failed to process user response, will try triggering new automations`
+//           );
+//         }
+//       }
+
+//       if (isNewConversation) {
+//         console.log(
+//           `New conversation automation trigger for: ${conversation.id}`
+//         );
+//         await triggerService.handleNewConversation(
+//           conversation.id,
+//           channel.id,
+//           contact?.id
+//         );
+//       } else {
+//         console.log(
+//           `Message received automation trigger for: ${conversation.id}`
+//         );
+//         console.log(
+//           `Debug info - Channel ID: ${channel.id}, Message: "${messageContent}"`
+//         );
+
+//         const messageData = {
+//           content: messageContent,
+//           text: messageContent,
+//           body: messageContent,
+//           type: type,
+//           from: from,
+//           whatsappMessageId: whatsappMessageId,
+//           timestamp: timestamp,
+//           interactive: interactiveData,
+//           messageType: type,
+//           hasInteraction: !!interactiveData,
+//           buttonId: interactiveData?.button_reply?.id || null,
+//           buttonTitle: interactiveData?.button_reply?.title || null,
+//           listId: interactiveData?.list_reply?.id || null,
+//           listTitle: interactiveData?.list_reply?.title || null,
+//         };
+
+//         await triggerService.handleMessageReceived(
+//           conversation.id,
+//           messageData,
+//           channel.id,
+//           contact?.id
+//         );
+//       }
+//     } catch (automationError) {
+//       console.error(
+//         `❌ Automation error for conversation ${conversation.id}:`,
+//         automationError
+//       );
+
+//       if ((global as any).broadcastToConversation) {
+//         (global as any).broadcastToConversation(conversation.id, {
+//           type: "automation-error",
+//           error: {
+//             message: (automationError as Error).message,
+//             conversationId: conversation.id,
+//             timestamp: new Date(),
+//           },
+//         });
+//       }
+//     }
+//   }
+// }
+
+
 async function handleMessageChange(value: any) {
   const { messages, contacts, metadata, statuses } = value;
 
@@ -459,17 +741,14 @@ async function handleMessageChange(value: any) {
     return;
   }
 
-  // Create WhatsApp API service instance for fetching media
   const waApi = new WhatsAppApiService(channel);
 
   for (const message of messages) {
     const { from, id: whatsappMessageId, text, type, timestamp, interactive } = message;
 
-    // Extract message content and interactive data
     let messageContent = "";
     let interactiveData: any = null;
 
-    // Media fields
     let mediaId: string | null = null;
     let mediaUrl: string | null = null;
     let mediaMimeType: string | null = null;
@@ -477,21 +756,22 @@ async function handleMessageChange(value: any) {
 
     if (type === "text" && text) {
       messageContent = text.body;
+
     } else if (type === "interactive" && interactive) {
       if (interactive.type === "button_reply") {
         messageContent = interactive.button_reply.title;
         interactiveData = interactive;
-        console.log("Interactive button response:", interactive.button_reply);
       } else if (interactive.type === "list_reply") {
         messageContent = interactive.list_reply.title;
         interactiveData = interactive;
-        console.log("Interactive list response:", interactive.list_reply);
       }
+
     } else if (type === "image" && message.image) {
       messageContent = message.image.caption || "[Image]";
       mediaId = message.image.id;
       mediaMimeType = message.image.mime_type;
       mediaSha256 = message.image.sha256;
+
     } else if (type === "document" && message.document) {
       messageContent =
         message.document.caption ||
@@ -499,21 +779,24 @@ async function handleMessageChange(value: any) {
       mediaId = message.document.id;
       mediaMimeType = message.document.mime_type;
       mediaSha256 = message.document.sha256;
+
     } else if (type === "audio" && message.audio) {
       messageContent = "[Audio message]";
       mediaId = message.audio.id;
       mediaMimeType = message.audio.mime_type;
       mediaSha256 = message.audio.sha256;
+
     } else if (type === "video" && message.video) {
       messageContent = message.video.caption || "[Video]";
       mediaId = message.video.id;
       mediaMimeType = message.video.mime_type;
       mediaSha256 = message.video.sha256;
+
     } else {
       messageContent = `[${type} message]`;
     }
 
-    // If media exists, fetch its temporary URL
+    // Fetch media URL
     if (mediaId) {
       try {
         mediaUrl = await waApi.fetchMediaUrl(mediaId);
@@ -522,7 +805,7 @@ async function handleMessageChange(value: any) {
       }
     }
 
-    // Find or create conversation
+    // Find/create conversation
     let conversation = await storage.getConversationByPhone(from);
     let contact = await storage.getContactByPhone(from);
     let isNewConversation = false;
@@ -533,6 +816,7 @@ async function handleMessageChange(value: any) {
       if (!contact) {
         const contactName =
           contacts?.find((c: any) => c.wa_id === from)?.profile?.name || from;
+
         contact = await storage.createContact({
           name: contactName,
           phone: from,
@@ -547,6 +831,7 @@ async function handleMessageChange(value: any) {
         channelId: channel.id,
         unreadCount: 1,
       });
+
     } else {
       await storage.updateConversation(conversation.id, {
         unreadCount: (conversation.unreadCount || 0) + 1,
@@ -555,16 +840,7 @@ async function handleMessageChange(value: any) {
       });
     }
 
-    console.log(
-      "Webhook Message:",
-      messageContent,
-      "Type:",
-      type,
-      "Interactive:",
-      !!interactiveData
-    );
-
-    // Create message record
+    // Create DB message
     const newMessage = await storage.createMessage({
       conversationId: conversation.id,
       content: messageContent,
@@ -576,22 +852,106 @@ async function handleMessageChange(value: any) {
       metadata: interactiveData ? JSON.stringify(interactiveData) : null,
       timestamp: new Date(parseInt(timestamp, 10) * 1000),
 
-      // Media fields
       mediaId,
       mediaUrl,
       mediaMimeType,
       mediaSha256,
     });
 
-    // Broadcast new message via WebSocket
-    if ((global as any).broadcastToConversation) {
-      (global as any).broadcastToConversation(conversation.id, {
-        type: "new-message",
-        message: newMessage,
-      });
-    }
+    // ================================
+    //  🔥 REALTIME SEND USING IO
+    // ================================
+//     const io = (global as any).io;
 
-    // --- AI AUTO-REPLY CHECK (NEW) ---
+// if (io) {
+//   console.log("📢 Broadcasting via IO:", conversation.id);
+
+//   const messageData = {
+//     type: "new-message",
+//     conversationId: conversation.id,
+//     message: newMessage,
+//   };
+
+//   // Emit to both room formats
+//   io.to(`conversation_${conversation.id}`).emit("new-message", messageData);
+//   io.to(`conversation:${conversation.id}`).emit("new-message", messageData);
+  
+//   // Channel update
+//   io.to(`channel:${channel.id}`).emit("conversation_updated", {
+//     conversationId: conversation.id,
+//     lastMessage: messageContent,
+//   });
+
+//   // New conversation notification
+//   if (isNewConversation) {
+//     io.to(`channel:${channel.id}`).emit("conversation_created", {
+//       conversation: conversation,
+//     });
+//   }
+
+//   console.log("✅ Message broadcasted");
+// } else {
+//   console.log("❌ IO not initialized");
+// }
+
+// ================================
+//  🔥 REALTIME SEND USING IO
+// ================================
+const io = (global as any).io;
+
+if (io) {
+  console.log("📢 Broadcasting message for conversation:", conversation.id);
+  console.log("📢 Channel ID for broadcast:", channel.id);
+  const channelRoom = `channel:${channel.id}`;
+  console.log("checkc channelll", channelRoom)
+  const messageData = {
+    type: "new-message",
+    conversationId: conversation.id,
+    message: newMessage,
+  };
+
+  // Emit + Log
+console.log("Emitting message_sent to room:", `site:${channelRoom}`, "with data:", messageData);
+
+io.to(channelRoom).emit("message_sent", messageData);
+
+
+  // Broadcast to specific conversation rooms
+  io.to(`conversation_${conversation.id}`).emit("new-message", messageData);
+  io.to(`conversation:${conversation.id}`).emit("new-message", messageData);
+  
+  console.log(`✅ Emitted to conversation_${conversation.id}`);
+   
+  // 🔥 CRITICAL: Broadcast to channel room (ALL agents)
+  
+  console.log(`📢 Broadcasting to channel room: ${channelRoom}`);
+  
+  io.to(channelRoom).emit("new-message", messageData);
+  io.to(channelRoom).emit("conversation_updated", {
+    conversationId: conversation.id,
+    lastMessage: messageContent,
+    timestamp: new Date(),
+    unreadCount: (conversation.unreadCount || 0) + 1,
+  });
+
+  console.log(`✅ Emitted to ${channelRoom}`);
+
+  // New conversation notification
+  if (isNewConversation) {
+    console.log("📢 NEW CONVERSATION - Broadcasting to channel");
+    io.to(channelRoom).emit("conversation_created", {
+      conversation: conversation,
+    });
+  }
+
+  console.log("✅✅✅ Broadcast complete to all rooms");
+} else {
+  console.error("❌❌❌ IO is not initialized!");
+}
+
+
+
+    // AI auto reply
     try {
       const shouldSendAiReply = await checkAndSendAiReply(
         messageContent,
@@ -601,25 +961,19 @@ async function handleMessageChange(value: any) {
       );
 
       if (shouldSendAiReply) {
-        console.log(`✅ AI auto-reply sent for conversation ${conversation.id}`);
-        // Continue to prevent automation triggers when AI handles it
+        console.log(`AI auto reply complete for conversation ${conversation.id}`);
         continue;
       }
-    } catch (aiError) {
-      console.error(`❌ AI auto-reply error:`, aiError);
-      // Continue with normal flow if AI fails
+    } catch (err) {
+      console.error("AI Error:", err);
     }
 
-    // --- Automation handling ---
+    // Automations
     try {
       const hasPendingExecution =
         triggerService.getExecutionService().hasPendingExecution(conversation.id);
 
       if (hasPendingExecution) {
-        console.log(
-          `Processing as user response to pending automation execution`
-        );
-
         const result =
           await triggerService.getExecutionService().handleUserResponse(
             conversation.id,
@@ -628,85 +982,47 @@ async function handleMessageChange(value: any) {
           );
 
         if (result && result.success) {
-          console.log(
-            `Successfully processed user response for execution ${result.executionId}`
-          );
-
-          if ((global as any).broadcastToConversation) {
-            (global as any).broadcastToConversation(conversation.id, {
+          if (io) {
+            io.to(`conversation_${conversation.id}`).emit("automation-resumed", {
               type: "automation-resumed",
-              data: {
-                executionId: result.executionId,
-                userResponse: result.userResponse,
-                savedVariable: result.savedVariable,
-                resumedAt: result.resumedAt,
-              },
+              data: result,
             });
           }
-
           continue;
-        } else {
-          console.warn(
-            `Failed to process user response, will try triggering new automations`
-          );
         }
       }
 
       if (isNewConversation) {
-        console.log(
-          `New conversation automation trigger for: ${conversation.id}`
-        );
         await triggerService.handleNewConversation(
           conversation.id,
           channel.id,
           contact?.id
         );
       } else {
-        console.log(
-          `Message received automation trigger for: ${conversation.id}`
-        );
-        console.log(
-          `Debug info - Channel ID: ${channel.id}, Message: "${messageContent}"`
-        );
-
-        const messageData = {
-          content: messageContent,
-          text: messageContent,
-          body: messageContent,
-          type: type,
-          from: from,
-          whatsappMessageId: whatsappMessageId,
-          timestamp: timestamp,
-          interactive: interactiveData,
-          messageType: type,
-          hasInteraction: !!interactiveData,
-          buttonId: interactiveData?.button_reply?.id || null,
-          buttonTitle: interactiveData?.button_reply?.title || null,
-          listId: interactiveData?.list_reply?.id || null,
-          listTitle: interactiveData?.list_reply?.title || null,
-        };
-
         await triggerService.handleMessageReceived(
           conversation.id,
-          messageData,
+          {
+            content: messageContent,
+            text: messageContent,
+            body: messageContent,
+            type,
+            from,
+            whatsappMessageId,
+            timestamp,
+            interactive: interactiveData,
+          },
           channel.id,
           contact?.id
         );
       }
-    } catch (automationError) {
-      console.error(
-        `❌ Automation error for conversation ${conversation.id}:`,
-        automationError
-      );
 
-      if ((global as any).broadcastToConversation) {
-        (global as any).broadcastToConversation(conversation.id, {
+    } catch (automationError) {
+      console.error("Automation Error:", automationError);
+
+      if (io) {
+        io.to(`conversation_${conversation.id}`).emit("automation-error", {
           type: "automation-error",
-          error: {
-            message: (automationError as Error).message,
-            conversationId: conversation.id,
-            timestamp: new Date(),
-          },
+          error: automationError,
         });
       }
     }

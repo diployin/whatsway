@@ -673,7 +673,7 @@ export default function Sidebar() {
                 </div>
               )}
               <span className=" text-[10px] sm:text-xs pl-8">
-                Building amazing experiences
+                {brandSettings?.tagline}
               </span>
             </Link>
             <button

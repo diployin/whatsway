@@ -62,6 +62,7 @@ import {
   Forward,
   Reply,
   Download,
+  QrCode,
   Volume2,
   Bot,
 } from "lucide-react";
@@ -81,6 +82,8 @@ import type { Conversation, Contact, User } from "@shared/schema";
 import { useAuth } from "@/contexts/auth-context";
 import { io, Socket } from "socket.io-client";
 import { useTranslation } from "@/lib/i18n";
+import { WhatsAppDemoQR } from "@/components/demoqr/WhatsAppDemoQR";
+import { Modal } from "@/components/demoqr/Modal";
 
 
 // Helper functions
@@ -961,6 +964,7 @@ const TemplateDialog = ({
 };
 
 // Team Assignment Dropdown Component
+const LIMIT = 1000;
 const TeamAssignDropdown = ({
   conversationId,
   currentAssignee,
@@ -972,16 +976,20 @@ const TeamAssignDropdown = ({
   currentAssigneeName?: string;
   onAssign: (assignedTo: string, assignedToName: string) => void;
 }) => {
-  const { data: users } = useQuery({
-    queryKey: ["/api/users"],
+  const { data: users = [] } = useQuery({
+    queryKey: ["/api/team/members", LIMIT],
     queryFn: async () => {
-      const response = await fetch("/api/users");
+      const response = await fetch( `/api/team/members?limit=${LIMIT}`);
+      
       if (!response.ok) throw new Error("Failed to fetch users");
-      return response.json();
+    const data = await response.json()
+    // console.log("Parsed response data:", data);
+    return data.data;
     },
   });
 
-  // console.log(currentAssignee , currentAssigneeName)
+  console.log("@@@@@@@@@@@@@@@@@@@@@",currentAssignee , currentAssigneeName)
+  
 
   return (
     <DropdownMenu>
@@ -1040,7 +1048,7 @@ export default function Inbox() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
-
+  const [openQR, setOpenQR] = useState(false);
   const { t } = useTranslation();
 
   // Socket.io state
@@ -1122,8 +1130,63 @@ socketInstance.on("conversation_created", () => {
 });
 
 
+socketInstance.on("message_sent", (data) => {
+  console.log("📩 message_sent event received:", data);
+
+  // 🔄 Update Conversation List
+  queryClient.invalidateQueries({
+    queryKey: ["/api/conversations"]
+  });
+
+  // 🔄 Update messages ONLY for the active/opened conversation
+  
+    queryClient.invalidateQueries({
+      queryKey: ["/api/conversations", data.conversationId, "messages"]
+    });
+  
+});
+
+
+
+
+
+
+
+// Listen for new messages (works for ANY conversation)
+socketInstance.on("new-message", (data) => {
+  console.log("🔥 Realtime WA message received:", data);
+
+  // ALWAYS refresh conversations list (for unread count, last message)
+  queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+
+  // If message is for selected conversation, also refresh messages
+  if (selectedConversation?.id === data.conversationId) {
+    console.log("Refreshing messages for selected conversation");
+    queryClient.invalidateQueries({
+      queryKey: ["/api/conversations", selectedConversation.id, "messages"],
+    });
+  }
+});
+
+// Listen for conversation updates (new messages in other conversations)
+socketInstance.on("conversation_updated", (data) => {
+  console.log("🔔 Conversation updated:", data.conversationId);
+  queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+});
+
+// Listen for new conversations
+socketInstance.on("conversation_created", (data) => {
+  console.log("🆕 New conversation created:", data.conversation);
+  queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+});
+
+
+
+
+
+
     // Listen for new messages (from visitors or AI)
-    socketInstance.on("new_message", (data) => {
+    socketInstance.on("new-message", (data) => {
       console.log("New message received:", data);
 
       // Refresh conversations list
@@ -1258,6 +1321,7 @@ socketInstance.on("conversation_created", () => {
   }, []);
 
 
+  
 
 
 
@@ -1743,7 +1807,14 @@ socketInstance.on("conversation_created", () => {
 
   return (
     <div className="h-screen flex flex-col">
-      <Header title={t("inbox.title")} />
+     <Header
+  title={t("inbox.title")}
+  action={{
+    label: "Click here test whatsapp messaging",
+    onClick: () => setOpenQR(true),
+  }}
+/>
+
       <div className="flex-1 flex bg-gray-50 overflow-hidden">
         {/* Conversations List */}
         <div
@@ -1920,8 +1991,10 @@ socketInstance.on("conversation_created", () => {
                 </div>
 
                 <div className="flex items-center gap-2">
+                  {/* {user?.username !== "demouser" && user?.username !== "raman" &&
+                  selectedConversation.assignedTo !== user?.id ? ( */}
                   {user?.username !== "demouser" && user?.username !== "raman" &&
-                  selectedConversation.assignedTo !== user?.id ? (
+                    (
                     <TeamAssignDropdown
                       conversationId={selectedConversation.id}
                       currentAssignee={
@@ -1931,16 +2004,8 @@ socketInstance.on("conversation_created", () => {
                         selectedConversation?.assignedToName || undefined
                       }
                       onAssign={handleAssignConversation}
-                    />
-                  ) : (
-                    <button
-                      type="button"
-                      className="text-sm text-gray-700 px-4 py-2 w-full text-left hover:bg-gray-100"
-                      disabled
-                    >
-                      Assign to team member
-                    </button>
-                  )}
+                    /> )}
+                  
 
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -2198,7 +2263,12 @@ socketInstance.on("conversation_created", () => {
         )}
       </div>
       
-
+<Modal open={openQR} onClose={() => setOpenQR(false)}>
+    <WhatsAppDemoQR
+      phone="918384008805"
+      message="Hello, I want a WhatsApp demo"
+    />
+  </Modal>
     </div>
   );
 }

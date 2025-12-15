@@ -94,13 +94,13 @@ console.log("Templates response:", res.data);
   });
 
   // console.log("Fetched templatesssss:", templates);
-
+const contactLimit:number = 5000;
   // Fetch contacts
   const { data: contactsResponse } = useQuery({
-    queryKey: ["/api/user/contacts", userId],
+    queryKey: ["/api/user/contacts", userId, contactLimit],
     enabled: createDialogOpen && !!selectedChannel && !!userId,
     queryFn: async () => {
-      const res = await fetch(`/api/user/contacts/${userId}`, {
+      const res = await fetch(`/api/user/contacts/${userId}?limit=${contactLimit}`, {
         method: "GET",
         credentials: "include",
         headers: { "x-channel-id": selectedChannel?.id || "" },
