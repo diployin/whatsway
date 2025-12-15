@@ -68,10 +68,12 @@ export default function Automations() {
     queryFn: async () => {
       if (!activeChannel?.id) return []; // avoid calling API with undefined
       const res = await fetch(`/api/automations?channelId=${activeChannel.id}`);
+      const data = await res.json()
+      console.log("CHECK DATTTTTTTTT", data)
       if (!res.ok) throw new Error("Failed to fetch automations");
-      return res.json() as Promise<Automation[]>;
+      return data as Promise<Automation[]>;
     },
-    enabled: !!activeChannel?.id, // prevents query from running without channelId
+    // enabled: !!activeChannel?.id, // prevents query from running without channelId
   });
 
   const toggleMutation = useMutation({

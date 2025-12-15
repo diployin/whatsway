@@ -270,15 +270,15 @@ export default function WidgetBuilder() {
     { role: "bot", text: config.greeting, time: "Just now" },
   ]);
   const [chatInput, setChatInput] = useState("");
-
+  const LIMIT = 5000
   const {
     data: usersResponse,
     isLoading: usersLoading,
     error: usersError,
   } = useQuery({
-    queryKey: ["/api/users"],
+    queryKey: ["/api/team/members", LIMIT],
     queryFn: async () => {
-      const response = await fetch("/api/users");
+      const response = await fetch(`/api/team/members?limit=${LIMIT}`);
       if (!response.ok) throw new Error("Failed to fetch users");
       return response.json();
     },
@@ -1382,7 +1382,7 @@ export default function WidgetBuilder() {
                             />
                           </div>
 
-                          <Input
+                          {/* <Input
                             type="url"
                             value={member.avatar}
                             onChange={(e) => {
@@ -1391,7 +1391,7 @@ export default function WidgetBuilder() {
                               updateConfig("teamMembers", newMembers);
                             }}
                             placeholder="Profile photo URL (optional)"
-                          />
+                          /> */}
                         </div>
 
                         {/* Remove Member */}

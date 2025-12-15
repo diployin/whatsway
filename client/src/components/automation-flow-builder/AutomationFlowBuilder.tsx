@@ -142,6 +142,11 @@ export default function AutomationFlowBuilder({
     );
   };
 
+  useEffect(() => {
+  console.log("AUTOMATION FLOW BUILDER CHANNEL:", channelId);
+}, [channelId]);
+
+
   const saveMutation = useMutation({
     mutationFn: async (payload: any) => {
       const formData = new FormData();
@@ -151,6 +156,12 @@ export default function AutomationFlowBuilder({
       formData.append("triggerConfig", JSON.stringify(payload.triggerConfig));
       formData.append("nodes", JSON.stringify(payload.nodes));
       formData.append("edges", JSON.stringify(payload.edges));
+
+        // 🔥🔥 THIS IS THE FIX
+    if (!channelId) {
+      throw new Error("Channel ID missing");
+    }
+    formData.append("channelId", channelId);
 
       payload.nodes.forEach((node: any) => {
         if (node.data.imageFile && node.data.imageFile instanceof File) {
