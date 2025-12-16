@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Loading } from "@/components/ui/loading";
 import { FileText, Plus, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest, queryClient, apiRequestFormData } from "@/lib/queryClient";
 import type { Template } from "@shared/schema";
 import { TemplatesTable } from "@/components/templates/TemplatesTable";
 import { TemplatePreview } from "@/components/templates/TemplatePreview";
@@ -117,9 +117,201 @@ export default function Templates() {
 });
 
 
+
+
+
+const createTemplateMutation = useMutation({
+  mutationFn: async (data: any) => {
+    const formData = new FormData();
+
+    // ✅ Basic fields
+    formData.append("name", data.name);
+    formData.append("category", data.category);
+    formData.append("language", data.language);
+    formData.append("body", data.body);
+
+    if (data.footer) {
+      formData.append("footer", data.footer);
+    }
+
+    // ✅ Variables / samples
+    if (data.variables?.length) {
+      formData.append("samples", JSON.stringify(data.variables));
+    }
+
+    // ✅ Buttons
+    if (data.buttons?.length) {
+      formData.append("buttons", JSON.stringify(data.buttons));
+    }
+
+    // ✅ Media or text header
+    if (data.mediaFile) {
+      formData.append("mediaFile", data.mediaFile); // 👈 File object
+      formData.append("mediaType", data.mediaType);
+    } else if (data.header) {
+      formData.append("header", data.header);
+    }
+
+    for (let pair of formData.entries()) {
+  console.log(pair[0], ":", pair[1]);
+}
+
+    // ✅ Send Request
+    if (editingTemplate) {
+      return await apiRequestFormData(
+        "PUT",
+        `/api/templates/${editingTemplate.id}`,
+        formData
+      );
+    }
+
+    return await apiRequestFormData("POST", "/api/templates", formData);
+  },
+
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ["templates"] });
+    toast({
+      title: editingTemplate ? "Template updated" : "Template created",
+      description: editingTemplate
+        ? "Your template has been updated successfully."
+        : "Your template has been created and submitted for approval.",
+    });
+    setShowDialog(false);
+    setEditingTemplate(null);
+  },
+
+  onError: (error: any) => {
+    toast({
+      title: "Error",
+      description: error.message || "Something went wrong while saving template.",
+      variant: "destructive",
+    });
+  },
+});
+
+
+
+const createTemplateMutationAAAAAAAAAAAAA = useMutation({
+  mutationFn: async (data: any) => {
+    const components: any[] = [];
+
+    // ✅ HEADER (TEXT)
+    if (data.mediaType === "text" && data.header) {
+      components.push({
+        type: "HEADER",
+        format: "TEXT",
+        text: data.header,
+      });
+    }
+
+    // ✅ HEADER (IMAGE / VIDEO / DOCUMENT)
+    if (data.mediaType !== "text") {
+      components.push({
+        type: "HEADER",
+        format: data.mediaType.toUpperCase(),
+        example: {
+          header_handle: [data.mediaUrl],
+        },
+      });
+    }
+
+    // ✅ BODY (always required)
+    const bodyComponent: any = {
+      type: "BODY",
+      text: data.body,
+    };
+
+    // 🔥 ADD EXAMPLE IF VARIABLES EXIST
+    if (data.variables && data.variables.length > 0) {
+      bodyComponent.example = {
+        body_text: [data.variables], // WhatsApp expects array of arrays
+      };
+    }
+
+    components.push(bodyComponent);
+
+    // ✅ FOOTER
+    if (data.footer) {
+      components.push({
+        type: "FOOTER",
+        text: data.footer,
+      });
+    }
+
+    // ✅ BUTTONS
+    if (data.buttons?.length) {
+      components.push({
+        type: "BUTTONS",
+        buttons: data.buttons.map((btn: any) => {
+          const button: any = {
+            type:
+              btn.type === "URL"
+                ? "URL"
+                : btn.type === "PHONE"
+                ? "PHONE_NUMBER"
+                : "QUICK_REPLY",
+            text: btn.text,
+          };
+
+          if (button.type === "URL") button.url = btn.url;
+          if (button.type === "PHONE_NUMBER")
+            button.phone_number = btn.phoneNumber;
+
+          return button;
+        }),
+      });
+    }
+
+    // ✅ FINAL PAYLOAD
+    const payload = {
+      name: data.name,
+      category: data.category,
+      language: data.language,
+      components,
+      header: data.header,
+      body: data.body,
+      footer: data.footer,
+      channelId: activeChannel?.id,
+      samples: data.variables, // body {{1}} samples
+    };
+
+    if (editingTemplate) {
+      return await apiRequest(
+        "PUT",
+        `/api/templates/${editingTemplate.id}`,
+        payload
+      );
+    }
+
+    return await apiRequest("POST", "/api/templates", payload);
+  },
+
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ["templates"] });
+    toast({
+      title: editingTemplate ? "Template updated" : "Template created",
+      description: editingTemplate
+        ? "Your template has been updated successfully."
+        : "Your template has been created and submitted for approval.",
+    });
+    setShowDialog(false);
+    setEditingTemplate(null);
+  },
+
+  onError: (error: any) => {
+    toast({
+      title: "Error",
+      description: error.message,
+      variant: "destructive",
+    });
+  },
+});
+
+
+
   
 
-  const createTemplateMutation = useMutation({
+  const createTemplateMutationOLLL = useMutation({
   mutationFn: async (data: any) => {
     const components = [];
 

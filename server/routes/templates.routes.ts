@@ -5,6 +5,8 @@ import { insertTemplateSchema } from "@shared/schema";
 import { extractChannelId } from "../middlewares/channel.middleware";
 import { requireAuth, requirePermission } from "../middlewares/auth.middleware";
 import { PERMISSIONS } from "@shared/schema";
+import { handleDigitalOceanUpload, upload } from "../middlewares/upload.middleware";
+
 
 export function registerTemplateRoutes(app: Express) {
   // Get all templates
@@ -29,6 +31,7 @@ export function registerTemplateRoutes(app: Express) {
   app.post("/api/templates",requireAuth,
   requirePermission(PERMISSIONS.TEMPLATES_CREATE),
     // validateRequest(insertTemplateSchema),
+    upload.fields([{ name: "mediaFile", maxCount: 1 }]),
     templatesController.createTemplate
   );
 

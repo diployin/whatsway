@@ -4,6 +4,10 @@ import path from "path";
 import axios from "axios";
 import FormData from "form-data";
 import type { Response } from "express";
+import { fileURLToPath } from "url";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 
 interface WhatsAppTemplate {
   id: string;
@@ -602,6 +606,92 @@ async getTemplateStatus(templateName: string): Promise<string> {
     console.log("Media uploaded successfully, ID:", data.id);
     return data.id;
   }
+
+
+
+
+  // Keep your existing function as is
+async uploadMediaTwo(filePath: string, mimeType: string): Promise<string> {
+  const resolvedPath = path.resolve(filePath);
+
+  const formData = new FormData();
+  formData.append("messaging_product", "whatsapp");
+  formData.append("file", fs.createReadStream(resolvedPath), {
+    filename: path.basename(resolvedPath),
+    contentType: mimeType,
+  });
+
+  console.log("Uploading local media:", resolvedPath, mimeType);
+
+  try {
+    const response = await axios.post(
+      `${this.baseUrl}/${this.channel.phoneNumberId}/media`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${this.channel.accessToken}`,
+          ...formData.getHeaders(),
+        },
+      }
+    );
+
+    console.log("Media uploaded successfully, ID:", response.data.id);
+    return response.data.id;
+  } catch (error: any) {
+    console.error(
+      "WhatsApp upload error:",
+      error.response?.data || error.message
+    );
+    throw new Error(
+      error.response?.data?.error?.message || "Failed to upload media"
+    );
+  }
+}
+
+// Add new function for URL uploads
+async uploadMediaFromUrl(url: string, mimeType: string = 'image/jpeg'): Promise<string> {
+  const tempDir = path.join(__dirname, '../../temp');
+  if (!fs.existsSync(tempDir)) {
+    fs.mkdirSync(tempDir, { recursive: true });
+  }
+
+  const tempFileName = `temp_${Date.now()}_${path.basename(url.split('?')[0]) || 'image.jpg'}`;
+  const tempFilePath = path.join(tempDir, tempFileName);
+
+  try {
+    console.log("📥 Downloading media from URL:", url);
+    
+    // Download file
+    const response = await axios.get(url, {
+      responseType: 'arraybuffer',
+      timeout: 30000, // 30 seconds timeout
+    });
+    
+    // Save to temp file
+    fs.writeFileSync(tempFilePath, Buffer.from(response.data));
+    console.log("✅ File downloaded to:", tempFilePath);
+
+    // Upload using existing function
+    const mediaId = await this.uploadMediaTwo(tempFilePath, mimeType);
+
+    // Cleanup
+    if (fs.existsSync(tempFilePath)) {
+      fs.unlinkSync(tempFilePath);
+      console.log("🗑️ Temporary file deleted");
+    }
+
+    return mediaId;
+    
+  } catch (error: any) {
+    // Cleanup on error
+    if (fs.existsSync(tempFilePath)) {
+      fs.unlinkSync(tempFilePath);
+    }
+    
+    console.error("❌ Upload from URL failed:", error.message);
+    throw new Error(`Failed to upload media from URL: ${error.message}`);
+  }
+}
 
   // async getMediaUrl(mediaId: string): Promise<string> {
   //   console.log("Fetching media URL for ID:", mediaId);

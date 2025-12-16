@@ -70,6 +70,34 @@ export const createMessage = asyncHandler(async (req: Request, res: Response) =>
         const response = await fetch(fileUrl);
         const buffer = Buffer.from(await response.arrayBuffer());
 
+        console.log("📄 Uploading media:", {
+  name: file.originalname,
+  mimeType: mimeType,
+  size: file.size
+});
+
+
+
+// 1️⃣ Check supported types
+const SUPPORTED_MIME_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "video/mp4",
+  "audio/ogg",
+  "audio/mpeg",
+  "application/pdf"
+];
+if (!SUPPORTED_MIME_TYPES.includes(mimeType)) {
+  throw new Error(`❌ File type not supported: ${mimeType}`);
+}
+
+// 2️⃣ Check file size
+const MAX_SIZE_MB = mimeType.startsWith("video") ? 16 : 5;
+if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+  throw new Error(`❌ ${file.originalname} exceeds WhatsApp size limit (${MAX_SIZE_MB}MB).`);
+}
+
         // Upload to WhatsApp
         mediaId = await whatsappApi.uploadMediaBuffer(buffer, mimeType, file.originalname);
         console.log("✅ Media uploaded to WhatsApp, ID:", mediaId);
@@ -177,7 +205,7 @@ export const createMessage = asyncHandler(async (req: Request, res: Response) =>
 });
 
 
-export const createMessageeee = asyncHandler(async (req: Request, res: Response) => {
+export const createMessagennn = asyncHandler(async (req: Request, res: Response) => {
   const { conversationId } = req.params;
   const { content, fromUser, caption, templateName, parameters } = req.body;
   const file = (req as any).file as Express.Multer.File & { cloudUrl?: string };

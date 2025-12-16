@@ -8,7 +8,7 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 
 
 const allowedTypes = [
-  "image/jpeg", "image/png", "image/gif", "image/webp", "image/jpg",
+  "image/jpeg", "image/png", "image/gif", "image/webp", "image/jpg","image/avif",
   "image/x-icon", "image/vnd.microsoft.icon",
   "video/mp4", "video/webm", "video/ogg", "video/avi", "video/mov",
   "audio/mp3", "audio/wav", "audio/ogg", "audio/mpeg", "audio/m4a",
