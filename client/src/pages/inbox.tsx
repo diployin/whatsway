@@ -1477,6 +1477,15 @@ socketInstance.on("new-message", (data) => {
   useEffect(() => {
     if (!selectedConversation || !socket) return;
 
+    const conversationRoom = `conversation:${selectedConversation}`;
+
+  console.log("🔗 Joining conversation room:", conversationRoom);
+
+  // ✅ 1. Join conversation ROOM (REALTIME CHAT)
+  socket.emit("join-room", {
+    room: conversationRoom,
+  });
+
     // Join the conversation room via Socket.io
     socket.emit("agent_join_conversation", {
       conversationId: selectedConversation.id,
