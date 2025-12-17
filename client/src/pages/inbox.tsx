@@ -139,17 +139,48 @@ const ConversationListItem = ({
     ? formatLastSeen(conversation.lastMessageAt)
     : "";
 
-  function getMessagePreview(message: string | null | undefined): string {
-    if (!message) {
-      return ""; // or return 'No message' if you want a placeholder
+  // function getMessagePreview(message: string | null | undefined): string {
+  //   if (!message) {
+  //     return ""; // or return 'No message' if you want a placeholder
+  //   }
+
+  //   if (message.length <= 40) {
+  //     return message;
+  //   } else {
+  //     return message.substring(0, 40) + "...";
+  //   }
+  // }
+
+  function getMessagePreview(message: any): string {
+  if (!message) return "";
+
+  // ✅ If message accidentally object ban gaya (WhatsApp)
+  if (typeof message === "object") {
+    if (typeof message.content === "string") {
+      return message.content.length > 40
+        ? message.content.substring(0, 40) + "..."
+        : message.content;
     }
 
-    if (message.length <= 40) {
-      return message;
-    } else {
-      return message.substring(0, 40) + "...";
+    if (typeof message.text === "string") {
+      return message.text.length > 40
+        ? message.text.substring(0, 40) + "..."
+        : message.text;
     }
+
+    return "[Media]";
   }
+
+  // ✅ Force string (safe)
+  const safeMessage = String(message);
+
+  return safeMessage.length > 40
+    ? safeMessage.substring(0, 40) + "..."
+    : safeMessage;
+}
+
+
+  
 
   return (
     <div
@@ -1158,40 +1189,42 @@ socketInstance.on("new-message", (data) => {
 
   const conversationId = data.conversationId;
 
-  // ✅ WhatsApp + widget + chatbot safe extraction
+  // ✅ SAFE message extraction (STRING ONLY)
   const lastMessageText =
-    data?.content ||
-    data?.message?.text ||
-    data?.text ||
-    "[Media]";
+    typeof data?.message?.content === "string"
+      ? data.message.content
+      : typeof data?.content === "string"
+      ? data.content
+      : "[Media]";
 
-  const lastMessageAt =
-    data?.createdAt ||
-    data?.timestamp ||
-    data?.message?.timestamp ||
-    new Date().toISOString();
+  // ✅ SAFE timestamp handling (WhatsApp seconds → ms)
+  const lastMessageAt = data?.message?.timestamp
+    ? new Date(Number(data.message.timestamp) * 1000).toISOString()
+    : data?.createdAt
+    ? new Date(data.createdAt).toISOString()
+    : new Date().toISOString();
 
-  // ✅ UPDATE INBOX IMMEDIATELY
+  // ✅ UPDATE INBOX IMMEDIATELY (even if no chat selected)
   queryClient.setQueryData(
     ["/api/conversations", activeChannel.id],
-    (old: any) => {
+    (old: any[]) => {
       if (!Array.isArray(old)) return old;
 
       return old
-        .map((conv) => {
-          if (conv.id !== conversationId) return conv;
-
-          return {
-            ...conv,
-            lastMessageText,
-            lastMessageAt,
-            unreadCount:
-              selectedConversation?.id === conversationId
-                ? 0
-                : (conv.unreadCount || 0) + 1,
-          };
-        })
-        // ✅ Move updated conversation to top
+        .map((conv) =>
+          conv.id === conversationId
+            ? {
+                ...conv,
+                lastMessageText,   // ✅ always string
+                lastMessageAt,     // ✅ always ISO date
+                unreadCount:
+                  selectedConversation?.id === conversationId
+                    ? 0
+                    : (conv.unreadCount || 0) + 1,
+              }
+            : conv
+        )
+        // ✅ move updated conversation to top
         .sort(
           (a, b) =>
             new Date(b.lastMessageAt).getTime() -
@@ -1200,7 +1233,7 @@ socketInstance.on("new-message", (data) => {
     }
   );
 
-  // ✅ If chat open → refresh messages
+  // ✅ If chat is open → refresh messages panel
   if (selectedConversation?.id === conversationId) {
     queryClient.invalidateQueries({
       queryKey: [
@@ -1229,50 +1262,45 @@ socketInstance.on("conversation_created", (data) => {
 
 socketInstance.on("new-message", (data) => {
   console.log("🔥 Incoming message (raw):", data);
-  console.log("🧪 SIDEBAR DEBUG:", {
-    conversationId: data.conversationId,
-    text:
-      data?.content ||
-      data?.message?.text ||
-      data?.text,
-  });
 
   const conversationId = data.conversationId;
 
-  // ✅ WhatsApp + widget + chatbot safe extraction
+  // ✅ SAFE message extraction (STRING ONLY)
   const lastMessageText =
-    data?.content ||
-    data?.message?.text ||
-    data?.text ||
-    "[Media]";
+    typeof data?.message?.content === "string"
+      ? data.message.content
+      : typeof data?.content === "string"
+      ? data.content
+      : "[Media]";
 
-  const lastMessageAt =
-    data?.createdAt ||
-    data?.timestamp ||
-    data?.message?.timestamp ||
-    new Date().toISOString();
+  // ✅ SAFE timestamp handling (WhatsApp seconds → ms)
+  const lastMessageAt = data?.message?.timestamp
+    ? new Date(Number(data.message.timestamp) * 1000).toISOString()
+    : data?.createdAt
+    ? new Date(data.createdAt).toISOString()
+    : new Date().toISOString();
 
-  // ✅ UPDATE INBOX IMMEDIATELY
+  // ✅ UPDATE INBOX IMMEDIATELY (even if no chat selected)
   queryClient.setQueryData(
     ["/api/conversations", activeChannel.id],
-    (old: any) => {
+    (old: any[]) => {
       if (!Array.isArray(old)) return old;
 
       return old
-        .map((conv) => {
-          if (conv.id !== conversationId) return conv;
-
-          return {
-            ...conv,
-            lastMessageText,
-            lastMessageAt,
-            unreadCount:
-              selectedConversation?.id === conversationId
-                ? 0
-                : (conv.unreadCount || 0) + 1,
-          };
-        })
-        // ✅ Move updated conversation to top
+        .map((conv) =>
+          conv.id === conversationId
+            ? {
+                ...conv,
+                lastMessageText,   // ✅ always string
+                lastMessageAt,     // ✅ always ISO date
+                unreadCount:
+                  selectedConversation?.id === conversationId
+                    ? 0
+                    : (conv.unreadCount || 0) + 1,
+              }
+            : conv
+        )
+        // ✅ move updated conversation to top
         .sort(
           (a, b) =>
             new Date(b.lastMessageAt).getTime() -
@@ -1281,7 +1309,7 @@ socketInstance.on("new-message", (data) => {
     }
   );
 
-  // ✅ If chat open → refresh messages
+  // ✅ If chat is open → refresh messages panel
   if (selectedConversation?.id === conversationId) {
     queryClient.invalidateQueries({
       queryKey: [
@@ -1292,6 +1320,7 @@ socketInstance.on("new-message", (data) => {
     });
   }
 });
+
 
 
 

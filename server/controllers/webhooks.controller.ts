@@ -898,67 +898,50 @@ async function handleMessageChange(value: any) {
 //  🔥 REALTIME SEND USING IO
 // ================================
 const io = (global as any).io;
+const normalizedSocketPayload = {
+  type: "new-message",
+  conversationId: conversation.id,
+
+  // ✅ ALWAYS STRING
+  content: messageContent,
+
+  // ✅ ALWAYS ISO DATE
+  createdAt: new Date().toISOString(),
+
+  // optional but useful
+  from: "whatsapp",
+  messageType: type,
+};
+
+
+
 
 if (io) {
-  console.log("📢 Broadcasting message for conversation:", conversation.id);
-  console.log("📢 Channel ID for broadcast:", channel.id);
   const channelRoom = `channel:${channel.id}`;
-  console.log("checkc channelll", channelRoom)
-  const messageData = {
-    type: "new-message",
-    conversationId: conversation.id,
-    message: newMessage,
-  };
 
-  // Emit + Log
-console.log("Emitting message_sent to room:", `site:${channelRoom}`, "with data:", messageData);
+  console.log("📢 Emitting normalized new-message:", normalizedSocketPayload);
 
-io.to(channelRoom).emit("message_sent", messageData);
+  // 🔥 ONE EVENT, ONE PAYLOAD
+  io.to(channelRoom).emit("new-message", normalizedSocketPayload);
 
-
-  // Broadcast to specific conversation rooms
-  // io.to(`conversation_${conversation.id}`).emit("new-message", messageData);
-  // io.to(`conversation:${conversation.id}`).emit("new-message", messageData);
-
-  io.emit("new-message", {
-  conversationId: conversation.id,
-  content: message.text || null,
-  message: {
-    text: message.text,
-    timestamp: message.timestamp,
-  },
-  createdAt: new Date().toISOString(),
-});
-
-  
-  console.log(`✅ Emitted to conversation_${conversation.id}`);
-   
-  // 🔥 CRITICAL: Broadcast to channel room (ALL agents)
-  
-  console.log(`📢 Broadcasting to channel room: ${channelRoom}`);
-  
-  io.to(channelRoom).emit("new-message", messageData);
-  io.to(channelRoom).emit("conversation_updated", {
-    conversationId: conversation.id,
-    lastMessage: messageContent,
-    timestamp: new Date(),
-    unreadCount: (conversation.unreadCount || 0) + 1,
-  });
-
-  console.log(`✅ Emitted to ${channelRoom}`);
+  // Optional: open conversation listeners
+  io.to(`conversation_${conversation.id}`).emit(
+    "new-message",
+    normalizedSocketPayload
+  );
 
   // New conversation notification
   if (isNewConversation) {
-    console.log("📢 NEW CONVERSATION - Broadcasting to channel");
     io.to(channelRoom).emit("conversation_created", {
-      conversation: conversation,
+      conversation,
     });
   }
 
-  console.log("✅✅✅ Broadcast complete to all rooms");
+  console.log("✅ Normalized broadcast complete");
 } else {
-  console.error("❌❌❌ IO is not initialized!");
+  console.error("❌ IO not initialized");
 }
+
 
 
 
