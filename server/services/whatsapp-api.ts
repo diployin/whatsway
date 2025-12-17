@@ -512,7 +512,81 @@ async getTemplateStatus(templateName: string): Promise<string> {
   }
 
 
-  async uploadMediaBufferForTemplate(
+ async uploadMediaBufferForTemplate(
+  buffer: Buffer,
+  mimeType: string,
+  filename: string
+): Promise<string> {
+  try {
+    const FormData = (await import("form-data")).default;
+    const form = new FormData();
+
+    // Determine media type from MIME type
+    const mediaType = mimeType.startsWith("image")
+      ? "image"
+      : mimeType.startsWith("video")
+      ? "video"
+      : "document";
+
+    form.append("file", buffer, {
+      filename,
+      contentType: mimeType,
+    });
+
+    form.append("messaging_product", "whatsapp");
+    form.append("type", mediaType);
+
+    // 🔥 Get WABA ID from channel
+    // Check both possible field names
+    const wabaId = this.channel.whatsappBusinessAccountId || 
+                   this.channel.wabaId ||
+                   this.channel.channel?.whatsappBusinessAccountId;
+    
+    if (!wabaId) {
+      console.error("❌ Channel object:", this.channel);
+      throw new Error(
+        "WhatsApp Business Account ID not found in channel configuration."
+      );
+    }
+
+    console.log(`📤 Uploading to WABA: ${wabaId}`);
+    console.log(`📤 Upload endpoint: ${this.baseUrl}/${wabaId}/media`);
+    
+    // Upload to WABA endpoint (NOT phone number endpoint)
+    const response = await axios.post(
+      `${this.baseUrl}/${wabaId}/media`,
+      form,
+      {
+        headers: {
+          Authorization: `Bearer ${this.channel.accessToken}`,
+          ...form.getHeaders(),
+        },
+        maxContentLength: Infinity,
+        maxBodyLength: Infinity,
+      }
+    );
+
+    console.log("✅ WhatsApp template media upload response:", response.data);
+    
+    if (!response.data?.id) {
+      throw new Error("No media ID returned from WhatsApp");
+    }
+    
+    return response.data.id;
+  } catch (error: any) {
+    console.error("❌ WhatsApp upload buffer error:", {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      message: error.message,
+    });
+    
+    const errorMessage = error.response?.data?.error?.message || error.message;
+    throw new Error(`Failed to upload media buffer to WhatsApp: ${errorMessage}`);
+  }
+}
+
+  async uploadMediaBufferForTemplateee(
   buffer: Buffer,
   mimeType: string,
   filename: string

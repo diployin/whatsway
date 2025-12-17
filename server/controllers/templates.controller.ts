@@ -93,8 +93,293 @@ export const getTemplateByUserID = asyncHandler(async (req: Request, res: Respon
 
 
 
-
 export const createTemplate = asyncHandler(
+  async (req: RequestWithChannel, res: Response) => {
+    console.log(
+      "🚀 Incoming template creation request body:",
+      JSON.stringify(req.body, null, 2)
+    );
+
+    /* ------------------------------------------------
+       MEDIA FILE (multer.fields compatible)
+    ------------------------------------------------ */
+    const mediaFile =
+      Array.isArray(req.files?.mediaFile) ? req.files.mediaFile[0] : undefined;
+
+    console.log("📦 mediaFile:", mediaFile?.originalname || "none");
+
+    const validatedTemplate = req.body;
+
+    /* ------------------------------------------------
+       BASIC NORMALIZATION
+    ------------------------------------------------ */
+    let category = validatedTemplate.category?.toLowerCase() || "authentication";
+    if (!["marketing", "utility", "authentication"].includes(category)) {
+      category = "authentication";
+    }
+    category = category.toUpperCase();
+
+    const mediaType = validatedTemplate.mediaType
+      ? validatedTemplate.mediaType.toLowerCase()
+      : "text";
+
+    /* ------------------------------------------------
+       BODY PLACEHOLDER VALIDATION
+    ------------------------------------------------ */
+    const placeholderPattern = /\{\{(\d+)\}\}/g;
+    const placeholderMatches = Array.from(
+      validatedTemplate.body.matchAll(placeholderPattern)
+    );
+
+    const placeholders = placeholderMatches
+      .map((m) => parseInt(m[1], 10))
+      .sort((a, b) => a - b);
+
+    for (let i = 0; i < placeholders.length; i++) {
+      if (placeholders[i] !== i + 1) {
+        throw new AppError(
+          400,
+          "Placeholders must be sequential starting from {{1}}"
+        );
+      }
+    }
+
+    /* ------------------------------------------------
+       PARSE + VALIDATE SAMPLES
+    ------------------------------------------------ */
+    let samples: string[] = [];
+
+    if (validatedTemplate.samples) {
+      if (typeof validatedTemplate.samples === "string") {
+        try {
+          samples = JSON.parse(validatedTemplate.samples);
+        } catch {
+          throw new AppError(400, "Invalid samples format");
+        }
+      } else if (Array.isArray(validatedTemplate.samples)) {
+        samples = validatedTemplate.samples;
+      }
+    }
+
+    if (placeholders.length > 0) {
+      if (samples.length !== placeholders.length) {
+        throw new AppError(
+          400,
+          `Expected ${placeholders.length} sample values, got ${samples.length}`
+        );
+      }
+
+      // ❌ empty sample not allowed
+      if (samples.some((s) => !String(s).trim())) {
+        throw new AppError(
+          400,
+          "Sample values for template variables cannot be empty"
+        );
+      }
+    }
+
+    /* ------------------------------------------------
+       CHANNEL + USER (STRICT)
+    ------------------------------------------------ */
+    const channelId = validatedTemplate.channelId;
+    if (!channelId) {
+      throw new AppError(400, "channelId is required");
+    }
+
+    const createdBy = req.user?.id;
+    if (!createdBy) throw new AppError(401, "User not authenticated");
+
+    /* ------------------------------------------------
+       SAVE TEMPLATE LOCALLY
+    ------------------------------------------------ */
+    const template = await storage.createTemplate({
+      ...validatedTemplate,
+      category,
+      channelId,
+      status: "pending",
+      createdBy,
+    });
+
+    const channel = await storage.getChannel(channelId);
+    if (!channel) throw new AppError(400, "Channel not found");
+
+    console.log("🗄️ Fetched channel from DB:", {
+      id: channel.id,
+      phoneNumberId: channel.phoneNumberId,
+      accessTokenPrefix: channel.accessToken?.slice(0, 12),
+      isActive: channel.isActive,
+      channel
+    });
+
+    /* ------------------------------------------------
+       BUILD WHATSAPP COMPONENTS
+    ------------------------------------------------ */
+    try {
+      const whatsappApi = new WhatsAppApiService(channel);
+      const components: any[] = [];
+
+      console.log("🔨 Building components from individual fields");
+
+      /* ---------- HEADER ---------- */
+      if (mediaType === "text" && validatedTemplate.header) {
+        components.push({
+          type: "HEADER",
+          format: "TEXT",
+          text: validatedTemplate.header,
+        });
+      }
+
+      if (mediaType !== "text") {
+        let mediaId: string;
+
+        if (mediaFile) {
+          console.log("📤 Uploading media buffer to WhatsApp...");
+          mediaId = await whatsappApi.uploadMediaBufferForTemplate(
+            mediaFile.buffer,
+            mediaFile.mimetype,
+            mediaFile.originalname
+          );
+          console.log("✅ Media uploaded successfully. ID:", mediaId);
+          
+          // Add a small delay to ensure WhatsApp has processed the upload
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        } else if (validatedTemplate.mediaUrl) {
+          console.log("📤 Uploading media from URL to WhatsApp...");
+          let mimeType: string;
+          if (mediaType === "image") mimeType = "image/jpeg";
+          else if (mediaType === "video") mimeType = "video/mp4";
+          else if (mediaType === "document") mimeType = "application/pdf";
+          else mimeType = `${mediaType}/jpeg`;
+
+          mediaId = await whatsappApi.uploadMediaFromUrl(
+            validatedTemplate.mediaUrl,
+            mimeType
+          );
+          console.log("✅ Media uploaded successfully. ID:", mediaId);
+          
+          // Add a small delay to ensure WhatsApp has processed the upload
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        } else {
+          throw new AppError(
+            400,
+            "Media header requires file upload or mediaUrl"
+          );
+        }
+
+        // Verify the media ID is valid (should be numeric string)
+        if (!mediaId || !/^\d+$/.test(mediaId)) {
+          throw new AppError(
+            400,
+            `Invalid media ID received from WhatsApp: ${mediaId}`
+          );
+        }
+
+        components.push({
+          type: "HEADER",
+          format: mediaType.toUpperCase(),
+          example: {
+            header_handle: [mediaId], // WhatsApp expects array of strings
+          },
+        });
+      }
+
+      /* ---------- BODY ---------- */
+      const bodyObj: any = {
+        type: "BODY",
+        text: validatedTemplate.body,
+      };
+
+      if (placeholders.length > 0) {
+        bodyObj.example = {
+          body_text: [samples], // samples guaranteed non-empty
+        };
+      }
+
+      components.push(bodyObj);
+
+      /* ---------- FOOTER ---------- */
+      if (validatedTemplate.footer) {
+        components.push({
+          type: "FOOTER",
+          text: validatedTemplate.footer,
+        });
+      }
+
+      /* ---------- BUTTONS ---------- */
+      if (validatedTemplate.buttons) {
+        let buttons = validatedTemplate.buttons;
+
+        if (typeof buttons === "string") {
+          try {
+            buttons = JSON.parse(buttons);
+          } catch {
+            throw new AppError(400, "Invalid buttons format");
+          }
+        }
+
+        if (Array.isArray(buttons) && buttons.length > 0) {
+          components.push({
+            type: "BUTTONS",
+            buttons: buttons.map((btn: any) => {
+              const type =
+                btn.type === "URL"
+                  ? "URL"
+                  : btn.type === "PHONE_NUMBER"
+                  ? "PHONE_NUMBER"
+                  : "QUICK_REPLY";
+
+              const obj: any = { type, text: btn.text };
+              if (type === "URL") obj.url = btn.url;
+              if (type === "PHONE_NUMBER")
+                obj.phone_number = btn.phoneNumber;
+              return obj;
+            }),
+          });
+        }
+      }
+
+      /* ---------- FINAL PAYLOAD ---------- */
+      const templatePayload = {
+        name: validatedTemplate.name,
+        category,
+        language: validatedTemplate.language,
+        components,
+      };
+
+      console.log(
+        "📤 FINAL WHATSAPP PAYLOAD:",
+        JSON.stringify(templatePayload, null, 2)
+      );
+
+      const result = await whatsappApi.createTemplate(templatePayload);
+
+      if (result?.id) {
+        await storage.updateTemplate(template.id, {
+          whatsappTemplateId: result.id,
+          status: result.status || "pending",
+        });
+      }
+
+      return res.json(template);
+    } catch (err: any) {
+      console.error("❌ Template creation error:", err);
+      console.error("❌ Error details:", {
+        message: err.message,
+        stack: err.stack,
+        response: err.response?.data,
+      });
+      
+      return res.json({
+        ...template,
+        warning: "Template saved locally but failed to submit to WhatsApp",
+        error: err.message,
+      });
+    }
+  }
+);
+
+
+export const createTemplate17dec = asyncHandler(
   async (req: RequestWithChannel, res: Response) => {
     console.log(
       "🚀 Incoming template creation request body:",
