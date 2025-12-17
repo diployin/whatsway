@@ -67,6 +67,11 @@ io.on("connection", (socket) => {
   
       socket.emit("test_response", { msg: "Server se response aaya!" });
     });
+    socket.on("join-room", ({ room }) => {
+    console.log("📥 Socket joined room:", room);
+    socket.join(room);
+  });
+
   
   
        // ============================================

@@ -1135,6 +1135,7 @@ export default function Inbox() {
 
     const API_BASE = `${window.location.origin}`;
     console.log("Connecting to Socket.io at", API_BASE);
+    
     const socketInstance = io(API_BASE, {
       query: {
         userId: user.id,
@@ -1146,6 +1147,14 @@ export default function Inbox() {
 
     socketInstance.on("connect", () => {
     console.log("Socket.io connected for agent");
+    if (activeChannel?.id) {
+    const channelRoom = `channel:${activeChannel.id}`;
+    console.log("🔗 Joining channel room:", channelRoom);
+
+    socketInstance.emit("join-room", {
+      room: channelRoom,
+    });
+  }
     });
 
    
