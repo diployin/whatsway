@@ -76,6 +76,7 @@ import {
   differenceInDays,
   isToday,
   isYesterday,
+  formatDistanceToNow,
 } from "date-fns";
 import { cn } from "@/lib/utils";
 import type { Conversation, Contact, User } from "@shared/schema";
@@ -86,22 +87,31 @@ import { WhatsAppDemoQR } from "@/components/demoqr/WhatsAppDemoQR";
 import { Modal } from "@/components/demoqr/Modal";
 
 
+
 // Helper functions
-const formatLastSeen = (date: Date | string | null) => {
-  if (!date) return "Never";
+// const formatLastSeen = (date: Date | string | null) => {
+//   if (!date) return "Never";
 
-  const lastSeenDate = new Date(date);
-  const now = new Date();
-  const minutes = differenceInMinutes(now, lastSeenDate);
-  const hours = differenceInHours(now, lastSeenDate);
-  const days = differenceInDays(now, lastSeenDate);
+//   const lastSeenDate = new Date(date);
+//   const now = new Date();
+//   const minutes = differenceInMinutes(now, lastSeenDate);
+//   const hours = differenceInHours(now, lastSeenDate);
+//   const days = differenceInDays(now, lastSeenDate);
 
-  if (minutes < 1) return "Just now";
-  if (minutes < 60) return `${minutes}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  if (days < 7) return `${days}d ago`;
-  return format(lastSeenDate, "MMM d, yyyy");
+//   if (minutes < 1) return "Just now";
+//   if (minutes < 60) return `${minutes}m ago`;
+//   if (hours < 24) return `${hours}h ago`;
+//   if (days < 7) return `${days}d ago`;
+//   return format(lastSeenDate, "MMM d, yyyy");
+// };
+
+
+
+const formatLastSeen = (date: string | Date | null) => {
+  if (!date) return "";
+  return formatDistanceToNow(new Date(date), { addSuffix: true });
 };
+
 
 const formatMessageDate = (date: Date | string) => {
   const messageDate = new Date(date);
@@ -1099,183 +1109,269 @@ export default function Inbox() {
   }, [messages]);
 
   // Initialize Socket.io connection for real-time chat
-  useEffect(() => {
-    if (!user?.id) return;
+//   useEffect(() => {
+//     if (!user?.id) return;
 
-    const API_BASE = `${window.location.origin}`;
-    console.log("Connecting to Socket.io at", API_BASE);
-    const socketInstance = io(API_BASE, {
-      query: {
-        userId: user.id,
-        role: user.role || "agent",
-        siteId: activeChannel?.id || "default",
-      },
-      transports: ["websocket", "polling"],
-    });
+//     const API_BASE = `${window.location.origin}`;
+//     console.log("Connecting to Socket.io at", API_BASE);
+//     const socketInstance = io(API_BASE, {
+//       query: {
+//         userId: user.id,
+//         role: user.role || "agent",
+//         siteId: activeChannel?.id || "default",
+//       },
+//       transports: ["websocket", "polling"],
+//     });
 
-    socketInstance.on("connect", () => {
-    console.log("Socket.io connected for agent");
-    });
+//     socketInstance.on("connect", () => {
+//     console.log("Socket.io connected for agent");
+//     });
 
    
-    socketInstance.on("disconnect", () => {
-      console.log("Socket.io disconnected");
-    });
+//     socketInstance.on("disconnect", () => {
+//       console.log("Socket.io disconnected");
+//     });
     
 
 
-socketInstance.on("conversation_created", () => {
-  console.log("🔥 conversation_created event received");
-  queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-});
+// socketInstance.on("conversation_created", () => {
+//   console.log("🔥 conversation_created event received");
+//   queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+// });
 
 
-socketInstance.on("message_sent", (data) => {
-  console.log("📩 message_sent event received:", data);
+// socketInstance.on("message_sent", (data) => {
+//   console.log("📩 message_sent event received:", data);
 
-  // 🔄 Update Conversation List
-  queryClient.invalidateQueries({
-    queryKey: ["/api/conversations"]
+//   // 🔄 Update Conversation List
+//   queryClient.invalidateQueries({
+//     queryKey: ["/api/conversations"]
+//   });
+
+//   // 🔄 Update messages ONLY for the active/opened conversation
+  
+//     queryClient.invalidateQueries({
+//       queryKey: ["/api/conversations", data.conversationId, "messages"]
+//     });
+  
+// });
+
+
+
+
+
+
+
+// // Listen for new messages (works for ANY conversation)
+// socketInstance.on("new-message", (data) => {
+//   console.log("🔥 Realtime WA message received:", data);
+
+//   // ALWAYS refresh conversations list (for unread count, last message)
+//   queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+
+//   // If message is for selected conversation, also refresh messages
+//   if (selectedConversation?.id === data.conversationId) {
+//     console.log("Refreshing messages for selected conversation");
+//     queryClient.invalidateQueries({
+//       queryKey: ["/api/conversations", selectedConversation.id, "messages"],
+//     });
+//   }
+// });
+
+// // Listen for conversation updates (new messages in other conversations)
+// socketInstance.on("conversation_updated", (data) => {
+//   console.log("🔔 Conversation updated:", data.conversationId);
+//   queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+// });
+
+// // Listen for new conversations
+// socketInstance.on("conversation_created", (data) => {
+//   console.log("🆕 New conversation created:", data.conversation);
+//   queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+// });
+
+
+
+
+
+
+//     // Listen for new messages (from visitors or AI)
+//     socketInstance.on("new-message", (data) => {
+//       console.log("New message received:", data);
+
+//       // Refresh conversations list
+//       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+
+//       // If message is for selected conversation, refresh messages
+//       if (
+//         selectedConversation &&
+//         data.conversationId === selectedConversation.id
+//       ) {
+//         queryClient.invalidateQueries({
+//           queryKey: ["/api/conversations", selectedConversation.id, "messages"],
+//         });
+//       }
+//     });
+
+//     // Listen for visitor typing
+//     socketInstance.on("user_typing", (data) => {
+//       if (selectedConversation?.id === data.conversationId) {
+//         setIsTyping(true);
+//         setTypingUser("Visitor");
+//       }
+//     });
+
+//     socketInstance.on("user_stopped_typing", (data) => {
+//       if (selectedConversation?.id === data.conversationId) {
+//         setIsTyping(false);
+//         setTypingUser("");
+//       }
+//     });
+
+//     // New conversation assigned to this agent
+//     socketInstance.on("new_conversation_assigned", (data) => {
+//       if (data.agentId === user.id) {
+//         queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+//         toast({
+//           title: "New Conversation Assigned",
+//           description: "A new conversation has been assigned to you",
+//         });
+//       }
+//     });
+
+//     // Conversation transferred
+//     socketInstance.on("conversation_transferred", (data) => {
+//       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+//       if (selectedConversation?.id === data.conversationId) {
+//         toast({
+//           title: "Conversation Transferred",
+//           description: `Transferred to ${data.agent?.name || "another agent"}`,
+//         });
+//       }
+//     });
+
+//     // Messages marked as read
+//     socketInstance.on("messages_read", (data) => {
+//       if (selectedConversation?.id === data.conversationId) {
+//         queryClient.invalidateQueries({
+//           queryKey: ["/api/conversations", selectedConversation.id, "messages"],
+//         });
+//       }
+//     });
+
+//     // Message status updates
+//     socketInstance.on("message_status_update", (data) => {
+//       queryClient.invalidateQueries({
+//         queryKey: ["/api/conversations", selectedConversation?.id, "messages"],
+//       });
+//     });
+
+//     // Conversation status changed
+//     socketInstance.on("conversation_status_changed", (data) => {
+//       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+//       if (selectedConversation?.id === data.conversationId) {
+//         toast({
+//           title: "Conversation Status Changed",
+//           description: `Status changed to: ${data.status}`,
+//         });
+//       }
+//     });
+
+
+    
+
+//     setSocket(socketInstance);
+
+//     return () => {
+//       socketInstance.disconnect();
+//     };
+//   }, [user?.id, activeChannel?.id]);
+
+//   useEffect(() => {
+//   if (!selectedConversation || !activeChannel?.id) return;
+
+//   queryClient.setQueryData(
+//     ["/api/conversations", activeChannel.id],
+//     (old: any) =>
+//       old?.map((c: any) =>
+//         c.id === selectedConversation.id
+//           ? { ...c, unreadCount: 0 }
+//           : c
+//       )
+//   );
+// }, [selectedConversation?.id]);
+
+
+
+
+  useEffect(() => {
+  if (!user?.id || !activeChannel?.id) return;
+
+  const socketInstance = io(window.location.origin, {
+    query: {
+      userId: user.id,
+      role: user.role || "agent",
+      siteId: activeChannel.id,
+    },
+    transports: ["websocket"],
   });
 
-  // 🔄 Update messages ONLY for the active/opened conversation
-  
-    queryClient.invalidateQueries({
-      queryKey: ["/api/conversations", data.conversationId, "messages"]
-    });
-  
-});
+  socketInstance.on("connect", () => {
+    console.log("✅ Socket connected");
+  });
 
+  // 🔥 MAIN FIX — REALTIME INBOX UPDATE
+  socketInstance.on("new-message", (data) => {
+    console.log("🔥 Realtime message:", data);
 
+    // ✅ 1. Update inbox list instantly (even if no chat selected)
+    queryClient.setQueryData(
+      ["/api/conversations", activeChannel.id],
+      (old: any) => {
+        if (!Array.isArray(old)) return old;
 
+        return old
+          .map((conv) => {
+            if (conv.id !== data.conversationId) return conv;
 
-
-
-
-// Listen for new messages (works for ANY conversation)
-socketInstance.on("new-message", (data) => {
-  console.log("🔥 Realtime WA message received:", data);
-
-  // ALWAYS refresh conversations list (for unread count, last message)
-  queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-
-  // If message is for selected conversation, also refresh messages
-  if (selectedConversation?.id === data.conversationId) {
-    console.log("Refreshing messages for selected conversation");
-    queryClient.invalidateQueries({
-      queryKey: ["/api/conversations", selectedConversation.id, "messages"],
-    });
-  }
-});
-
-// Listen for conversation updates (new messages in other conversations)
-socketInstance.on("conversation_updated", (data) => {
-  console.log("🔔 Conversation updated:", data.conversationId);
-  queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-});
-
-// Listen for new conversations
-socketInstance.on("conversation_created", (data) => {
-  console.log("🆕 New conversation created:", data.conversation);
-  queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-});
-
-
-
-
-
-
-    // Listen for new messages (from visitors or AI)
-    socketInstance.on("new-message", (data) => {
-      console.log("New message received:", data);
-
-      // Refresh conversations list
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-
-      // If message is for selected conversation, refresh messages
-      if (
-        selectedConversation &&
-        data.conversationId === selectedConversation.id
-      ) {
-        queryClient.invalidateQueries({
-          queryKey: ["/api/conversations", selectedConversation.id, "messages"],
-        });
+            return {
+              ...conv,
+              lastMessageText: data.content,
+              lastMessageAt: data.createdAt || new Date().toISOString(),
+              unreadCount:
+                selectedConversation?.id === data.conversationId
+                  ? 0
+                  : (conv.unreadCount || 0) + 1,
+            };
+          })
+          // 🔥 Move updated conversation to top
+          .sort(
+            (a, b) =>
+              new Date(b.lastMessageAt).getTime() -
+              new Date(a.lastMessageAt).getTime()
+          );
       }
-    });
+    );
 
-    // Listen for visitor typing
-    socketInstance.on("user_typing", (data) => {
-      if (selectedConversation?.id === data.conversationId) {
-        setIsTyping(true);
-        setTypingUser("Visitor");
-      }
-    });
-
-    socketInstance.on("user_stopped_typing", (data) => {
-      if (selectedConversation?.id === data.conversationId) {
-        setIsTyping(false);
-        setTypingUser("");
-      }
-    });
-
-    // New conversation assigned to this agent
-    socketInstance.on("new_conversation_assigned", (data) => {
-      if (data.agentId === user.id) {
-        queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-        toast({
-          title: "New Conversation Assigned",
-          description: "A new conversation has been assigned to you",
-        });
-      }
-    });
-
-    // Conversation transferred
-    socketInstance.on("conversation_transferred", (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-      if (selectedConversation?.id === data.conversationId) {
-        toast({
-          title: "Conversation Transferred",
-          description: `Transferred to ${data.agent?.name || "another agent"}`,
-        });
-      }
-    });
-
-    // Messages marked as read
-    socketInstance.on("messages_read", (data) => {
-      if (selectedConversation?.id === data.conversationId) {
-        queryClient.invalidateQueries({
-          queryKey: ["/api/conversations", selectedConversation.id, "messages"],
-        });
-      }
-    });
-
-    // Message status updates
-    socketInstance.on("message_status_update", (data) => {
+    // ✅ 2. If chat is open → refresh messages
+    if (selectedConversation?.id === data.conversationId) {
       queryClient.invalidateQueries({
-        queryKey: ["/api/conversations", selectedConversation?.id, "messages"],
+        queryKey: [
+          "/api/conversations",
+          data.conversationId,
+          "messages",
+        ],
       });
-    });
+    }
+  });
 
-    // Conversation status changed
-    socketInstance.on("conversation_status_changed", (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-      if (selectedConversation?.id === data.conversationId) {
-        toast({
-          title: "Conversation Status Changed",
-          description: `Status changed to: ${data.status}`,
-        });
-      }
-    });
+  setSocket(socketInstance);
 
+  return () => {
+    socketInstance.disconnect();
+  };
+}, [user?.id, activeChannel?.id, selectedConversation?.id]);
 
-    
-
-    setSocket(socketInstance);
-
-    return () => {
-      socketInstance.disconnect();
-    };
-  }, [user?.id, activeChannel?.id]);
 
   // WebSocket connection for WhatsApp (keep existing)
   useEffect(() => {
