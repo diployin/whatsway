@@ -917,8 +917,19 @@ io.to(channelRoom).emit("message_sent", messageData);
 
 
   // Broadcast to specific conversation rooms
-  io.to(`conversation_${conversation.id}`).emit("new-message", messageData);
-  io.to(`conversation:${conversation.id}`).emit("new-message", messageData);
+  // io.to(`conversation_${conversation.id}`).emit("new-message", messageData);
+  // io.to(`conversation:${conversation.id}`).emit("new-message", messageData);
+
+  io.emit("new-message", {
+  conversationId: conversation.id,
+  content: message.text || null,
+  message: {
+    text: message.text,
+    timestamp: message.timestamp,
+  },
+  createdAt: new Date().toISOString(),
+});
+
   
   console.log(`✅ Emitted to conversation_${conversation.id}`);
    
