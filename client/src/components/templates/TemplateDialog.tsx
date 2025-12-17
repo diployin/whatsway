@@ -326,6 +326,13 @@ useEffect(() => {
   );
 }, [watchedValues.body]);
 
+useEffect(() => {
+  if (watchedValues.mediaType !== "text") {
+    form.setValue("header", "");
+  }
+}, [watchedValues.mediaType]);
+
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -558,37 +565,39 @@ useEffect(() => {
 
 
                   {/* Header */}
-                  <FormField
-                    control={form.control}
-                    name="header"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Header (Optional)</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Input
-                              placeholder="Optional header text (max 60 chars)"
-                              maxLength={60}
-                              {...field}
-                            />
-                            <span
-                              className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs ${
-                                (field.value?.length || 0) >= 60
-                                  ? "text-red-500"
-                                  : "text-gray-400"
-                              }`}
-                            >
-                              {field.value?.length || 0} / 60
-                            </span>
-                          </div>
-                        </FormControl>
-                        <FormDescription>
-                          Max 60 characters. Avoid emojis and “STOP” messages.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {watchedValues.mediaType === "text" && (
+  <FormField
+    control={form.control}
+    name="header"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>Header (Optional)</FormLabel>
+        <FormControl>
+          <div className="relative">
+            <Input
+              placeholder="Optional header text (max 60 chars)"
+              maxLength={60}
+              {...field}
+            />
+            <span
+              className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs ${
+                (field.value?.length || 0) >= 60
+                  ? "text-red-500"
+                  : "text-gray-400"
+              }`}
+            >
+              {field.value?.length || 0} / 60
+            </span>
+          </div>
+        </FormControl>
+        <FormDescription>
+          Max 60 characters. Avoid emojis and “STOP” messages.
+        </FormDescription>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+)}
 
                   {/* Body */}
                   <FormField
