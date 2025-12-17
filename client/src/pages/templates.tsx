@@ -129,6 +129,7 @@ const createTemplateMutation = useMutation({
     formData.append("category", data.category);
     formData.append("language", data.language);
     formData.append("body", data.body);
+    formData.append("channelId", activeChannel?.id);
 
     if (data.footer) {
       formData.append("footer", data.footer);

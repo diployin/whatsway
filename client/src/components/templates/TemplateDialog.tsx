@@ -91,6 +91,7 @@ const templateFormSchema = z.object({
     .default([]),
   variables: z.array(z.string()).default([]),
   samples: z.array(z.string()).default([]),
+  mediaFile: z.any().optional(),
 });
 
 type TemplateFormData = z.infer<typeof templateFormSchema>;
@@ -120,6 +121,7 @@ export function TemplateDialog({
       language: "en_US",
       mediaType: "text",
       mediaUrl: "",
+      mediaFile: undefined,
       header: "",
       body: "",
       footer: "",
@@ -302,18 +304,28 @@ export function TemplateDialog({
 
   const watchedValues = form.watch();
 
-  useEffect(() => {
+//   useEffect(() => {
+//   const vars = extractVariables(watchedValues.body || "");
+
+//   const existing = form.getValues("variables") || [];
+
+//   if (vars.length !== existing.length) {
+//     form.setValue(
+//       "variables",
+//       vars.map((_, i) => existing[i] ?? "")
+//     );
+//   }
+// }, [watchedValues.body]);
+
+useEffect(() => {
   const vars = extractVariables(watchedValues.body || "");
 
-  const existing = form.getValues("variables") || [];
-
-  if (vars.length !== existing.length) {
-    form.setValue(
-      "variables",
-      vars.map((_, i) => existing[i] ?? "")
-    );
-  }
+  form.setValue(
+    "variables",
+    vars.map(() => "")
+  );
 }, [watchedValues.body]);
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

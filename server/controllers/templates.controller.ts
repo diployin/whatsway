@@ -101,7 +101,13 @@ export const createTemplate = asyncHandler(
       JSON.stringify(req.body, null, 2)
     );
 
-    console.log(req.file, "reqrrrrrrrrrrr")
+    /* ------------------------------------------------
+       MEDIA FILE (multer.fields compatible)
+    ------------------------------------------------ */
+    const mediaFile =
+      Array.isArray(req.files?.mediaFile) ? req.files.mediaFile[0] : undefined;
+
+    console.log("📦 mediaFile:", mediaFile?.originalname || "none");
 
     const validatedTemplate = req.body;
 
@@ -125,32 +131,60 @@ export const createTemplate = asyncHandler(
     const placeholderMatches = Array.from(
       validatedTemplate.body.matchAll(placeholderPattern)
     );
+
     const placeholders = placeholderMatches
       .map((m) => parseInt(m[1], 10))
       .sort((a, b) => a - b);
 
     for (let i = 0; i < placeholders.length; i++) {
       if (placeholders[i] !== i + 1) {
-        throw new AppError(400, "Placeholders must be sequential starting from {{1}}");
+        throw new AppError(
+          400,
+          "Placeholders must be sequential starting from {{1}}"
+        );
       }
     }
 
-    const samples = validatedTemplate.samples || [];
-    if (placeholders.length > 0 && samples.length !== placeholders.length) {
-      throw new AppError(
-        400,
-        `Expected ${placeholders.length} sample values, got ${samples.length}`
-      );
+    /* ------------------------------------------------
+       PARSE + VALIDATE SAMPLES
+    ------------------------------------------------ */
+    let samples: string[] = [];
+
+    if (validatedTemplate.samples) {
+      if (typeof validatedTemplate.samples === "string") {
+        try {
+          samples = JSON.parse(validatedTemplate.samples);
+        } catch {
+          throw new AppError(400, "Invalid samples format");
+        }
+      } else if (Array.isArray(validatedTemplate.samples)) {
+        samples = validatedTemplate.samples;
+      }
+    }
+
+    if (placeholders.length > 0) {
+      if (samples.length !== placeholders.length) {
+        throw new AppError(
+          400,
+          `Expected ${placeholders.length} sample values, got ${samples.length}`
+        );
+      }
+
+      // ❌ empty sample not allowed
+      if (samples.some((s) => !String(s).trim())) {
+        throw new AppError(
+          400,
+          "Sample values for template variables cannot be empty"
+        );
+      }
     }
 
     /* ------------------------------------------------
-       CHANNEL + USER
+       CHANNEL + USER (STRICT)
     ------------------------------------------------ */
-    let channelId = validatedTemplate.channelId;
+    const channelId = validatedTemplate.channelId;
     if (!channelId) {
-      const activeChannel = await storage.getActiveChannel();
-      if (!activeChannel) throw new AppError(400, "No active channel found");
-      channelId = activeChannel.id;
+      throw new AppError(400, "channelId is required");
     }
 
     const createdBy = req.user?.id;
@@ -170,146 +204,119 @@ export const createTemplate = asyncHandler(
     const channel = await storage.getChannel(channelId);
     if (!channel) throw new AppError(400, "Channel not found");
 
+    console.log("🗄️ Fetched channel from DB:", {
+      id: channel.id,
+      phoneNumberId: channel.phoneNumberId,
+      accessTokenPrefix: channel.accessToken?.slice(0, 12),
+      isActive: channel.isActive,
+    });
+
     /* ------------------------------------------------
        BUILD WHATSAPP COMPONENTS
     ------------------------------------------------ */
     try {
       const whatsappApi = new WhatsAppApiService(channel);
-      let components: any[] = [];
+      const components: any[] = [];
 
-      // If components are provided in request
-      if (validatedTemplate.components && Array.isArray(validatedTemplate.components)) {
-        components = await Promise.all(
-          validatedTemplate.components.map(async (comp) => {
-            // HEADER: IMAGE/VIDEO/DOCUMENT
-            if (
-              comp.type === "HEADER" &&
-              ["IMAGE", "VIDEO", "DOCUMENT"].includes(comp.format)
-            ) {
-              // Use uploaded file if present, otherwise fallback to URL
-              let mediaId: string | undefined;
+      console.log("🔨 Building components from individual fields");
 
-              if (req.file) {
-                // Buffer upload
-                mediaId = await whatsappApi.uploadMediaBuffer(
-                  req.file.buffer,
-                  req.file.mimetype,
-                  req.file.originalname
-                );
-              } else if (comp.example?.header_handle?.[0]?.startsWith("http")) {
-                // URL upload
-                let mimeType: string;
-                if (comp.format === "IMAGE") mimeType = "image/jpeg";
-                else if (comp.format === "VIDEO") mimeType = "video/mp4";
-                else if (comp.format === "DOCUMENT") mimeType = "application/pdf";
-                else throw new AppError(400, `Unsupported format: ${comp.format}`);
+      /* ---------- HEADER ---------- */
+      if (mediaType === "text" && validatedTemplate.header) {
+        components.push({
+          type: "HEADER",
+          format: "TEXT",
+          text: validatedTemplate.header,
+        });
+      }
 
-                mediaId = await whatsappApi.uploadMediaFromUrl(
-                  comp.example.header_handle[0],
-                  mimeType
-                );
-              }
+      if (mediaType !== "text") {
+        let mediaId: string;
 
-              return {
-                type: "HEADER",
-                format: comp.format,
-                example: { header_handle: [String(mediaId)] },
-              };
-            }
+        if (mediaFile) {
+          mediaId = await whatsappApi.uploadMediaBufferForTemplate(
+            mediaFile.buffer,
+            mediaFile.mimetype,
+            mediaFile.originalname
+          );
+        } else if (validatedTemplate.mediaUrl) {
+          let mimeType: string;
+          if (mediaType === "image") mimeType = "image/jpeg";
+          else if (mediaType === "video") mimeType = "video/mp4";
+          else if (mediaType === "document") mimeType = "application/pdf";
+          else mimeType = `${mediaType}/jpeg`;
 
-            // BODY with placeholders
-            if (comp.type === "BODY" && comp.text) {
-              const bodyVars = comp.text.match(/{{\d+}}/g);
-              if (bodyVars && bodyVars.length > 0 && !comp.example) {
-                return {
-                  type: "BODY",
-                  text: comp.text,
-                  example: { body_text: [samples] },
-                };
-              }
-            }
-
-            return comp;
-          })
-        );
-      } else {
-        console.log("🔨 Building components from individual fields");
-
-        /* ---------- HEADER ---------- */
-        if (mediaType === "text" && validatedTemplate.header) {
-          const headerVars = validatedTemplate.header.match(/{{\d+}}/g);
-          const headerObj: any = { type: "HEADER", format: "TEXT", text: validatedTemplate.header };
-
-          if (headerVars?.length) {
-            if (
-              !validatedTemplate.headerSamples ||
-              validatedTemplate.headerSamples.length !== headerVars.length
-            ) {
-              throw new AppError(
-                400,
-                `Header has ${headerVars.length} variables but ${validatedTemplate.headerSamples?.length || 0} samples provided`
-              );
-            }
-            headerObj.example = { header_text: validatedTemplate.headerSamples };
-          }
-          components.push(headerObj);
+          mediaId = await whatsappApi.uploadMediaFromUrl(
+            validatedTemplate.mediaUrl,
+            mimeType
+          );
+        } else {
+          throw new AppError(
+            400,
+            "Media header requires file upload or mediaUrl"
+          );
         }
 
-        if (mediaType !== "text") {
-          let mediaId: string;
-          if (req.file) {
-            mediaId = await whatsappApi.uploadMediaBuffer(
-              req.file.buffer,
-              req.file.mimetype,
-              req.file.originalname
-            );
-          } else if (validatedTemplate.mediaUrl) {
-            let mimeType: string;
-            if (mediaType === "image") mimeType = "image/jpeg";
-            else if (mediaType === "video") mimeType = "video/mp4";
-            else if (mediaType === "document") mimeType = "application/pdf";
-            else mimeType = `${mediaType}/jpeg`;
+        components.push({
+          type: "HEADER",
+          format: mediaType.toUpperCase(),
+          example: {
+            header_handle: [String(mediaId)], // ✅ FINAL correct format
+          },
+        });
+      }
 
-            mediaId = await whatsappApi.uploadMediaFromUrl(validatedTemplate.mediaUrl, mimeType);
-          } else {
-            throw new AppError(400, "Media header requires file upload or mediaUrl");
+      /* ---------- BODY ---------- */
+      const bodyObj: any = {
+        type: "BODY",
+        text: validatedTemplate.body,
+      };
+
+      if (placeholders.length > 0) {
+        bodyObj.example = {
+          body_text: [samples], // samples guaranteed non-empty
+        };
+      }
+
+      components.push(bodyObj);
+
+      /* ---------- FOOTER ---------- */
+      if (validatedTemplate.footer) {
+        components.push({
+          type: "FOOTER",
+          text: validatedTemplate.footer,
+        });
+      }
+
+      /* ---------- BUTTONS ---------- */
+      if (validatedTemplate.buttons) {
+        let buttons = validatedTemplate.buttons;
+
+        if (typeof buttons === "string") {
+          try {
+            buttons = JSON.parse(buttons);
+          } catch {
+            throw new AppError(400, "Invalid buttons format");
           }
+        }
 
+        if (Array.isArray(buttons) && buttons.length > 0) {
           components.push({
-            type: "HEADER",
-            format: mediaType.toUpperCase(),
-            example: { header_handle: [String(mediaId)] },
+            type: "BUTTONS",
+            buttons: buttons.map((btn: any) => {
+              const type =
+                btn.type === "URL"
+                  ? "URL"
+                  : btn.type === "PHONE_NUMBER"
+                  ? "PHONE_NUMBER"
+                  : "QUICK_REPLY";
+
+              const obj: any = { type, text: btn.text };
+              if (type === "URL") obj.url = btn.url;
+              if (type === "PHONE_NUMBER")
+                obj.phone_number = btn.phoneNumber;
+              return obj;
+            }),
           });
-        }
-
-        /* ---------- BODY ---------- */
-        const bodyVars = validatedTemplate.body.match(/{{\d+}}/g);
-        const bodyObj: any = { type: "BODY", text: validatedTemplate.body };
-        if (bodyVars?.length) bodyObj.example = { body_text: [samples] };
-        components.push(bodyObj);
-
-        /* ---------- FOOTER ---------- */
-        if (validatedTemplate.footer) {
-          components.push({ type: "FOOTER", text: validatedTemplate.footer });
-        }
-
-        /* ---------- BUTTONS ---------- */
-        if (validatedTemplate.buttons?.length > 0) {
-          const buttons = validatedTemplate.buttons.map((btn: any) => {
-            const type =
-              btn.type.toUpperCase() === "URL"
-                ? "URL"
-                : btn.type.toUpperCase() === "PHONE"
-                ? "PHONE_NUMBER"
-                : "QUICK_REPLY";
-
-            const buttonObj: any = { type, text: btn.text };
-            if (type === "URL") buttonObj.url = btn.url;
-            if (type === "PHONE_NUMBER") buttonObj.phone_number = btn.phoneNumber;
-            return buttonObj;
-          });
-
-          components.push({ type: "BUTTONS", buttons });
         }
       }
 
@@ -321,7 +328,10 @@ export const createTemplate = asyncHandler(
         components,
       };
 
-      console.log("📤 FINAL META PAYLOAD:", JSON.stringify(templatePayload, null, 2));
+      console.log(
+        "📤 FINAL WHATSAPP PAYLOAD:",
+        JSON.stringify(templatePayload, null, 2)
+      );
 
       const result = await whatsappApi.createTemplate(templatePayload);
 
@@ -329,7 +339,6 @@ export const createTemplate = asyncHandler(
         await storage.updateTemplate(template.id, {
           whatsappTemplateId: result.id,
           status: result.status || "pending",
-          category,
         });
       }
 
@@ -343,6 +352,8 @@ export const createTemplate = asyncHandler(
     }
   }
 );
+
+
 
 
 
