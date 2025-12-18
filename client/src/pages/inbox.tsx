@@ -924,20 +924,40 @@ if (hasMedia) {
 };
 
 
+  // const getMessageStatusIcon = (status: string) => {
+  //   switch (status) {
+  //     case "sent":
+  //       return <span className="text-xs">✓</span>;
+  //     case "delivered":
+  //       return <span className="text-xs">✓✓</span>;
+  //     case "read":
+  //       return <span className="text-xs text-blue-300">✓✓</span>;
+  //     case "failed":
+  //       return <span className="text-xs text-red-300">✗</span>;
+  //     default:
+  //       return <span className="text-xs">○</span>;
+  //   }
+  // };
+
   const getMessageStatusIcon = (status: string) => {
-    switch (status) {
-      case "sent":
-        return <span className="text-xs">✓</span>;
-      case "delivered":
-        return <span className="text-xs">✓✓</span>;
-      case "read":
-        return <span className="text-xs text-blue-300">✓✓</span>;
-      case "failed":
-        return <span className="text-xs text-red-300">✗</span>;
-      default:
-        return <span className="text-xs">○</span>;
-    }
-  };
+  switch (status) {
+    case "sent":
+      return <Check className="w-3 h-3 text-gray-400" />;
+
+    case "delivered":
+      return <CheckCheck className="w-3 h-3 text-gray-400" />;
+
+    case "read":
+      return <CheckCheck className="w-3 h-3 text-blue-500" />;
+
+    case "failed":
+      return <AlertCircle className="w-3 h-3 text-red-500" />;
+
+    default:
+      return <Clock className="w-3 h-3 text-gray-400" />;
+  }
+};
+
 
   return (
     <>
@@ -1223,6 +1243,20 @@ export default function Inbox() {
     },
     enabled: !!selectedConversation?.id,
   });
+
+
+  useEffect(() => {
+  if (!selectedConversation?.id) return;
+
+  queryClient.invalidateQueries({
+    queryKey: [
+      "/api/conversations",
+      selectedConversation.id,
+      "messages",
+    ],
+  });
+}, [selectedConversation?.id]);
+
 
 
   function normalizeTime(value: any): number {
