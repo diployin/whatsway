@@ -36,7 +36,7 @@ export function registerTemplateRoutes(app: Express) {
   );
 
   // Update template
-  app.put("/api/templates/:id",requireAuth, templatesController.updateTemplate);
+  app.put("/api/templates/:id",requireAuth, upload.fields([{ name: "mediaFile", maxCount: 1 }]), templatesController.updateTemplate);
 
   // Delete template
   app.delete("/api/templates/:id",requireAuth, templatesController.deleteTemplate);

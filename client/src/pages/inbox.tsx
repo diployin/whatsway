@@ -107,29 +107,10 @@ function normalizeDate(value: any): Date | null {
 
 
 
-// const formatLastSeen = (date: any) => {
-//   const lastSeenDate = normalizeDate(date);
-//   if (!lastSeenDate) return "";
-
-//   const now = new Date();
-
-//   const minutes = differenceInMinutes(now, lastSeenDate);
-//   const hours = differenceInHours(now, lastSeenDate);
-//   const days = differenceInDays(now, lastSeenDate);
-
-//   if (minutes < 1) return "Just now";
-//   if (minutes < 60) return `${minutes}m ago`;
-//   if (hours < 24) return `${hours}h ago`;
-//   if (days < 7) return `${days}d ago`;
-
-//   return format(lastSeenDate, "MMM d, yyyy");
-// };
-
-
  function normalizeTime(value: any): number {
   if (!value) return 0;
 
-  // ✅ Fix backend "YYYY-MM-DD HH:mm:ss.SSSSSS" (assume UTC)
+  
   if (typeof value === "string" && value.includes(" ")) {
     // Convert to ISO + UTC
     const iso = value.replace(" ", "T") + "Z";
@@ -217,17 +198,7 @@ const ConversationListItem = ({
     ? formatLastSeen(conversation.lastMessageAt)
     : "";
 
-  // function getMessagePreview(message: string | null | undefined): string {
-  //   if (!message) {
-  //     return ""; // or return 'No message' if you want a placeholder
-  //   }
 
-  //   if (message.length <= 40) {
-  //     return message;
-  //   } else {
-  //     return message.substring(0, 40) + "...";
-  //   }
-  // }
 
   function getMessagePreview(message: any): string {
   if (!message) return "";
@@ -924,20 +895,7 @@ if (hasMedia) {
 };
 
 
-  // const getMessageStatusIcon = (status: string) => {
-  //   switch (status) {
-  //     case "sent":
-  //       return <span className="text-xs">✓</span>;
-  //     case "delivered":
-  //       return <span className="text-xs">✓✓</span>;
-  //     case "read":
-  //       return <span className="text-xs text-blue-300">✓✓</span>;
-  //     case "failed":
-  //       return <span className="text-xs text-red-300">✗</span>;
-  //     default:
-  //       return <span className="text-xs">○</span>;
-  //   }
-  // };
+  
 
   const getMessageStatusIcon = (status: string) => {
   switch (status) {
@@ -1124,7 +1082,7 @@ const TeamAssignDropdown = ({
     },
   });
 
-  console.log("@@@@@@@@@@@@@@@@@@@@@",currentAssignee , currentAssigneeName)
+  // console.log("@@@@@@@@@@@@@@@@@@@@@",currentAssignee , currentAssigneeName)
   
 
   return (
@@ -1203,19 +1161,6 @@ export default function Inbox() {
     },
   });
 
-
-//   useEffect(() => {
-//   if (!("Notification" in window)) {
-//     console.log("❌ Notifications not supported");
-//     return;
-//   }
-
-//   if (Notification.permission === "default") {
-//     Notification.requestPermission().then((permission) => {
-//       console.log("🔔 Permission result:", permission);
-//     });
-//   }
-// }, []);
 
 
 

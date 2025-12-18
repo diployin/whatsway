@@ -1895,7 +1895,7 @@ async function waitForTemplateDeletionOLD(api: WhatsAppApiService, templateName:
 }
 
 
-export const updateTemplate = asyncHandler(async (req: Request, res: Response) => {
+export const updateTemplateOLDD = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   const validatedData = req.body;
 
@@ -1978,90 +1978,301 @@ export const updateTemplate = asyncHandler(async (req: Request, res: Response) =
 });
 
 
-export const updateTemplateOLD = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const validatedData = req.body;
 
-  console.log("🔍 API REQUEST:");
-  console.log("➡ Method:", req.method);
-  console.log("➡ URL:", req.url);
-  console.log("➡ Body:", JSON.stringify(validatedData, null, 2));
-  
-  // Get existing template
-  const existingTemplate = await storage.getTemplate(id);
-  if (!existingTemplate) {
-    throw new AppError(404, 'Template not found');
-  }
-  
-  // Update template in database
-  const template = await storage.updateTemplate(id, validatedData);
-  if (!template) {
-    throw new AppError(404, 'Template not found');
-  }
-  
-  // Get channel for WhatsApp API
-  const channel = await storage.getChannel(template.channelId!);
-  if (!channel) {
-    throw new AppError(400, 'Channel not found');
-  }
-  
-  // If template has a WhatsApp ID, delete the old one and create new one
-  // (WhatsApp doesn't allow editing approved templates)
-  if (existingTemplate.whatsappTemplateId) {
+export const updateTemplate = asyncHandler(
+  async (req: RequestWithChannel, res: Response) => {
+    const { id } = req.params;
+    const validatedTemplate = req.body;
+
+    console.log("✏️ Updating template:", id);
+    console.log("📥 Incoming body:", JSON.stringify(validatedTemplate, null, 2));
+
+    /* ------------------------------------------------
+       FETCH EXISTING TEMPLATE
+    ------------------------------------------------ */
+    const existingTemplate = await storage.getTemplate(id);
+    if (!existingTemplate) throw new AppError(404, "Template not found");
+
+    /* ------------------------------------------------
+       MEDIA FILE
+    ------------------------------------------------ */
+    const mediaFile =
+      Array.isArray(req.files?.mediaFile) ? req.files.mediaFile[0] : undefined;
+
+    console.log("📦 mediaFile:", mediaFile?.originalname || "none");
+
+    /* ------------------------------------------------
+       NORMALIZATION
+    ------------------------------------------------ */
+    let category =
+      validatedTemplate.category?.toLowerCase() ||
+      existingTemplate.category?.toLowerCase() ||
+      "authentication";
+
+    if (!["marketing", "utility", "authentication"].includes(category)) {
+      category = "authentication";
+    }
+    category = category.toUpperCase();
+
+    const mediaType = validatedTemplate.mediaType
+      ? validatedTemplate.mediaType.toLowerCase()
+      : "text";
+
+    /* ------------------------------------------------
+       PLACEHOLDER VALIDATION
+    ------------------------------------------------ */
+    if (!validatedTemplate.body) {
+      throw new AppError(400, "body is required");
+    }
+
+    const placeholderPattern = /\{\{(\d+)\}\}/g;
+    const placeholderMatches = Array.from(
+      validatedTemplate.body.matchAll(placeholderPattern)
+    );
+
+    const placeholders = placeholderMatches
+      .map((m) => parseInt(m[1], 10))
+      .sort((a, b) => a - b);
+
+    for (let i = 0; i < placeholders.length; i++) {
+      if (placeholders[i] !== i + 1) {
+        throw new AppError(
+          400,
+          "Placeholders must be sequential starting from {{1}}"
+        );
+      }
+    }
+
+    /* ------------------------------------------------
+       PARSE + VALIDATE SAMPLES
+    ------------------------------------------------ */
+    let samples: string[] = [];
+
+    if (validatedTemplate.samples) {
+      if (typeof validatedTemplate.samples === "string") {
+        try {
+          samples = JSON.parse(validatedTemplate.samples);
+        } catch {
+          throw new AppError(400, "Invalid samples format");
+        }
+      } else if (Array.isArray(validatedTemplate.samples)) {
+        samples = validatedTemplate.samples;
+      }
+    }
+
+    if (placeholders.length > 0) {
+      if (samples.length !== placeholders.length) {
+        throw new AppError(
+          400,
+          `Expected ${placeholders.length} sample values, got ${samples.length}`
+        );
+      }
+
+      if (samples.some((s) => !String(s).trim())) {
+        throw new AppError(
+          400,
+          "Sample values for template variables cannot be empty"
+        );
+      }
+    }
+
+    /* ------------------------------------------------
+       CHANNEL
+    ------------------------------------------------ */
+    const channelId = validatedTemplate.channelId || existingTemplate.channelId;
+    if (!channelId) throw new AppError(400, "channelId is required");
+
+    const channel = await storage.getChannel(channelId);
+    if (!channel) throw new AppError(400, "Channel not found");
+
+    /* ------------------------------------------------
+       SAFE DB UPDATE PAYLOAD  🔥🔥🔥
+    ------------------------------------------------ */
+    const updatePayload: Record<string, any> = {
+      name: validatedTemplate.name,
+      category,
+      language: validatedTemplate.language,
+      body: validatedTemplate.body,
+      samples,
+      footer: validatedTemplate.footer,
+      buttons: validatedTemplate.buttons,
+      channelId,
+      status: "pending",
+      updatedAt: new Date(), // 🚀 prevents "No values to set"
+    };
+
+    // remove undefined / null
+    Object.keys(updatePayload).forEach(
+      (k) => updatePayload[k] === undefined && delete updatePayload[k]
+    );
+
+    if (Object.keys(updatePayload).length === 0) {
+      throw new AppError(400, "No fields provided to update");
+    }
+
+    const updatedTemplate = await storage.updateTemplate(id, updatePayload);
+
+    /* ------------------------------------------------
+       WHATSAPP API
+    ------------------------------------------------ */
+    const whatsappApi = new WhatsAppApiService(channel);
+
+    /* ------------------------------------------------
+       DELETE EXISTING WHATSAPP TEMPLATE
+    ------------------------------------------------ */
+    if (existingTemplate.whatsappTemplateId) {
+      try {
+        console.log("🗑 Deleting WhatsApp template:", existingTemplate.name);
+        await whatsappApi.deleteTemplate(existingTemplate.name);
+        await waitForTemplateDeletion(whatsappApi, existingTemplate.name);
+      } catch {
+        console.warn("⚠️ Failed to delete old template. Continuing.");
+      }
+    }
+
+    /* ------------------------------------------------
+       BUILD WHATSAPP COMPONENTS
+    ------------------------------------------------ */
     try {
-      const whatsappApi = new WhatsAppApiService(channel);
-      
-      // Delete old template
-      await whatsappApi.deleteTemplate(existingTemplate.name);
-      
-      // Create new template with updated content
-      const result = await whatsappApi.createTemplate(validatedData);
-      
-      // Update template with new WhatsApp ID
-      if (result.id) {
-        await storage.updateTemplate(template.id, {
-          whatsappTemplateId: result.id,
-          status: result.status || "pending"
+      const components: any[] = [];
+
+      /* ---------- HEADER ---------- */
+      if (mediaType === "text" && validatedTemplate.header) {
+        components.push({
+          type: "HEADER",
+          format: "TEXT",
+          text: validatedTemplate.header,
         });
       }
-      
-      res.json({
-        ...template,
-        message: "Template updated and resubmitted to WhatsApp for approval"
-      });
-    } catch (error) {
-      console.error("WhatsApp API error during update:", error);
-      res.json({
-        ...template,
-        warning: "Template updated locally but failed to resubmit to WhatsApp"
-      });
-    }
-  } else {
-    // Template was never submitted to WhatsApp, just submit it now
-    try {
-      const whatsappApi = new WhatsAppApiService(channel);
-      const result = await whatsappApi.createTemplate(validatedData);
-      
-      if (result.id) {
-        await storage.updateTemplate(template.id, {
-          whatsappTemplateId: result.id,
-          status: result.status || "pending"
+
+      if (mediaType !== "text") {
+        let mediaId: string;
+
+        if (mediaFile) {
+          mediaId = await whatsappApi.uploadMediaBufferForTemplate(
+            mediaFile.buffer,
+            mediaFile.mimetype,
+            mediaFile.originalname
+          );
+          await new Promise((r) => setTimeout(r, 1000));
+        } else if (validatedTemplate.mediaUrl) {
+          let mimeType = "image/jpeg";
+          if (mediaType === "video") mimeType = "video/mp4";
+          if (mediaType === "document") mimeType = "application/pdf";
+
+          mediaId = await whatsappApi.uploadMediaFromUrl(
+            validatedTemplate.mediaUrl,
+            mimeType
+          );
+          await new Promise((r) => setTimeout(r, 1000));
+        } else {
+          throw new AppError(
+            400,
+            "Media header requires file upload or mediaUrl"
+          );
+        }
+
+        if (!/^\d+$/.test(mediaId)) {
+          throw new AppError(400, `Invalid media ID: ${mediaId}`);
+        }
+
+        components.push({
+          type: "HEADER",
+          format: mediaType.toUpperCase(),
+          example: {
+            header_handle: [mediaId],
+          },
         });
       }
-      
-      res.json({
-        ...template,
-        message: "Template updated and submitted to WhatsApp for approval"
+
+      /* ---------- BODY ---------- */
+      const bodyObj: any = {
+        type: "BODY",
+        text: validatedTemplate.body,
+      };
+
+      if (placeholders.length > 0) {
+        bodyObj.example = {
+          body_text: [samples],
+        };
+      }
+
+      components.push(bodyObj);
+
+      /* ---------- FOOTER ---------- */
+      if (validatedTemplate.footer) {
+        components.push({
+          type: "FOOTER",
+          text: validatedTemplate.footer,
+        });
+      }
+
+      /* ---------- BUTTONS ---------- */
+      if (validatedTemplate.buttons) {
+        const buttons =
+          typeof validatedTemplate.buttons === "string"
+            ? JSON.parse(validatedTemplate.buttons)
+            : validatedTemplate.buttons;
+
+        if (Array.isArray(buttons) && buttons.length) {
+          components.push({
+            type: "BUTTONS",
+            buttons: buttons.map((btn: any) => {
+              const type =
+                btn.type === "URL"
+                  ? "URL"
+                  : btn.type === "PHONE_NUMBER"
+                  ? "PHONE_NUMBER"
+                  : "QUICK_REPLY";
+
+              const obj: any = { type, text: btn.text };
+              if (type === "URL") obj.url = btn.url;
+              if (type === "PHONE_NUMBER")
+                obj.phone_number = btn.phoneNumber;
+              return obj;
+            }),
+          });
+        }
+      }
+
+      /* ---------- FINAL PAYLOAD ---------- */
+      const templatePayload = {
+        name: validatedTemplate.name,
+        category,
+        language: validatedTemplate.language,
+        components,
+      };
+
+      console.log(
+        "📤 FINAL UPDATE PAYLOAD:",
+        JSON.stringify(templatePayload, null, 2)
+      );
+
+      const result = await whatsappApi.createTemplate(templatePayload);
+
+      if (result?.id) {
+        await storage.updateTemplate(updatedTemplate.id, {
+          whatsappTemplateId: result.id,
+          status: result.status || "pending",
+        });
+      }
+
+      return res.json({
+        ...updatedTemplate,
+        message: "Template updated and resubmitted to WhatsApp",
       });
-    } catch (error) {
-      console.error("WhatsApp API error:", error);
-      res.json({
-        ...template,
-        warning: "Template updated locally but failed to submit to WhatsApp"
+    } catch (err: any) {
+      console.error("❌ Update template error:", err);
+      return res.json({
+        ...updatedTemplate,
+        warning: "Template updated locally but failed to submit to WhatsApp",
+        error: err.message,
       });
     }
   }
-});
+);
+
+
 
 export const deleteTemplate = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
