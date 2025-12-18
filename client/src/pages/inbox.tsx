@@ -1316,11 +1316,19 @@ socketInstance.on("new-message", (data) => {
       : "[Media]";
 
   // ✅ SAFE timestamp handling (WhatsApp seconds → ms)
-  const lastMessageAt = data?.message?.timestamp
-    ? new Date(Number(data.message.timestamp) * 1000).toISOString()
-    : data?.createdAt
-    ? new Date(data.createdAt).toISOString()
-    : new Date().toISOString();
+  // const lastMessageAt = data?.message?.timestamp
+  //   ? new Date(Number(data.message.timestamp) * 1000).toISOString()
+  //   : data?.createdAt
+  //   ? new Date(data.createdAt).toISOString()
+  //   : new Date().toISOString();
+
+    const lastMessageAt =
+  typeof data?.createdAt === "number"
+    ? data.createdAt
+    : typeof data?.createdAt === "string"
+    ? Date.parse(data.createdAt)
+    : Date.now();
+
 
   // ✅ UPDATE INBOX IMMEDIATELY (even if no chat selected)
   queryClient.setQueryData(
@@ -1395,11 +1403,19 @@ socketInstance.on("new-message", (data) => {
       : "[Media]";
 
   // ✅ SAFE timestamp handling (WhatsApp seconds → ms)
-  const lastMessageAt = data?.message?.timestamp
-    ? new Date(Number(data.message.timestamp) * 1000).toISOString()
-    : data?.createdAt
-    ? new Date(data.createdAt).toISOString()
-    : new Date().toISOString();
+  // const lastMessageAt = data?.message?.timestamp
+  //   ? new Date(Number(data.message.timestamp) * 1000).toISOString()
+  //   : data?.createdAt
+  //   ? new Date(data.createdAt).toISOString()
+  //   : new Date().toISOString();
+
+    const lastMessageAt =
+  typeof data?.createdAt === "number"
+    ? data.createdAt
+    : typeof data?.createdAt === "string"
+    ? Date.parse(data.createdAt)
+    : Date.now();
+
 
   // ✅ UPDATE INBOX IMMEDIATELY (even if no chat selected)
   queryClient.setQueryData(
