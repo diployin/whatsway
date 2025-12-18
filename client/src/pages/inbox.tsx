@@ -1976,14 +1976,28 @@ socketInstance.on("new-message", (data) => {
   });
 
   // Check if 24-hour window has passed (for WhatsApp)
+
+  function normalizeTimeFormat(value: any): number {
+  if (!value) return 0;
+
+  if (value instanceof Date) return value.getTime();
+
+  if (typeof value === "number") {
+    return value < 1e12 ? value * 1000 : value; // seconds → ms
+  }
+
+  const parsed = Date.parse(value);
+  return isNaN(parsed) ? 0 : parsed;
+}
+
   const is24HourWindowExpired =
-    selectedConversation?.lastMessageAt &&
-    selectedConversation?.type === "whatsapp"
-      ? differenceInHours(
-          new Date(),
-          new Date(selectedConversation.lastMessageAt)
-        ) > 24
-      : false;
+  selectedConversation?.type === "whatsapp" &&
+  normalizeTime(selectedConversation?.lastMessageAt) > 0
+    ? Date.now() -
+        normalizeTime(selectedConversation.lastMessageAt) >
+      24 * 60 * 60 * 1000
+    : false;
+
 
   if (!activeChannel) {
     return (
