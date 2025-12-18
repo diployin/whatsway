@@ -1477,7 +1477,7 @@ socketInstance.on("new-message", (data) => {
   useEffect(() => {
     if (!selectedConversation || !socket) return;
 
-    const conversationRoom = `conversation:${selectedConversation}`;
+    const conversationRoom = `conversation:${selectedConversation.id}`;
 
   console.log("🔗 Joining conversation room:", conversationRoom);
 
@@ -1504,7 +1504,7 @@ socketInstance.on("new-message", (data) => {
         })
       );
     }
-  }, [selectedConversation, socket]);
+  }, [selectedConversation?.id, socket]);
 
   // Send message mutation (updated for Socket.io)
   const sendMessageMutation = useMutation({
