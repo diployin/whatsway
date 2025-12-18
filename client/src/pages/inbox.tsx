@@ -1114,24 +1114,6 @@ export default function Inbox() {
 }, []);
 
 
-const [isTabFocused, setIsTabFocused] = useState(true);
-
-useEffect(() => {
-  const onFocus = () => setIsTabFocused(true);
-  const onBlur = () => setIsTabFocused(false);
-
-  window.addEventListener("focus", onFocus);
-  window.addEventListener("blur", onBlur);
-
-  return () => {
-    window.removeEventListener("focus", onFocus);
-    window.removeEventListener("blur", onBlur);
-  };
-}, []);
-
-
-
-
 
   // Fetch conversations
   const { data: conversations = [], isLoading: conversationsLoading } =
@@ -1290,46 +1272,8 @@ socketInstance.on("new-message", (data) => {
   }
 
 
-   const messageText =
-    typeof data?.content === "string"
-      ? data.content
-      : "New message received";
-
-  const isInboxPage = location.startsWith("/inbox");
-
-  const shouldNotify =
-    Notification.permission === "granted" &&
-    (!document.hasFocus() || !isInboxPage);
-
-  if (shouldNotify) {
-    const n = new Notification("New WhatsApp Message", {
-      body: messageText,
-      icon: "/whatsapp-icon.png",
-    });
-
-    n.onclick = () => {
-      window.focus();
-    };
-  }
 });
 
-
-socketInstance.on("new-message", (data) => {
-  console.log("🔥 new-message");
-  console.log("focused:", isTabFocused);
-
-  if (!isTabFocused && Notification.permission === "granted") {
-    const n = new Notification("New WhatsApp Message", {
-      body: data.content || "New message received",
-      icon: "/whatsapp-icon.png",
-    });
-
-    n.onclick = () => {
-      window.focus();
-      n.close();
-    };
-  }
-});
 
 
 // Listen for conversation updates (new messages in other conversations)
@@ -1407,31 +1351,6 @@ socketInstance.on("new-message", (data) => {
   }
 
 
-
-
-
-  // notification
-const messageText =
-    typeof data?.content === "string"
-      ? data.content
-      : "New message received";
-
-  const isInboxPage = location.startsWith("/inbox");
-
-  const shouldNotify =
-    Notification.permission === "granted" &&
-    (!document.hasFocus() || !isInboxPage);
-
-  if (shouldNotify) {
-    const n = new Notification("New WhatsApp Message", {
-      body: messageText,
-      icon: "/whatsapp-icon.png",
-    });
-
-    n.onclick = () => {
-      window.focus();
-    };
-  }
 });
 
 
@@ -1530,35 +1449,7 @@ const messageText =
   }, [user?.id, activeChannel?.id, selectedConversation?.id ]);
 
 
-  useEffect(() => {
-  const totalUnread = conversations.reduce(
-    (sum: number, c: any) => sum + (c.unreadCount || 0),
-    0
-  );
 
-  document.title =
-    totalUnread > 0 ? `(${totalUnread}) Team Inbox` : "Team Inbox";
-}, [conversations]);
-
-
-
-  useEffect(() => {
-  const handleVisibilityChange = () => {
-    if (document.visibilityState === "visible") {
-      console.log("👀 Tab focused – refetching inbox");
-
-      queryClient.invalidateQueries({
-        queryKey: ["/api/conversations", activeChannel?.id],
-      });
-    }
-  };
-
-  document.addEventListener("visibilitychange", handleVisibilityChange);
-
-  return () => {
-    document.removeEventListener("visibilitychange", handleVisibilityChange);
-  };
-}, [activeChannel?.id]);
 
 
   // WebSocket connection for WhatsApp (keep existing)
