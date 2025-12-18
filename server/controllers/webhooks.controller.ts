@@ -901,35 +901,13 @@ const io = (global as any).io;
 
 
 if (io) {
-  // const channelRoom = `channel:${channel.id}`;
-
-  // console.log("📢 Emitting normalized new-message:", normalizedSocketPayload);
-
-  // // 🔥 ONE EVENT, ONE PAYLOAD
-  // io.to(channelRoom).emit("new-message", normalizedSocketPayload);
-
-  // // Optional: open conversation listeners
-  // io.to(`conversation_${conversation.id}`).emit(
-  //   "new-message",
-  //   normalizedSocketPayload
-  // );
-
-  // // New conversation notification
-  // if (isNewConversation) {
-  //   io.to(channelRoom).emit("conversation_created", {
-  //     conversation,
-  //   });
-  // }
-
-  // console.log("✅ Normalized broadcast complete");
-
   const channelRoom = `channel:${channel.id}`;
   const conversationRoom = `conversation:${conversation.id}`;
 
   const normalizedPayload = {
     type: "new-message",
     conversationId: conversation.id,
-    content: messageContent,          // ✅ string only
+    content: messageContent, 
     createdAt: new Date().toISOString(),
     messageType: type,
     from: "whatsapp",

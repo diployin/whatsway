@@ -1099,6 +1099,21 @@ export default function Inbox() {
   });
 
 
+  useEffect(() => {
+  if (!("Notification" in window)) {
+    console.log("❌ Browser notifications not supported");
+    return;
+  }
+
+  if (Notification.permission === "default") {
+    Notification.requestPermission().then((permission) => {
+      console.log("🔔 Notification permission:", permission);
+    });
+  }
+}, []);
+
+
+
   // Fetch conversations
   const { data: conversations = [], isLoading: conversationsLoading } =
     useQuery({
@@ -1330,6 +1345,33 @@ socketInstance.on("new-message", (data) => {
       ],
     });
   }
+
+
+
+
+
+  // notification
+
+  const messageText =
+    typeof data?.content === "string"
+      ? data.content
+      : "New message received";
+
+  // 🔔 ONLY when tab not active
+  if (
+    document.visibilityState !== "visible" &&
+    Notification.permission === "granted"
+  ) {
+    const notification = new Notification("New WhatsApp Message", {
+      body: messageText,
+      icon: "/whatsapp-icon.png", // optional (public folder)
+    });
+
+    // 👉 Click notification → focus tab
+    notification.onclick = () => {
+      window.focus();
+    };
+  }
 });
 
 
@@ -1426,6 +1468,18 @@ socketInstance.on("new-message", (data) => {
       socketInstance.disconnect();
     };
   }, [user?.id, activeChannel?.id, selectedConversation?.id ]);
+
+
+  useEffect(() => {
+  const totalUnread = conversations.reduce(
+    (sum: number, c: any) => sum + (c.unreadCount || 0),
+    0
+  );
+
+  document.title =
+    totalUnread > 0 ? `(${totalUnread}) Team Inbox` : "Team Inbox";
+}, [conversations]);
+
 
 
   useEffect(() => {
