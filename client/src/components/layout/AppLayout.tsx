@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { setMeta } from "@/hooks/setMeta";
 import { SidebarProvider } from "@/contexts/sidebar-context";
 import { useSocket } from "@/contexts/socket-context";
-import { useGlobalNotifications } from "../notification/useGlobalNotifications";
+import { useGlobalNotifications } from "../notification/useGlobalNotifications.tsx";
 import { api } from "@/lib/api"
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
