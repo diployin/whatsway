@@ -1101,16 +1101,17 @@ export default function Inbox() {
 
   useEffect(() => {
   if (!("Notification" in window)) {
-    console.log("❌ Browser notifications not supported");
+    console.log("❌ Notifications not supported");
     return;
   }
 
   if (Notification.permission === "default") {
     Notification.requestPermission().then((permission) => {
-      console.log("🔔 Notification permission:", permission);
+      console.log("🔔 Permission result:", permission);
     });
   }
 }, []);
+
 
 
 
@@ -1269,6 +1270,31 @@ socketInstance.on("new-message", (data) => {
       ],
     });
   }
+
+
+   const messageText =
+    typeof data?.content === "string"
+      ? data.content
+      : "New message received";
+
+  console.log("🔔 Visibility:", document.visibilityState);
+  console.log("🔔 Permission:", Notification.permission);
+
+  if (
+    document.visibilityState !== "visible" &&
+    Notification.permission === "granted"
+  ) {
+    const n = new Notification("New WhatsApp Message", {
+      body: messageText,
+      icon: "/whatsapp-icon.png",
+      tag: data.conversationId, // prevents spam
+    });
+
+    n.onclick = () => {
+      window.focus();
+      n.close();
+    };
+  }
 });
 
 
@@ -1351,27 +1377,30 @@ socketInstance.on("new-message", (data) => {
 
 
   // notification
-
-  const messageText =
+const messageText =
     typeof data?.content === "string"
       ? data.content
       : "New message received";
 
-  // 🔔 ONLY when tab not active
+  console.log("🔔 Visibility:", document.visibilityState);
+  console.log("🔔 Permission:", Notification.permission);
+
   if (
     document.visibilityState !== "visible" &&
     Notification.permission === "granted"
   ) {
-    const notification = new Notification("New WhatsApp Message", {
+    const n = new Notification("New WhatsApp Message", {
       body: messageText,
-      icon: "/whatsapp-icon.png", // optional (public folder)
+      icon: "/whatsapp-icon.png",
+      tag: data.conversationId, // prevents spam
     });
 
-    // 👉 Click notification → focus tab
-    notification.onclick = () => {
+    n.onclick = () => {
       window.focus();
+      n.close();
     };
   }
+ 
 });
 
 
