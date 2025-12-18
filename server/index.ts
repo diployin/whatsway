@@ -14,6 +14,7 @@ import { createServer } from "http";
 import { storage } from "./storage";
 import { Server as SocketIOServer } from "socket.io";
 import { fetchConversationList } from "./controllers/conversations.controller";
+import { startScheduledCampaignCron } from "./cron/scheduledCampaigns.cron";
 
 const app = express();
 const httpServer = createServer(app);
@@ -552,11 +553,12 @@ app.use((req, res, next) => {
 
   httpServer.listen(listenOptions, async () => {
     log(`serving on port ${port}`);
+     startScheduledCampaignCron();
 
     // Start the message status updater cron job
     const messageStatusUpdater = new MessageStatusUpdater();
     messageStatusUpdater.startCronJob(60);
-
+    
     const { channelHealthMonitor } = await import(
       "./cron/channel-health-monitor"
     );

@@ -371,7 +371,7 @@ export const campaignsController = {
 };
 
 // Helper function to execute campaign
-async function startCampaignExecution(campaignId: string) {
+export async function startCampaignExecution(campaignId: string) {
   console.log("Starting campaign execution for:", campaignId);
 
   const campaign = await storage.getCampaign(campaignId);

@@ -62,6 +62,8 @@ export class DatabaseStorage implements IStorage {
   private messageQueueRepo = new MessageQueueRepository();
   private apiLogRepo = new ApiLogRepository();
   private whatsappChannelRepo = new WhatsappChannelRepository();
+ 
+
 
 
   
@@ -74,6 +76,10 @@ export class DatabaseStorage implements IStorage {
     console.log("check siteeeeeeeeee", site);
     return site || undefined;
   }
+
+  async getScheduledCampaigns(now: Date): Promise<Campaign[]> {
+  return this.campaignRepo.getScheduledCampaigns(now);
+}
 
   async getSites(): Promise<Site | undefined> {
   const [site] = await db
@@ -263,6 +269,8 @@ async getContactsByUser(
 }> {
   return this.campaignRepo.getAll(page, limit);
 }
+
+
 
 
  async getCampaignsByChannel(
