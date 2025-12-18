@@ -107,17 +107,12 @@ import { Modal } from "@/components/demoqr/Modal";
 function normalizeDate(value: any): Date | null {
   if (!value) return null;
 
-  // Date object
-  if (value instanceof Date) {
-    return value;
-  }
+  if (value instanceof Date) return value;
 
-  // Number → seconds or ms
   if (typeof value === "number") {
     return new Date(value < 1e12 ? value * 1000 : value);
   }
 
-  // String (ISO or timestamp string)
   const num = Number(value);
   if (!isNaN(num)) {
     return new Date(num < 1e12 ? num * 1000 : num);
@@ -131,7 +126,7 @@ function normalizeDate(value: any): Date | null {
 
 const formatLastSeen = (date: any) => {
   const lastSeenDate = normalizeDate(date);
-  if (!lastSeenDate) return "Never";
+  if (!lastSeenDate) return "";
 
   const now = new Date();
 
