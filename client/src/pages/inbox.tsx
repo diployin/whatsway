@@ -1392,7 +1392,7 @@ socketInstance.on("new-message", (data) => {
     socketInstance.on("messages_read", (data) => {
       if (selectedConversation?.id === data.conversationId) {
         queryClient.invalidateQueries({
-          queryKey: ["/api/conversations", selectedConversation.id, "messages"],
+          queryKey: ["/api/conversations", selectedConversation?.id, "messages"],
         });
       }
     });
@@ -1423,7 +1423,7 @@ socketInstance.on("new-message", (data) => {
     return () => {
       socketInstance.disconnect();
     };
-  }, [user?.id, activeChannel?.id]);
+  }, [user?.id, activeChannel?.id, selectedConversation?.id ]);
 
   // WebSocket connection for WhatsApp (keep existing)
   useEffect(() => {
@@ -1440,22 +1440,22 @@ socketInstance.on("new-message", (data) => {
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
 
-      if (data.type === "new-message") {
-        queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      // if (data.type === "new-message") {
+      //   queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
 
-        if (
-          selectedConversation &&
-          data.conversationId === selectedConversation.id
-        ) {
-          queryClient.invalidateQueries({
-            queryKey: [
-              "/api/conversations",
-              selectedConversation.id,
-              "messages",
-            ],
-          });
-        }
-      }
+      //   if (
+      //     selectedConversation &&
+      //     data.conversationId === selectedConversation.id
+      //   ) {
+      //     queryClient.invalidateQueries({
+      //       queryKey: [
+      //         "/api/conversations",
+      //         selectedConversation.id,
+      //         "messages",
+      //       ],
+      //     });
+      //   }
+      // }
     };
 
     ws.onerror = (error) => console.error("WebSocket error:", error);
@@ -1474,37 +1474,53 @@ socketInstance.on("new-message", (data) => {
 
 
   // Join conversation room when selected
+  // useEffect(() => {
+  //   if (!selectedConversation || !socket) return;
+
+  //   const conversationRoom = `conversation:${selectedConversation.id}`;
+
+  // console.log("🔗 Joining conversation room:", conversationRoom);
+
+  // // ✅ 1. Join conversation ROOM (REALTIME CHAT)
+  // socket.emit("join-room", {
+  //   room: conversationRoom,
+  // });
+
+  //   // Join the conversation room via Socket.io
+  //   socket.emit("agent_join_conversation", {
+  //     conversationId: selectedConversation.id,
+  //     agentId: user?.id,
+  //     agentName:
+  //       `${user?.firstName || ""} ${user?.lastName || ""}`.trim() ||
+  //       user?.username,
+  //   });
+
+  //   // Join via WebSocket for WhatsApp
+  //   if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+  //     wsRef.current.send(
+  //       JSON.stringify({
+  //         type: "join-conversation",
+  //         conversationId: selectedConversation.id,
+  //       })
+  //     );
+  //   }
+  // }, [selectedConversation?.id, socket]);
+
+
   useEffect(() => {
-    if (!selectedConversation || !socket) return;
+  if (!selectedConversation || !socket) return;
 
-    const conversationRoom = `conversation:${selectedConversation.id}`;
+  const room = `conversation:${selectedConversation.id}`;
+  console.log("🔗 Joining conversation room:", room);
 
-  console.log("🔗 Joining conversation room:", conversationRoom);
+  socket.emit("join-room", { room });
 
-  // ✅ 1. Join conversation ROOM (REALTIME CHAT)
-  socket.emit("join-room", {
-    room: conversationRoom,
-  });
+  return () => {
+    console.log("🚪 Leaving conversation room:", room);
+    socket.emit("leave-room", { room });
+  };
+}, [selectedConversation?.id, socket]);
 
-    // Join the conversation room via Socket.io
-    socket.emit("agent_join_conversation", {
-      conversationId: selectedConversation.id,
-      agentId: user?.id,
-      agentName:
-        `${user?.firstName || ""} ${user?.lastName || ""}`.trim() ||
-        user?.username,
-    });
-
-    // Join via WebSocket for WhatsApp
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(
-        JSON.stringify({
-          type: "join-conversation",
-          conversationId: selectedConversation.id,
-        })
-      );
-    }
-  }, [selectedConversation?.id, socket]);
 
   // Send message mutation (updated for Socket.io)
   const sendMessageMutation = useMutation({

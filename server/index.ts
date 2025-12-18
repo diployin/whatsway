@@ -72,6 +72,11 @@ io.on("connection", (socket) => {
     socket.join(room);
   });
 
+  socket.on("leave-room", ({ room }) => {
+    socket.leave(room);
+    console.log("📤 Left:", room);
+  });
+
   
   
        // ============================================
