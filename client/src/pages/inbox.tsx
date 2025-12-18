@@ -129,17 +129,29 @@ function normalizeDate(value: any): Date | null {
  function normalizeTime(value: any): number {
   if (!value) return 0;
 
+  // ✅ Fix backend "YYYY-MM-DD HH:mm:ss.SSSSSS" (assume UTC)
+  if (typeof value === "string" && value.includes(" ")) {
+    // Convert to ISO + UTC
+    const iso = value.replace(" ", "T") + "Z";
+    const parsed = Date.parse(iso);
+    return isNaN(parsed) ? 0 : parsed;
+  }
+
+  // Number (seconds or ms)
   if (typeof value === "number") {
     return value < 1e12 ? value * 1000 : value;
   }
 
+  // Date object
   if (value instanceof Date) {
     return value.getTime();
   }
 
+  // ISO string
   const parsed = Date.parse(value);
   return isNaN(parsed) ? 0 : parsed;
 }
+
 
 
 const formatLastSeen = (value: any) => {
