@@ -1140,6 +1140,25 @@ export default function Inbox() {
     enabled: !!selectedConversation?.id,
   });
 
+
+  function normalizeTime(value: any): number {
+  if (!value) return 0;
+
+  // Date object
+  if (value instanceof Date) {
+    return value.getTime();
+  }
+
+  // Number (seconds or ms)
+  if (typeof value === "number") {
+    return value < 1e12 ? value * 1000 : value; // seconds → ms
+  }
+
+  // String
+  const parsed = Date.parse(value);
+  return isNaN(parsed) ? 0 : parsed;
+}
+
   
 
   // Auto-scroll to bottom when messages change
@@ -1254,8 +1273,8 @@ socketInstance.on("new-message", (data) => {
         // ✅ move updated conversation to top
         .sort(
           (a, b) =>
-            new Date(b.lastMessageAt).getTime() -
-            new Date(a.lastMessageAt).getTime()
+           normalizeTime(b.lastMessageAt) -
+           normalizeTime(a.lastMessageAt)
         );
     }
   );
@@ -1333,8 +1352,8 @@ socketInstance.on("new-message", (data) => {
         // ✅ move updated conversation to top
         .sort(
           (a, b) =>
-            new Date(b.lastMessageAt).getTime() -
-            new Date(a.lastMessageAt).getTime()
+            normalizeTime(b.lastMessageAt) -
+            normalizeTime(a.lastMessageAt)
         );
     }
   );
@@ -1467,22 +1486,6 @@ socketInstance.on("new-message", (data) => {
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
 
-      // if (data.type === "new-message") {
-      //   queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-
-      //   if (
-      //     selectedConversation &&
-      //     data.conversationId === selectedConversation.id
-      //   ) {
-      //     queryClient.invalidateQueries({
-      //       queryKey: [
-      //         "/api/conversations",
-      //         selectedConversation.id,
-      //         "messages",
-      //       ],
-      //     });
-      //   }
-      // }
     };
 
     ws.onerror = (error) => console.error("WebSocket error:", error);
@@ -1495,43 +1498,6 @@ socketInstance.on("new-message", (data) => {
     };
   }, []);
 
-
-  
-
-
-
-  // Join conversation room when selected
-  // useEffect(() => {
-  //   if (!selectedConversation || !socket) return;
-
-  //   const conversationRoom = `conversation:${selectedConversation.id}`;
-
-  // console.log("🔗 Joining conversation room:", conversationRoom);
-
-  // // ✅ 1. Join conversation ROOM (REALTIME CHAT)
-  // socket.emit("join-room", {
-  //   room: conversationRoom,
-  // });
-
-  //   // Join the conversation room via Socket.io
-  //   socket.emit("agent_join_conversation", {
-  //     conversationId: selectedConversation.id,
-  //     agentId: user?.id,
-  //     agentName:
-  //       `${user?.firstName || ""} ${user?.lastName || ""}`.trim() ||
-  //       user?.username,
-  //   });
-
-  //   // Join via WebSocket for WhatsApp
-  //   if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-  //     wsRef.current.send(
-  //       JSON.stringify({
-  //         type: "join-conversation",
-  //         conversationId: selectedConversation.id,
-  //       })
-  //     );
-  //   }
-  // }, [selectedConversation?.id, socket]);
 
 
   useEffect(() => {
