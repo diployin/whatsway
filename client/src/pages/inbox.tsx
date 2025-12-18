@@ -88,11 +88,53 @@ import { Modal } from "@/components/demoqr/Modal";
 
 
 // Helper functions
-const formatLastSeen = (date: Date | string | null) => {
-  if (!date) return "Never";
+// const formatLastSeen = (date: Date | string | null) => {
+//   if (!date) return "Never";
 
-  const lastSeenDate = new Date(date);
+//   const lastSeenDate = new Date(date);
+//   const now = new Date();
+//   const minutes = differenceInMinutes(now, lastSeenDate);
+//   const hours = differenceInHours(now, lastSeenDate);
+//   const days = differenceInDays(now, lastSeenDate);
+
+//   if (minutes < 1) return "Just now";
+//   if (minutes < 60) return `${minutes}m ago`;
+//   if (hours < 24) return `${hours}h ago`;
+//   if (days < 7) return `${days}d ago`;
+//   return format(lastSeenDate, "MMM d, yyyy");
+// };
+
+function normalizeDate(value: any): Date | null {
+  if (!value) return null;
+
+  // Date object
+  if (value instanceof Date) {
+    return value;
+  }
+
+  // Number → seconds or ms
+  if (typeof value === "number") {
+    return new Date(value < 1e12 ? value * 1000 : value);
+  }
+
+  // String (ISO or timestamp string)
+  const num = Number(value);
+  if (!isNaN(num)) {
+    return new Date(num < 1e12 ? num * 1000 : num);
+  }
+
+  const parsed = Date.parse(value);
+  return isNaN(parsed) ? null : new Date(parsed);
+}
+
+
+
+const formatLastSeen = (date: any) => {
+  const lastSeenDate = normalizeDate(date);
+  if (!lastSeenDate) return "Never";
+
   const now = new Date();
+
   const minutes = differenceInMinutes(now, lastSeenDate);
   const hours = differenceInHours(now, lastSeenDate);
   const days = differenceInDays(now, lastSeenDate);
@@ -101,8 +143,10 @@ const formatLastSeen = (date: Date | string | null) => {
   if (minutes < 60) return `${minutes}m ago`;
   if (hours < 24) return `${hours}h ago`;
   if (days < 7) return `${days}d ago`;
+
   return format(lastSeenDate, "MMM d, yyyy");
 };
+
 
 const formatMessageDate = (date: Date | string) => {
   const messageDate = new Date(date);
