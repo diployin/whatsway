@@ -107,23 +107,65 @@ function normalizeDate(value: any): Date | null {
 
 
 
-const formatLastSeen = (date: any) => {
-  const lastSeenDate = normalizeDate(date);
-  if (!lastSeenDate) return "";
+// const formatLastSeen = (date: any) => {
+//   const lastSeenDate = normalizeDate(date);
+//   if (!lastSeenDate) return "";
 
-  const now = new Date();
+//   const now = new Date();
 
-  const minutes = differenceInMinutes(now, lastSeenDate);
-  const hours = differenceInHours(now, lastSeenDate);
-  const days = differenceInDays(now, lastSeenDate);
+//   const minutes = differenceInMinutes(now, lastSeenDate);
+//   const hours = differenceInHours(now, lastSeenDate);
+//   const days = differenceInDays(now, lastSeenDate);
+
+//   if (minutes < 1) return "Just now";
+//   if (minutes < 60) return `${minutes}m ago`;
+//   if (hours < 24) return `${hours}h ago`;
+//   if (days < 7) return `${days}d ago`;
+
+//   return format(lastSeenDate, "MMM d, yyyy");
+// };
+
+
+ function normalizeTime(value: any): number {
+  if (!value) return 0;
+
+  // Date object
+  if (value instanceof Date) {
+    return value.getTime();
+  }
+
+  // Number (seconds or ms)
+  if (typeof value === "number") {
+    return value < 1e12 ? value * 1000 : value; // seconds → ms
+  }
+
+  // String
+  const parsed = Date.parse(value);
+  return isNaN(parsed) ? 0 : parsed;
+}
+
+
+const formatLastSeen = (value: any) => {
+  const time = normalizeTime(value); // ⬅️ milliseconds
+  if (!time) return "";
+
+  const diff = Date.now() - time;
+
+  // ⛑️ SAFETY: future / timezone issue
+  if (diff < 0) return "Just now";
+
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
 
   if (minutes < 1) return "Just now";
   if (minutes < 60) return `${minutes}m ago`;
   if (hours < 24) return `${hours}h ago`;
   if (days < 7) return `${days}d ago`;
 
-  return format(lastSeenDate, "MMM d, yyyy");
+  return format(new Date(time), "MMM d, yyyy");
 };
+
 
 
 const formatMessageDate = (date: Date | string) => {
