@@ -87,23 +87,6 @@ import { WhatsAppDemoQR } from "@/components/demoqr/WhatsAppDemoQR";
 import { Modal } from "@/components/demoqr/Modal";
 
 
-// Helper functions
-// const formatLastSeen = (date: Date | string | null) => {
-//   if (!date) return "Never";
-
-//   const lastSeenDate = new Date(date);
-//   const now = new Date();
-//   const minutes = differenceInMinutes(now, lastSeenDate);
-//   const hours = differenceInHours(now, lastSeenDate);
-//   const days = differenceInDays(now, lastSeenDate);
-
-//   if (minutes < 1) return "Just now";
-//   if (minutes < 60) return `${minutes}m ago`;
-//   if (hours < 24) return `${hours}h ago`;
-//   if (days < 7) return `${days}d ago`;
-//   return format(lastSeenDate, "MMM d, yyyy");
-// };
-
 function normalizeDate(value: any): Date | null {
   if (!value) return null;
 
@@ -875,9 +858,16 @@ if (hasMedia) {
     }
   };
 
-  const formatMessageDate = (date: string | Date) => {
-    return format(new Date(date), "MMMM d, yyyy");
-  };
+  
+  const formatMessageDate = (date: any) => {
+  const messageDate = normalizeDate(date);
+  if (!messageDate) return "";
+
+  if (isToday(messageDate)) return "Today";
+  if (isYesterday(messageDate)) return "Yesterday";
+  return format(messageDate, "MMMM d, yyyy");
+};
+
 
   const getMessageStatusIcon = (status: string) => {
     switch (status) {
