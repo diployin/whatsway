@@ -1540,11 +1540,39 @@ socketInstance.on("new-message", (data) => {
     });
 
     // Message status updates
+    // socketInstance.on("message_status_update", (data) => {
+    //   queryClient.invalidateQueries({
+    //     queryKey: ["/api/conversations", selectedConversation?.id, "messages"],
+    //   });
+    // });
+
     socketInstance.on("message_status_update", (data) => {
-      queryClient.invalidateQueries({
-        queryKey: ["/api/conversations", selectedConversation?.id, "messages"],
-      });
-    });
+  const {
+    conversationId,
+    whatsappMessageId,
+    status,
+  } = data;
+
+  // ✅ Only update if this conversation is open
+  if (selectedConversation?.id !== conversationId) return;
+
+  queryClient.setQueryData(
+    ["/api/conversations", conversationId, "messages"],
+    (old: any[]) => {
+      if (!Array.isArray(old)) return old;
+
+      return old.map((msg) =>
+        msg.whatsappMessageId === whatsappMessageId
+          ? {
+              ...msg,
+              status, // sent | delivered | read | failed
+            }
+          : msg
+      );
+    }
+  );
+});
+
 
     // Conversation status changed
     socketInstance.on("conversation_status_changed", (data) => {

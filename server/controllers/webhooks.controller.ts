@@ -1364,18 +1364,42 @@ async function handleMessageStatuses(statuses: any[], metadata: any) {
     });
 
     // Broadcast status update
-    if ((global as any).broadcastToConversation && message.conversationId) {
-      (global as any).broadcastToConversation(message.conversationId, {
-        type: "message-status-update",
-        data: {
-          messageId: message.id,
-          whatsappMessageId,
-          status: messageStatus,
-          errorDetails,
-          timestamp: new Date(parseInt(timestamp, 10) * 1000),
-        },
-      });
+    // if ((global as any).broadcastToConversation && message.conversationId) {
+    //   (global as any).broadcastToConversation(message.conversationId, {
+    //     type: "message-status-update",
+    //     data: {
+    //       messageId: message.id,
+    //       whatsappMessageId,
+    //       status: messageStatus,
+    //       errorDetails,
+    //       timestamp: new Date(parseInt(timestamp, 10) * 1000),
+    //     },
+    //   });
+    // }
+
+
+    const io = (global as any).io;
+
+if (io && message.conversationId) {
+  io.to(`conversation:${message.conversationId}`).emit(
+    "message_status_update",
+    {
+      conversationId: message.conversationId,
+      messageId: message.id,
+      whatsappMessageId,
+      status: messageStatus, // sent | delivered | read | failed
+      timestamp: new Date(parseInt(timestamp, 10) * 1000).toISOString(),
+      errorDetails,
     }
+  );
+
+  console.log(
+    "📤 message_status_update emitted:",
+    whatsappMessageId,
+    messageStatus
+  );
+}
+
 
     // If message has a campaign ID, update campaign stats
     if (message.campaignId) {
