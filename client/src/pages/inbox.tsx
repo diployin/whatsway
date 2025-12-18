@@ -129,29 +129,26 @@ function normalizeDate(value: any): Date | null {
  function normalizeTime(value: any): number {
   if (!value) return 0;
 
-  // Date object
+  if (typeof value === "number") {
+    return value < 1e12 ? value * 1000 : value;
+  }
+
   if (value instanceof Date) {
     return value.getTime();
   }
 
-  // Number (seconds or ms)
-  if (typeof value === "number") {
-    return value < 1e12 ? value * 1000 : value; // seconds → ms
-  }
-
-  // String
   const parsed = Date.parse(value);
   return isNaN(parsed) ? 0 : parsed;
 }
 
 
 const formatLastSeen = (value: any) => {
-  const time = normalizeTime(value); // ⬅️ milliseconds
+  const time = normalizeTime(value);
   if (!time) return "";
 
   const diff = Date.now() - time;
 
-  // ⛑️ SAFETY: future / timezone issue
+  // ⛑️ timezone / future safety
   if (diff < 0) return "Just now";
 
   const minutes = Math.floor(diff / 60000);
@@ -163,7 +160,11 @@ const formatLastSeen = (value: any) => {
   if (hours < 24) return `${hours}h ago`;
   if (days < 7) return `${days}d ago`;
 
-  return format(new Date(time), "MMM d, yyyy");
+  return new Date(time).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 };
 
 
