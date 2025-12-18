@@ -1,5 +1,5 @@
 import { db } from "../db";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, sql, lte } from "drizzle-orm";
 import { 
   campaigns, 
   users,
@@ -39,6 +39,9 @@ export class CampaignRepository {
     limit,
   };
 }
+
+
+
 
 
 async getAll(
@@ -170,6 +173,20 @@ async getAll(
       })
       .returning();
     return campaign;
+  }
+
+ async getScheduledCampaigns(now: Date) {
+    return db
+      .select()
+      .from(campaigns)
+      .where(
+        sql`
+          ${campaigns.status} = 'scheduled'
+          AND ${campaigns.scheduledAt} IS NOT NULL
+          AND ${campaigns.scheduledAt} <= ${now}
+        `
+      )
+      .orderBy(campaigns.scheduledAt);
   }
   
 

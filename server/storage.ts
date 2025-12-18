@@ -49,6 +49,7 @@ export interface IStorage {
 
   // Campaigns
   getCampaigns(): Promise<Campaign[]>;
+  getScheduledCampaigns(now: Date): Promise<Campaign[]>;
   getCampaignByUserId(userId: string): Promise<Campaign[]>;
   getCampaignsByChannel(channelId: string): Promise<Campaign[]>;
   getCampaign(id: string): Promise<Campaign | undefined>;
@@ -406,6 +407,23 @@ async searchContactsByChannel(channelId: string, query: string): Promise<Contact
       (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0)
     );
   }
+
+  async getScheduledCampaigns(now: Date): Promise<Campaign[]> {
+  return Array.from(this.campaigns.values())
+    .filter((campaign) => {
+      return (
+        campaign.status === "scheduled" &&
+        campaign.scheduledAt &&
+        campaign.scheduledAt <= now
+      );
+    })
+    .sort(
+      (a, b) =>
+        (a.scheduledAt?.getTime() || 0) -
+        (b.scheduledAt?.getTime() || 0)
+    );
+}
+
 
   async getCampaign(id: string): Promise<Campaign | undefined> {
     return this.campaigns.get(id);

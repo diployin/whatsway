@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import Header from "@/components/layout/header";
 import { Loading } from "@/components/ui/loading";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -86,22 +87,80 @@ import { WhatsAppDemoQR } from "@/components/demoqr/WhatsAppDemoQR";
 import { Modal } from "@/components/demoqr/Modal";
 
 
-// Helper functions
-const formatLastSeen = (date: Date | string | null) => {
-  if (!date) return "Never";
+function normalizeDate(value: any): Date | null {
+  if (!value) return null;
 
-  const lastSeenDate = new Date(date);
-  const now = new Date();
-  const minutes = differenceInMinutes(now, lastSeenDate);
-  const hours = differenceInHours(now, lastSeenDate);
-  const days = differenceInDays(now, lastSeenDate);
+  if (value instanceof Date) return value;
+
+  if (typeof value === "number") {
+    return new Date(value < 1e12 ? value * 1000 : value);
+  }
+
+  const num = Number(value);
+  if (!isNaN(num)) {
+    return new Date(num < 1e12 ? num * 1000 : num);
+  }
+
+  const parsed = Date.parse(value);
+  return isNaN(parsed) ? null : new Date(parsed);
+}
+
+
+
+ function normalizeTime(value: any): number {
+  if (!value) return 0;
+
+  
+  if (typeof value === "string" && value.includes(" ")) {
+    // Convert to ISO + UTC
+    const iso = value.replace(" ", "T") + "Z";
+    const parsed = Date.parse(iso);
+    return isNaN(parsed) ? 0 : parsed;
+  }
+
+  // Number (seconds or ms)
+  if (typeof value === "number") {
+    return value < 1e12 ? value * 1000 : value;
+  }
+
+  // Date object
+  if (value instanceof Date) {
+    return value.getTime();
+  }
+
+  // ISO string
+  const parsed = Date.parse(value);
+  return isNaN(parsed) ? 0 : parsed;
+}
+
+
+
+const formatLastSeen = (value: any) => {
+  const time = normalizeTime(value);
+  if (!time) return "";
+
+  const diff = Date.now() - time;
+
+  // ⛑️ timezone / future safety
+  if (diff < 0) return "Just now";
+
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
 
   if (minutes < 1) return "Just now";
   if (minutes < 60) return `${minutes}m ago`;
   if (hours < 24) return `${hours}h ago`;
   if (days < 7) return `${days}d ago`;
-  return format(lastSeenDate, "MMM d, yyyy");
+
+  return new Date(time).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 };
+
+
 
 const formatMessageDate = (date: Date | string) => {
   const messageDate = new Date(date);
@@ -139,17 +198,38 @@ const ConversationListItem = ({
     ? formatLastSeen(conversation.lastMessageAt)
     : "";
 
-  function getMessagePreview(message: string | null | undefined): string {
-    if (!message) {
-      return ""; // or return 'No message' if you want a placeholder
+
+
+  function getMessagePreview(message: any): string {
+  if (!message) return "";
+
+  // ✅ If message accidentally object ban gaya (WhatsApp)
+  if (typeof message === "object") {
+    if (typeof message.content === "string") {
+      return message.content.length > 40
+        ? message.content.substring(0, 40) + "..."
+        : message.content;
     }
 
-    if (message.length <= 40) {
-      return message;
-    } else {
-      return message.substring(0, 40) + "...";
+    if (typeof message.text === "string") {
+      return message.text.length > 40
+        ? message.text.substring(0, 40) + "..."
+        : message.text;
     }
+
+    return "[Media]";
   }
+
+  // ✅ Force string (safe)
+  const safeMessage = String(message);
+
+  return safeMessage.length > 40
+    ? safeMessage.substring(0, 40) + "..."
+    : safeMessage;
+}
+
+
+  
 
   return (
     <div
@@ -804,24 +884,38 @@ if (hasMedia) {
     }
   };
 
-  const formatMessageDate = (date: string | Date) => {
-    return format(new Date(date), "MMMM d, yyyy");
-  };
+  
+  const formatMessageDate = (date: any) => {
+  const messageDate = normalizeDate(date);
+  if (!messageDate) return "";
+
+  if (isToday(messageDate)) return "Today";
+  if (isYesterday(messageDate)) return "Yesterday";
+  return format(messageDate, "MMMM d, yyyy");
+};
+
+
+  
 
   const getMessageStatusIcon = (status: string) => {
-    switch (status) {
-      case "sent":
-        return <span className="text-xs">✓</span>;
-      case "delivered":
-        return <span className="text-xs">✓✓</span>;
-      case "read":
-        return <span className="text-xs text-blue-300">✓✓</span>;
-      case "failed":
-        return <span className="text-xs text-red-300">✗</span>;
-      default:
-        return <span className="text-xs">○</span>;
-    }
-  };
+  switch (status) {
+    case "sent":
+      return <Check className="w-3 h-3 text-gray-400" />;
+
+    case "delivered":
+      return <CheckCheck className="w-3 h-3 text-gray-400" />;
+
+    case "read":
+      return <CheckCheck className="w-3 h-3 text-blue-500" />;
+
+    case "failed":
+      return <AlertCircle className="w-3 h-3 text-red-500" />;
+
+    default:
+      return <Clock className="w-3 h-3 text-gray-400" />;
+  }
+};
+
 
   return (
     <>
@@ -988,7 +1082,7 @@ const TeamAssignDropdown = ({
     },
   });
 
-  console.log("@@@@@@@@@@@@@@@@@@@@@",currentAssignee , currentAssigneeName)
+  // console.log("@@@@@@@@@@@@@@@@@@@@@",currentAssignee , currentAssigneeName)
   
 
   return (
@@ -1050,7 +1144,7 @@ export default function Inbox() {
   const { user } = useAuth();
   const [openQR, setOpenQR] = useState(false);
   const { t } = useTranslation();
-
+  const [location] = useLocation();
   // Socket.io state
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isTyping, setIsTyping] = useState(false);
@@ -1068,6 +1162,8 @@ export default function Inbox() {
   });
 
 
+
+
   // Fetch conversations
   const { data: conversations = [], isLoading: conversationsLoading } =
     useQuery({
@@ -1077,6 +1173,8 @@ export default function Inbox() {
         return await response.json();
       },
       enabled: !!activeChannel,
+      refetchOnWindowFocus: true,
+      staleTime: 0,
     });
 
   // Fetch messages for selected conversation
@@ -1091,6 +1189,39 @@ export default function Inbox() {
     enabled: !!selectedConversation?.id,
   });
 
+
+  useEffect(() => {
+  if (!selectedConversation?.id) return;
+
+  queryClient.invalidateQueries({
+    queryKey: [
+      "/api/conversations",
+      selectedConversation.id,
+      "messages",
+    ],
+  });
+}, [selectedConversation?.id]);
+
+
+
+  function normalizeTime(value: any): number {
+  if (!value) return 0;
+
+  // Date object
+  if (value instanceof Date) {
+    return value.getTime();
+  }
+
+  // Number (seconds or ms)
+  if (typeof value === "number") {
+    return value < 1e12 ? value * 1000 : value; // seconds → ms
+  }
+
+  // String
+  const parsed = Date.parse(value);
+  return isNaN(parsed) ? 0 : parsed;
+}
+
   
 
   // Auto-scroll to bottom when messages change
@@ -1104,6 +1235,7 @@ export default function Inbox() {
 
     const API_BASE = `${window.location.origin}`;
     console.log("Connecting to Socket.io at", API_BASE);
+    
     const socketInstance = io(API_BASE, {
       query: {
         userId: user.id,
@@ -1115,6 +1247,14 @@ export default function Inbox() {
 
     socketInstance.on("connect", () => {
     console.log("Socket.io connected for agent");
+    if (activeChannel?.id) {
+    const channelRoom = `channel:${activeChannel.id}`;
+    console.log("🔗 Joining channel room:", channelRoom);
+
+    socketInstance.emit("join-room", {
+      room: channelRoom,
+    });
+  }
     });
 
    
@@ -1154,19 +1294,77 @@ socketInstance.on("message_sent", (data) => {
 
 // Listen for new messages (works for ANY conversation)
 socketInstance.on("new-message", (data) => {
-  console.log("🔥 Realtime WA message received:", data);
+  console.log("🔥 Incoming message (raw):", data);
 
-  // ALWAYS refresh conversations list (for unread count, last message)
-  queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+  const conversationId = data.conversationId;
 
-  // If message is for selected conversation, also refresh messages
-  if (selectedConversation?.id === data.conversationId) {
-    console.log("Refreshing messages for selected conversation");
+  // ✅ SAFE message extraction (STRING ONLY)
+  const lastMessageText =
+    typeof data?.message?.content === "string"
+      ? data.message.content
+      : typeof data?.content === "string"
+      ? data.content
+      : "[Media]";
+
+  // ✅ SAFE timestamp handling (WhatsApp seconds → ms)
+  // const lastMessageAt = data?.message?.timestamp
+  //   ? new Date(Number(data.message.timestamp) * 1000).toISOString()
+  //   : data?.createdAt
+  //   ? new Date(data.createdAt).toISOString()
+  //   : new Date().toISOString();
+
+    const lastMessageAt =
+  typeof data?.createdAt === "number"
+    ? data.createdAt
+    : typeof data?.createdAt === "string"
+    ? Date.parse(data.createdAt)
+    : Date.now();
+
+
+  // ✅ UPDATE INBOX IMMEDIATELY (even if no chat selected)
+  queryClient.setQueryData(
+    ["/api/conversations", activeChannel.id],
+    (old: any[]) => {
+      if (!Array.isArray(old)) return old;
+
+      return old
+        .map((conv) =>
+          conv.id === conversationId
+            ? {
+                ...conv,
+                lastMessageText,   // ✅ always string
+                lastMessageAt,     // ✅ always ISO date
+                unreadCount:
+                  selectedConversation?.id === conversationId
+                    ? 0
+                    : (conv.unreadCount || 0) + 1,
+              }
+            : conv
+        )
+        // ✅ move updated conversation to top
+        .sort(
+          (a, b) =>
+           normalizeTime(b.lastMessageAt) -
+           normalizeTime(a.lastMessageAt)
+        );
+    }
+  );
+
+  // ✅ If chat is open → refresh messages panel
+  if (selectedConversation?.id === conversationId) {
     queryClient.invalidateQueries({
-      queryKey: ["/api/conversations", selectedConversation.id, "messages"],
+      queryKey: [
+        "/api/conversations",
+        conversationId,
+        "messages",
+      ],
     });
   }
+
+
 });
+
+
 
 // Listen for conversation updates (new messages in other conversations)
 socketInstance.on("conversation_updated", (data) => {
@@ -1182,11 +1380,82 @@ socketInstance.on("conversation_created", (data) => {
 
 
 
+socketInstance.on("new-message", (data) => {
+  console.log("🔥 Incoming message (raw):", data);
+
+  const conversationId = data.conversationId;
+
+  // ✅ SAFE message extraction (STRING ONLY)
+  const lastMessageText =
+    typeof data?.message?.content === "string"
+      ? data.message.content
+      : typeof data?.content === "string"
+      ? data.content
+      : "[Media]";
+
+  // ✅ SAFE timestamp handling (WhatsApp seconds → ms)
+  // const lastMessageAt = data?.message?.timestamp
+  //   ? new Date(Number(data.message.timestamp) * 1000).toISOString()
+  //   : data?.createdAt
+  //   ? new Date(data.createdAt).toISOString()
+  //   : new Date().toISOString();
+
+    const lastMessageAt =
+  typeof data?.createdAt === "number"
+    ? data.createdAt
+    : typeof data?.createdAt === "string"
+    ? Date.parse(data.createdAt)
+    : Date.now();
+
+
+  // ✅ UPDATE INBOX IMMEDIATELY (even if no chat selected)
+  queryClient.setQueryData(
+    ["/api/conversations", activeChannel.id],
+    (old: any[]) => {
+      if (!Array.isArray(old)) return old;
+
+      return old
+        .map((conv) =>
+          conv.id === conversationId
+            ? {
+                ...conv,
+                lastMessageText,   // ✅ always string
+                lastMessageAt,     // ✅ always ISO date
+                unreadCount:
+                  selectedConversation?.id === conversationId
+                    ? 0
+                    : (conv.unreadCount || 0) + 1,
+              }
+            : conv
+        )
+        // ✅ move updated conversation to top
+        .sort(
+          (a, b) =>
+            normalizeTime(b.lastMessageAt) -
+            normalizeTime(a.lastMessageAt)
+        );
+    }
+  );
+
+  // ✅ If chat is open → refresh messages panel
+  if (selectedConversation?.id === conversationId) {
+    queryClient.invalidateQueries({
+      queryKey: [
+        "/api/conversations",
+        conversationId,
+        "messages",
+      ],
+    });
+  }
+
+
+});
+
 
 
 
     // Listen for new messages (from visitors or AI)
-    socketInstance.on("new-message", (data) => {
+    socketInstance.on("new_message", (data) => {
       console.log("New message received:", data);
 
       // Refresh conversations list
@@ -1244,17 +1513,45 @@ socketInstance.on("conversation_created", (data) => {
     socketInstance.on("messages_read", (data) => {
       if (selectedConversation?.id === data.conversationId) {
         queryClient.invalidateQueries({
-          queryKey: ["/api/conversations", selectedConversation.id, "messages"],
+          queryKey: ["/api/conversations", selectedConversation?.id, "messages"],
         });
       }
     });
 
     // Message status updates
+    // socketInstance.on("message_status_update", (data) => {
+    //   queryClient.invalidateQueries({
+    //     queryKey: ["/api/conversations", selectedConversation?.id, "messages"],
+    //   });
+    // });
+
     socketInstance.on("message_status_update", (data) => {
-      queryClient.invalidateQueries({
-        queryKey: ["/api/conversations", selectedConversation?.id, "messages"],
-      });
-    });
+  const {
+    conversationId,
+    whatsappMessageId,
+    status,
+  } = data;
+
+  // ✅ Only update if this conversation is open
+  if (selectedConversation?.id !== conversationId) return;
+
+  queryClient.setQueryData(
+    ["/api/conversations", conversationId, "messages"],
+    (old: any[]) => {
+      if (!Array.isArray(old)) return old;
+
+      return old.map((msg) =>
+        msg.whatsappMessageId === whatsappMessageId
+          ? {
+              ...msg,
+              status, // sent | delivered | read | failed
+            }
+          : msg
+      );
+    }
+  );
+});
+
 
     // Conversation status changed
     socketInstance.on("conversation_status_changed", (data) => {
@@ -1275,7 +1572,11 @@ socketInstance.on("conversation_created", (data) => {
     return () => {
       socketInstance.disconnect();
     };
-  }, [user?.id, activeChannel?.id]);
+  }, [user?.id, activeChannel?.id, selectedConversation?.id ]);
+
+
+
+
 
   // WebSocket connection for WhatsApp (keep existing)
   useEffect(() => {
@@ -1292,22 +1593,6 @@ socketInstance.on("conversation_created", (data) => {
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
 
-      if (data.type === "new-message") {
-        queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-
-        if (
-          selectedConversation &&
-          data.conversationId === selectedConversation.id
-        ) {
-          queryClient.invalidateQueries({
-            queryKey: [
-              "/api/conversations",
-              selectedConversation.id,
-              "messages",
-            ],
-          });
-        }
-      }
     };
 
     ws.onerror = (error) => console.error("WebSocket error:", error);
@@ -1321,33 +1606,21 @@ socketInstance.on("conversation_created", (data) => {
   }, []);
 
 
-  
 
-
-
-  // Join conversation room when selected
   useEffect(() => {
-    if (!selectedConversation || !socket) return;
+  if (!selectedConversation || !socket) return;
 
-    // Join the conversation room via Socket.io
-    socket.emit("agent_join_conversation", {
-      conversationId: selectedConversation.id,
-      agentId: user?.id,
-      agentName:
-        `${user?.firstName || ""} ${user?.lastName || ""}`.trim() ||
-        user?.username,
-    });
+  const room = `conversation:${selectedConversation.id}`;
+  console.log("🔗 Joining conversation room:", room);
 
-    // Join via WebSocket for WhatsApp
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(
-        JSON.stringify({
-          type: "join-conversation",
-          conversationId: selectedConversation.id,
-        })
-      );
-    }
-  }, [selectedConversation, socket]);
+  socket.emit("join-room", { room });
+
+  return () => {
+    console.log("🚪 Leaving conversation room:", room);
+    socket.emit("leave-room", { room });
+  };
+}, [selectedConversation?.id, socket]);
+
 
   // Send message mutation (updated for Socket.io)
   const sendMessageMutation = useMutation({
@@ -1781,14 +2054,28 @@ socketInstance.on("conversation_created", (data) => {
   });
 
   // Check if 24-hour window has passed (for WhatsApp)
+
+  function normalizeTimeFormat(value: any): number {
+  if (!value) return 0;
+
+  if (value instanceof Date) return value.getTime();
+
+  if (typeof value === "number") {
+    return value < 1e12 ? value * 1000 : value; // seconds → ms
+  }
+
+  const parsed = Date.parse(value);
+  return isNaN(parsed) ? 0 : parsed;
+}
+
   const is24HourWindowExpired =
-    selectedConversation?.lastMessageAt &&
-    selectedConversation?.type === "whatsapp"
-      ? differenceInHours(
-          new Date(),
-          new Date(selectedConversation.lastMessageAt)
-        ) > 24
-      : false;
+  selectedConversation?.type === "whatsapp" &&
+  normalizeTime(selectedConversation?.lastMessageAt) > 0
+    ? Date.now() -
+        normalizeTime(selectedConversation.lastMessageAt) >
+      24 * 60 * 60 * 1000
+    : false;
+
 
   if (!activeChannel) {
     return (
@@ -2079,13 +2366,16 @@ socketInstance.on("conversation_created", (data) => {
                     {messages.map((message: Message, index: number) => {
                       const prevMessage =
                         index > 0 ? messages[index - 1] : null;
-                      const showDate =
-                        !prevMessage ||
-                        !isToday(new Date(message.createdAt || new Date())) ||
-                        (prevMessage &&
-                          !isToday(
-                            new Date(prevMessage.createdAt || new Date())
-                          ));
+                     const currentDate = normalizeDate(message.createdAt);
+    const prevDate = prevMessage
+      ? normalizeDate(prevMessage.createdAt)
+      : null;
+
+    const showDate =
+      !prevDate ||
+      !currentDate ||
+      !isToday(currentDate) ||
+      !isToday(prevDate);
 
                       return (
                         <MessageItem

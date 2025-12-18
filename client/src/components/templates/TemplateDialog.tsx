@@ -91,6 +91,7 @@ const templateFormSchema = z.object({
     .default([]),
   variables: z.array(z.string()).default([]),
   samples: z.array(z.string()).default([]),
+  mediaFile: z.any().optional(),
 });
 
 type TemplateFormData = z.infer<typeof templateFormSchema>;
@@ -120,6 +121,7 @@ export function TemplateDialog({
       language: "en_US",
       mediaType: "text",
       mediaUrl: "",
+      mediaFile: undefined,
       header: "",
       body: "",
       footer: "",
@@ -273,6 +275,10 @@ export function TemplateDialog({
     return matches;
   };
 
+
+  
+
+
   const handleAddButton = () => {
     if (buttonFields.length < 3) {
       appendButton({ type: "QUICK_REPLY", text: "", url: "", phoneNumber: "" });
@@ -297,6 +303,36 @@ export function TemplateDialog({
   };
 
   const watchedValues = form.watch();
+
+//   useEffect(() => {
+//   const vars = extractVariables(watchedValues.body || "");
+
+//   const existing = form.getValues("variables") || [];
+
+//   if (vars.length !== existing.length) {
+//     form.setValue(
+//       "variables",
+//       vars.map((_, i) => existing[i] ?? "")
+//     );
+//   }
+// }, [watchedValues.body]);
+
+useEffect(() => {
+  const vars = extractVariables(watchedValues.body || "");
+
+  form.setValue(
+    "variables",
+    vars.map(() => "")
+  );
+}, [watchedValues.body]);
+
+useEffect(() => {
+  if (watchedValues.mediaType !== "text") {
+    form.setValue("header", "");
+  }
+}, [watchedValues.mediaType]);
+
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -462,7 +498,7 @@ export function TemplateDialog({
                     )}
                   />
 
-                  {watchedValues.mediaType !== "text" && (
+                  {/* {watchedValues.mediaType !== "text" && (
                     <FormField
                       control={form.control}
                       name="mediaUrl"
@@ -482,40 +518,86 @@ export function TemplateDialog({
                         </FormItem>
                       )}
                     />
-                  )}
+                  )} */}
+
+                  {watchedValues.mediaType !== "text" && (
+  <FormField
+    control={form.control}
+    name="mediaFile"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>Upload Media</FormLabel>
+        <FormControl>
+          <input
+            type="file"
+            accept={
+              watchedValues.mediaType === "image"
+                ? "image/*"
+                : watchedValues.mediaType === "video"
+                ? "video/*"
+                : watchedValues.mediaType === "document"
+                ? ".pdf,.doc,.docx,.txt"
+                : "*/*"
+            }
+            onChange={(e) => {
+              const file = e.target.files?.[0] || null;
+              field.onChange(file);
+
+              if (file && watchedValues.mediaType === "image") {
+                // Show image preview
+                const reader = new FileReader();
+                reader.onload = () => {
+                  form.setValue("mediaUrl", reader.result as string);
+                };
+                reader.readAsDataURL(file);
+              }
+            }}
+          />
+        </FormControl>
+        <FormDescription>
+          Upload an image, video, or document based on media type.
+        </FormDescription>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+)}
+
 
                   {/* Header */}
-                  <FormField
-                    control={form.control}
-                    name="header"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Header (Optional)</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Input
-                              placeholder="Optional header text (max 60 chars)"
-                              maxLength={60}
-                              {...field}
-                            />
-                            <span
-                              className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs ${
-                                (field.value?.length || 0) >= 60
-                                  ? "text-red-500"
-                                  : "text-gray-400"
-                              }`}
-                            >
-                              {field.value?.length || 0} / 60
-                            </span>
-                          </div>
-                        </FormControl>
-                        <FormDescription>
-                          Max 60 characters. Avoid emojis and “STOP” messages.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {watchedValues.mediaType === "text" && (
+  <FormField
+    control={form.control}
+    name="header"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>Header (Optional)</FormLabel>
+        <FormControl>
+          <div className="relative">
+            <Input
+              placeholder="Optional header text (max 60 chars)"
+              maxLength={60}
+              {...field}
+            />
+            <span
+              className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs ${
+                (field.value?.length || 0) >= 60
+                  ? "text-red-500"
+                  : "text-gray-400"
+              }`}
+            >
+              {field.value?.length || 0} / 60
+            </span>
+          </div>
+        </FormControl>
+        <FormDescription>
+          Max 60 characters. Avoid emojis and “STOP” messages.
+        </FormDescription>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+)}
 
                   {/* Body */}
                   <FormField
@@ -777,11 +859,30 @@ export function TemplateDialog({
 
                 <div className="bg-white rounded-lg shadow-sm max-w-sm mx-auto">
                   {/* Header Media */}
-                  {watchedValues.mediaType !== "text" && (
+                  {/* {watchedValues.mediaType !== "text" && (
                     <div className="bg-gray-200 h-48 rounded-t-lg flex items-center justify-center">
                       {getMediaIcon(watchedValues.mediaType)}
                     </div>
-                  )}
+                  )} */}
+
+                  {watchedValues.mediaType !== "text" && (
+  <div className="bg-gray-200 h-48 rounded-t-lg overflow-hidden flex items-center justify-center">
+   {watchedValues.mediaType === "image" && watchedValues.mediaUrl ? (
+  <img
+    src={watchedValues.mediaUrl}
+    alt="Preview"
+    className="w-full h-full object-cover"
+  />
+) : (
+  <div className="flex flex-col items-center text-gray-500">
+    {getMediaIcon(watchedValues.mediaType)}
+    <span className="text-xs mt-1">Media Preview</span>
+  </div>
+)}
+
+  </div>
+)}
+
 
                   <div className="p-4 space-y-2">
                     {watchedValues.header && (

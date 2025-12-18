@@ -35,6 +35,24 @@ export async function apiRequest(
   return res;
 }
 
+export async function apiRequestFormData(
+  method: string,
+  url: string,
+  formData: FormData
+): Promise<Response> {
+  const res = await fetch(url, {
+    method,
+    body: formData,          // ❌ JSON.stringify nahi
+    credentials: "include",  // cookies
+  });
+
+  console.log("<<< API RESPONSE STATUS:", res.status);
+
+  await throwIfResNotOk(res);
+  return res;
+}
+
+
 
 type UnauthorizedBehavior = "returnNull" | "throw";
 export const getQueryFn: <T>(options: {

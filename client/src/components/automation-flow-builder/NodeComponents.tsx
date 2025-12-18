@@ -31,6 +31,38 @@ function Shell({
   );
 }
 
+
+const buildUploadUrl = (path?: string) => {
+  if (!path) return "";
+
+  // File object (create mode)
+  if (path instanceof File) {
+    return URL.createObjectURL(path);
+  }
+
+  // Blob URL (already preview)
+  if (path.startsWith("blob:")) {
+    return path;
+  }
+
+  // Absolute URL
+  if (path.startsWith("http")) {
+    return path;
+  }
+
+  const origin = window.location.origin;
+
+  // Already has /uploads
+  if (path.startsWith("/uploads")) {
+    return `${origin}${path}`;
+  }
+
+  // API relative path (edit mode)
+  return `${origin}/uploads/${path}`;
+};
+
+
+
 export function StartNode() {
   return (
     <div className="rounded-full w-14 h-14 bg-green-500 flex items-center justify-center text-white shadow">
@@ -86,7 +118,7 @@ export function CustomReplyNode({ data }: { data: BuilderNodeData }) {
       {data.imagePreview && (
         <div className="mt-2 rounded-lg overflow-hidden bg-white/10">
           <img
-            src={data.imagePreview}
+            src={buildUploadUrl(data.imagePreview)}
             alt="message"
             className="max-h-20 object-cover w-full"
           />

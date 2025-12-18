@@ -14,6 +14,7 @@ import { createServer } from "http";
 import { storage } from "./storage";
 import { Server as SocketIOServer } from "socket.io";
 import { fetchConversationList } from "./controllers/conversations.controller";
+import { startScheduledCampaignCron } from "./cron/scheduledCampaigns.cron";
 
 const app = express();
 const httpServer = createServer(app);
@@ -67,6 +68,16 @@ io.on("connection", (socket) => {
   
       socket.emit("test_response", { msg: "Server se response aaya!" });
     });
+    socket.on("join-room", ({ room }) => {
+    console.log("📥 Socket joined room:", room);
+    socket.join(room);
+  });
+
+  socket.on("leave-room", ({ room }) => {
+    socket.leave(room);
+    console.log("📤 Left:", room);
+  });
+
   
   
        // ============================================
@@ -256,29 +267,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // ==========================================
-  // VISITOR EVENTS (from widget)
-  // ==========================================
-
-  // Visitor joins conversation
-  // socket.on("join_conversation", ({ conversationId }) => {
-  //   console.log(`Visitor joining conversation ${conversationId}`);
-  //   socket.join(`conversation:${conversationId}`);
-
-  //   if (!conversationRooms.has(conversationId)) {
-  //     conversationRooms.set(conversationId, new Set());
-  //   }
-  //   // Broadcast to all participants in the conversation
-  //   io.to(`conversation:${conversationId}`).emit("new_message", {
-  //     conversationId,
-  //   });
-  //   conversationRooms.get(conversationId)?.add(socket.id);
-  // });
-
-
-  // ADD THIS AFTER LINE 60 (after test_event handler)
-
-// ADD AFTER LINE 60 - After test_event handler
+  
 
 socket.on('join_all_conversations', ({ channelId, userId }) => {
   console.log(`✅ JOIN_ALL_CONVERSATIONS: User ${userId} joining channel ${channelId}`);
@@ -509,26 +498,7 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || "5000", 10);
-  // server.listen({
-  //   port,
-  //   host: process.env.NODE_ENV === "production" ? "0.0.0.0" : "127.0.0.1",
-  // }, async () => {
-  //   log(`serving on port ${port}`);
-
-  //     // // Only use reusePort if the platform supports it
-  // if (process.platform !== "win32" && process.env.NODE_ENV !== "production") {
-  //   listenOptions.reusePort = true;
-  // }
-
-  //   // Start the message status updater cron job
-  //   const messageStatusUpdater = new MessageStatusUpdater();
-  //   messageStatusUpdater.startCronJob(60); // Run every 60 seconds instead of 10
-  //   log('Message status updater cron job started');
-
-  //   // Start channel health monitor
-  //   const { channelHealthMonitor } = await import('./cron/channel-health-monitor');
-  //   channelHealthMonitor.start();
-  // });
+  
 
   const listenOptions: any = {
     port,
@@ -542,11 +512,12 @@ app.use((req, res, next) => {
 
   httpServer.listen(listenOptions, async () => {
     log(`serving on port ${port}`);
+     startScheduledCampaignCron();
 
     // Start the message status updater cron job
     const messageStatusUpdater = new MessageStatusUpdater();
     messageStatusUpdater.startCronJob(60);
-
+    
     const { channelHealthMonitor } = await import(
       "./cron/channel-health-monitor"
     );
