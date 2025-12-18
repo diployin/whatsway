@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ChannelProvider } from "@/contexts/channel-context";
 import { UnreadCountProvider } from "@/contexts/UnreadCountContext";
 import { AuthProvider, useAuth } from "@/contexts/auth-context";
+import { SocketProvider } from "./contexts/socket-context";
 import NotFound from "@/pages/not-found";
 import LoginPage from "@/pages/login";
 import Dashboard from "@/pages/dashboard";
@@ -526,6 +527,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AppLayout>
         <AuthProvider>
+          <SocketProvider>
           <ChannelProvider>
             <TooltipProvider>
               <UnreadCountProvider>
@@ -534,6 +536,7 @@ function App() {
               </UnreadCountProvider>
             </TooltipProvider>
           </ChannelProvider>
+          </SocketProvider>
         </AuthProvider>
       </AppLayout>
     </QueryClientProvider>
