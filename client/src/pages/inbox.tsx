@@ -1114,6 +1114,23 @@ export default function Inbox() {
 }, []);
 
 
+const [isTabFocused, setIsTabFocused] = useState(true);
+
+useEffect(() => {
+  const onFocus = () => setIsTabFocused(true);
+  const onBlur = () => setIsTabFocused(false);
+
+  window.addEventListener("focus", onFocus);
+  window.addEventListener("blur", onBlur);
+
+  return () => {
+    window.removeEventListener("focus", onFocus);
+    window.removeEventListener("blur", onBlur);
+  };
+}, []);
+
+
+
 
 
   // Fetch conversations
@@ -1292,6 +1309,24 @@ socketInstance.on("new-message", (data) => {
 
     n.onclick = () => {
       window.focus();
+    };
+  }
+});
+
+
+socketInstance.on("new-message", (data) => {
+  console.log("🔥 new-message");
+  console.log("focused:", isTabFocused);
+
+  if (!isTabFocused && Notification.permission === "granted") {
+    const n = new Notification("New WhatsApp Message", {
+      body: data.content || "New message received",
+      icon: "/whatsapp-icon.png",
+    });
+
+    n.onclick = () => {
+      window.focus();
+      n.close();
     };
   }
 });
