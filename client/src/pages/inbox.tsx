@@ -1129,18 +1129,18 @@ export default function Inbox() {
   });
 
 
-  useEffect(() => {
-  if (!("Notification" in window)) {
-    console.log("❌ Notifications not supported");
-    return;
-  }
+//   useEffect(() => {
+//   if (!("Notification" in window)) {
+//     console.log("❌ Notifications not supported");
+//     return;
+//   }
 
-  if (Notification.permission === "default") {
-    Notification.requestPermission().then((permission) => {
-      console.log("🔔 Permission result:", permission);
-    });
-  }
-}, []);
+//   if (Notification.permission === "default") {
+//     Notification.requestPermission().then((permission) => {
+//       console.log("🔔 Permission result:", permission);
+//     });
+//   }
+// }, []);
 
 
 
@@ -2274,13 +2274,16 @@ socketInstance.on("new-message", (data) => {
                     {messages.map((message: Message, index: number) => {
                       const prevMessage =
                         index > 0 ? messages[index - 1] : null;
-                      const showDate =
-                        !prevMessage ||
-                        !isToday(new Date(message.createdAt || new Date())) ||
-                        (prevMessage &&
-                          !isToday(
-                            new Date(prevMessage.createdAt || new Date())
-                          ));
+                     const currentDate = normalizeDate(message.createdAt);
+    const prevDate = prevMessage
+      ? normalizeDate(prevMessage.createdAt)
+      : null;
+
+    const showDate =
+      !prevDate ||
+      !currentDate ||
+      !isToday(currentDate) ||
+      !isToday(prevDate);
 
                       return (
                         <MessageItem
