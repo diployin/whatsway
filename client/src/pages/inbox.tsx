@@ -1108,6 +1108,8 @@ export default function Inbox() {
         return await response.json();
       },
       enabled: !!activeChannel,
+      refetchOnWindowFocus: true,
+      staleTime: 0,
     });
 
   // Fetch messages for selected conversation
@@ -1424,6 +1426,26 @@ socketInstance.on("new-message", (data) => {
       socketInstance.disconnect();
     };
   }, [user?.id, activeChannel?.id, selectedConversation?.id ]);
+
+
+  useEffect(() => {
+  const handleVisibilityChange = () => {
+    if (document.visibilityState === "visible") {
+      console.log("👀 Tab focused – refetching inbox");
+
+      queryClient.invalidateQueries({
+        queryKey: ["/api/conversations", activeChannel?.id],
+      });
+    }
+  };
+
+  document.addEventListener("visibilitychange", handleVisibilityChange);
+
+  return () => {
+    document.removeEventListener("visibilitychange", handleVisibilityChange);
+  };
+}, [activeChannel?.id]);
+
 
   // WebSocket connection for WhatsApp (keep existing)
   useEffect(() => {
