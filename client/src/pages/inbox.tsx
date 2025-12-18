@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import Header from "@/components/layout/header";
 import { Loading } from "@/components/ui/loading";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -1081,7 +1082,7 @@ export default function Inbox() {
   const { user } = useAuth();
   const [openQR, setOpenQR] = useState(false);
   const { t } = useTranslation();
-
+  const [location] = useLocation();
   // Socket.io state
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isTyping, setIsTyping] = useState(false);
@@ -1277,22 +1278,20 @@ socketInstance.on("new-message", (data) => {
       ? data.content
       : "New message received";
 
-  console.log("🔔 Visibility:", document.visibilityState);
-  console.log("🔔 Permission:", Notification.permission);
+  const isInboxPage = location.startsWith("/inbox");
 
-  if (
-    document.visibilityState !== "visible" &&
-    Notification.permission === "granted"
-  ) {
+  const shouldNotify =
+    Notification.permission === "granted" &&
+    (!document.hasFocus() || !isInboxPage);
+
+  if (shouldNotify) {
     const n = new Notification("New WhatsApp Message", {
       body: messageText,
       icon: "/whatsapp-icon.png",
-      tag: data.conversationId, // prevents spam
     });
 
     n.onclick = () => {
       window.focus();
-      n.close();
     };
   }
 });
@@ -1382,25 +1381,22 @@ const messageText =
       ? data.content
       : "New message received";
 
-  console.log("🔔 Visibility:", document.visibilityState);
-  console.log("🔔 Permission:", Notification.permission);
+  const isInboxPage = location.startsWith("/inbox");
 
-  if (
-    document.visibilityState !== "visible" &&
-    Notification.permission === "granted"
-  ) {
+  const shouldNotify =
+    Notification.permission === "granted" &&
+    (!document.hasFocus() || !isInboxPage);
+
+  if (shouldNotify) {
     const n = new Notification("New WhatsApp Message", {
       body: messageText,
       icon: "/whatsapp-icon.png",
-      tag: data.conversationId, // prevents spam
     });
 
     n.onclick = () => {
       window.focus();
-      n.close();
     };
   }
- 
 });
 
 
