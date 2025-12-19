@@ -4,6 +4,9 @@ import { insertTemplateSchema } from '@shared/schema';
 import { AppError, asyncHandler } from '../middlewares/error.middleware';
 import { WhatsAppApiService } from '../services/whatsapp-api';
 import type { RequestWithChannel } from '../middlewares/channel.middleware';
+import fs from "fs";
+import sharp from 'sharp';
+
 
 
 export const getTemplatesOld = asyncHandler(async (req: RequestWithChannel, res: Response) => {
@@ -92,6 +95,20 @@ export const getTemplateByUserID = asyncHandler(async (req: Request, res: Respon
 });
 
 
+async function normalizeTemplateHeaderImage(input: Buffer): Promise<Buffer> {
+  return await sharp(input)
+    .rotate() // removes EXIF rotation
+    .resize(1024, 1024, {
+      fit: "cover",   // force square
+    })
+    .jpeg({
+      quality: 90,
+      chromaSubsampling: "4:4:4",
+    })
+    .toBuffer();
+}
+
+
 
 export const createTemplate = asyncHandler(
   async (req: RequestWithChannel, res: Response) => {
@@ -143,6 +160,8 @@ export const createTemplate = asyncHandler(
         );
       }
     }
+
+   
 
     /* ------------------------------------------------
        PARSE + VALIDATE SAMPLES
@@ -219,6 +238,11 @@ export const createTemplate = asyncHandler(
       const components: any[] = [];
 
       console.log("🔨 Building components from individual fields");
+       const isValid = await whatsappApi.verifyPhoneNumberBelongsToWABA();
+    if (!isValid) {
+      console.warn("⚠️ Warning: Phone Number may not belong to this WABA");
+      // Note: Proceed anyway, but log the warning
+    }
 
       /* ---------- HEADER ---------- */
       if (mediaType === "text" && validatedTemplate.header) {
@@ -231,13 +255,23 @@ export const createTemplate = asyncHandler(
 
       if (mediaType !== "text") {
         let mediaId: string;
+        const fileBuffer = fs.readFileSync(mediaFile.path);
 
         if (mediaFile) {
           console.log("📤 Uploading media buffer to WhatsApp...");
+          const normalizedBuffer = await normalizeTemplateHeaderImage(fileBuffer);
+
+        
+
+        const finalMimeType = "image/jpeg";
+        const finalFilename = `template-header-${Date.now()}.jpg`;
+
           mediaId = await whatsappApi.uploadMediaBufferForTemplate(
-            mediaFile.buffer,
-            mediaFile.mimetype,
-            mediaFile.originalname
+            normalizedBuffer,
+            // mediaFile.mimetype,
+            // mediaFile.originalname
+            finalMimeType,
+            finalFilename
           );
           console.log("✅ Media uploaded successfully. ID:", mediaId);
           
@@ -267,12 +301,12 @@ export const createTemplate = asyncHandler(
         }
 
         // Verify the media ID is valid (should be numeric string)
-        if (!mediaId || !/^\d+$/.test(mediaId)) {
-          throw new AppError(
-            400,
-            `Invalid media ID received from WhatsApp: ${mediaId}`
-          );
-        }
+        // if (!mediaId || !/^\d+$/.test(mediaId)) {
+        //   throw new AppError(
+        //     400,
+        //     `Invalid media ID received from WhatsApp: ${mediaId}`
+        //   );
+        // }
 
         components.push({
           type: "HEADER",
@@ -282,6 +316,55 @@ export const createTemplate = asyncHandler(
           },
         });
       }
+
+      /* ---------- HEADER ---------- */
+// if (mediaType === "text" && validatedTemplate.header) {
+//   components.push({
+//     type: "HEADER",
+//     format: "TEXT",
+//     text: validatedTemplate.header,
+//   });
+// }
+
+// if (mediaType !== "text") {
+//   let mediaId: string;
+
+//   if (mediaFile) {
+//     console.log("📤 Uploading media file to WhatsApp (template upload)...");
+
+//     if (!mediaFile.path) {
+//       throw new AppError(
+//         400,
+//         "Media file path missing. Disk storage expected."
+//       );
+//     }
+
+//     const fileBuffer = fs.readFileSync(mediaFile.path);
+
+//     mediaId = await whatsappApi.uploadTemplateMedia(
+//       fileBuffer,
+//       mediaFile.mimetype,
+//       mediaFile.originalname
+//     );
+
+//     console.log("✅ Template media uploaded. Handle:", mediaId);
+
+//   } else {
+//     throw new AppError(
+//       400,
+//       "Media header requires file upload (mediaFile)"
+//     );
+//   }
+
+//   components.push({
+//     type: "HEADER",
+//     format: mediaType.toUpperCase(),
+//     example: {
+//       header_handle: [mediaId],
+//     },
+//   });
+// }
+
 
       /* ---------- BODY ---------- */
       const bodyObj: any = {
