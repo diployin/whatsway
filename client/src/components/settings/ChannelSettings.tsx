@@ -222,6 +222,7 @@ export function ChannelSettings() {
                 >
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
                     {/* Main Content */}
+                    
                     <div className="flex-1 min-w-0">
                       {/* Channel Name & Badges */}
                       <div className="flex flex-wrap items-center gap-2 mb-3">
@@ -253,6 +254,20 @@ export function ChannelSettings() {
 
                       {/* Channel Details */}
                       <div className="space-y-2 text-xs sm:text-sm text-gray-600 mb-4">
+
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+  <span className="font-medium text-gray-700">
+    Meta App ID
+  </span>
+  <span className="font-mono break-all">
+    {user?.username === "demouser"
+      ? channel.appId
+          ?.slice(0, -4)
+          .replace(/./g, "*") + channel.appId?.slice(-4)
+      : channel.appId || "Not set"}
+  </span>
+</div>
+
                         <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                           <span className="font-medium text-gray-700">
                             {t("settings.channel_setting.phone")}

@@ -323,6 +323,20 @@
       "when": 1764682583516,
       "tag": "0045_slow_violations",
       "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1766385373406,
+      "tag": "0046_curly_bushwacker",
+      "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1766387880760,
+      "tag": "0047_talented_blacklash",
+      "breakpoints": true
     }
   ]
 }

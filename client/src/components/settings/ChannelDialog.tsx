@@ -34,6 +34,7 @@ const channelFormSchema = z.object({
   phoneNumber: z.string().min(10, "Valid phone number required"),
   phoneNumberId: z.string().min(1, "Phone Number ID is required"),
   wabaId: z.string().min(1, "Business Account ID is required"),
+  appId: z.string().min(1, "App ID is required"),
   accessToken: z.string().min(1, "Access Token is required"),
   businessAccountId: z.string().optional(),
   mmLiteEnabled: z.boolean().default(false),
@@ -58,6 +59,7 @@ const {user} = useAuth()
       phoneNumber: "",
       phoneNumberId: "",
       wabaId: "",
+      appId: "", 
       accessToken: "",
       businessAccountId: "",
       mmLiteEnabled: false,
@@ -73,6 +75,7 @@ const {user} = useAuth()
         phoneNumber: editingChannel.phoneNumber || "",
         phoneNumberId: editingChannel.phoneNumberId,
         wabaId: editingChannel.whatsappBusinessAccountId || "",
+        appId: editingChannel.appId || "", 
         accessToken: editingChannel.accessToken,
         businessAccountId: "",
         mmLiteEnabled: editingChannel.mmLiteEnabled || false,
@@ -92,6 +95,7 @@ const {user} = useAuth()
         phoneNumber: data.phoneNumber,
         phoneNumberId: data.phoneNumberId,
         whatsappBusinessAccountId: data.wabaId,
+        appId: data.appId,
         businessAccountId: data.businessAccountId,
         accessToken: data.accessToken,
         mmLiteEnabled: data.mmLiteEnabled,
@@ -209,6 +213,24 @@ const {user} = useAuth()
                 </FormItem>
               )}
             />
+
+            <FormField
+  control={channelForm.control}
+  name="appId"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Meta App ID</FormLabel>
+      <FormControl>
+        <Input placeholder="123456789012345" {...field} />
+      </FormControl>
+      <FormDescription>
+        Your Meta (Facebook) App ID
+      </FormDescription>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
+
             
             <FormField
               control={channelForm.control}

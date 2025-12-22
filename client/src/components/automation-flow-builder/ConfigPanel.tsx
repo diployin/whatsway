@@ -233,11 +233,6 @@ export function ConfigPanel({
           )}
 
 
-
-    
-
-
-
           {d.kind === "custom_reply" && (
             <Card className="p-3 space-y-4">
               <div>
@@ -256,7 +251,7 @@ export function ConfigPanel({
                   >
                     Variables
                   </Button>
-                </div> */}
+                </div> */}                                                                                                                           
               </div>
 
               <div className="space-y-3">

@@ -278,33 +278,39 @@ async verifyPhoneNumberBelongsToWABA(): Promise<boolean> {
   }
 }
 
-  async createTemplateOlDDD(templateData: any): Promise<any> {
-    const components = this.formatTemplateComponents(templateData);
+async getMessageTemplateByName(
+  templateName: string,
+  apiVersion = "v23.0"
+) {
+  const wabaId = this.channel.whatsappBusinessAccountId;
+  const accessToken = this.channel.accessToken;
 
-    const body = {
-      name: templateData.name,
-      category: templateData.category,
-      language: templateData.language,
-      components,
-    };
-
-    const response = await fetch(
-      `${this.baseUrl}/${this.channel.whatsappBusinessAccountId}/message_templates`,
-      {
-        method: "POST",
-        headers: this.headers,
-        body: JSON.stringify(body),
-      }
-    );
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error?.message || "Failed to create template");
-    }
-
-    return await response.json();
+  if (!wabaId) {
+    throw new Error("whatsappBusinessAccountId not found");
   }
 
+  if (!accessToken) {
+    throw new Error("accessToken not found");
+  }
+
+  const url = `https://graph.facebook.com/${apiVersion}/${wabaId}/message_templates`;
+
+  const res = await axios.get(url, {
+    params: { name: templateName },
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!res.data?.data?.length) {
+    throw new Error(`Template "${templateName}" not found`);
+  }
+
+  return res.data.data[0];
+}
+
+
+  
 
   async checkTemplateExists(templateName: string): Promise<boolean> {
   const url = `${this.baseUrl}/${this.channel.whatsappBusinessAccountId}/message_templates?name=${encodeURIComponent(templateName)}`;
@@ -371,27 +377,6 @@ async getTemplateStatus(templateName: string): Promise<string> {
 }
 
 
-
-
-  async deleteTemplateOLD(templateName: string): Promise<any> {
-    // WhatsApp API requires template name to delete
-    const response = await fetch(
-      `${this.baseUrl}/${
-        this.channel.whatsappBusinessAccountId
-      }/message_templates?name=${encodeURIComponent(templateName)}`,
-      {
-        method: "DELETE",
-        headers: this.headers,
-      }
-    );
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error?.message || "Failed to delete template");
-    }
-
-    return await response.json();
-  }
 
   async getTemplates(): Promise<WhatsAppTemplate[]> {
     const response = await fetch(
@@ -547,232 +532,7 @@ async getTemplateStatus(templateName: string): Promise<string> {
   }
 
 
-
-  async uploadMediaBufferForTemplate(
-  buffer: Buffer,
-  mimeType: string,
-  filename: string
-): Promise<string> {
-  try {
-    if (!buffer || buffer.length < 1024) {
-      throw new Error("Invalid media buffer");
-    }
-
-    const FormData = (await import("form-data")).default;
-    const form = new FormData();
-
-    form.append("file", buffer, {
-      filename,
-      contentType: mimeType,
-    });
-
-    form.append("messaging_product", "whatsapp");
-    form.append("is_reusable", "true");   // 🔥 required
-    form.append("type", mimeType);        // 🔥 FIXED (NOT image/video)
-
-    const phoneNumberId = this.channel.phoneNumberId;
-    if (!phoneNumberId) {
-      throw new Error("WhatsApp phoneNumberId not found");
-    }
-
-    const response = await axios.post(
-      `${this.baseUrl}/${phoneNumberId}/media`,
-      form,
-      {
-        headers: {
-          Authorization: `Bearer ${this.channel.accessToken}`,
-          ...form.getHeaders(),
-        },
-        maxBodyLength: Infinity,
-      }
-    );
-
-    if (!response.data?.id) {
-      throw new Error("No media ID returned from WhatsApp");
-    }
-
-    return response.data.id;
-  } catch (error: any) {
-    const errorMessage =
-      error.response?.data?.error?.message || error.message;
-    throw new Error(
-      `Failed to upload media buffer to WhatsApp: ${errorMessage}`
-    );
-  }
-}
-
-
-
- async uploadMediaBufferForTemplateyesssss(
-  buffer: Buffer,
-  mimeType: string,
-  filename: string
-): Promise<string> {
-  try {
-    if (!buffer || buffer.length < 1024) {
-    throw new Error("Invalid media buffer");
-  }
-    const FormData = (await import("form-data")).default;
-    const form = new FormData();
-
-    // Determine media type from MIME type
-    const mediaType = mimeType.startsWith("image")
-      ? "image"
-      : mimeType.startsWith("video")
-      ? "video"
-      : "document";
-
-    form.append("file", buffer, {
-      filename,
-      contentType: mimeType,
-    });
-
-    form.append("messaging_product", "whatsapp");
-    form.append("is_reusable", "true");
-    form.append("type", mediaType);
-
-    // 🔥 Get WABA ID from channel
-    // Check both possible field names
-    // const wabaId = this.channel.whatsappBusinessAccountId || 
-    //                this.channel.wabaId ||
-    //                this.channel.channel?.whatsappBusinessAccountId;
-
-    const phoneNumberId = this.channel.phoneNumberId; 
-    
-    if (!phoneNumberId) {
-      console.error("❌ Channel object:", this.channel);
-      throw new Error(
-        "WhatsApp phoneNumberId not found in channel configuration."
-      );
-    }
-
-    console.log(`📤 Uploading to phoneNumberId: ${phoneNumberId}`);
-    console.log(`📤 Upload endpoint: ${this.baseUrl}/${phoneNumberId}/media`);
-    
-    // Upload to WABA endpoint (NOT phone number endpoint)
-    const response = await axios.post(
-      `${this.baseUrl}/${phoneNumberId}/media`,
-      form,
-      {
-        headers: {
-          Authorization: `Bearer ${this.channel.accessToken}`,
-          ...form.getHeaders(),
-        },
-        maxContentLength: Infinity,
-        maxBodyLength: Infinity,
-      }
-    );
-
-    console.log("✅ WhatsApp template media upload response:", response.data);
-    
-    if (!response.data?.id) {
-      throw new Error("No media ID returned from WhatsApp");
-    }
-    
-    return response.data.id;
-  } catch (error: any) {
-    console.error("❌ WhatsApp upload buffer error:", {
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      message: error.message,
-    });
-    
-    const errorMessage = error.response?.data?.error?.message || error.message;
-    throw new Error(`Failed to upload media buffer to WhatsApp: ${errorMessage}`);
-  }
-}
-
-
-
-// template image upload
-
-async uploadTemplateMedia(
-  buffer: Buffer,
-  mimeType: string,
-  filename: string
-): Promise<string> {
-  try {
-    const businessId = this.channel.whatsappBusinessAccountId
-    const AppId = 664128043180538
-
-    if (!businessId) {
-      throw new Error("WhatsApp BUSINESS_ID (WABA ID) not found");
-    }
-
-    const uploadUrl =
-      `${this.baseUrl}/${AppId}/uploads` +
-      `?file_name=${encodeURIComponent(filename)}` +
-      `&file_length=${buffer.length}` +
-      `&file_type=${encodeURIComponent(mimeType)}` +
-      `&access_token=${this.channel.accessToken}`;
-
-    console.log("📤 Template media upload URL:", uploadUrl);
-
-    const response = await axios.post(uploadUrl, buffer, {
-      headers: {
-        "Content-Type": "application/octet-stream",
-      },
-      maxContentLength: Infinity,
-      maxBodyLength: Infinity,
-    });
-
-    console.log("✅ Template media upload response:", response.data);
-
-    const uploadHandle = response.data?.h || response.data?.id;
-
-if (!uploadHandle) {
-  throw new Error("No upload session ID returned from WhatsApp");
-}
-
-
-    // Step 2: Convert upload handle to media ID
-    const mediaIdUrl = `${this.baseUrl}/${uploadHandle}&access_token=${this.channel.accessToken}`;
-    
-    console.log("📤 Step 2: Converting upload handle to media ID...");
-    console.log("📤 Media ID URL:", mediaIdUrl);
-
-    const mediaResponse = await axios.get(mediaIdUrl);
-
-    console.log("✅ Media ID response:", mediaResponse.data);
-
-    // The response has 'id' directly, not 'media.id'
-    const mediaId = mediaResponse.data?.id;
-
-    if (!mediaId) {
-      throw new Error("No media ID returned from WhatsApp");
-    }
-
-   // Remove the signature part (?sig=...) before returning
-    const cleanMediaId = mediaId.split('?')[0];
-
-    console.log("✅ Final media ID for template (cleaned):", cleanMediaId);
-
-    return cleanMediaId;
-
-
-
-  } catch (error: any) {
-    console.error("❌ Template media upload error:", {
-      status: error.response?.status,
-      data: error.response?.data,
-      message: error.message,
-    });
-
-    throw new Error(
-      error.response?.data?.error?.message ||
-      error.message ||
-      "Template media upload failed"
-    );
-  }
-}
-
-
-// template image upload
-
-
-
-  async uploadMediaBufferForTemplateee(
+  async uploadMediaBufferHeader(
   buffer: Buffer,
   mimeType: string,
   filename: string
@@ -781,21 +541,14 @@ if (!uploadHandle) {
     const FormData = (await import("form-data")).default;
     const form = new FormData();
 
-    const mediaType = mimeType.startsWith("image")
-      ? "image"
-      : mimeType.startsWith("video")
-      ? "video"
-      : "document";
-
     form.append("file", buffer, {
       filename,
       contentType: mimeType,
     });
 
+    // 🔥 REQUIRED FIELDS
+    form.append("type", mimeType); // 👈 MOST IMPORTANT
     form.append("messaging_product", "whatsapp");
-
-    // 🔥 THIS IS REQUIRED FOR TEMPLATE MEDIA
-    form.append("type", mediaType);
 
     const response = await axios.post(
       `${this.baseUrl}/${this.channel.phoneNumberId}/media`,
@@ -809,17 +562,125 @@ if (!uploadHandle) {
     );
 
     console.log("✅ WhatsApp media upload response:", response.data);
-    return response.data.id;
+
+    if (!response.data?.id) {
+      throw new Error("WhatsApp media id not returned");
+    }
+
+    return response.data.id; // 👈 THIS ID GOES IN TEMPLATE HEADER
   } catch (error: any) {
     console.error(
       "❌ WhatsApp upload buffer error:",
-      error.response?.data || error.message
+      error?.response?.data || error
     );
     throw new Error("Failed to upload media buffer to WhatsApp");
   }
 }
 
 
+// template image upload
+
+async getImageTemplateHeaderHandle(
+  templateName = "image_template_1"
+): Promise<string> {
+  const wabaId = this.channel.whatsappBusinessAccountId;
+  const accessToken = this.channel.accessToken;
+
+  if (!wabaId) {
+    throw new Error("whatsappBusinessAccountId not found in channel");
+  }
+
+  if (!accessToken) {
+    throw new Error("accessToken not found in channel");
+  }
+
+  const res = await axios.get(
+    `https://graph.facebook.com/v23.0/${wabaId}/message_templates`,
+    {
+      params: { name: templateName },
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+
+  const template = res.data?.data?.[0];
+  if (!template) {
+    throw new Error(`Template "${templateName}" not found`);
+  }
+
+  if (template.status !== "APPROVED") {
+    throw new Error(
+      `Template "${templateName}" is not approved (status: ${template.status})`
+    );
+  }
+
+  const headerHandle =
+    template.components
+      ?.find(
+        (c: any) => c.type === "HEADER" && c.format === "IMAGE"
+      )
+      ?.example?.header_handle?.[0];
+
+  if (!headerHandle || !headerHandle.startsWith("4::")) {
+    throw new Error(
+      `No valid IMAGE header_handle found for template "${templateName}"`
+    );
+  }
+
+  return headerHandle; // ✅ e.g. "4::aW9nZXJzL2ltYWdlLzEyMzQ1"
+}
+
+
+
+async uploadTemplateMedia(
+  buffer: Buffer,
+  mimeType: string,
+  filename: string
+): Promise<string> {
+
+  const appId = 664128043180538;
+
+  // STEP 1️⃣ Create upload session
+  const sessionRes = await axios.post(
+    `https://graph.facebook.com/v19.0/${appId}/uploads`,
+    {
+      file_name: filename,
+      file_length: buffer.length,
+      file_type: mimeType
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${this.channel.accessToken}`,
+        "Content-Type": "application/json"
+      }
+    }
+  );
+
+  const uploadSessionId = sessionRes.data.id;
+
+  // STEP 2️⃣ Upload binary
+  const uploadBinaryRes = await axios.post(
+    `https://graph.facebook.com/v19.0/${uploadSessionId}`,
+    buffer,
+    {
+      headers: {
+        Authorization: `Bearer ${this.channel.accessToken}`,
+        "Content-Type": "application/octet-stream"
+      }
+    }
+  );
+
+  const headerHandle = uploadBinaryRes.data.h;
+
+  console.log("Uploaded template media, header handle:", headerHandle);
+
+  if (!headerHandle) {
+    throw new Error("No header handle returned");
+  }
+
+  return headerHandle; // ✅ "4::xxxx"
+}
 
   async uploadMedia(filePath: string, mimeType: string): Promise<string> {
     const resolvedPath = path.resolve(filePath);
@@ -921,45 +782,6 @@ if (!uploadHandle) {
 
 
 
-
-  // Keep your existing function as is
-async uploadMediaTwo(filePath: string, mimeType: string): Promise<string> {
-  const resolvedPath = path.resolve(filePath);
-
-  const formData = new FormData();
-  formData.append("messaging_product", "whatsapp");
-  formData.append("file", fs.createReadStream(resolvedPath), {
-    filename: path.basename(resolvedPath),
-    contentType: mimeType,
-  });
-
-  console.log("Uploading local media:", resolvedPath, mimeType);
-
-  try {
-    const response = await axios.post(
-      `${this.baseUrl}/${this.channel.phoneNumberId}/media`,
-      formData,
-      {
-        headers: {
-          Authorization: `Bearer ${this.channel.accessToken}`,
-          ...formData.getHeaders(),
-        },
-      }
-    );
-
-    console.log("Media uploaded successfully, ID:", response.data.id);
-    return response.data.id;
-  } catch (error: any) {
-    console.error(
-      "WhatsApp upload error:",
-      error.response?.data || error.message
-    );
-    throw new Error(
-      error.response?.data?.error?.message || "Failed to upload media"
-    );
-  }
-}
-
 // Add new function for URL uploads
 async uploadMediaFromUrl(url: string, mimeType: string = 'image/jpeg'): Promise<string> {
   const tempDir = path.join(__dirname, '../../temp');
@@ -1005,29 +827,6 @@ async uploadMediaFromUrl(url: string, mimeType: string = 'image/jpeg'): Promise<
   }
 }
 
-  // async getMediaUrl(mediaId: string): Promise<string> {
-  //   console.log("Fetching media URL for ID:", mediaId);
-
-  //   const response = await fetch(
-  //     `${this.baseUrl}/${mediaId}`,
-  //     {
-  //       method: "GET",
-  //       headers: {
-  //         Authorization: `Bearer ${this.channel.accessToken}`,
-  //       },
-  //     }
-  //   );
-
-  //   const data = await response.json();
-
-  //   if (!response.ok) {
-  //     console.error("WhatsApp get media URL error:", data);
-  //     throw new Error(data.error?.message || "Failed to get media URL");
-  //   }
-
-  //   // WhatsApp returns the media URL that can be used to download the file
-  //   return data.url;
-  // }
 
   async getMediaUrl(mediaId: string): Promise<string | null> {
     try {

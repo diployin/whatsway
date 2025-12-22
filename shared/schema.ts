@@ -204,6 +204,7 @@ export const channels = pgTable("channels", {
   accessToken: text("access_token").notNull(),
   whatsappBusinessAccountId: text("whatsapp_business_account_id"),
   phoneNumber: text("phone_number"),
+  appId: text("app_id"),
   isActive: boolean("is_active").default(true),
   // Health status fields
   healthStatus: text("health_status").default("unknown"), // healthy, warning, error, unknown
