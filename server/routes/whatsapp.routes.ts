@@ -395,7 +395,7 @@ app.post("/api/whatsapp/channels/:id/send", async (req, res) => {
       templateName,
       templateLanguage = "en_US",
       templateVariables = [],
-      headerMediaId, // ✅ EXTRACT FROM REQUEST
+      headerMediaId,
     } = req.body;
 
     console.log("🖼️ Header Media ID from request:", headerMediaId);
@@ -416,7 +416,7 @@ app.post("/api/whatsapp/channels/:id/send", async (req, res) => {
 
       const components: any[] = [];
 
-      // 🔥 HEADER COMPONENT - MUST COME FIRST
+      // 🔥 HEADER COMPONENT (Optional)
       if (headerMediaId) {
         console.log("✅ Adding header component with media ID:", headerMediaId);
         components.push({
@@ -425,14 +425,14 @@ app.post("/api/whatsapp/channels/:id/send", async (req, res) => {
             {
               type: "image",
               image: {
-                id: headerMediaId, // ✅ USE THE MEDIA ID FROM REQUEST
+                id: headerMediaId,
               },
             },
           ],
         });
       }
 
-      // 🔥 BODY VARIABLES - MUST COME AFTER HEADER
+      // 🔥 BODY VARIABLES (Optional)
       if (Array.isArray(templateVariables) && templateVariables.length > 0) {
         console.log("✅ Adding body component with variables:", templateVariables);
         components.push({
@@ -444,13 +444,8 @@ app.post("/api/whatsapp/channels/:id/send", async (req, res) => {
         });
       }
 
-      if (components.length === 0) {
-        return res.status(400).json({
-          success: false,
-          message: "Template components missing",
-        });
-      }
-
+      // ✅ Build template payload
+      // If no components (simple template), send without components array
       payload = {
         messaging_product: "whatsapp",
         to,
@@ -460,7 +455,7 @@ app.post("/api/whatsapp/channels/:id/send", async (req, res) => {
           language: {
             code: templateLanguage,
           },
-          components,
+          ...(components.length > 0 && { components }), // ✅ Only add if components exist
         },
       };
 
@@ -468,6 +463,8 @@ app.post("/api/whatsapp/channels/:id/send", async (req, res) => {
         templateVariables.length > 0
           ? templateVariables.join(" ")
           : templateName;
+      
+      console.log("📝 Template message content:", newMsg);
     }
 
     // ================= TEXT =================
