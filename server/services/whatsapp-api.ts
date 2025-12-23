@@ -7,6 +7,8 @@ import type { Response } from "express";
 import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+import { storage } from '../storage';
+
 
 
 interface WhatsAppTemplate {
@@ -386,8 +388,6 @@ async getTemplateStatus(templateName: string): Promise<string> {
       }
     );
 
-    console.log("WhatsApp API Headers:", this.headers);
-
 
     if (!response.ok) {
       const error = await response.json();
@@ -398,7 +398,98 @@ async getTemplateStatus(templateName: string): Promise<string> {
     return data.data || [];
   }
 
-  async sendMessage(
+async sendMessage(
+  to: string,
+  templateName: string,
+  parameters: string[] = [],
+  mediaIdFromFrontend?: string // Optional mediaId from frontend
+): Promise<any> {
+  const formattedPhone = this.formatPhoneNumber(to);
+
+  // Fetch template from DB
+  const template = (await storage.getTemplatesByName(templateName))[0];
+  if (!template) throw new Error("Template not found");
+
+  const components: any[] = [];
+
+  // Ensure mediaId is properly defined
+  let mediaId: string | undefined = mediaIdFromFrontend || template.mediaUrl;
+
+  // Check if template expects an image in the header
+  if (template.header) {
+    const headerComp: any = { type: "header", parameters: [] };
+
+    // If mediaId is not available or it's not an image, log the issue
+    if (!mediaId) {
+      console.error("No mediaId found for the header, exiting the request.");
+      throw new Error("No mediaId found for the header.");
+    }
+
+    // Ensure mediaId corresponds to an image
+    headerComp.parameters.push({
+      type: "image",
+      image: { id: mediaId },
+    });
+
+    components.push(headerComp);
+  }
+
+  // Body
+  const bodyComp: any = { type: "body", parameters: [] };
+  (parameters || []).forEach((param) => {
+    bodyComp.parameters.push({ type: "text", text: param });
+  });
+  components.push(bodyComp);
+
+  // Footer (if any)
+  if (template.footer) {
+    components.push({ type: "footer", parameters: [{ type: "text", text: template.footer }] });
+  }
+
+  // Build the final payload for WhatsApp API
+  const body = {
+    messaging_product: "whatsapp",
+    to: formattedPhone,
+    type: "template",
+    template: {
+      name: templateName,
+      language: { code: template.language || "en_US" },
+      components,
+    },
+  };
+
+  console.log("Sending WhatsApp template message:", {
+    to: formattedPhone,
+    templateName,
+    parameters,
+    mediaId,
+    phoneNumberId: this.channel.phoneNumberId,
+  });
+
+  // Send request to WhatsApp API
+  const response = await fetch(`${this.baseUrl}/${this.channel.phoneNumberId}/messages`, {
+    method: "POST",
+    headers: this.headers,
+    body: JSON.stringify(body),
+  });
+
+  const responseData = await response.json();
+
+  if (!response.ok) {
+    console.error("WhatsApp API Error:", responseData);
+    throw new Error(responseData.error?.message || "Failed to send template message");
+  }
+
+  console.log("WhatsApp template message sent successfully:", responseData);
+  return responseData;
+}
+
+
+
+
+
+
+  async sendMessageAAAAAAAAA(
     to: string,
     templateName: string,
     parameters: string[] = []
@@ -567,7 +658,7 @@ async getTemplateStatus(templateName: string): Promise<string> {
       throw new Error("WhatsApp media id not returned");
     }
 
-    return response.data.id; // 👈 THIS ID GOES IN TEMPLATE HEADER
+    return response.data.id;
   } catch (error: any) {
     console.error(
       "❌ WhatsApp upload buffer error:",

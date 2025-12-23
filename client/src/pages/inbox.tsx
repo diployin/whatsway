@@ -971,6 +971,8 @@ if (hasMedia) {
   );
 };
 
+
+
 // Template Dialog Component
 const TemplateDialog = ({
   channelId,
@@ -1756,7 +1758,57 @@ socketInstance.on("new-message", (data) => {
   });
 
   // Send template mutation
+
+
   const sendTemplateMutation = useMutation({
+  mutationFn: async (data: {
+    conversationId: string;
+    templateName: string;
+    phoneNumber: string;
+    parameters?: string[]; // optional variables
+    mediaId?: string;      // optional mediaId for header
+  }) => {
+    const response = await fetch("/api/messages/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        to: data.phoneNumber,
+        templateName: data.templateName,
+        channelId: selectedConversation?.channelId,
+        // parameters: data.parameters || [], // send variables safely
+        // mediaId: data.mediaId,             // optional header mediaId
+
+        parameters: ["John Doe", "Order #12345","Wireless Headphones", "₹499", "12th Dec 2023"],
+        mediaId: 893100230071831
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to send template");
+    }
+
+    return response.json();
+  },
+  onSuccess: () => {
+    queryClient.invalidateQueries({
+      queryKey: ["/api/conversations", selectedConversation?.id, "messages"],
+    });
+    toast({
+      title: "Success",
+      description: "Template sent successfully",
+    });
+  },
+  onError: (error: Error) => {
+    toast({
+      title: "Error",
+      description: error.message,
+      variant: "destructive",
+    });
+  },
+});
+
+  const sendTemplateMutationOLLLD = useMutation({
     mutationFn: async (data: {
       conversationId: string;
       templateName: string;
@@ -2490,10 +2542,16 @@ socketInstance.on("new-message", (data) => {
                           channelId={activeChannel?.id}
                           onSelectTemplate={handleSelectTemplate}
                         />
+                        
                       )}
                     </>
                   )}
+
+
+                  
                 </div>
+
+                
 
                 <Input
                   placeholder={
@@ -2552,6 +2610,9 @@ socketInstance.on("new-message", (data) => {
           </div>
         )}
       </div>
+
+
+      
       
 <Modal open={openQR} onClose={() => setOpenQR(false)}>
     <WhatsAppDemoQR

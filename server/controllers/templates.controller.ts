@@ -90,6 +90,300 @@ export const getTemplateByUserID = asyncHandler(async (req: Request, res: Respon
 
 export const createTemplate = asyncHandler(
   async (req: RequestWithChannel, res: Response) => {
+    /* ------------------------------------------------
+       MEDIA FILE (multer.fields compatible)
+    ------------------------------------------------ */
+    const mediaFile =
+      Array.isArray(req.files?.mediaFile) ? req.files.mediaFile[0] : undefined;
+
+    console.log("📦 mediaFile:", mediaFile?.originalname || "none");
+
+    const validatedTemplate = req.body;
+
+    /* ------------------------------------------------
+       BASIC NORMALIZATION
+    ------------------------------------------------ */
+    let category = validatedTemplate.category?.toLowerCase() || "authentication";
+    if (!["marketing", "utility", "authentication"].includes(category)) {
+      category = "authentication";
+    }
+    category = category.toUpperCase();
+
+    const mediaType = validatedTemplate.mediaType
+      ? validatedTemplate.mediaType.toLowerCase()
+      : "text";
+
+    /* ------------------------------------------------
+       BODY PLACEHOLDER VALIDATION
+    ------------------------------------------------ */
+    const placeholderPattern = /\{\{(\d+)\}\}/g;
+    const placeholderMatches = Array.from(
+      validatedTemplate.body.matchAll(placeholderPattern)
+    );
+
+    const placeholders = placeholderMatches
+      .map((m) => parseInt(m[1], 10))
+      .sort((a, b) => a - b);
+
+    for (let i = 0; i < placeholders.length; i++) {
+      if (placeholders[i] !== i + 1) {
+        throw new AppError(
+          400,
+          "Placeholders must be sequential starting from {{1}}"
+        );
+      }
+    }
+
+    /* ------------------------------------------------
+       PARSE + VALIDATE SAMPLES
+    ------------------------------------------------ */
+    let samples: string[] = [];
+
+    if (validatedTemplate.samples) {
+      if (typeof validatedTemplate.samples === "string") {
+        try {
+          samples = JSON.parse(validatedTemplate.samples);
+        } catch {
+          throw new AppError(400, "Invalid samples format");
+        }
+      } else if (Array.isArray(validatedTemplate.samples)) {
+        samples = validatedTemplate.samples;
+      }
+    }
+
+    if (placeholders.length > 0) {
+      if (samples.length !== placeholders.length) {
+        throw new AppError(
+          400,
+          `Expected ${placeholders.length} sample values, got ${samples.length}`
+        );
+      }
+
+      if (samples.some((s) => !String(s).trim())) {
+        throw new AppError(
+          400,
+          "Sample values for template variables cannot be empty"
+        );
+      }
+    }
+
+    /* ------------------------------------------------
+       CHANNEL + USER (STRICT)
+    ------------------------------------------------ */
+    const channelId = validatedTemplate.channelId;
+    if (!channelId) {
+      throw new AppError(400, "channelId is required");
+    }
+
+    const createdBy = req.user?.id;
+    if (!createdBy) throw new AppError(401, "User not authenticated");
+
+    /* ------------------------------------------------
+       SAVE TEMPLATE LOCALLY
+    ------------------------------------------------ */
+    const template = await storage.createTemplate({
+      ...validatedTemplate,
+      category,
+      channelId,
+      status: "pending",
+      createdBy,
+      mediaType,
+      variables: samples,
+    });
+
+    const channel = await storage.getChannel(channelId);
+    if (!channel) throw new AppError(400, "Channel not found");
+
+    console.log("🗄️ Fetched channel from DB:", {
+      id: channel.id,
+      phoneNumberId: channel.phoneNumberId,
+      accessTokenPrefix: channel.accessToken?.slice(0, 12),
+      isActive: channel.isActive,
+    });
+
+    /* ------------------------------------------------
+       BUILD WHATSAPP COMPONENTS
+    ------------------------------------------------ */
+    try {
+      const whatsappApi = new WhatsAppApiService(channel);
+      const components: any[] = [];
+
+      console.log("🔨 Building components from individual fields");
+      const isValid = await whatsappApi.verifyPhoneNumberBelongsToWABA();
+
+      if (!isValid) {
+        console.warn("⚠️ Warning: Phone Number may not belong to this WABA");
+      }
+
+      /* ---------- HEADER ---------- */
+      if (mediaType === "text" && validatedTemplate.header) {
+        components.push({
+          type: "HEADER",
+          format: "TEXT",
+          text: validatedTemplate.header,
+        });
+      }
+
+      if (mediaType !== "text") {
+        let mediaId: string;
+        let headerHandle: string;
+
+        if (mediaFile) {
+          console.log("📤 Uploading media file to WhatsApp...");
+
+          if (!mediaFile.path) {
+            throw new AppError(
+              400,
+              "Media file path missing. Disk storage expected."
+            );
+          }
+
+          const fileBuffer = fs.readFileSync(mediaFile.path);
+
+          // 🔥 Upload media and get both IDs
+          console.log("📤 Step 1: Uploading media via Buffer (for sending messages)...");
+          mediaId = await whatsappApi.uploadMediaBufferHeader(
+            fileBuffer,
+            mediaFile.mimetype,
+            mediaFile.originalname
+          );
+          console.log("✅ Media ID obtained:", mediaId);
+
+          console.log("📤 Step 2: Uploading template media (for template creation)...");
+          headerHandle = await whatsappApi.uploadTemplateMedia(
+            fileBuffer,
+            mediaFile.mimetype,
+            mediaFile.originalname
+          );
+          console.log("✅ Header Handle obtained:", headerHandle);
+
+          // 🔥 STORE MEDIA INFO IN DATABASE using existing fields
+          await storage.updateTemplate(template.id, {
+            mediaHandle: headerHandle, // Store header handle (4::xxx format)
+            mediaUrl: mediaId, // Store media ID temporarily (will get actual URL later)
+          });
+
+          console.log("💾 Stored media info in database:", {
+            mediaHandle: headerHandle,
+            mediaUrl: mediaId,
+            mediaType: mediaType.toUpperCase(),
+          });
+
+        } else {
+          throw new AppError(
+            400,
+            "Media header requires file upload (mediaFile)"
+          );
+        }
+
+        components.push({
+          type: "HEADER",
+          format: mediaType.toUpperCase(),
+          example: {
+            header_handle: [headerHandle],
+          },
+        });
+      }
+
+      /* ---------- BODY ---------- */
+      const bodyObj: any = {
+        type: "BODY",
+        text: validatedTemplate.body,
+      };
+
+      if (placeholders.length > 0) {
+        bodyObj.example = {
+          body_text: [samples],
+        };
+      }
+
+      components.push(bodyObj);
+
+      /* ---------- FOOTER ---------- */
+      if (validatedTemplate.footer) {
+        components.push({
+          type: "FOOTER",
+          text: validatedTemplate.footer,
+        });
+      }
+
+      /* ---------- BUTTONS ---------- */
+      if (validatedTemplate.buttons) {
+        let buttons = validatedTemplate.buttons;
+
+        if (typeof buttons === "string") {
+          try {
+            buttons = JSON.parse(buttons);
+          } catch {
+            throw new AppError(400, "Invalid buttons format");
+          }
+        }
+
+        if (Array.isArray(buttons) && buttons.length > 0) {
+          components.push({
+            type: "BUTTONS",
+            buttons: buttons.map((btn: any) => {
+              const type =
+                btn.type === "URL"
+                  ? "URL"
+                  : btn.type === "PHONE_NUMBER"
+                  ? "PHONE_NUMBER"
+                  : "QUICK_REPLY";
+
+              const obj: any = { type, text: btn.text };
+              if (type === "URL") obj.url = btn.url;
+              if (type === "PHONE_NUMBER")
+                obj.phone_number = btn.phoneNumber;
+              return obj;
+            }),
+          });
+        }
+      }
+
+      /* ---------- FINAL PAYLOAD ---------- */
+      const templatePayload = {
+        name: validatedTemplate.name,
+        category,
+        language: validatedTemplate.language,
+        components,
+      };
+
+      console.log(
+        "📤 FINAL WHATSAPP PAYLOAD:",
+        JSON.stringify(templatePayload, null, 2)
+      );
+
+      const result = await whatsappApi.createTemplate(templatePayload);
+
+      if (result?.id) {
+        await storage.updateTemplate(template.id, {
+          whatsappTemplateId: result.id,
+          status: result.status || "pending",
+        });
+      }
+
+      return res.json(template);
+    } catch (err: any) {
+      console.error("❌ Template creation error:", err);
+      console.error("❌ Error details:", {
+        message: err.message,
+        stack: err.stack,
+        response: err.response?.data,
+      });
+
+      return res.json({
+        ...template,
+        warning: "Template saved locally but failed to submit to WhatsApp",
+        error: err.message,
+      });
+    }
+  }
+);
+
+
+
+export const createTemplateCORRRECT = asyncHandler(
+  async (req: RequestWithChannel, res: Response) => {
     // console.log(
     //   "🚀 Incoming template creation request body:",
     //   JSON.stringify(req.body, null, 2)
@@ -710,7 +1004,7 @@ export const deleteTemplate = asyncHandler(async (req: Request, res: Response) =
   res.status(204).send();
 });
 
-export const syncTemplates = asyncHandler(async (req: RequestWithChannel, res: Response) => {
+export const syncTemplatesOLDD = asyncHandler(async (req: RequestWithChannel, res: Response) => {
   let channelId = req.body.channelId || req.query.channelId as string || req.channelId;
   // console.log(channelId, "CHEKJLKKKKKKKKKKKKKKKKKKKKKKKKK")
   
@@ -800,6 +1094,124 @@ const existingTemplates = Array.isArray(existingTemplatesRaw)
     throw new AppError(500, 'Failed to sync templates with WhatsApp');
   }
 });
+
+
+export const syncTemplates = asyncHandler(
+  async (req: RequestWithChannel, res: Response) => {
+    let channelId =
+      (req.body.channelId as string) ||
+      (req.query.channelId as string) ||
+      req.channelId;
+
+    if (!channelId) {
+      const activeChannel = await storage.getActiveChannel();
+      if (!activeChannel) {
+        throw new AppError(400, "No active channel found");
+      }
+      channelId = activeChannel.id;
+    }
+
+    const channel = await storage.getChannel(channelId);
+    if (!channel) throw new AppError(404, "Channel not found");
+
+    console.log("🔄 Syncing templates for channel:", channelId);
+
+    const whatsappApi = new WhatsAppApiService(channel);
+    const whatsappTemplates = await whatsappApi.getTemplates();
+
+    console.log("📥 WhatsApp templates fetched:", whatsappTemplates.length);
+
+    const { data: dbTemplates } =
+      await storage.getTemplatesByChannel(channelId);
+
+    const existingTemplates = Array.isArray(dbTemplates) ? dbTemplates : [];
+
+    // 🔑 MAP BY whatsappTemplateId (STRING ONLY)
+    const existingByWhatsappId = new Map<string, any>();
+
+    for (const t of existingTemplates) {
+      if (t.whatsappTemplateId) {
+        existingByWhatsappId.set(String(t.whatsappTemplateId), t);
+      }
+    }
+
+    let createdCount = 0;
+    let updatedCount = 0;
+
+    for (const waTemplate of whatsappTemplates) {
+      const waId = String(waTemplate.id); // 🔥 ALWAYS STRING
+
+      const existing = existingByWhatsappId.get(waId);
+
+      const bodyComponent = Array.isArray(waTemplate.components)
+        ? waTemplate.components.find((c: any) => c.type === "BODY")
+        : null;
+
+      const bodyText = bodyComponent?.text || "";
+
+      // 🔹 Detect header type
+      const headerComponent = waTemplate.components?.find(
+        (c: any) => c.type === "HEADER"
+      );
+
+      const headerType = headerComponent?.format || null;
+
+      // 🔹 Variable count
+      const bodyVariables =
+        (bodyText.match(/\{\{\d+\}\}/g) || []).length;
+
+      if (existing) {
+        // 🔄 UPDATE ONLY IF REQUIRED
+        const needsUpdate =
+          existing.status !== waTemplate.status ||
+          existing.body !== bodyText ||
+          existing.headerType !== headerType ||
+          existing.bodyVariables !== bodyVariables;
+
+        if (needsUpdate) {
+          await storage.updateTemplate(existing.id, {
+            status: waTemplate.status,
+            body: bodyText,
+            headerType,
+            bodyVariables,
+          });
+
+          updatedCount++;
+        }
+      } else {
+        // ➕ INSERT (ONLY ONCE)
+        await storage.createTemplate({
+          name: waTemplate.name,
+          language: waTemplate.language || "en_US",
+          category: waTemplate.category || "MARKETING",
+          status: waTemplate.status,
+          body: bodyText,
+          headerType,        // 👈 IMPORTANT
+          bodyVariables,     // 👈 IMPORTANT
+          channelId,
+          whatsappTemplateId: waId, // 👈 UNIQUE
+        });
+
+        createdCount++;
+      }
+    }
+
+    console.log(
+      `✅ Template sync done | Created: ${createdCount}, Updated: ${updatedCount}`
+    );
+
+    res.json({
+      success: true,
+      message: "Templates synced successfully",
+      totalFromWhatsApp: whatsappTemplates.length,
+      createdCount,
+      updatedCount,
+    });
+  }
+);
+
+
+
 
 export const seedTemplates = asyncHandler(async (req: RequestWithChannel, res: Response) => {
   const channelId = req.query.channelId as string | undefined;

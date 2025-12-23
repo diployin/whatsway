@@ -748,6 +748,9 @@ export const getMediaProxy = asyncHandler(async (req: Request, res: Response) =>
 });
 
 
+
+
+
 export const sendMessage = asyncHandler(async (req: RequestWithChannel, res: Response) => {
   const { to, message, templateName, parameters, channelId: bodyChannelId, caption, type } = req.body;
   const file = (req as any).file; // multer adds this
