@@ -370,7 +370,382 @@ export function registerWhatsAppRoutes(app: Express) {
 //   }
 // });
 
+
 app.post("/api/whatsapp/channels/:id/send", async (req, res) => {
+  try {
+    console.log("🚀 SEND MESSAGE REQUEST");
+    console.log("📝 Req params.id:", req.params.id);
+    console.log("📦 Req body:", JSON.stringify(req.body, null, 2));
+
+    const channel = await storage.getChannel(req.params.id);
+    if (!channel) {
+      return res.status(404).json({ message: "Channel not found" });
+    }
+
+    if (!channel.phoneNumberId || !channel.accessToken) {
+      return res.status(400).json({
+        message: "Channel is not configured for WhatsApp",
+      });
+    }
+
+    const {
+      to,
+      type,
+      message,
+      templateName,
+      templateLanguage = "en_US",
+      templateVariables = [],
+      headerMediaId, // ✅ EXTRACT FROM REQUEST
+    } = req.body;
+
+    console.log("🖼️ Header Media ID from request:", headerMediaId);
+
+    const whatsappApi = new WhatsAppApiService(channel);
+
+    let payload: any;
+    let newMsg: string | null = null;
+
+    // ================= TEMPLATE =================
+    if (type === "template") {
+      if (!templateName) {
+        return res.status(400).json({
+          success: false,
+          message: "Template name is required",
+        });
+      }
+
+      const components: any[] = [];
+
+      // 🔥 HEADER COMPONENT - MUST COME FIRST
+      if (headerMediaId) {
+        console.log("✅ Adding header component with media ID:", headerMediaId);
+        components.push({
+          type: "header",
+          parameters: [
+            {
+              type: "image",
+              image: {
+                id: headerMediaId, // ✅ USE THE MEDIA ID FROM REQUEST
+              },
+            },
+          ],
+        });
+      }
+
+      // 🔥 BODY VARIABLES - MUST COME AFTER HEADER
+      if (Array.isArray(templateVariables) && templateVariables.length > 0) {
+        console.log("✅ Adding body component with variables:", templateVariables);
+        components.push({
+          type: "body",
+          parameters: templateVariables.map((value: string) => ({
+            type: "text",
+            text: value,
+          })),
+        });
+      }
+
+      if (components.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Template components missing",
+        });
+      }
+
+      payload = {
+        messaging_product: "whatsapp",
+        to,
+        type: "template",
+        template: {
+          name: templateName,
+          language: {
+            code: templateLanguage,
+          },
+          components,
+        },
+      };
+
+      newMsg =
+        templateVariables.length > 0
+          ? templateVariables.join(" ")
+          : templateName;
+    }
+
+    // ================= TEXT =================
+    else {
+      payload = {
+        messaging_product: "whatsapp",
+        to,
+        type: "text",
+        text: {
+          body: message,
+        },
+      };
+      newMsg = message;
+    }
+
+    console.log(
+      "📤 FINAL WHATSAPP PAYLOAD:",
+      JSON.stringify(payload, null, 2)
+    );
+
+    // ================= SEND =================
+    const result = await whatsappApi.sendDirectMessage(payload);
+
+    if (!result.success || !result.data) {
+      console.error("❌ WhatsApp API error:", result.error);
+      return res.status(400).json({
+        success: false,
+        message: result.error || "Failed to send message",
+      });
+    }
+
+    console.log("✅ WhatsApp message sent:", result.data);
+
+    const messageId = result.data.messages?.[0]?.id;
+
+    // ================= CONTACT =================
+    let contact =
+      (await storage.searchContacts(to)).find((c) => c.phone === to) ||
+      (await storage.createContact({
+        name: to,
+        phone: to,
+        email: "",
+        channelId: channel.id,
+        status: "active",
+      }));
+
+    // ================= CONVERSATION =================
+    let conversation = await storage.getConversationByPhone(to);
+
+    if (!conversation) {
+      conversation = await storage.createConversation({
+        channelId: channel.id,
+        contactId: contact.id,
+        contactPhone: to,
+        contactName: contact.name,
+        status: "active",
+        lastMessageAt: new Date(),
+        lastMessageText: newMsg,
+      });
+    }
+
+    await storage.createMessage({
+      conversationId: conversation.id,
+      content: newMsg,
+      direction: "outgoing",
+      type,
+      status: "sent",
+      whatsappMessageId: messageId,
+    });
+
+    await storage.updateConversation(conversation.id, {
+      lastMessageAt: new Date(),
+      lastMessageText: newMsg,
+    });
+
+    return res.json({
+      success: true,
+      messageId,
+      message: "Message sent successfully",
+    });
+  } catch (error: any) {
+    console.error("❌ Error sending WhatsApp message:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to send WhatsApp message",
+    });
+  }
+});
+
+
+app.post("/api/whatsapp/channels/:id/sendeeee", async (req, res) => {
+  try {
+    console.log("Req params.id:", req.params.id);
+    console.log("Req body:", req.body);
+
+    const channel = await storage.getChannel(req.params.id);
+    if (!channel) {
+      return res.status(404).json({ message: "Channel not found" });
+    }
+
+    if (!channel.phoneNumberId || !channel.accessToken) {
+      return res.status(400).json({
+        message: "Channel is not configured for WhatsApp",
+      });
+    }
+
+    const {
+      to,
+      type,
+      message,
+      templateName,
+      templateLanguage = "en_US",
+      templateVariables = [],
+      headerMediaId,
+    } = req.body;
+
+    const whatsappApi = new WhatsAppApiService(channel);
+
+    let payload: any;
+    let newMsg: string | null = null;
+
+    // ================= TEMPLATE =================
+    if (type === "template") {
+      if (!templateName) {
+        return res.status(400).json({
+          success: false,
+          message: "Template name is required",
+        });
+      }
+
+      const components: any[] = [];
+
+      // 🔥 HEADER COMPONENT - MUST BE SENT IF TEMPLATE HAS IMAGE HEADER
+      if (headerMediaId) {
+        components.push({
+          type: "header",
+          parameters: [
+            {
+              type: "image",
+              image: {
+                id: headerMediaId,
+              },
+            },
+          ],
+        });
+      }
+
+      // 🔥 BODY VARIABLES - MUST COME AFTER HEADER
+      if (Array.isArray(templateVariables) && templateVariables.length > 0) {
+        components.push({
+          type: "body",
+          parameters: templateVariables.map((value: string) => ({
+            type: "text",
+            text: value,
+          })),
+        });
+      }
+
+      // ✅ VALIDATION: If template requires image header but none provided
+      if (!headerMediaId) {
+        // Check if template requires image header by fetching meta
+        // For now, return error if template name suggests image header
+        if (templateName.includes("image") || templateName.includes("header")) {
+          return res.status(400).json({
+            success: false,
+            message: "This template requires a header image. Please upload an image first.",
+          });
+        }
+      }
+
+      payload = {
+        messaging_product: "whatsapp",
+        to,
+        type: "template",
+        template: {
+          name: templateName,
+          language: {
+            code: templateLanguage,
+          },
+          components,
+        },
+      };
+
+      newMsg =
+        templateVariables.length > 0
+          ? templateVariables.join(" ")
+          : templateName;
+    }
+
+    // ================= TEXT =================
+    else {
+      payload = {
+        messaging_product: "whatsapp",
+        to,
+        type: "text",
+        text: {
+          body: message,
+        },
+      };
+      newMsg = message;
+    }
+
+    console.log(
+      "📤 FINAL WHATSAPP PAYLOAD:",
+      JSON.stringify(payload, null, 2)
+    );
+
+    // ================= SEND =================
+    const result = await whatsappApi.sendDirectMessage(payload);
+
+    if (!result.success || !result.data) {
+      return res.status(400).json({
+        success: false,
+        message: result.error || "Failed to send message",
+      });
+    }
+
+    const messageId = result.data.messages?.[0]?.id;
+
+    // ... rest of your code remains same
+
+
+    // ================= CONTACT =================
+    let contact =
+      (await storage.searchContacts(to)).find((c) => c.phone === to) ||
+      (await storage.createContact({
+        name: to,
+        phone: to,
+        email: "",
+        channelId: channel.id,
+        status: "active",
+      }));
+
+    // ================= CONVERSATION =================
+    let conversation = await storage.getConversationByPhone(to);
+
+    if (!conversation) {
+      conversation = await storage.createConversation({
+        channelId: channel.id,
+        contactId: contact.id,
+        contactPhone: to,
+        contactName: contact.name,
+        status: "active",
+        lastMessageAt: new Date(),
+        lastMessageText: newMsg,
+      });
+    }
+
+    await storage.createMessage({
+      conversationId: conversation.id,
+      content: newMsg,
+      direction: "outgoing",
+      type,
+      status: "sent",
+      whatsappMessageId: messageId,
+    });
+
+    await storage.updateConversation(conversation.id, {
+      lastMessageAt: new Date(),
+      lastMessageText: newMsg,
+    });
+
+    return res.json({
+      success: true,
+      messageId,
+      message: "Message sent successfully",
+    });
+ 
+  } catch (error: any) {
+    console.error("❌ Error sending WhatsApp message:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to send WhatsApp message",
+    });
+  }
+});
+
+app.post("/api/whatsapp/channels/:id/senddd", async (req, res) => {
   try {
     console.log("Req params.id:", req.params.id);
     console.log("Req body:", req.body);

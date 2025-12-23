@@ -372,22 +372,67 @@ const fetchTemplateMeta = async (templateWhatsappId: string) => {
 
 
 
-  const uploadHeaderImage = async (file: File) => {
-  if (!activeChannel?.id) return;
+//   const uploadHeaderImage = async (file: File) => {
+//   if (!activeChannel?.id) return;
 
-  const formData = new FormData();
-  formData.append("mediaFile", file);
+//   const formData = new FormData();
+//   formData.append("mediaFile", file);
 
-  const res = await fetch(
-    `/api/whatsapp/channels/${activeChannel.id}/upload-image`,
-    {
-      method: "POST",
-      body: formData,
+//   const res = await fetch(
+//     `/api/whatsapp/channels/${activeChannel.id}/upload-image`,
+//     {
+//       method: "POST",
+//       body: formData,
+//     }
+//   );
+
+//   const data = await res.json();
+//   setUploadedMediaId(data.mediaId); // stored only for future (not send)
+// };
+
+
+const uploadHeaderImage = async (file: File) => {
+  if (!activeChannel?.id) {
+    toast({
+      title: "Error",
+      description: "No active channel found",
+      variant: "destructive",
+    });
+    return;
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append("mediaFile", file);
+
+    const res = await fetch(
+      `/api/whatsapp/channels/${activeChannel.id}/upload-image`,
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    if (!res.ok) {
+      throw new Error("Upload failed");
     }
-  );
 
-  const data = await res.json();
-  setUploadedMediaId(data.mediaId); // stored only for future (not send)
+    const data = await res.json();
+    console.log("✅ Image uploaded, media ID:", data.mediaId); // Debug log
+    
+    setUploadedMediaId(data.mediaId); // ✅ Set the media ID
+    setHeaderImageFile(file); // ✅ Store the file reference
+    
+    return data.mediaId;
+  } catch (error) {
+    console.error("❌ Upload error:", error);
+    toast({
+      title: "Upload Failed",
+      description: "Failed to upload image. Please try again.",
+      variant: "destructive",
+    });
+    throw error;
+  }
 };
 
   useEffect(() => {
@@ -692,6 +737,79 @@ const fetchTemplateMeta = async (templateWhatsappId: string) => {
   });
 
   const sendMessageMutation = useMutation({
+  mutationFn: async (data: any) => {
+    const {
+      phone,
+      type,
+      message,
+      templateName,
+      templateLanguage,
+      templateVariables,
+      headerMediaId, // ✅ ADD THIS
+    } = data;
+
+    if (!activeChannel?.id) {
+      throw new Error("No active channel selected");
+    }
+
+    const payload =
+      type === "template"
+        ? {
+            to: phone,
+            type: "template",
+            templateName,
+            templateLanguage,
+            templateVariables,
+            ...(headerMediaId && { headerMediaId }), // ✅ ADD THIS
+          }
+        : {
+            to: phone,
+            type: "text",
+            message,
+          };
+
+    console.log("📤 Sending payload to backend:", payload); // ✅ Debug log
+
+    const response = await fetch(
+      `/api/whatsapp/channels/${activeChannel.id}/send`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      }
+    );
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || "Failed to send message");
+    }
+    
+    return response.json();
+  },
+  onSuccess: () => {
+    toast({
+      title: "Message sent",
+      description: "Your WhatsApp message has been sent successfully.",
+    });
+    setShowMessageDialog(false);
+    setMessageText("");
+    setMessageType("text");
+    setSelectedTemplateName(""); // ✅ Reset template name
+    setTemplateVariables({});
+    setUploadedMediaId(null); // ✅ Reset media ID
+    setHeaderImageFile(null); // ✅ Reset file
+    setRequiresHeaderImage(false); // ✅ Reset header requirement
+  },
+  onError: (error: any) => {
+    toast({
+      title: "Error",
+      description: error?.message || "Failed to send message. Please check your WhatsApp configuration and template settings.",
+      variant: "destructive",
+    });
+  },
+});
+
+  const sendMessageMutationOLD = useMutation({
     mutationFn: async (data: any) => {
       const {
         phone,
@@ -2157,24 +2275,21 @@ const fetchTemplateMeta = async (templateWhatsappId: string) => {
       <label className="text-sm font-medium">Select Template</label>
 
     <select
-  value={selectedTemplateWhatsappId}
+  value={selectedTemplateName} // ✅ Use name as value
   onChange={async (e) => {
-    const whatsappId = e.target.value;
-    setSelectedTemplateWhatsappId(whatsappId);
+    const templateName = e.target.value;
+    setSelectedTemplateName(templateName);
 
     const tpl = availableTemplates.find(
-      (t: any) => t.whatsappTemplateId === whatsappId
+      (t: any) => t.name === templateName // ✅ Find by name
     );
 
     if (!tpl) {
-      console.error("❌ Template not found in DB", whatsappId);
+      console.error("❌ Template not found in DB", templateName);
       return;
     }
 
-    // ✅ YAHI SABSE IMPORTANT LINE HAI
-    setSelectedTemplateName(tpl.name);
-
-    const meta = await fetchTemplateMeta(whatsappId);
+    const meta = await fetchTemplateMeta(tpl.whatsappTemplateId);
 
     setRequiresHeaderImage(meta.headerType === "IMAGE");
 
@@ -2188,19 +2303,9 @@ const fetchTemplateMeta = async (templateWhatsappId: string) => {
   <option value="">Select template</option>
 
   {availableTemplates.map((t: any) => (
-    // <option
-    //   key={`${t.whatsappTemplateId}-${t.id}`}
-    //   value={t.whatsappTemplateId}
-    // >
-    //   {t.name}
-    // </option>
-    <option
-  key={t.whatsappTemplateId}
-  value={t.name}   // 🔥 NAME ONLY
->
-  {t.name}
-</option>
-
+    <option key={t.whatsappTemplateId} value={t.name}>
+      {t.name}
+    </option>
   ))}
 </select>
 
@@ -2209,18 +2314,37 @@ const fetchTemplateMeta = async (templateWhatsappId: string) => {
     </div>
 
     {/* ================= HEADER IMAGE ================= */}
-    {requiresHeaderImage && (
+  {requiresHeaderImage && (
   <div className="space-y-2">
-    <label className="text-sm font-medium">Header Image</label>
+    <label className="text-sm font-medium text-red-600">
+      Header Image (Required) *
+    </label>
     <input
       type="file"
       accept="image/*"
+      required
       onChange={async (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
+        
+        toast({
+          title: "Uploading image...",
+          description: "Please wait while we upload your image.",
+        });
+        
         await uploadHeaderImage(file);
+        
+        toast({
+          title: "Image uploaded",
+          description: "Your header image has been uploaded successfully.",
+        });
       }}
     />
+    {uploadedMediaId && (
+      <p className="text-xs text-green-600">
+        ✓ Image uploaded successfully
+      </p>
+    )}
   </div>
 )}
 
@@ -2319,36 +2443,62 @@ const fetchTemplateMeta = async (templateWhatsappId: string) => {
                   : `${t("contacts.sendMessage.send")}`}
               </Button> */}
 
-            <Button
+          <Button
+  disabled={
+    user?.username === "demouser" || user?.username === "raman"
+      ? true
+      : !activeChannel ||
+        sendMessageMutation.isPending ||
+        (messageType === "text" && !messageText) ||
+        (messageType === "template" && !selectedTemplateName) ||
+        (messageType === "template" && requiresHeaderImage && !uploadedMediaId) ||
+        (messageType === "template" &&
+          Object.keys(templateVariables).length > 0 &&
+          Object.values(templateVariables).some((v) => !v))
+  }
   onClick={() => {
-    console.log("SEND CLICKED");
+    console.log("🚀 SEND CLICKED");
+    console.log("📝 Template Name:", selectedTemplateName);
+    console.log("🖼️ Header Media ID:", uploadedMediaId);
+    console.log("📋 Vars:", templateVariables);
 
-    if (!selectedContact || !activeChannel) return;
-
-    // 🔥 YAHI LIKHNA HAI
-    const selectedTemplate = availableTemplates.find(
-      (t: any) => t.id === selectedTemplateId
-    );
+    if (!selectedContact || !activeChannel) {
+      console.error("❌ Missing contact or channel");
+      return;
+    }
 
     if (messageType === "template") {
-      if (!selectedTemplate) {
-        alert("Template not found");
+      if (!selectedTemplateName) {
+        toast({
+          title: "Error",
+          description: "Please select a template",
+          variant: "destructive",
+        });
         return;
       }
 
-     sendMessageMutation.mutate({
-  phone: selectedContact.phone,
-  type: "template",
-  templateName: selectedTemplateName, // 🔥 NAME ONLY
-  templateLanguage: "en_US",
-  templateVariables: Object.values(templateVariables),
-  headerMediaId: uploadedMediaId, // 🔥 REQUIRED FOR IMAGE HEADER
-});
+      // ✅ Check if image is required but not uploaded
+      if (requiresHeaderImage && !uploadedMediaId) {
+        toast({
+          title: "Image Required",
+          description: "This template requires a header image. Please upload one.",
+          variant: "destructive",
+        });
+        return;
+      }
 
-
-
+      // ✅ YAHA PAR YE CODE LAGANA HAI
+      sendMessageMutation.mutate({
+        phone: selectedContact.phone,
+        type: "template",
+        templateName: selectedTemplateName,
+        templateLanguage: "en_US",
+        templateVariables: Object.values(templateVariables),
+        headerMediaId: uploadedMediaId || undefined, // ✅ This will send the media ID
+      });
 
     } else {
+      // Text message
       sendMessageMutation.mutate({
         phone: selectedContact.phone,
         type: "text",
@@ -2357,9 +2507,10 @@ const fetchTemplateMeta = async (templateWhatsappId: string) => {
     }
   }}
 >
-  Send
+  {sendMessageMutation.isPending
+    ? `${t("contacts.sendMessage.sending")}`
+    : `${t("contacts.sendMessage.send")}`}
 </Button>
-
 
             </div>
           </div>
