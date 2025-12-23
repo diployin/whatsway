@@ -2124,398 +2124,281 @@ const uploadHeaderImage = async (file: File) => {
       </Dialog>
 
       {/* Send Message Dialog */}
-      <Dialog open={showMessageDialog} onOpenChange={setShowMessageDialog}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>{t("contacts.sendMessage.title")}</DialogTitle>
-            <DialogDescription>
-              {t("contacts.sendMessage.description")} {selectedContact?.name} (
-              {selectedContact?.phone})
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            {activeChannel && (
-              <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
-                <div className="flex items-center gap-2">
-                  <Phone className="w-4 h-4 text-gray-600" />
-                  <div className="text-sm">
-                    <span className="font-medium">
-                      {t("contacts.sendMessage.activeChannel")}
-                    </span>{" "}
-                    <span className="text-gray-700">{activeChannel.name}</span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {!activeChannel && (
-              <div className="p-3 bg-yellow-50 rounded-md border border-yellow-200">
-                <p className="text-sm text-yellow-800">
-                  {t("contacts.sendMessage.noChannel")}
-                </p>
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                {t("contacts.sendMessage.messageType")}
-              </label>
-              <select
-                className="w-full p-2 border rounded-md"
-                value={messageType}
-                onChange={(e) => {
-                  setMessageType(e.target.value);
-                  setSelectedTemplateId("");
-                  setTemplateVariables({});
-                }}
-              >
-                <option value="text">
-                  {t("contacts.sendMessage.textMessage")}
-                </option>
-                <option value="template">
-                  {t("contacts.sendMessage.templateMessage")}
-                </option>
-              </select>
+      
+<Dialog open={showMessageDialog} onOpenChange={setShowMessageDialog}>
+  <DialogContent className="max-w-lg">
+    <DialogHeader>
+      <DialogTitle>{t("contacts.sendMessage.title")}</DialogTitle>
+      <DialogDescription>
+        {t("contacts.sendMessage.description")} {selectedContact?.name} (
+        {selectedContact?.phone})
+      </DialogDescription>
+    </DialogHeader>
+    <div className="space-y-4">
+      {activeChannel && (
+        <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
+          <div className="flex items-center gap-2">
+            <Phone className="w-4 h-4 text-gray-600" />
+            <div className="text-sm">
+              <span className="font-medium">
+                {t("contacts.sendMessage.activeChannel")}
+              </span>{" "}
+              <span className="text-gray-700">{activeChannel.name}</span>
             </div>
+          </div>
+        </div>
+      )}
 
-            {/* {messageType === "template" ? (
-              <>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">
-                    {t("contacts.sendMessage.textMessage")}
-                  </label>
-                  <select
-                    className="w-full p-2 border rounded-md"
-                    value={selectedTemplateId}
-                    onChange={(e) => {
-                      setSelectedTemplateId(e.target.value);
-                      const template = availableTemplates?.find(
-                        (t: any) => t.id === e.target.value
-                      );
-                      if (template && template.variables) {
-                        const vars: any = {};
-                        (template.variables as string[]).forEach((v, i) => {
-                          vars[i + 1] = "";
-                        });
-                        setTemplateVariables(vars);
-                      }
-                    }}
-                  >
-                    <option value="">
-                      {t("contacts.sendMessage.selectTemplate")}
-                    </option>
-                    {availableTemplates
-                      ?.filter(
-                        (t: any) => t.status?.toLowerCase() === "approved"
-                      )
-                      .map((template: any) => (
-                        <option key={template.id} value={template.id}>
-                          {template.name} ({template.category})
-                        </option>
-                      ))}
-                  </select>
-                </div>
+      {!activeChannel && (
+        <div className="p-3 bg-yellow-50 rounded-md border border-yellow-200">
+          <p className="text-sm text-yellow-800">
+            {t("contacts.sendMessage.noChannel")}
+          </p>
+        </div>
+      )}
 
-                {selectedTemplateId && (
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">
-                      {t("contacts.sendMessage.templateVariables")}
-                    </label>
-                    {Object.keys(templateVariables).map((key) => {
-                      const template = availableTemplates?.find(
-                        (t: any) => t.id === selectedTemplateId
-                      );
-                      const variableName =
-                        template?.variables?.[parseInt(key) - 1] ||
-                        `Variable ${key}`;
-                      return (
-                        <div key={key} className="space-y-1">
-                          <label className="text-xs text-gray-600">{`{{${key}}} - ${variableName}`}</label>
-                          <Input
-                            placeholder={`Enter ${variableName}`}
-                            value={templateVariables[key] || ""}
-                            onChange={(e) =>
-                              setTemplateVariables({
-                                ...templateVariables,
-                                [key]: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">
-                  {t("contacts.sendMessage.message")}
-                </label>
-                <textarea
-                  className="w-full p-3 border rounded-md resize-none"
-                  rows={4}
-                  placeholder={`${t(
-                    "contacts.sendMessage.messagePlaceholder"
-                  )}`}
-                  value={messageText}
-                  onChange={(e) => setMessageText(e.target.value)}
-                />
-              </div>
-            )} */}
-
-
-
-            {/* // new contactToDelete */}
-
-          {messageType === "template" && (
-  <>
-    {/* ================= TEMPLATE SELECT ================= */}
-    <div className="space-y-2">
-      <label className="text-sm font-medium">Select Template</label>
-
-    <select
-  value={selectedTemplateName} // ✅ Use name as value
-  onChange={async (e) => {
-    const templateName = e.target.value;
-    setSelectedTemplateName(templateName);
-
-    const tpl = availableTemplates.find(
-      (t: any) => t.name === templateName // ✅ Find by name
-    );
-
-    if (!tpl) {
-      console.error("❌ Template not found in DB", templateName);
-      return;
-    }
-
-    const meta = await fetchTemplateMeta(tpl.whatsappTemplateId);
-
-    setRequiresHeaderImage(meta.headerType === "IMAGE");
-
-    const vars: Record<string, string> = {};
-    for (let i = 1; i <= meta.bodyVariables; i++) {
-      vars[String(i)] = "";
-    }
-    setTemplateVariables(vars);
-  }}
->
-  <option value="">Select template</option>
-
-  {availableTemplates.map((t: any) => (
-    <option key={t.whatsappTemplateId} value={t.name}>
-      {t.name}
-    </option>
-  ))}
-</select>
-
-
-
-    </div>
-
-    {/* ================= HEADER IMAGE ================= */}
-  {requiresHeaderImage && (
-  <div className="space-y-2">
-    <label className="text-sm font-medium text-red-600">
-      Header Image (Required) *
-    </label>
-    <input
-      type="file"
-      accept="image/*"
-      required
-      onChange={async (e) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        
-        toast({
-          title: "Uploading image...",
-          description: "Please wait while we upload your image.",
-        });
-        
-        await uploadHeaderImage(file);
-        
-        toast({
-          title: "Image uploaded",
-          description: "Your header image has been uploaded successfully.",
-        });
-      }}
-    />
-    {uploadedMediaId && (
-      <p className="text-xs text-green-600">
-        ✓ Image uploaded successfully
-      </p>
-    )}
-  </div>
-)}
-
-
-    {/* ================= BODY VARIABLES ================= */}
-    {Object.keys(templateVariables).length > 0 && (
+      {/* Message Type Selection */}
       <div className="space-y-2">
         <label className="text-sm font-medium">
-          Template Variables
+          {t("contacts.sendMessage.messageType")}
         </label>
-
-        {Object.entries(templateVariables).map(([key, value]) => (
-          <div key={key}>
-            <label className="text-xs text-gray-500">
-              {`{{${key}}}`}
-            </label>
-            <Input
-              value={value}
-              placeholder={`Enter value for {{${key}}}`}
-              onChange={(e) =>
-                setTemplateVariables({
-                  ...templateVariables,
-                  [key]: e.target.value,
-                })
-              }
-            />
-          </div>
-        ))}
+        <select
+          className="w-full p-2 border rounded-md"
+          value={messageType}
+          onChange={(e) => {
+            setMessageType(e.target.value);
+            setSelectedTemplateName("");
+            setTemplateVariables({});
+            setUploadedMediaId(null);
+            setHeaderImageFile(null);
+            setRequiresHeaderImage(false);
+          }}
+        >
+          <option value="text">
+            {t("contacts.sendMessage.textMessage")}
+          </option>
+          <option value="template">
+            {t("contacts.sendMessage.templateMessage")}
+          </option>
+        </select>
       </div>
-    )}
-  </>
-)}
 
+      {/* ========== TEXT MESSAGE INPUT ========== */}
+      {messageType === "text" && (
+        <div className="space-y-2">
+          <label className="text-sm font-medium">
+            {t("contacts.sendMessage.message")}
+          </label>
+          <textarea
+            className="w-full p-3 border rounded-md resize-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            rows={4}
+            placeholder={`${t("contacts.sendMessage.messagePlaceholder")}`}
+            value={messageText}
+            onChange={(e) => setMessageText(e.target.value)}
+          />
+          <p className="text-xs text-gray-500">
+            {messageText.length} characters
+          </p>
+        </div>
+      )}
 
+      {/* ========== TEMPLATE MESSAGE ========== */}
+      {messageType === "template" && (
+        <>
+          {/* Template Selection */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Select Template</label>
+            <select
+              className="w-full p-2 border rounded-md"
+              value={selectedTemplateName}
+              onChange={async (e) => {
+                const templateName = e.target.value;
+                setSelectedTemplateName(templateName);
 
+                const tpl = availableTemplates.find(
+                  (t: any) => t.name === templateName
+                );
 
-
-            {/* // new code */}
-
-            <div className="flex justify-end space-x-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setShowMessageDialog(false);
-                  setMessageText("");
-                  setMessageType("text");
-                  setSelectedTemplateId("");
-                  setTemplateVariables({});
-                }}
-              >
-                {t("contacts.addContact.cancel")}
-              </Button>
-              {/* <Button
-                disabled={
-                  user?.username === "demouser" || user?.username === "raman"
-                    ? true
-                    : !activeChannel ||
-                      sendMessageMutation.isPending ||
-                      (messageType === "text" && !messageText) ||
-                      (messageType === "template" &&
-  !selectedTemplateId) ||
-
-(messageType === "template" &&
-  Object.keys(templateVariables).length > 0 &&
-  Object.values(templateVariables).some((v) => !v))
-
+                if (!tpl) {
+                  console.error("❌ Template not found in DB", templateName);
+                  return;
                 }
-                onClick={() => {
-  console.log("SEND CLICKED");
-  console.log("Template:", selectedTemplateId);
-  console.log("Vars:", templateVariables);
 
-  if (selectedContact && activeChannel) {
-    if (messageType === "template") {
-      sendMessageMutation.mutate({
-        phone: selectedContact.phone,
-        type: "template",
-        templateName: selectedTemplateId, // 🔥 NAME hona chahiye
-        templateLanguage: "en_US",
-        templateVariables: Object.values(templateVariables),
-      });
-    } else {
-      sendMessageMutation.mutate({
-        phone: selectedContact.phone,
-        type: "text",
-        message: messageText,
-      });
-    }
-  }
-}}
+                const meta = await fetchTemplateMeta(tpl.whatsappTemplateId);
 
-              >
-                {sendMessageMutation.isPending
-                  ? `${t("contacts.sendMessage.sending")}`
-                  : `${t("contacts.sendMessage.send")}`}
-              </Button> */}
+                setRequiresHeaderImage(meta.headerType === "IMAGE");
 
-          <Button
-  disabled={
-    user?.username === "demouser" || user?.username === "raman"
-      ? true
-      : !activeChannel ||
-        sendMessageMutation.isPending ||
-        (messageType === "text" && !messageText) ||
-        (messageType === "template" && !selectedTemplateName) ||
-        (messageType === "template" && requiresHeaderImage && !uploadedMediaId) ||
-        (messageType === "template" &&
-          Object.keys(templateVariables).length > 0 &&
-          Object.values(templateVariables).some((v) => !v))
-  }
-  onClick={() => {
-    console.log("🚀 SEND CLICKED");
-    console.log("📝 Template Name:", selectedTemplateName);
-    console.log("🖼️ Header Media ID:", uploadedMediaId);
-    console.log("📋 Vars:", templateVariables);
-
-    if (!selectedContact || !activeChannel) {
-      console.error("❌ Missing contact or channel");
-      return;
-    }
-
-    if (messageType === "template") {
-      if (!selectedTemplateName) {
-        toast({
-          title: "Error",
-          description: "Please select a template",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // ✅ Check if image is required but not uploaded
-      if (requiresHeaderImage && !uploadedMediaId) {
-        toast({
-          title: "Image Required",
-          description: "This template requires a header image. Please upload one.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // ✅ YAHA PAR YE CODE LAGANA HAI
-      sendMessageMutation.mutate({
-        phone: selectedContact.phone,
-        type: "template",
-        templateName: selectedTemplateName,
-        templateLanguage: "en_US",
-        templateVariables: Object.values(templateVariables),
-        headerMediaId: uploadedMediaId || undefined, // ✅ This will send the media ID
-      });
-
-    } else {
-      // Text message
-      sendMessageMutation.mutate({
-        phone: selectedContact.phone,
-        type: "text",
-        message: messageText,
-      });
-    }
-  }}
->
-  {sendMessageMutation.isPending
-    ? `${t("contacts.sendMessage.sending")}`
-    : `${t("contacts.sendMessage.send")}`}
-</Button>
-
-            </div>
+                const vars: Record<string, string> = {};
+                for (let i = 1; i <= meta.bodyVariables; i++) {
+                  vars[String(i)] = "";
+                }
+                setTemplateVariables(vars);
+              }}
+            >
+              <option value="">Select template</option>
+              {availableTemplates.map((t: any) => (
+                <option key={t.whatsappTemplateId} value={t.name}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
           </div>
-        </DialogContent>
-      </Dialog>
+
+          {/* Header Image Upload */}
+          {requiresHeaderImage && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-red-600">
+                Header Image (Required) *
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                required
+                className="w-full p-2 border rounded-md"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+
+                  toast({
+                    title: "Uploading image...",
+                    description: "Please wait while we upload your image.",
+                  });
+
+                  await uploadHeaderImage(file);
+
+                  toast({
+                    title: "Image uploaded",
+                    description: "Your header image has been uploaded successfully.",
+                  });
+                }}
+              />
+              {uploadedMediaId && (
+                <p className="text-xs text-green-600">
+                  ✓ Image uploaded successfully (ID: {uploadedMediaId})
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Template Variables */}
+          {Object.keys(templateVariables).length > 0 && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Template Variables
+              </label>
+              {Object.entries(templateVariables).map(([key, value]) => (
+                <div key={key}>
+                  <label className="text-xs text-gray-500">
+                    {`{{${key}}}`}
+                  </label>
+                  <Input
+                    value={value}
+                    placeholder={`Enter value for {{${key}}}`}
+                    onChange={(e) =>
+                      setTemplateVariables({
+                        ...templateVariables,
+                        [key]: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Action Buttons */}
+      <div className="flex justify-end space-x-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => {
+            setShowMessageDialog(false);
+            setMessageText("");
+            setMessageType("text");
+            setSelectedTemplateName("");
+            setTemplateVariables({});
+            setUploadedMediaId(null);
+            setHeaderImageFile(null);
+            setRequiresHeaderImage(false);
+          }}
+        >
+          {t("contacts.addContact.cancel")}
+        </Button>
+
+        <Button
+          disabled={
+            user?.username === "demouser" || user?.username === "raman"
+              ? true
+              : !activeChannel ||
+                sendMessageMutation.isPending ||
+                (messageType === "text" && !messageText.trim()) ||
+                (messageType === "template" && !selectedTemplateName) ||
+                (messageType === "template" && requiresHeaderImage && !uploadedMediaId) ||
+                (messageType === "template" &&
+                  Object.keys(templateVariables).length > 0 &&
+                  Object.values(templateVariables).some((v) => !v.trim()))
+          }
+          onClick={() => {
+            console.log("🚀 SEND CLICKED");
+
+            if (!selectedContact || !activeChannel) {
+              console.error("❌ Missing contact or channel");
+              return;
+            }
+
+            if (messageType === "template") {
+              console.log("📝 Template Name:", selectedTemplateName);
+              console.log("🖼️ Header Media ID:", uploadedMediaId);
+              console.log("📋 Vars:", templateVariables);
+
+              if (!selectedTemplateName) {
+                toast({
+                  title: "Error",
+                  description: "Please select a template",
+                  variant: "destructive",
+                });
+                return;
+              }
+
+              if (requiresHeaderImage && !uploadedMediaId) {
+                toast({
+                  title: "Image Required",
+                  description: "This template requires a header image. Please upload one.",
+                  variant: "destructive",
+                });
+                return;
+              }
+
+              sendMessageMutation.mutate({
+                phone: selectedContact.phone,
+                type: "template",
+                templateName: selectedTemplateName,
+                templateLanguage: "en_US",
+                templateVariables: Object.values(templateVariables),
+                headerMediaId: uploadedMediaId || undefined,
+              });
+            } else {
+              // Text message
+              console.log("📝 Text Message:", messageText);
+
+              sendMessageMutation.mutate({
+                phone: selectedContact.phone,
+                type: "text",
+                message: messageText,
+              });
+            }
+          }}
+        >
+          {sendMessageMutation.isPending
+            ? `${t("contacts.sendMessage.sending")}`
+            : `${t("contacts.sendMessage.send")}`}
+        </Button>
+      </div>
+    </div>
+  </DialogContent>
+</Dialog>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
