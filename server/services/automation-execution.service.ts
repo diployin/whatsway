@@ -1352,13 +1352,18 @@ private async sendInteractiveMessage(
   }
 
 
+private getBodyParamCount(body: string): number {
+  if (!body) return 0;
+  const matches = body.match(/\{\{\d+\}\}/g);
+  return matches ? matches.length : 0;
+}
+
 private async executeSendTemplate(node: any, context: ExecutionContext) {
   const templateId = node.data?.templateId;
 
   if (!templateId) throw new Error("No template ID provided");
   if (!context.contactId) throw new Error("No contactId in context");
 
-  // 1️⃣ Get contact
   const contact = await db.query.contacts.findFirst({
     where: eq(contacts.id, context.contactId),
   });
@@ -1366,7 +1371,6 @@ private async executeSendTemplate(node: any, context: ExecutionContext) {
   if (!contact?.phone) throw new Error("Contact phone not found");
   if (!contact.channelId) throw new Error("Contact channelId missing");
 
-  // 2️⃣ Get template
   const template = await db.query.templates.findFirst({
     where: and(
       eq(templates.id, templateId),
@@ -1380,40 +1384,39 @@ private async executeSendTemplate(node: any, context: ExecutionContext) {
 
   const components: any[] = [];
 
-  /* ───────── HEADER IMAGE (FROM TEMPLATE TABLE) ───────── */
-  if (template.mediaType === "image" && template.mediaUrl) {
+  /* ───── HEADER IMAGE ───── */
+  if (template.mediaUrl) {
     components.push({
       type: "header",
       parameters: [
         {
           type: "image",
-          image: { id: template.mediaUrl }, // media_id
+          image: { id: template.mediaUrl }, // WhatsApp media_id
         },
       ],
     });
   }
 
-  /* ───────── BODY VARIABLES (AUTO FROM templates.variables) ───────── */
-  if (Array.isArray(template.variables) && template.variables.length > 0) {
-    const bodyParams = template.variables.map((variable: any, index: number) => {
-      // 🔒 Static fallback for now
-      const staticValue = `Value ${index + 1}`;
+  /* ───── BODY VARIABLES (ARRAY BASED) ───── */
+  const bodyParamCount = this.getBodyParamCount(template.body);
+  const storedVariables = Array.isArray(template.variables)
+    ? template.variables
+    : [];
 
-      return {
-        type: "text",
-        text: staticValue,
-      };
-    });
-
-    components.push({
-      type: "body",
-      parameters: bodyParams,
-    });
+  if (bodyParamCount !== storedVariables.length) {
+    throw new Error(
+      `Template variable mismatch: body expects ${bodyParamCount}, but variables has ${storedVariables.length}`
+    );
   }
 
-  // 🛑 Safety: avoid test message
-  if (!components.length) {
-    throw new Error("Template components empty – blocking test message");
+  if (bodyParamCount > 0) {
+    components.push({
+      type: "body",
+      parameters: storedVariables.map((val: string) => ({
+        type: "text",
+        text: String(val),
+      })),
+    });
   }
 
   console.log(
@@ -1428,7 +1431,6 @@ private async executeSendTemplate(node: any, context: ExecutionContext) {
     )
   );
 
-  // 3️⃣ Send
   await sendBusinessMessage({
     to: contact.phone,
     channelId: contact.channelId,
