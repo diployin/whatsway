@@ -1381,7 +1381,7 @@ private async sendInteractiveMessage(
 
   /** ---------- HEADER IMAGE (STATIC MEDIA_ID) ---------- */
   // ⚠️ Replace this with any VALID media_id from your WhatsApp account
-  const STATIC_HEADER_MEDIA_ID = "YOUR_VALID_MEDIA_ID";
+  const STATIC_HEADER_MEDIA_ID = "1349339209838009";
 
   if (template.headerType === "IMAGE") {
     components.push({
