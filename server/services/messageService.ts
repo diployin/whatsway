@@ -1,46 +1,247 @@
-import { storage } from '../storage';
-import { AppError } from '../middlewares/error.middleware';
-import { WhatsAppApiService } from '../services/whatsapp-api';
+// import { storage } from '../storage';
+// import { AppError } from '../middlewares/error.middleware';
+// import { WhatsAppApiService } from '../services/whatsapp-api';
 
-export async function sendBusinessMessage({ to, message, templateName, parameters, channelId, conversationId }: {
-    to: string;
-    message?: string;
-    templateName?: string;
-    parameters?: any[];
-    channelId?: string;
-    conversationId?: string;  // ✅ allow explicit conversation link
-  }) {
-  // Get channelId (or fallback to active channel)
+// export async function sendBusinessMessage({ to, message, templateName, parameters, channelId, conversationId }: {
+//     to: string;
+//     message?: string;
+//     templateName?: string;
+//     parameters?: any[];
+//     channelId?: string;
+//     conversationId?: string;  // ✅ allow explicit conversation link
+//   }) {
+//   // Get channelId (or fallback to active channel)
+//   if (!channelId) {
+//     const activeChannel = await storage.getActiveChannel();
+//     if (!activeChannel) {
+//       throw new AppError(400, "No active channel found. Please select a channel.");
+//     }
+//     channelId = activeChannel.id;
+//   }
+
+//   const channel = await storage.getChannel(channelId);
+//   if (!channel) {
+//     throw new AppError(404, "Channel not found");
+//   }
+// console.log('Sending message via channel:', channelId, 'to:', to);
+//   const whatsappApi = new WhatsAppApiService(channel);
+
+//   // Send via WhatsApp API
+//   let result;
+//   if (templateName) {
+//     // console.log('Sending template message:', templateName, 'with parameters:', parameters);
+//     result = await whatsappApi.sendMessage(to, templateName, parameters || []);
+//   } else {
+//     // console.log('Sending text message:', message);
+//     result = await whatsappApi.sendTextMessage(to, message|| "Test message");
+//   }
+// console.log('WhatsApp API result:', result);
+//   // Find or create conversation
+//   let conversation = conversationId
+//     ? await storage.getConversation(conversationId)
+//     : await storage.getConversationByPhone(to);
+// // console.log('Using conversation:', conversation?.id);
+//   if (!conversation) {
+//     let contact = await storage.getContactByPhone(to);
+//     if (!contact) {
+//       contact = await storage.createContact({
+//         name: to,
+//         phone: to,
+//         channelId,
+//       });
+//     }
+
+//     conversation = await storage.createConversation({
+//       contactId: contact.id,
+//       contactPhone: to,
+//       contactName: contact.name || to,
+//       channelId,
+//       unreadCount: 0,
+//     });
+//   }
+
+//   let newMsg = templateName ? (await storage.getTemplatesByName(templateName))[0] : null;
+
+// console.log('Using template for message body:',{
+//     conversationId: conversation.id,
+//     content: message || newMsg?.body,
+//     sender: "business",
+//     status: "sent",
+//     whatsappMessageId: result.messages?.[0]?.id,
+//   });
+//   // Save message
+//   const createdMessage = await storage.createMessage({
+//     conversationId: conversation.id,
+//     content: message ?? newMsg?.body ?? "",
+//     status: "sent",
+//     whatsappMessageId: result.messages?.[0]?.id,
+//   });
+
+  
+// // console.log('Created message:', createdMessage);
+//   // Update conversation last message
+//   await storage.updateConversation(conversation.id, {
+//     lastMessageAt: new Date(),
+//     lastMessageText: message || newMsg?.body,
+//   });
+
+//   // Broadcast to websocket
+//   if ((global as any).broadcastToConversation) {
+//     (global as any).broadcastToConversation(conversation.id, {
+//       type: "new-message",
+//       message: createdMessage,
+//     });
+//   }
+// console.log('Broadcasted new message to conversation:', conversation.id);
+// // console.log('sendBusinessMessage completed successfully' , {    success: true,
+// // messageId: result.messages?.[0]?.id,
+// // conversationId: conversation.id,
+// // createdMessage});
+//   return {
+//     success: true,
+//     messageId: result.messages?.[0]?.id,
+//     conversationId: conversation.id,
+//     createdMessage,
+//   };
+// }
+
+
+
+import { storage } from "../storage";
+import { AppError } from "../middlewares/error.middleware";
+
+export async function sendBusinessMessage({
+  to,
+  message,
+  templateName,
+  parameters,
+  channelId,
+  conversationId,
+  mediaId, // ✅ NEW (header image id)
+}: {
+  to: string;
+  message?: string;
+  templateName?: string;
+  parameters?: string[];
+  channelId?: string;
+  conversationId?: string;
+  mediaId?: string | null;
+}) {
+  /* ───── Resolve Channel ───── */
   if (!channelId) {
     const activeChannel = await storage.getActiveChannel();
     if (!activeChannel) {
-      throw new AppError(400, "No active channel found. Please select a channel.");
+      throw new AppError(400, "No active channel found");
     }
     channelId = activeChannel.id;
   }
 
   const channel = await storage.getChannel(channelId);
-  if (!channel) {
-    throw new AppError(404, "Channel not found");
-  }
-console.log('Sending message via channel:', channelId, 'to:', to);
-  const whatsappApi = new WhatsAppApiService(channel);
+  if (!channel) throw new AppError(404, "Channel not found");
 
-  // Send via WhatsApp API
+  console.log("📤 Sending message via channel:", channelId, "to:", to);
+
   let result;
+
+  /* ───────────────── TEMPLATE MESSAGE ───────────────── */
   if (templateName) {
-    // console.log('Sending template message:', templateName, 'with parameters:', parameters);
-    result = await whatsappApi.sendMessage(to, templateName, parameters || []);
-  } else {
-    // console.log('Sending text message:', message);
-    result = await whatsappApi.sendTextMessage(to, message|| "Test message");
+    const components: any[] = [];
+
+    /* HEADER IMAGE */
+    if (mediaId) {
+      components.push({
+        type: "header",
+        parameters: [
+          {
+            type: "image",
+            image: { id: mediaId },
+          },
+        ],
+      });
+    }
+
+    /* BODY PARAMETERS */
+    if (parameters && parameters.length > 0) {
+      components.push({
+        type: "body",
+        parameters: parameters.map((val) => ({
+          type: "text",
+          text: String(val),
+        })),
+      });
+    }
+
+    const payload = {
+      messaging_product: "whatsapp",
+      to: to.replace(/\D/g, ""),
+      type: "template",
+      template: {
+        name: templateName,
+        language: { code: "en_US" },
+        components,
+      },
+    };
+
+    console.log(
+      "🚀 FINAL WhatsApp TEMPLATE PAYLOAD:",
+      JSON.stringify(payload, null, 2)
+    );
+
+    const response = await fetch(
+      `https://graph.facebook.com/v23.0/${channel.phoneNumberId}/messages`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${channel.accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    if (!response.ok) {
+      const err = await response.json();
+      console.error("WhatsApp API Error:", err);
+      throw new Error(err.error?.message || "Failed to send template");
+    }
+
+    result = await response.json();
   }
-console.log('WhatsApp API result:', result);
-  // Find or create conversation
+
+  /* ───────────────── TEXT MESSAGE ───────────────── */
+  else {
+    const payload = {
+      messaging_product: "whatsapp",
+      to: to.replace(/\D/g, ""),
+      type: "text",
+      text: { body: message || "Test message" },
+    };
+
+    const response = await fetch(
+      `https://graph.facebook.com/v23.0/${channel.phoneNumberId}/messages`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${channel.accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error?.message || "Failed to send text message");
+    }
+
+    result = await response.json();
+  }
+
+  /* ───── Conversation handling (UNCHANGED) ───── */
   let conversation = conversationId
     ? await storage.getConversation(conversationId)
     : await storage.getConversationByPhone(to);
-// console.log('Using conversation:', conversation?.id);
+
   if (!conversation) {
     let contact = await storage.getContactByPhone(to);
     if (!contact) {
@@ -60,43 +261,29 @@ console.log('WhatsApp API result:', result);
     });
   }
 
-  let newMsg = templateName ? (await storage.getTemplatesByName(templateName))[0] : null;
+  const template = templateName
+    ? (await storage.getTemplatesByName(templateName))[0]
+    : null;
 
-console.log('Using template for message body:',{
-    conversationId: conversation.id,
-    content: message || newMsg?.body,
-    sender: "business",
-    status: "sent",
-    whatsappMessageId: result.messages?.[0]?.id,
-  });
-  // Save message
   const createdMessage = await storage.createMessage({
     conversationId: conversation.id,
-    content: message ?? newMsg?.body ?? "",
+    content: message ?? template?.body ?? "",
     status: "sent",
     whatsappMessageId: result.messages?.[0]?.id,
   });
 
-  
-// console.log('Created message:', createdMessage);
-  // Update conversation last message
   await storage.updateConversation(conversation.id, {
     lastMessageAt: new Date(),
-    lastMessageText: message || newMsg?.body,
+    lastMessageText: message ?? template?.body ?? "",
   });
 
-  // Broadcast to websocket
   if ((global as any).broadcastToConversation) {
     (global as any).broadcastToConversation(conversation.id, {
       type: "new-message",
       message: createdMessage,
     });
   }
-console.log('Broadcasted new message to conversation:', conversation.id);
-// console.log('sendBusinessMessage completed successfully' , {    success: true,
-// messageId: result.messages?.[0]?.id,
-// conversationId: conversation.id,
-// createdMessage});
+
   return {
     success: true,
     messageId: result.messages?.[0]?.id,
