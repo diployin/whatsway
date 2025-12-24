@@ -138,12 +138,13 @@ export async function sendBusinessMessage({
   if (!channel) throw new AppError(404, "Channel not found");
 
   let result;
+  let sentText = message || "";
 
   /* ───────── TEMPLATE MESSAGE ───────── */
   if (templateName) {
     const components: any[] = [];
 
-    // ✅ HEADER IMAGE
+    // HEADER IMAGE
     if (mediaId) {
       components.push({
         type: "header",
@@ -156,7 +157,7 @@ export async function sendBusinessMessage({
       });
     }
 
-    // ✅ BODY VARIABLES
+    // BODY VARIABLES
     if (parameters && parameters.length > 0) {
       components.push({
         type: "body",
@@ -167,10 +168,6 @@ export async function sendBusinessMessage({
       });
     }
 
-    if (components.length === 0) {
-      throw new Error("Template components empty — invalid payload");
-    }
-
     const payload = {
       messaging_product: "whatsapp",
       to: to.replace(/\D/g, ""),
@@ -178,7 +175,7 @@ export async function sendBusinessMessage({
       template: {
         name: templateName,
         language: { code: "en_US" },
-        components,
+        ...(components.length > 0 ? { components } : {}), // ✅ SAFE
       },
     };
 
@@ -206,6 +203,7 @@ export async function sendBusinessMessage({
     }
 
     result = await response.json();
+    sentText = templateName; // fallback for conversation
   }
 
   /* ───────── TEXT MESSAGE ───────── */
@@ -237,7 +235,7 @@ export async function sendBusinessMessage({
     result = await response.json();
   }
 
-  /* ───── Conversation save (unchanged) ───── */
+  /* ───── Conversation handling ───── */
   let conversation = conversationId
     ? await storage.getConversation(conversationId)
     : await storage.getConversationByPhone(to);
@@ -263,14 +261,14 @@ export async function sendBusinessMessage({
 
   const createdMessage = await storage.createMessage({
     conversationId: conversation.id,
-    content: message ?? templateName ?? "",
+    content: sentText, // ✅ FIXED
     status: "sent",
     whatsappMessageId: result.messages?.[0]?.id,
   });
 
   await storage.updateConversation(conversation.id, {
     lastMessageAt: new Date(),
-    lastMessageText: message ?? templateName ?? "",
+    lastMessageText: sentText,
   });
 
   if ((global as any).broadcastToConversation) {

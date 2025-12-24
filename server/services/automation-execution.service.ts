@@ -1358,6 +1358,95 @@ private getBodyParamCount(body: string): number {
   return matches ? matches.length : 0;
 }
 
+// private async executeSendTemplate(node: any, context: ExecutionContext) {
+//   const templateId = node.data?.templateId;
+
+//   if (!templateId) throw new Error("No template ID provided");
+//   if (!context.contactId) throw new Error("No contactId in context");
+
+//   const contact = await db.query.contacts.findFirst({
+//     where: eq(contacts.id, context.contactId),
+//   });
+
+//   if (!contact?.phone) throw new Error("Contact phone not found");
+//   if (!contact.channelId) throw new Error("Contact channelId missing");
+
+//   const template = await db.query.templates.findFirst({
+//     where: and(
+//       eq(templates.id, templateId),
+//       eq(templates.channelId, contact.channelId)
+//     ),
+//   });
+
+//   if (!template) throw new Error("Template not found");
+
+//   console.log(`📄 Sending template ${template.name} to ${contact.phone}`);
+
+//   const components: any[] = [];
+
+//   /* ───── HEADER IMAGE ───── */
+//   if (template.mediaUrl) {
+//     components.push({
+//       type: "header",
+//       parameters: [
+//         {
+//           type: "image",
+//           image: { id: template.mediaUrl }, // WhatsApp media_id
+//         },
+//       ],
+//     });
+//   }
+
+//   /* ───── BODY VARIABLES (ARRAY BASED) ───── */
+//   const bodyParamCount = this.getBodyParamCount(template.body);
+//   const storedVariables = Array.isArray(template.variables)
+//     ? template.variables
+//     : [];
+
+//   if (bodyParamCount !== storedVariables.length) {
+//     throw new Error(
+//       `Template variable mismatch: body expects ${bodyParamCount}, but variables has ${storedVariables.length}`
+//     );
+//   }
+
+//   if (bodyParamCount > 0) {
+//     components.push({
+//       type: "body",
+//       parameters: storedVariables.map((val: string) => ({
+//         type: "text",
+//         text: String(val),
+//       })),
+//     });
+//   }
+
+//   console.log(
+//     "📤 WhatsApp Template Payload:",
+//     JSON.stringify(
+//       {
+//         template: template.name,
+//         components,
+//       },
+//       null,
+//       2
+//     )
+//   );
+
+//   await sendBusinessMessage({
+//     to: contact.phone,
+//     channelId: contact.channelId,
+//     templateName: template.name,
+//     components,
+//   });
+
+//   console.log(`✅ Template sent successfully: ${template.name}`);
+
+//   return {
+//     action: "template_sent",
+//     templateId,
+//   };
+// }
+
+
 private async executeSendTemplate(node: any, context: ExecutionContext) {
   const templateId = node.data?.templateId;
 
@@ -1382,60 +1471,24 @@ private async executeSendTemplate(node: any, context: ExecutionContext) {
 
   console.log(`📄 Sending template ${template.name} to ${contact.phone}`);
 
-  const components: any[] = [];
-
-  /* ───── HEADER IMAGE ───── */
-  if (template.mediaUrl) {
-    components.push({
-      type: "header",
-      parameters: [
-        {
-          type: "image",
-          image: { id: template.mediaUrl }, // WhatsApp media_id
-        },
-      ],
-    });
-  }
-
-  /* ───── BODY VARIABLES (ARRAY BASED) ───── */
+  /* ───── BODY VARIABLES ───── */
   const bodyParamCount = this.getBodyParamCount(template.body);
-  const storedVariables = Array.isArray(template.variables)
+  const variables = Array.isArray(template.variables)
     ? template.variables
     : [];
 
-  if (bodyParamCount !== storedVariables.length) {
+  if (bodyParamCount !== variables.length) {
     throw new Error(
-      `Template variable mismatch: body expects ${bodyParamCount}, but variables has ${storedVariables.length}`
+      `Template variable mismatch: body expects ${bodyParamCount}, but got ${variables.length}`
     );
   }
-
-  if (bodyParamCount > 0) {
-    components.push({
-      type: "body",
-      parameters: storedVariables.map((val: string) => ({
-        type: "text",
-        text: String(val),
-      })),
-    });
-  }
-
-  console.log(
-    "📤 WhatsApp Template Payload:",
-    JSON.stringify(
-      {
-        template: template.name,
-        components,
-      },
-      null,
-      2
-    )
-  );
 
   await sendBusinessMessage({
     to: contact.phone,
     channelId: contact.channelId,
     templateName: template.name,
-    components,
+    parameters: variables,          // ✅ ONLY VARIABLES
+    mediaId: template.mediaUrl,     // ✅ HEADER IMAGE ID
   });
 
   console.log(`✅ Template sent successfully: ${template.name}`);
@@ -1445,6 +1498,7 @@ private async executeSendTemplate(node: any, context: ExecutionContext) {
     templateId,
   };
 }
+
 
 
   private async executeSendTemplateseconddd(node: any, context: ExecutionContext) {
