@@ -1349,93 +1349,226 @@ private async sendInteractiveMessage(
   }
 
 
+
   private async executeSendTemplate(node: any, context: ExecutionContext) {
   const templateId = node.data?.templateId;
+  console.log("node & context", node, context);
+  
+  if (!templateId) {
+    throw new Error('No template ID provided');
+  }
 
-  if (!templateId) throw new Error("No template ID provided");
-  if (!context.contactId) throw new Error("No contact ID in context");
-  if (!context.conversationId) throw new Error("No conversation ID in context");
+  if (!context.contactId) {
+    throw new Error('No contact ID in context');
+  }
+  if (!context.conversationId) {
+    throw new Error('No conversation ID in context');
+  }
 
-  // 1️⃣ Get contact
-  const contact = await db.query.contacts.findFirst({
-    where: eq(contacts.id, context.contactId),
+  const getContact = await db.query.contacts.findFirst({
+    where: eq(contacts?.id, context.contactId),
   });
 
-  if (!contact?.phone) throw new Error("Contact phone not found");
-  if (!contact.channelId) throw new Error("Contact channelId missing");
+  if (!getContact?.phone) {
+    throw new Error('Contact phone number not found');
+  }
+  
+  console.log(`📄 Sending template ${templateId} to conversation ${context.conversationId}`);
 
-  // 2️⃣ Get template
-  const template = await db.query.templates.findFirst({
+  if (!getContact?.channelId) {
+    throw new Error("Contact has no channelId");
+  }
+
+  const getTemplate = await db.query.templates.findFirst({
     where: and(
       eq(templates.id, templateId),
-      eq(templates.channelId, contact.channelId)
-    ),
+      eq(templates.channelId, getContact.channelId)
+    )
   });
 
-  if (!template) throw new Error("Template not found");
+  if (!getTemplate) {
+    throw new Error('Template not found');
+  }
 
-  console.log(`📄 Sending template (STATIC) ${template.name} to ${contact.phone}`);
+  const channel = await db.query.channels.findFirst({
+    where: eq(channels.id, getContact.channelId)
+  });
 
-  // 3️⃣ STATIC WhatsApp components
+  if (!channel) {
+    throw new Error('Channel not found');
+  }
+
+  // Build template components properly
   const components: any[] = [];
 
-  /** ---------- HEADER IMAGE (STATIC MEDIA_ID) ---------- */
-  // ⚠️ Replace this with any VALID media_id from your WhatsApp account
-  const STATIC_HEADER_MEDIA_ID = "1349339209838009";
+  // 1. Handle HEADER component
+  if (getTemplate.header) {
+    const headerComponent: any = { type: "header", parameters: [] };
 
-  if (template.headerType === "IMAGE") {
-    components.push({
-      type: "header",
-      parameters: [
-        {
+    if (getTemplate.header.format === "IMAGE") {
+      const imageUrl = getTemplate.header.imageUrl || 
+                      getTemplate.header.example?.header_handle?.[0];
+      
+      if (imageUrl) {
+        headerComponent.parameters.push({
           type: "image",
-          image: { id: STATIC_HEADER_MEDIA_ID },
-        },
-      ],
+          image: { link: imageUrl }
+        });
+        components.push(headerComponent);
+      }
+    } else if (getTemplate.header.format === "VIDEO") {
+      const videoUrl = getTemplate.header.videoUrl || 
+                      getTemplate.header.example?.header_handle?.[0];
+      
+      if (videoUrl) {
+        headerComponent.parameters.push({
+          type: "video",
+          video: { link: videoUrl }
+        });
+        components.push(headerComponent);
+      }
+    } else if (getTemplate.header.format === "DOCUMENT") {
+      const docUrl = getTemplate.header.documentUrl || 
+                    getTemplate.header.example?.header_handle?.[0];
+      
+      if (docUrl) {
+        headerComponent.parameters.push({
+          type: "document",
+          document: { link: docUrl }
+        });
+        components.push(headerComponent);
+      }
+    } else if (getTemplate.header.format === "TEXT") {
+      // Count variables in header text
+      const headerText = getTemplate.header.text || "";
+      const headerVarCount = (headerText.match(/\{\{\d+\}\}/g) || []).length;
+      
+      if (headerVarCount > 0) {
+        // Get header parameters from node data
+        const headerParams = node.data?.headerParameters || [];
+        
+        for (let i = 0; i < headerVarCount; i++) {
+          let value = headerParams[i] || "";
+          
+          // Replace dynamic values
+          value = value
+            .replace(/\{\{contact\.name\}\}/g, getContact.name || "")
+            .replace(/\{\{contact\.phone\}\}/g, getContact.phone || "")
+            .replace(/\{\{contact\.email\}\}/g, getContact.email || "");
+          
+          headerComponent.parameters.push({ type: "text", text: value });
+        }
+        
+        if (headerComponent.parameters.length > 0) {
+          components.push(headerComponent);
+        }
+      }
+    }
+  }
+
+  // 2. Handle BODY component
+  const bodyText = getTemplate.body || "";
+  const bodyVarCount = (bodyText.match(/\{\{\d+\}\}/g) || []).length;
+  
+  console.log(`Body has ${bodyVarCount} variables`);
+
+  if (bodyVarCount > 0) {
+    const bodyComponent: any = { type: "body", parameters: [] };
+    
+    // Get body parameters from node data
+    const bodyParams = node.data?.parameters || node.data?.bodyParameters || [];
+    
+    console.log("Body parameters from node:", bodyParams);
+
+    for (let i = 0; i < bodyVarCount; i++) {
+      let value = bodyParams[i] || "";
+      
+      // Replace dynamic placeholders with actual contact data
+      value = value
+        .replace(/\{\{contact\.name\}\}/g, getContact.name || "")
+        .replace(/\{\{contact\.phone\}\}/g, getContact.phone || "")
+        .replace(/\{\{contact\.email\}\}/g, getContact.email || "");
+      
+      bodyComponent.parameters.push({ type: "text", text: value });
+    }
+    
+    components.push(bodyComponent);
+    console.log("Body component:", JSON.stringify(bodyComponent, null, 2));
+  }
+
+  // 3. Handle BUTTONS component (dynamic URLs)
+  if (getTemplate.buttons && Array.isArray(getTemplate.buttons)) {
+    getTemplate.buttons.forEach((button: any, index: number) => {
+      if (button.type === "URL" && button.url?.includes("{{")) {
+        const buttonParams = node.data?.buttonParameters || [];
+        let value = buttonParams[index] || "";
+        
+        // Replace dynamic values
+        value = value
+          .replace(/\{\{contact\.name\}\}/g, getContact.name || "")
+          .replace(/\{\{contact\.phone\}\}/g, getContact.phone || "")
+          .replace(/\{\{contact\.email\}\}/g, getContact.email || "");
+        
+        if (value) {
+          components.push({
+            type: "button",
+            sub_type: "url",
+            index: index.toString(),
+            parameters: [{ type: "text", text: value }]
+          });
+        }
+      }
     });
   }
 
-  /** ---------- BODY VARIABLES (STATIC TEXT) ---------- */
-  // Works for ANY template with {{1}}, {{2}}, {{3}}...
-  components.push({
-    type: "body",
-    parameters: [
-      { type: "text", text: "Atul" },
-      { type: "text", text: "ORD-1001" },
-      { type: "text", text: "₹999" },
-    ],
-  });
+  console.log("Final components:", JSON.stringify(components, null, 2));
 
-  console.log(
-    "📤 WhatsApp STATIC Template Payload:",
-    JSON.stringify(
-      {
-        to: contact.phone,
-        template: template.name,
-        components,
+  // Send template message using WhatsApp API service
+  try {
+    const response = await WhatsAppApiService.sendTemplateMessage(
+      channel,
+      getContact.phone,
+      getTemplate.name,
+      components,
+      getTemplate.language || "en_US",
+      false // Automation messages use regular API, not MM Lite
+    );
+
+    const messageId = response.messages?.[0]?.id || `msg_${randomUUID()}`;
+
+    // Create message record
+    await db.insert(messages).values({
+      id: randomUUID(),
+      conversationId: context.conversationId,
+      content: getTemplate.body || "",
+      status: "sent",
+      whatsappMessageId: messageId,
+      messageType: "template",
+      metadata: {
+        templateId: getTemplate.id,
+        templateName: getTemplate.name,
+        components: components
       },
-      null,
-      2
-    )
-  );
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
 
-  // 4️⃣ Send
-  await sendBusinessMessage({
-    to: contact.phone,
-    channelId: contact.channelId,
-    templateName: template.name,
-    components,
-  });
-
-  console.log(`✅ Template sent (STATIC): ${template.name}`);
-
-  return {
-    action: "template_sent",
-    templateId,
-    conversationId: context.conversationId,
-  };
+    console.log(`✅ Template sent: ${templateId}`);
+    
+    return {
+      action: 'template_sent',
+      templateId,
+      conversationId: context.conversationId,
+      messageId
+    };
+  } catch (error) {
+    console.error("Failed to send template:", error);
+    throw new Error(`Failed to send template: ${error.message}`);
+  }
 }
 
+
+  
 
   private async executeSendTemplateOLDDD(node: any, context: ExecutionContext) {
     const templateId = node.data?.templateId;
