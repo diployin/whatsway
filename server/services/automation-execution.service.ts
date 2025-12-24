@@ -1353,10 +1353,97 @@ private async sendInteractiveMessage(
 
 
 
+
+  private async executeSendTemplate(node: any, context: ExecutionContext) {
+  const templateId = node.data?.templateId;
+
+  if (!templateId) throw new Error("No template ID provided");
+  if (!context.contactId) throw new Error("No contactId in context");
+
+  // 1️⃣ Get contact
+  const contact = await db.query.contacts.findFirst({
+    where: eq(contacts.id, context.contactId),
+  });
+
+  if (!contact?.phone) throw new Error("Contact phone not found");
+  if (!contact.channelId) throw new Error("Contact channelId missing");
+
+  // 2️⃣ Get template
+  const template = await db.query.templates.findFirst({
+    where: and(
+      eq(templates.id, templateId),
+      eq(templates.channelId, contact.channelId)
+    ),
+  });
+
+  if (!template) throw new Error("Template not found");
+
+  console.log(`📄 Sending template ${template.name} to ${contact.phone}`);
+
+  // 3️⃣ Build WhatsApp components
+  const components: any[] = [];
+
+  /* ───────── HEADER IMAGE (AUTO FROM TEMPLATE TABLE) ───────── */
+  if (
+    template.mediaType === "image" &&
+    template.mediaUrl // 👈 media_id stored here
+  ) {
+    components.push({
+      type: "header",
+      parameters: [
+        {
+          type: "image",
+          image: {
+            id: template.mediaUrl, // ✅ WhatsApp media_id
+          },
+        },
+      ],
+    });
+  }
+
+  /* ───────── BODY VARIABLES (STATIC FOR NOW) ───────── */
+  // ⚠️ Count should match {{1}}, {{2}}, {{3}} in template body
+  components.push({
+    type: "body",
+    parameters: [
+      { type: "text", text: "Atul" },
+      { type: "text", text: "ORD-1001" },
+      { type: "text", text: "₹999" },
+    ],
+  });
+
+  console.log(
+    "📤 WhatsApp Template Payload:",
+    JSON.stringify(
+      {
+        template: template.name,
+        components,
+      },
+      null,
+      2
+    )
+  );
+
+  // 4️⃣ Send
+  await sendBusinessMessage({
+    to: contact.phone,
+    channelId: contact.channelId,
+    templateName: template.name,
+    components,
+  });
+
+  console.log(`✅ Template sent successfully: ${template.name}`);
+
+  return {
+    action: "template_sent",
+    templateId,
+  };
+}
+
   
   
 
-  private async executeSendTemplate(node: any, context: ExecutionContext) {
+  private async executeSendTemplateOLDD(node: any, context: ExecutionContext) {
     const templateId = node.data?.templateId;
     console.log("node & context", node, context);
     
