@@ -1114,6 +1114,99 @@ export const syncTemplates = asyncHandler(
     const channel = await storage.getChannel(channelId);
     if (!channel) throw new AppError(404, "Channel not found");
 
+    console.log("🔄 Syncing template statuses for channel:", channelId);
+
+    const whatsappApi = new WhatsAppApiService(channel);
+    const whatsappTemplates = await whatsappApi.getTemplates();
+
+    console.log("📥 WhatsApp templates fetched:", whatsappTemplates.length);
+
+    const { data: dbTemplates } = await storage.getTemplatesByChannel(channelId);
+    const existingTemplates = Array.isArray(dbTemplates) ? dbTemplates : [];
+
+    console.log("📦 Existing templates in DB:", existingTemplates.length);
+
+    // 🔑 Create lookup maps (normalize IDs to string)
+    const existingByWhatsappId = new Map<string, any>();
+    const existingByName = new Map<string, any>();
+
+    for (const t of existingTemplates) {
+      if (t.whatsappTemplateId) {
+        existingByWhatsappId.set(String(t.whatsappTemplateId).trim(), t);
+      }
+      if (t.name) {
+        existingByName.set(t.name.trim(), t);
+      }
+    }
+
+    let updatedCount = 0;
+    let skippedCount = 0;
+    let newTemplatesFound = 0;
+
+    for (const waTemplate of whatsappTemplates) {
+      const waId = String(waTemplate.id).trim();
+      const waName = waTemplate.name.trim();
+      const waStatus = waTemplate.status;
+
+      // Try to find existing template
+      let existing = existingByWhatsappId.get(waId) || existingByName.get(waName);
+
+      if (existing) {
+        // ✅ Template exists - only update status if changed
+        if (existing.status !== waStatus) {
+          console.log(`🔄 Updating status: ${waName} | ${existing.status} → ${waStatus}`);
+          
+          await storage.updateTemplate(existing.id, {
+            status: waStatus,
+            whatsappTemplateId: waId // Ensure ID is set correctly
+          });
+
+          updatedCount++;
+        } else {
+          skippedCount++;
+        }
+      } else {
+        // ⚠️ New template found (not in DB)
+        console.log(`⚠️ New template found in WhatsApp but not in DB: ${waName}`);
+        newTemplatesFound++;
+      }
+    }
+
+    console.log(`\n✅ Status sync done | Updated: ${updatedCount}, Skipped: ${skippedCount}, New: ${newTemplatesFound}`);
+
+    res.json({
+      success: true,
+      message: "Template statuses synced successfully",
+      totalFromWhatsApp: whatsappTemplates.length,
+      updatedCount,
+      skippedCount,
+      newTemplatesFound,
+      note: newTemplatesFound > 0 
+        ? "Some new templates were found in WhatsApp but not synced. Create them manually if needed."
+        : "All templates are in sync"
+    });
+  }
+);
+
+
+export const syncTemplatesAKKKK = asyncHandler(
+  async (req: RequestWithChannel, res: Response) => {
+    let channelId =
+      (req.body.channelId as string) ||
+      (req.query.channelId as string) ||
+      req.channelId;
+
+    if (!channelId) {
+      const activeChannel = await storage.getActiveChannel();
+      if (!activeChannel) {
+        throw new AppError(400, "No active channel found");
+      }
+      channelId = activeChannel.id;
+    }
+
+    const channel = await storage.getChannel(channelId);
+    if (!channel) throw new AppError(404, "Channel not found");
+
     console.log("🔄 Syncing templates for channel:", channelId);
 
     const whatsappApi = new WhatsAppApiService(channel);

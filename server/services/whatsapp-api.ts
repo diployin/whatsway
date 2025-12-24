@@ -56,7 +56,75 @@ export class WhatsAppApiService {
 
 
   // Static method for sending template messages
-  static async sendTemplateMessage(
+
+ static async sendTemplateMessage(
+  channel: Channel,
+  to: string,
+  templateName: string,
+  components: any[] = [], // Changed from parameters: string[]
+  language: string = "en_US",
+  isMarketing: boolean = true
+): Promise<any> {
+  const apiVersion = process.env.WHATSAPP_API_VERSION || "v23.0";
+  const baseUrl = `https://graph.facebook.com/${apiVersion}`;
+
+  // Format phone number
+  const phoneNumber = to.replace(/\D/g, "");
+  const formattedPhone = phoneNumber.startsWith("+")
+    ? phoneNumber.substring(1)
+    : phoneNumber;
+
+  const body = {
+    messaging_product: "whatsapp",
+    to: formattedPhone,
+    type: "template",
+    template: {
+      name: templateName,
+      language: { code: language },
+      components: components.length > 0 ? components : undefined,
+    },
+  };
+
+  // console.log("Sending WhatsApp template message:", {
+  //   to: formattedPhone,
+  //   templateName,
+  //   language,
+  //   components: JSON.stringify(components, null, 2),
+  //   phoneNumberId: channel.phoneNumberId,
+  //   isMarketing,
+  //   usingMMLite: isMarketing,
+  // });
+
+  // Use MM Lite API endpoint for marketing messages
+  const endpoint = isMarketing
+    ? `${baseUrl}/${channel.phoneNumberId}/marketing_messages`
+    : `${baseUrl}/${channel.phoneNumberId}/messages`;
+
+  // console.log("WhatsApp API endpoint:", endpoint);
+
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${channel.accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  const responseData = await response.json();
+
+  if (!response.ok) {
+    // console.error("WhatsApp API Error:", responseData);
+    throw new Error(
+      responseData.error?.message || "Failed to send template message"
+    );
+  }
+
+  console.log("WhatsApp message sent successfully:", responseData);
+  return responseData;
+}
+
+  static async sendTemplateMessageOLLDLD(
     channel: Channel,
     to: string,
     templateName: string,
@@ -110,7 +178,7 @@ export class WhatsAppApiService {
       ? `${baseUrl}/${channel.phoneNumberId}/marketing_messages`
       : `${baseUrl}/${channel.phoneNumberId}/messages`;
 
-    console.log("WhatsApp API endpoint:", endpoint);
+    // console.log("WhatsApp API endpoint:", endpoint);
 
     const response = await fetch(endpoint, {
       method: "POST",
@@ -402,147 +470,80 @@ async sendMessage(
   to: string,
   templateName: string,
   parameters: string[] = [],
-  mediaIdFromFrontend?: string // Optional mediaId from frontend
+  mediaId?: string // NEW: optional header media
 ): Promise<any> {
   const formattedPhone = this.formatPhoneNumber(to);
-
-  // Fetch template from DB
   const template = (await storage.getTemplatesByName(templateName))[0];
   if (!template) throw new Error("Template not found");
 
+  
+  // Build components array
   const components: any[] = [];
 
-  // Ensure mediaId is properly defined
-  let mediaId: string | undefined = mediaIdFromFrontend || template.mediaUrl;
-
-  // Check if template expects an image in the header
-  if (template.header) {
-    const headerComp: any = { type: "header", parameters: [] };
-
-    // If mediaId is not available or it's not an image, log the issue
-    if (!mediaId) {
-      console.error("No mediaId found for the header, exiting the request.");
-      throw new Error("No mediaId found for the header.");
-    }
-
-    // Ensure mediaId corresponds to an image
-    headerComp.parameters.push({
-      type: "image",
-      image: { id: mediaId },
+  // Add header component if mediaId provided
+  const mediaIDD = template?.mediaUrl
+  if (mediaIDD) {
+    components.push({
+      type: "header",
+      parameters: [
+        {
+          type: "image", // or "video", "document" based on your template
+          image: {
+            id: mediaIDD
+          }
+        }
+      ]
     });
-
-    components.push(headerComp);
   }
 
-  // Body
-  const bodyComp: any = { type: "body", parameters: [] };
-  (parameters || []).forEach((param) => {
-    bodyComp.parameters.push({ type: "text", text: param });
-  });
-  components.push(bodyComp);
-
-  // Footer (if any)
-  if (template.footer) {
-    components.push({ type: "footer", parameters: [{ type: "text", text: template.footer }] });
+  // Add body component if parameters provided
+  if (parameters.length > 0) {
+    components.push({
+      type: "body",
+      parameters: parameters.map((text) => ({
+        type: "text",
+        text: String(text) // Ensure it's a string
+      }))
+    });
   }
 
-  // Build the final payload for WhatsApp API
   const body = {
     messaging_product: "whatsapp",
     to: formattedPhone,
     type: "template",
     template: {
       name: templateName,
-      language: { code: template.language || "en_US" },
-      components,
-    },
+      language: { code: "en_US" },
+      components: components.length > 0 ? components : undefined
+    }
   };
 
-  console.log("Sending WhatsApp template message:", {
-    to: formattedPhone,
-    templateName,
-    parameters,
-    mediaId,
-    phoneNumberId: this.channel.phoneNumberId,
-  });
+  // console.log("Sending WhatsApp template:", JSON.stringify(body, null, 2));
 
-  // Send request to WhatsApp API
-  const response = await fetch(`${this.baseUrl}/${this.channel.phoneNumberId}/messages`, {
-    method: "POST",
-    headers: this.headers,
-    body: JSON.stringify(body),
-  });
+  const response = await fetch(
+    `${this.baseUrl}/${this.channel.phoneNumberId}/messages`,
+    {
+      method: "POST",
+      headers: this.headers,
+      body: JSON.stringify(body)
+    }
+  );
 
   const responseData = await response.json();
 
   if (!response.ok) {
     console.error("WhatsApp API Error:", responseData);
-    throw new Error(responseData.error?.message || "Failed to send template message");
+    throw new Error(
+      responseData.error?.message || 
+      responseData.error?.error_data?.details || 
+      "Failed to send template"
+    );
   }
 
-  console.log("WhatsApp template message sent successfully:", responseData);
+  console.log("WhatsApp template sent successfully:", responseData);
   return responseData;
 }
 
-
-
-
-
-
-  async sendMessageAAAAAAAAA(
-    to: string,
-    templateName: string,
-    parameters: string[] = []
-  ): Promise<any> {
-    const formattedPhone = this.formatPhoneNumber(to);
-    const body = {
-      messaging_product: "whatsapp",
-      to: formattedPhone,
-      type: "template",
-      template: {
-        name: templateName,
-        language: { code: "en_US" },
-        components:
-          parameters.length > 0
-            ? [
-                {
-                  type: "body",
-                  parameters: parameters.map((text) => ({
-                    type: "text",
-                    text,
-                  })),
-                },
-              ]
-            : undefined,
-      },
-    };
-
-    console.log("Sending WhatsApp message:", {
-      to: formattedPhone,
-      templateName,
-      parameters,
-      phoneNumberId: this.channel.phoneNumberId,
-    });
-
-    const response = await fetch(
-      `${this.baseUrl}/${this.channel.phoneNumberId}/messages`,
-      {
-        method: "POST",
-        headers: this.headers,
-        body: JSON.stringify(body),
-      }
-    );
-
-    const responseData = await response.json();
-
-    if (!response.ok) {
-      console.error("WhatsApp API Error:", responseData);
-      throw new Error(responseData.error?.message || "Failed to send message");
-    }
-
-    console.log("WhatsApp message sent successfully:", responseData);
-    return responseData;
-  }
 
   async sendTextMessage(to: string, text: string): Promise<any> {
     const formattedPhone = this.formatPhoneNumber(to);
@@ -652,7 +653,7 @@ async sendMessage(
       }
     );
 
-    console.log("✅ WhatsApp media upload response:", response.data);
+    // console.log("✅ WhatsApp media upload response:", response.data);
 
     if (!response.data?.id) {
       throw new Error("WhatsApp media id not returned");
@@ -730,7 +731,7 @@ async uploadTemplateMedia(
   filename: string
 ): Promise<string> {
 
-  const appId = 664128043180538;
+  const appId = this.channel.appId;
 
   // STEP 1️⃣ Create upload session
   const sessionRes = await axios.post(

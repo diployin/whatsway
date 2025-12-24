@@ -1348,7 +1348,96 @@ private async sendInteractiveMessage(
     };
   }
 
+
   private async executeSendTemplate(node: any, context: ExecutionContext) {
+  const templateId = node.data?.templateId;
+
+  if (!templateId) throw new Error("No template ID provided");
+  if (!context.contactId) throw new Error("No contact ID in context");
+  if (!context.conversationId) throw new Error("No conversation ID in context");
+
+  // 1️⃣ Get contact
+  const contact = await db.query.contacts.findFirst({
+    where: eq(contacts.id, context.contactId),
+  });
+
+  if (!contact?.phone) throw new Error("Contact phone not found");
+  if (!contact.channelId) throw new Error("Contact channelId missing");
+
+  // 2️⃣ Get template
+  const template = await db.query.templates.findFirst({
+    where: and(
+      eq(templates.id, templateId),
+      eq(templates.channelId, contact.channelId)
+    ),
+  });
+
+  if (!template) throw new Error("Template not found");
+
+  console.log(`📄 Sending template (STATIC) ${template.name} to ${contact.phone}`);
+
+  // 3️⃣ STATIC WhatsApp components
+  const components: any[] = [];
+
+  /** ---------- HEADER IMAGE (STATIC MEDIA_ID) ---------- */
+  // ⚠️ Replace this with any VALID media_id from your WhatsApp account
+  const STATIC_HEADER_MEDIA_ID = "YOUR_VALID_MEDIA_ID";
+
+  if (template.headerType === "IMAGE") {
+    components.push({
+      type: "header",
+      parameters: [
+        {
+          type: "image",
+          image: { id: STATIC_HEADER_MEDIA_ID },
+        },
+      ],
+    });
+  }
+
+  /** ---------- BODY VARIABLES (STATIC TEXT) ---------- */
+  // Works for ANY template with {{1}}, {{2}}, {{3}}...
+  components.push({
+    type: "body",
+    parameters: [
+      { type: "text", text: "Atul" },
+      { type: "text", text: "ORD-1001" },
+      { type: "text", text: "₹999" },
+    ],
+  });
+
+  console.log(
+    "📤 WhatsApp STATIC Template Payload:",
+    JSON.stringify(
+      {
+        to: contact.phone,
+        template: template.name,
+        components,
+      },
+      null,
+      2
+    )
+  );
+
+  // 4️⃣ Send
+  await sendBusinessMessage({
+    to: contact.phone,
+    channelId: contact.channelId,
+    templateName: template.name,
+    components,
+  });
+
+  console.log(`✅ Template sent (STATIC): ${template.name}`);
+
+  return {
+    action: "template_sent",
+    templateId,
+    conversationId: context.conversationId,
+  };
+}
+
+
+  private async executeSendTemplateOLDDD(node: any, context: ExecutionContext) {
     const templateId = node.data?.templateId;
     console.log("node & context", node, context);
     

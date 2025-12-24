@@ -64,7 +64,7 @@ export function registerAutomationRoutes(app: Express) {
     "/api/automations",
     requireAuth,
     extractChannelId,
-    requireSubscription("automation"),
+    // requireSubscription("automation"),
     upload.any(),
     handleDigitalOceanUpload,
     createAutomation

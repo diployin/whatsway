@@ -972,40 +972,71 @@ if (hasMedia) {
 };
 
 
-
-// Template Dialog Component
 const TemplateDialog = ({
   channelId,
   onSelectTemplate,
 }: {
   channelId?: string;
-  onSelectTemplate: (template: any) => void;
+  onSelectTemplate: (template: any, variables: string[], mediaId?: string) => void;
 }) => {
   const [open, setOpen] = useState(false);
-  const { data: templates = [], isLoading: templatesLoading } = useQuery({
+  const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
+  const [variables, setVariables] = useState<string[]>([]);
+  const [mediaId, setMediaId] = useState("");
+
+  const { data: templates = [], isLoading } = useQuery({
     queryKey: ["/api/templates", channelId],
     queryFn: async () => {
       const response = await api.getTemplates(channelId);
       const data = await response.json();
-      
       return Array.isArray(data.data) ? data.data : [];
     },
-    enabled: !!channelId && open,
+    enabled: !!channelId && open
   });
 
-  
 
   const approvedTemplates = Array.isArray(templates)
   ? templates.filter((t: any) =>
-      typeof t?.status === "string" &&
-      t.status.toLowerCase().includes("approve")
+      t?.status?.toLowerCase().includes("approve")
     )
   : [];
 
 
-  
+  // Extract variable count from template body
+  const getVariableCount = (body: string) => {
+    const matches = body.match(/\{\{\d+\}\}/g);
+    return matches ? matches.length : 0;
+  };
 
+  const handleTemplateSelect = (template: any) => {
+    const varCount = getVariableCount(template.body);
+    setSelectedTemplate(template);
+    setVariables(new Array(varCount).fill(""));
+    
+    // Check if template has header with media
+    const hasMediaHeader = template.components?.some(
+      (c: any) => c.type === "HEADER" && c.format === "IMAGE"
+    );
+    
+    if (!hasMediaHeader) {
+      setMediaId("");
+    }
+  };
 
+  const handleSend = () => {
+    if (!selectedTemplate) return;
+    
+    onSelectTemplate(
+      selectedTemplate, 
+      variables.filter(v => v.trim()), 
+      mediaId || undefined
+    );
+    
+    setOpen(false);
+    setSelectedTemplate(null);
+    setVariables([]);
+    setMediaId("");
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -1016,41 +1047,100 @@ const TemplateDialog = ({
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[80vh]">
         <DialogHeader>
-          <DialogTitle>Select Template</DialogTitle>
-          <DialogDescription>
-            Choose from approved WhatsApp templates
-          </DialogDescription>
+          <DialogTitle>
+            {selectedTemplate ? "Configure Template" : "Select Template"}
+          </DialogTitle>
         </DialogHeader>
 
         <ScrollArea className="h-[400px] pr-4">
-          {templatesLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loading />
-            </div>
-          ) : approvedTemplates.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              No approved templates available
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {approvedTemplates.map((template: any) => (
-                <div
-                  key={template.id}
-                  onClick={() => {
-                    onSelectTemplate(template);
-                    setOpen(false);
-                  }}
-                  className="p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <h4 className="font-medium">{template.name}</h4>
-                    <Badge variant="outline" className="text-xs">
-                      {template.category}
-                    </Badge>
+          {!selectedTemplate ? (
+            // Template List
+            isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loading />
+              </div>
+            ) : approvedTemplates.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                No approved templates available
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {approvedTemplates.map((template: any) => (
+                  <div
+                    key={template.id}
+                    onClick={() => handleTemplateSelect(template)}
+                    className="p-4 border rounded-lg cursor-pointer hover:bg-gray-50"
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <h4 className="font-medium">{template.name}</h4>
+                      <Badge variant="outline">{template.category}</Badge>
+                    </div>
+                    <p className="text-sm text-gray-600">{template.body}</p>
                   </div>
-                  <p className="text-sm text-gray-600">{template.body}</p>
+                ))}
+              </div>
+            )
+          ) : (
+            // Variable Input Form
+            <div className="space-y-4">
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <h4 className="font-medium mb-2">{selectedTemplate.name}</h4>
+                <p className="text-sm text-gray-600">{selectedTemplate.body}</p>
+              </div>
+
+              {/* Media ID Input (if template has header) */}
+              {selectedTemplate.components?.some(
+                (c: any) => c.type === "HEADER" && c.format === "IMAGE"
+              ) && (
+                <div>
+                  <label className="text-sm font-medium mb-2 block">
+                    Header Image Media ID
+                  </label>
+                  <Input
+                    value={mediaId}
+                    onChange={(e) => setMediaId(e.target.value)}
+                    placeholder="Enter media ID (e.g., 893100230071831)"
+                  />
+                </div>
+              )}
+
+              {/* Variable Inputs */}
+              {variables.map((_, index) => (
+                <div key={index}>
+                  <label className="text-sm font-medium mb-2 block">
+                     Variable {index + 1}
+                  </label>
+
+                  <Input
+                    value={variables[index]}
+                    onChange={(e) => {
+                      const newVars = [...variables];
+                      newVars[index] = e.target.value;
+                      setVariables(newVars);
+                    }}
+                    placeholder={`Enter value for {{${index + 1}}}`}
+                  />
                 </div>
               ))}
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSelectedTemplate(null);
+                    setVariables([]);
+                    setMediaId("");
+                  }}
+                >
+                  Back
+                </Button>
+                <Button
+                  onClick={handleSend}
+                  disabled={variables.some(v => !v.trim())}
+                >
+                  Send Template
+                </Button>
+              </div>
             </div>
           )}
         </ScrollArea>
@@ -1765,8 +1855,8 @@ socketInstance.on("new-message", (data) => {
     conversationId: string;
     templateName: string;
     phoneNumber: string;
-    parameters?: string[]; // optional variables
-    mediaId?: string;      // optional mediaId for header
+    parameters?: string[];
+    mediaId?: string;
   }) => {
     const response = await fetch("/api/messages/send", {
       method: "POST",
@@ -1775,12 +1865,9 @@ socketInstance.on("new-message", (data) => {
         to: data.phoneNumber,
         templateName: data.templateName,
         channelId: selectedConversation?.channelId,
-        // parameters: data.parameters || [], // send variables safely
-        // mediaId: data.mediaId,             // optional header mediaId
-
-        parameters: ["John Doe", "Order #12345","Wireless Headphones", "₹499", "12th Dec 2023"],
-        mediaId: 893100230071831
-      }),
+        parameters: data.parameters || [],
+        mediaId: data.mediaId // Include mediaId if provided
+      })
     });
 
     if (!response.ok) {
@@ -1792,21 +1879,22 @@ socketInstance.on("new-message", (data) => {
   },
   onSuccess: () => {
     queryClient.invalidateQueries({
-      queryKey: ["/api/conversations", selectedConversation?.id, "messages"],
+      queryKey: ["/api/conversations", selectedConversation?.id, "messages"]
     });
     toast({
       title: "Success",
-      description: "Template sent successfully",
+      description: "Template sent successfully"
     });
   },
   onError: (error: Error) => {
     toast({
       title: "Error",
       description: error.message,
-      variant: "destructive",
+      variant: "destructive"
     });
-  },
+  }
 });
+
 
   const sendTemplateMutationOLLLD = useMutation({
     mutationFn: async (data: {
@@ -1858,15 +1946,20 @@ socketInstance.on("new-message", (data) => {
     });
   };
 
-  const handleSelectTemplate = (template: any) => {
-    if (!selectedConversation) return;
 
-    sendTemplateMutation.mutate({
-      conversationId: selectedConversation.id,
-      templateName: template.name,
-      phoneNumber: selectedConversation.contactPhone || "",
-    });
-  };
+
+  const handleSelectTemplate = (template: any, variables: string[], mediaId?: string) => {
+  if (!selectedConversation) return;
+
+  sendTemplateMutation.mutate({
+    conversationId: selectedConversation.id,
+    templateName: template.name,
+    phoneNumber: selectedConversation.contactPhone || "",
+    parameters: variables,
+    mediaId: mediaId
+  });
+};
+
 
   const handleFileAttachment = () => {
     fileInputRef.current?.click();

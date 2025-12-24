@@ -751,7 +751,7 @@ export const getMediaProxy = asyncHandler(async (req: Request, res: Response) =>
 
 
 
-export const sendMessage = asyncHandler(async (req: RequestWithChannel, res: Response) => {
+export const sendMessageOODLL = asyncHandler(async (req: RequestWithChannel, res: Response) => {
   const { to, message, templateName, parameters, channelId: bodyChannelId, caption, type } = req.body;
   const file = (req as any).file; // multer adds this
 
@@ -844,3 +844,145 @@ export const sendMessage = asyncHandler(async (req: RequestWithChannel, res: Res
   });
 });
 
+
+
+export const sendMessage = asyncHandler(async (req: RequestWithChannel, res: Response) => {
+  const { 
+    to, 
+    message, 
+    templateName, 
+    parameters, 
+    mediaId, // NEW: accept mediaId
+    channelId: bodyChannelId, 
+    caption, 
+    type 
+  } = req.body;
+  
+  const file = (req as any).file;
+
+  // Get channel
+  let channelId = bodyChannelId;
+  if (!channelId) {
+    const activeChannel = await storage.getActiveChannel();
+    if (!activeChannel) {
+      throw new AppError(400, "No active channel found. Please select a channel.");
+    }
+    channelId = activeChannel.id;
+  }
+
+  const channel = await storage.getChannel(channelId);
+  if (!channel) throw new AppError(404, "Channel not found");
+
+  const whatsappApi = new WhatsAppApiService(channel);
+
+  let result;
+  let msgBody = message;
+  let messageType = "text";
+
+  if (templateName) {
+    // ✅ Send template with variables + optional media
+    result = await whatsappApi.sendMessage(
+      to, 
+      templateName, 
+      parameters || [], 
+      mediaId // Pass mediaId to API
+    );
+    
+    // Get template body for display
+    const templates = await storage.getTemplatesByName(templateName);
+    if (templates && templates.length > 0) {
+      msgBody = templates[0].body;
+      
+      // Replace variables in body for display ({{1}}, {{2}}, etc.)
+      if (parameters && parameters.length > 0) {
+        parameters.forEach((param, index) => {
+          msgBody = msgBody.replace(`{{${index + 1}}}`, param);
+        });
+      }
+    } else {
+      msgBody = templateName; // Fallback
+    }
+    
+    messageType = "template";
+  } else if (file) {
+    // Handle media upload + send
+    const mimeType = file.mimetype;
+    const uploadedMediaId = await whatsappApi.uploadMedia(file.path, mimeType);
+
+    if (mimeType.startsWith("image")) messageType = "image";
+    else if (mimeType.startsWith("video")) messageType = "video";
+    else if (mimeType.startsWith("audio")) messageType = "audio";
+    else messageType = "document";
+
+    result = await whatsappApi.sendMediaMessage(
+      to, 
+      uploadedMediaId, 
+      messageType as any, 
+      caption || message
+    );
+    msgBody = caption || `[${messageType}]`;
+  } else {
+    // Text message
+    result = await whatsappApi.sendTextMessage(to, message);
+    msgBody = message;
+    messageType = "text";
+  }
+
+  // Conversation / contact logic
+  let conversation = await storage.getConversationByPhone(to);
+  if (!conversation) {
+    let contact = await storage.getContactByPhone(to);
+    if (!contact) {
+      contact = await storage.createContact({ 
+        name: to, 
+        phone: to, 
+        channelId 
+      });
+    }
+    conversation = await storage.createConversation({
+      contactId: contact.id,
+      contactPhone: to,
+      contactName: contact.name || to,
+      channelId,
+      unreadCount: 0
+    });
+  }
+
+  const createdMessage = await storage.createMessage({
+    conversationId: conversation.id,
+    content: msgBody,
+    status: "sent",
+    whatsappMessageId: result.messages?.[0]?.id,
+    messageType: messageType,
+    metadata: file 
+      ? { 
+          mimeType: file.mimetype, 
+          originalName: file.originalname 
+        } 
+      : mediaId 
+      ? { 
+          headerMediaId: mediaId 
+        } 
+      : {}
+  });
+
+  await storage.updateConversation(conversation.id, {
+    lastMessageAt: new Date(),
+    lastMessageText: msgBody
+  });
+
+  // Broadcast to websocket
+  if ((global as any).broadcastToConversation) {
+    (global as any).broadcastToConversation(conversation.id, {
+      type: "new-message",
+      message: createdMessage
+    });
+  }
+
+  res.json({
+    success: true,
+    messageId: result.messages?.[0]?.id,
+    conversationId: conversation.id,
+    message: createdMessage
+  });
+});

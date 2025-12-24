@@ -370,8 +370,270 @@ export const campaignsController = {
   }),
 };
 
-// Helper function to execute campaign
+
 export async function startCampaignExecution(campaignId: string) {
+  console.log("Starting campaign execution for:", campaignId);
+
+  const campaign = await storage.getCampaign(campaignId);
+  if (!campaign || campaign.status !== "active") {
+    console.log("Campaign not found or not active:", campaignId);
+    return;
+  }
+
+  if (!campaign.channelId) {
+    console.error("Channel ID is missing for campaign:", campaignId);
+    return;
+  }
+
+  const channel = await storage.getChannel(campaign.channelId);
+  if (!channel) {
+    console.error("Channel not found for campaign:", campaignId);
+    return;
+  }
+
+  if (!campaign.templateId) {
+    console.error("Template ID is missing for campaign:", campaignId);
+    return;
+  }
+  
+  const template = await storage.getTemplate(campaign.templateId);
+  console.log("Fetched template:", template);
+  if (!template) {
+    console.error("Template not found for campaign:", campaignId);
+    return;
+  }
+
+  console.log("Campaign details:", {
+    campaignId,
+    channelId: channel.id,
+    templateId: template.id,
+    templateName: template.name,
+    templateMedia: template.mediaUrl,
+    campaignType: campaign.campaignType,
+    contactGroups: campaign.contactGroups,
+  });
+
+  // Debug logging
+  console.log("Template structure:", JSON.stringify(template, null, 2));
+  console.log("Campaign variableMapping:", JSON.stringify(campaign.variableMapping, null, 2));
+
+  // Get contacts for the campaign
+  let contacts: Contact[] = [];
+  if (campaign.campaignType === "contacts" && campaign.contactGroups) {
+    for (const contactId of campaign.contactGroups) {
+      const contact = await storage.getContact(contactId);
+      if (contact) {
+        contacts.push(contact);
+      }
+    }
+  }
+
+  console.log(`Found ${contacts.length} contacts for campaign`);
+
+  // Process each contact
+  for (const contact of contacts) {
+    try {
+      // console.log(`Processing contact: ${contact.name} (${contact.phone})`);
+
+      // Prepare template components
+      const components: any[] = [];
+      // const templateMediaUrl = 1381414190146341;
+      const templateMediaUrl = template.mediaUrl;
+      // 1. Handle HEADER component
+      if (templateMediaUrl) {
+        const headerComponent: any = { type: "header", parameters: [] };
+
+        if (templateMediaUrl) {
+          const imageUrl = templateMediaUrl
+          
+          if (imageUrl) {
+            headerComponent.parameters.push({
+              type: "image",
+              image: { id: templateMediaUrl }
+            });
+            components.push(headerComponent);
+          }
+        } else if (template.header.format === "VIDEO") {
+          // const videoUrl = template.header.videoUrl || 
+          //                 template.header.example?.header_handle?.[0];
+          
+          // if (videoUrl) {
+          //   headerComponent.parameters.push({
+          //     type: "video",
+          //     video: { link: videoUrl }
+          //   });
+          //   components.push(headerComponent);
+          // }
+        } else if (template.header.format === "DOCUMENT") {
+          // const docUrl = template.header.documentUrl || 
+          //               template.header.example?.header_handle?.[0];
+          
+          // if (docUrl) {
+          //   headerComponent.parameters.push({
+          //     type: "document",
+          //     document: { link: docUrl }
+          //   });
+          //   components.push(headerComponent);
+          // }
+        } else if (template.header.format === "TEXT") {
+          // Count variables in header text
+          const headerText = template.header.text || "";
+          const headerVarCount = (headerText.match(/\{\{\d+\}\}/g) || []).length;
+          
+          if (headerVarCount > 0) {
+            // Get mapping for header
+            const headerMapping = campaign.variableMapping?.header || 
+                                 campaign.variableMapping?.["1"]; // fallback to old format
+            
+            for (let i = 1; i <= headerVarCount; i++) {
+              let value = "";
+              const fieldName = headerMapping?.[i.toString()] || 
+                               headerMapping?.[`{{${i}}}`];
+              
+              if (fieldName === "name") value = contact.name;
+              else if (fieldName === "phone") value = contact.phone;
+              else if (fieldName === "email") value = contact.email || "";
+              else value = fieldName || ""; // Use the value directly if not a field reference
+              
+              headerComponent.parameters.push({ type: "text", text: value });
+            }
+            
+            if (headerComponent.parameters.length > 0) {
+              components.push(headerComponent);
+            }
+          }
+        }
+      }
+
+      // 2. Handle BODY component
+      const bodyText = template.body || "";
+      const bodyVarCount = (bodyText.match(/\{\{\d+\}\}/g) || []).length;
+      
+      console.log(`Body has ${bodyVarCount} variables`);
+
+      if (bodyVarCount > 0) {
+        const bodyComponent: any = { type: "body", parameters: [] };
+        
+        // Try different mapping structures
+        const bodyMapping = campaign.variableMapping?.body || 
+                           campaign.variableMapping; // fallback to root level
+        
+        // console.log("Body mapping:", JSON.stringify(bodyMapping, null, 2));
+
+        for (let i = 1; i <= bodyVarCount; i++) {
+          let value = "";
+          
+          // Try multiple mapping formats
+          const fieldName = bodyMapping?.[i.toString()] || 
+                           bodyMapping?.[`{{${i}}}`] ||
+                           bodyMapping?.[`var${i}`] ||
+                           bodyMapping?.[`variable${i}`];
+          
+          console.log(`Variable ${i} mapped to:`, fieldName);
+
+          if (fieldName === "name") value = contact.name;
+          else if (fieldName === "phone") value = contact.phone;
+          else if (fieldName === "email") value = contact.email || "";
+          else if (fieldName) value = fieldName; // Use the value directly
+          else value = `Variable${i}`; // Default fallback
+          
+          bodyComponent.parameters.push({ type: "text", text: value });
+        }
+        
+        components.push(bodyComponent);
+        // console.log("Body component:", JSON.stringify(bodyComponent, null, 2));
+      }
+
+      // 3. Handle BUTTONS component (dynamic URLs)
+      if (template.buttons && Array.isArray(template.buttons)) {
+        template.buttons.forEach((button: any, index: number) => {
+          if (button.type === "URL" && button.url?.includes("{{")) {
+            const buttonMapping = campaign.variableMapping?.buttons?.[index.toString()];
+            
+            if (buttonMapping) {
+              let value = "";
+              if (buttonMapping === "name") value = contact.name;
+              else if (buttonMapping === "phone") value = contact.phone;
+              else if (buttonMapping === "email") value = contact.email || "";
+              else value = buttonMapping;
+              
+              components.push({
+                type: "button",
+                sub_type: "url",
+                index: index.toString(),
+                parameters: [{ type: "text", text: value }]
+              });
+            }
+          }
+        });
+      }
+
+      // console.log("Final components:", JSON.stringify(components, null, 2));
+
+      // Send template message
+      const response = await WhatsAppApiService.sendTemplateMessage(
+        channel,
+        contact.phone,
+        template.name,
+        components,
+        template.language || "en_US",
+        true
+      );
+      
+      const messageId = response.messages?.[0]?.id || `msg_${randomUUID()}`;
+
+      // Conversation / contact logic
+      let conversation = await storage.getConversationByPhone(contact.phone);
+      if (!conversation) {
+        conversation = await storage.createConversation({
+          contactId: contact.id,
+          contactPhone: contact.phone,
+          contactName: contact.name || contact.phone,
+          channelId: channel.id,
+          unreadCount: 0,
+        });
+      }
+
+      await storage.createMessage({
+        conversationId: conversation.id,
+        content: template.body || "",
+        status: "sent",
+        whatsappMessageId: messageId,
+        messageType: "text",
+        metadata: {},
+      });
+
+      // Update sent count
+      await storage.updateCampaign(campaignId, {
+        sentCount: (campaign.sentCount || 0) + 1,
+      });
+      
+      console.log("Message sent successfully to:", contact.phone);
+      
+    } catch (error) {
+      console.error(`Failed to send message to ${contact.phone}:`, error);
+      await storage.updateCampaign(campaignId, {
+        failedCount: (campaign.failedCount || 0) + 1,
+      });
+    }
+  }
+
+  // Mark campaign as completed
+  const updatedCampaign = await storage.getCampaign(campaignId);
+  if (
+    updatedCampaign &&
+    (updatedCampaign.sentCount || 0) + (updatedCampaign.failedCount || 0) >=
+      (updatedCampaign.recipientCount || 0)
+  ) {
+    await storage.updateCampaign(campaignId, {
+      status: "completed",
+      completedAt: new Date(),
+    });
+  }
+}
+
+// Helper function to execute campaign
+export async function startCampaignExecutionnsdfnnnn(campaignId: string) {
   console.log("Starting campaign execution for:", campaignId);
 
   const campaign = await storage.getCampaign(campaignId);
@@ -401,14 +663,14 @@ export async function startCampaignExecution(campaignId: string) {
     return;
   }
 
-  console.log("Campaign details:", {
-    campaignId,
-    channelId: channel.id,
-    templateId: template.id,
-    templateName: template.name,
-    campaignType: campaign.campaignType,
-    contactGroups: campaign.contactGroups,
-  });
+  // console.log("Campaign details:", {
+  //   campaignId,
+  //   channelId: channel.id,
+  //   templateId: template.id,
+  //   templateName: template.name,
+  //   campaignType: campaign.campaignType,
+  //   contactGroups: campaign.contactGroups,
+  // });
 
   // Get contacts for the campaign
   let contacts: Contact[] = [];
@@ -421,7 +683,7 @@ export async function startCampaignExecution(campaignId: string) {
     }
   }
 
-  console.log(`Found ${contacts.length} contacts for campaign`);
+  // console.log(`Found ${contacts.length} contacts for campaign`);
 
   // Process each contact
   for (const contact of contacts) {
