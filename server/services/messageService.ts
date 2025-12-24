@@ -115,39 +115,35 @@ export async function sendBusinessMessage({
   message,
   templateName,
   parameters,
+  mediaId,
   channelId,
   conversationId,
-  mediaId, // ✅ NEW (header image id)
 }: {
   to: string;
   message?: string;
   templateName?: string;
   parameters?: string[];
+  mediaId?: string | null;
   channelId?: string;
   conversationId?: string;
-  mediaId?: string | null;
 }) {
-  /* ───── Resolve Channel ───── */
+  /* ───── Resolve channel ───── */
   if (!channelId) {
-    const activeChannel = await storage.getActiveChannel();
-    if (!activeChannel) {
-      throw new AppError(400, "No active channel found");
-    }
-    channelId = activeChannel.id;
+    const active = await storage.getActiveChannel();
+    if (!active) throw new AppError(400, "No active channel");
+    channelId = active.id;
   }
 
   const channel = await storage.getChannel(channelId);
   if (!channel) throw new AppError(404, "Channel not found");
 
-  console.log("📤 Sending message via channel:", channelId, "to:", to);
-
   let result;
 
-  /* ───────────────── TEMPLATE MESSAGE ───────────────── */
+  /* ───────── TEMPLATE MESSAGE ───────── */
   if (templateName) {
     const components: any[] = [];
 
-    /* HEADER IMAGE */
+    // ✅ HEADER IMAGE
     if (mediaId) {
       components.push({
         type: "header",
@@ -160,7 +156,7 @@ export async function sendBusinessMessage({
       });
     }
 
-    /* BODY PARAMETERS */
+    // ✅ BODY VARIABLES
     if (parameters && parameters.length > 0) {
       components.push({
         type: "body",
@@ -169,6 +165,10 @@ export async function sendBusinessMessage({
           text: String(val),
         })),
       });
+    }
+
+    if (components.length === 0) {
+      throw new Error("Template components empty — invalid payload");
     }
 
     const payload = {
@@ -202,13 +202,13 @@ export async function sendBusinessMessage({
     if (!response.ok) {
       const err = await response.json();
       console.error("WhatsApp API Error:", err);
-      throw new Error(err.error?.message || "Failed to send template");
+      throw new Error(err.error?.message || "Template send failed");
     }
 
     result = await response.json();
   }
 
-  /* ───────────────── TEXT MESSAGE ───────────────── */
+  /* ───────── TEXT MESSAGE ───────── */
   else {
     const payload = {
       messaging_product: "whatsapp",
@@ -231,13 +231,13 @@ export async function sendBusinessMessage({
 
     if (!response.ok) {
       const err = await response.json();
-      throw new Error(err.error?.message || "Failed to send text message");
+      throw new Error(err.error?.message || "Text send failed");
     }
 
     result = await response.json();
   }
 
-  /* ───── Conversation handling (UNCHANGED) ───── */
+  /* ───── Conversation save (unchanged) ───── */
   let conversation = conversationId
     ? await storage.getConversation(conversationId)
     : await storage.getConversationByPhone(to);
@@ -261,20 +261,16 @@ export async function sendBusinessMessage({
     });
   }
 
-  const template = templateName
-    ? (await storage.getTemplatesByName(templateName))[0]
-    : null;
-
   const createdMessage = await storage.createMessage({
     conversationId: conversation.id,
-    content: message ?? template?.body ?? "",
+    content: message ?? templateName ?? "",
     status: "sent",
     whatsappMessageId: result.messages?.[0]?.id,
   });
 
   await storage.updateConversation(conversation.id, {
     lastMessageAt: new Date(),
-    lastMessageText: message ?? template?.body ?? "",
+    lastMessageText: message ?? templateName ?? "",
   });
 
   if ((global as any).broadcastToConversation) {
@@ -288,6 +284,5 @@ export async function sendBusinessMessage({
     success: true,
     messageId: result.messages?.[0]?.id,
     conversationId: conversation.id,
-    createdMessage,
   };
 }
