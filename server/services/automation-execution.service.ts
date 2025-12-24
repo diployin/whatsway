@@ -8,12 +8,15 @@ import {
   automationExecutionLogs,
   automationEdges,
   contacts,
+  messages,
   templates,
+  channels,
 } from "@shared/schema";
 import { eq, and } from "drizzle-orm";
 import { sendBusinessMessage } from "../services/messageService";
 import { WhatsAppApiService } from "./whatsapp-api";
 import { storage } from "server/storage";
+import { randomUUID } from "crypto";
 
 interface ExecutionContext {
   executionId: string;
@@ -1365,8 +1368,9 @@ private async sendInteractiveMessage(
     throw new Error('No conversation ID in context');
   }
 
+  // Get contact
   const getContact = await db.query.contacts.findFirst({
-    where: eq(contacts?.id, context.contactId),
+    where: eq(contacts.id, context.contactId),
   });
 
   if (!getContact?.phone) {
@@ -1379,6 +1383,7 @@ private async sendInteractiveMessage(
     throw new Error("Contact has no channelId");
   }
 
+  // Get template
   const getTemplate = await db.query.templates.findFirst({
     where: and(
       eq(templates.id, templateId),
@@ -1390,6 +1395,7 @@ private async sendInteractiveMessage(
     throw new Error('Template not found');
   }
 
+  // Get channel - THIS LINE WAS CAUSING THE ERROR
   const channel = await db.query.channels.findFirst({
     where: eq(channels.id, getContact.channelId)
   });
@@ -1398,10 +1404,10 @@ private async sendInteractiveMessage(
     throw new Error('Channel not found');
   }
 
-  // Build template components properly
+  // Build template components
   const components: any[] = [];
 
-  // 1. Handle HEADER component
+  // 1. Handle HEADER
   if (getTemplate.header) {
     const headerComponent: any = { type: "header", parameters: [] };
 
@@ -1439,18 +1445,15 @@ private async sendInteractiveMessage(
         components.push(headerComponent);
       }
     } else if (getTemplate.header.format === "TEXT") {
-      // Count variables in header text
       const headerText = getTemplate.header.text || "";
       const headerVarCount = (headerText.match(/\{\{\d+\}\}/g) || []).length;
       
       if (headerVarCount > 0) {
-        // Get header parameters from node data
         const headerParams = node.data?.headerParameters || [];
         
         for (let i = 0; i < headerVarCount; i++) {
           let value = headerParams[i] || "";
           
-          // Replace dynamic values
           value = value
             .replace(/\{\{contact\.name\}\}/g, getContact.name || "")
             .replace(/\{\{contact\.phone\}\}/g, getContact.phone || "")
@@ -1466,7 +1469,7 @@ private async sendInteractiveMessage(
     }
   }
 
-  // 2. Handle BODY component
+  // 2. Handle BODY
   const bodyText = getTemplate.body || "";
   const bodyVarCount = (bodyText.match(/\{\{\d+\}\}/g) || []).length;
   
@@ -1474,8 +1477,6 @@ private async sendInteractiveMessage(
 
   if (bodyVarCount > 0) {
     const bodyComponent: any = { type: "body", parameters: [] };
-    
-    // Get body parameters from node data
     const bodyParams = node.data?.parameters || node.data?.bodyParameters || [];
     
     console.log("Body parameters from node:", bodyParams);
@@ -1483,7 +1484,6 @@ private async sendInteractiveMessage(
     for (let i = 0; i < bodyVarCount; i++) {
       let value = bodyParams[i] || "";
       
-      // Replace dynamic placeholders with actual contact data
       value = value
         .replace(/\{\{contact\.name\}\}/g, getContact.name || "")
         .replace(/\{\{contact\.phone\}\}/g, getContact.phone || "")
@@ -1493,17 +1493,15 @@ private async sendInteractiveMessage(
     }
     
     components.push(bodyComponent);
-    console.log("Body component:", JSON.stringify(bodyComponent, null, 2));
   }
 
-  // 3. Handle BUTTONS component (dynamic URLs)
+  // 3. Handle BUTTONS
   if (getTemplate.buttons && Array.isArray(getTemplate.buttons)) {
     getTemplate.buttons.forEach((button: any, index: number) => {
       if (button.type === "URL" && button.url?.includes("{{")) {
         const buttonParams = node.data?.buttonParameters || [];
         let value = buttonParams[index] || "";
         
-        // Replace dynamic values
         value = value
           .replace(/\{\{contact\.name\}\}/g, getContact.name || "")
           .replace(/\{\{contact\.phone\}\}/g, getContact.phone || "")
@@ -1523,7 +1521,7 @@ private async sendInteractiveMessage(
 
   console.log("Final components:", JSON.stringify(components, null, 2));
 
-  // Send template message using WhatsApp API service
+  // Send template
   try {
     const response = await WhatsAppApiService.sendTemplateMessage(
       channel,
@@ -1531,7 +1529,7 @@ private async sendInteractiveMessage(
       getTemplate.name,
       components,
       getTemplate.language || "en_US",
-      false // Automation messages use regular API, not MM Lite
+      false // Automation uses regular API
     );
 
     const messageId = response.messages?.[0]?.id || `msg_${randomUUID()}`;
@@ -1566,7 +1564,6 @@ private async sendInteractiveMessage(
     throw new Error(`Failed to send template: ${error.message}`);
   }
 }
-
 
   
 
