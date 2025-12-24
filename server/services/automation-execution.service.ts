@@ -1352,9 +1352,100 @@ private async sendInteractiveMessage(
   }
 
 
+private async executeSendTemplate(node: any, context: ExecutionContext) {
+  const templateId = node.data?.templateId;
+
+  if (!templateId) throw new Error("No template ID provided");
+  if (!context.contactId) throw new Error("No contactId in context");
+
+  // 1️⃣ Get contact
+  const contact = await db.query.contacts.findFirst({
+    where: eq(contacts.id, context.contactId),
+  });
+
+  if (!contact?.phone) throw new Error("Contact phone not found");
+  if (!contact.channelId) throw new Error("Contact channelId missing");
+
+  // 2️⃣ Get template
+  const template = await db.query.templates.findFirst({
+    where: and(
+      eq(templates.id, templateId),
+      eq(templates.channelId, contact.channelId)
+    ),
+  });
+
+  if (!template) throw new Error("Template not found");
+
+  console.log(`📄 Sending template ${template.name} to ${contact.phone}`);
+
+  const components: any[] = [];
+
+  /* ───────── HEADER IMAGE (FROM TEMPLATE TABLE) ───────── */
+  if (template.mediaType === "image" && template.mediaUrl) {
+    components.push({
+      type: "header",
+      parameters: [
+        {
+          type: "image",
+          image: { id: template.mediaUrl }, // media_id
+        },
+      ],
+    });
+  }
+
+  /* ───────── BODY VARIABLES (AUTO FROM templates.variables) ───────── */
+  if (Array.isArray(template.variables) && template.variables.length > 0) {
+    const bodyParams = template.variables.map((variable: any, index: number) => {
+      // 🔒 Static fallback for now
+      const staticValue = `Value ${index + 1}`;
+
+      return {
+        type: "text",
+        text: staticValue,
+      };
+    });
+
+    components.push({
+      type: "body",
+      parameters: bodyParams,
+    });
+  }
+
+  // 🛑 Safety: avoid test message
+  if (!components.length) {
+    throw new Error("Template components empty – blocking test message");
+  }
+
+  console.log(
+    "📤 WhatsApp Template Payload:",
+    JSON.stringify(
+      {
+        template: template.name,
+        components,
+      },
+      null,
+      2
+    )
+  );
+
+  // 3️⃣ Send
+  await sendBusinessMessage({
+    to: contact.phone,
+    channelId: contact.channelId,
+    templateName: template.name,
+    components,
+  });
+
+  console.log(`✅ Template sent successfully: ${template.name}`);
+
+  return {
+    action: "template_sent",
+    templateId,
+  };
+}
 
 
-  private async executeSendTemplate(node: any, context: ExecutionContext) {
+  private async executeSendTemplateseconddd(node: any, context: ExecutionContext) {
   const templateId = node.data?.templateId;
 
   if (!templateId) throw new Error("No template ID provided");
