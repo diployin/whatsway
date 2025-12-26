@@ -27,11 +27,6 @@ export function registerCampaignRoutes(app: Express) {
   );
 
 
-  //   app.post("/api/campaigns",   requireAuth,
-  // requirePermission(PERMISSIONS.CAMPAIGNS_CREATE), 
-  //   campaignsController.createCampaign
-  // );
-
 
   app.post("/api/getCampaignsByUserId", requireAuth, campaignsController.getCampaignByUserID);
 
