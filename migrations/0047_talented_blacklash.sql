@@ -1,0 +1,2 @@
+ALTER TABLE "channels"
+ALTER COLUMN "app_id" SET DEFAULT NULL;

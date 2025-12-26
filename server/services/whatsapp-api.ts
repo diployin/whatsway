@@ -1,0 +1,1386 @@
+import type { Channel } from "@shared/schema";
+import * as fs from "fs";
+import path from "path";
+import axios from "axios";
+import FormData from "form-data";
+import type { Response } from "express";
+import { fileURLToPath } from "url";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+import { storage } from '../storage';
+
+
+
+interface WhatsAppTemplate {
+  id: string;
+  status: string;
+  name: string;
+  language: string;
+  category: string;
+  components: any[];
+}
+
+export class WhatsAppApiService {
+  private channel: Channel;
+  private baseUrl: string;
+  private headers: Record<string, string>;
+
+  // constructor(channel: Channel) {
+  //   this.channel = channel;
+  //   const apiVersion = process.env.WHATSAPP_API_VERSION || "v23.0";
+  //   this.baseUrl = `https://graph.facebook.com/${apiVersion}`;
+  //   this.headers = {
+  //     Authorization: `Bearer ${channel.accessToken}`,
+  //     "Content-Type": "application/json",
+  //   };
+  // }
+
+
+  constructor(channel: Channel) {
+  this.channel = channel;
+  const apiVersion = process.env.WHATSAPP_API_VERSION || "v23.0";
+  this.baseUrl = `https://graph.facebook.com/${apiVersion}`;
+
+  // Prefer channel token, but fallback to ENV token
+  const token = channel.accessToken;
+
+  if (!token) {
+    throw new Error("Missing WhatsApp access token");
+  }
+
+  this.headers = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+}
+
+
+  // Static method for sending template messages
+
+ static async sendTemplateMessage(
+  channel: Channel,
+  to: string,
+  templateName: string,
+  components: any[] = [], // Changed from parameters: string[]
+  language: string = "en_US",
+  isMarketing: boolean = true
+): Promise<any> {
+  const apiVersion = process.env.WHATSAPP_API_VERSION || "v23.0";
+  const baseUrl = `https://graph.facebook.com/${apiVersion}`;
+
+  // Format phone number
+  const phoneNumber = to.replace(/\D/g, "");
+  const formattedPhone = phoneNumber.startsWith("+")
+    ? phoneNumber.substring(1)
+    : phoneNumber;
+
+  const body = {
+    messaging_product: "whatsapp",
+    to: formattedPhone,
+    type: "template",
+    template: {
+      name: templateName,
+      language: { code: language },
+      components: components.length > 0 ? components : undefined,
+    },
+  };
+
+  // console.log("Sending WhatsApp template message:", {
+  //   to: formattedPhone,
+  //   templateName,
+  //   language,
+  //   components: JSON.stringify(components, null, 2),
+  //   phoneNumberId: channel.phoneNumberId,
+  //   isMarketing,
+  //   usingMMLite: isMarketing,
+  // });
+
+  // Use MM Lite API endpoint for marketing messages
+  const endpoint = isMarketing
+    ? `${baseUrl}/${channel.phoneNumberId}/marketing_messages`
+    : `${baseUrl}/${channel.phoneNumberId}/messages`;
+
+  // console.log("WhatsApp API endpoint:", endpoint);
+
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${channel.accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  const responseData = await response.json();
+
+  if (!response.ok) {
+    // console.error("WhatsApp API Error:", responseData);
+    throw new Error(
+      responseData.error?.message || "Failed to send template message"
+    );
+  }
+
+  console.log("WhatsApp message sent successfully:", responseData);
+  return responseData;
+}
+
+  static async sendTemplateMessageOLLDLD(
+    channel: Channel,
+    to: string,
+    templateName: string,
+    parameters: string[] = [],
+    language: string = "en_US",
+    isMarketing: boolean = true // Marketing messages use MM Lite API
+  ): Promise<any> {
+    const apiVersion = process.env.WHATSAPP_API_VERSION || "v23.0";
+    const baseUrl = `https://graph.facebook.com/${apiVersion}`;
+
+    // Format phone number
+    const phoneNumber = to.replace(/\D/g, "");
+    const formattedPhone = phoneNumber.startsWith("+")
+      ? phoneNumber.substring(1)
+      : phoneNumber;
+
+    const body = {
+      messaging_product: "whatsapp",
+      to: formattedPhone,
+      type: "template",
+      template: {
+        name: templateName,
+        language: { code: language },
+        components:
+          parameters.length > 0
+            ? [
+                {
+                  type: "body",
+                  parameters: parameters.map((text) => ({
+                    type: "text",
+                    text,
+                  })),
+                },
+              ]
+            : undefined,
+      },
+    };
+
+    console.log("Sending WhatsApp template message:", {
+      to: formattedPhone,
+      templateName,
+      language,
+      parameters,
+      phoneNumberId: channel.phoneNumberId,
+      isMarketing,
+      usingMMLite: isMarketing,
+    });
+
+    // Use MM Lite API endpoint for marketing messages
+    const endpoint = isMarketing
+      ? `${baseUrl}/${channel.phoneNumberId}/marketing_messages`
+      : `${baseUrl}/${channel.phoneNumberId}/messages`;
+
+    // console.log("WhatsApp API endpoint:", endpoint);
+
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${channel.accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    const responseData = await response.json();
+
+    if (!response.ok) {
+      console.error("WhatsApp API Error:", responseData);
+      throw new Error(
+        responseData.error?.message || "Failed to send template message"
+      );
+    }
+
+    console.log("WhatsApp message sent successfully:", responseData);
+    return responseData;
+  }
+
+  /**
+   * Get a temporary media download URL for a WhatsApp mediaId
+   */
+  async fetchMediaUrl(mediaId: string): Promise<string> {
+    const url = `${this.baseUrl}/${mediaId}`;
+    console.log(`Fetching media URL: ${url}`);
+
+    const response = await fetch(url, { headers: this.headers });
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error("❌ WhatsApp API Media Fetch Error:", data);
+      throw new Error(data.error?.message || "Failed to fetch media URL");
+    }
+
+    if (!data.url) {
+      throw new Error("No media URL returned by WhatsApp API");
+    }
+
+    console.log("✅ Media URL fetched successfully:", data.url);
+    return data.url; // Temporary signed URL
+  }
+
+  /**
+   * Download the media file (image, video, document, etc.)
+   * and save it locally
+   */
+
+  // async downloadMedia(mediaId: string, savePath: string): Promise<void> {
+  //   const mediaUrl = await this.fetchMediaUrl(mediaId);
+
+  //   const response = await fetch(mediaUrl, { headers: this.headers });
+  //   if (!response.ok) {
+  //     throw new Error(`Failed to download media: ${response.statusText}`);
+  //   }
+
+  //   await streamPipeline(response.body as any, fs.createWriteStream(savePath));
+
+  //   console.log(`✅ Media downloaded and saved to ${savePath}`);
+  // }
+
+  // Static method for checking rate limits
+  static async checkRateLimit(channelId: string): Promise<boolean> {
+    // Simple rate limit check - can be enhanced with Redis or database tracking
+    return true;
+  }
+
+  // Format phone number to international format
+  private formatPhoneNumber(phone: string): string {
+    // Remove all non-numeric characters
+    let cleaned = phone.replace(/\D/g, "");
+
+    // If number doesn't start with country code, add it
+    // Assuming India code 91 if not specified (based on the test number +919310797700)
+    if (cleaned.length === 10) {
+      // Indian number without country code
+      cleaned = "91" + cleaned;
+    }
+
+    return cleaned;
+  }
+
+  // Deprecated - MM Lite now uses marketing_messages endpoint in sendTemplateMessage
+  // Keeping for backward compatibility but routes to sendTemplateMessage
+  private async sendMMliteMessage(
+    to: string,
+    templateName: string,
+    parameters: string[] = [],
+    language: string = "en_US"
+  ): Promise<any> {
+    return WhatsAppApiService.sendTemplateMessage(
+      this.channel,
+      to,
+      templateName,
+      parameters,
+      language,
+      true // isMarketing = true for MM Lite
+    );
+  }
+
+
+
+
+  async createTemplate(templateData: any): Promise<any> {
+      const body = {
+        name: templateData.name,
+        category: templateData.category,
+        language: templateData.language,
+        components: templateData.components,
+      };
+  
+      console.log("🌐 Sending to WhatsApp API:", JSON.stringify(body, null, 2));
+  
+      const response = await fetch(
+        `${this.baseUrl}/${this.channel.whatsappBusinessAccountId}/message_templates`,
+        {
+          method: "POST",
+          headers: this.headers,
+          body: JSON.stringify(body),
+        }
+      );
+  
+      if (!response.ok) {
+        const error = await response.json();
+        console.error("❌ WhatsApp API Error Response:", JSON.stringify(error, null, 2));
+        throw new Error(error.error?.message || "Failed to create template");
+      }
+  
+      return await response.json();
+    }
+
+
+
+    // Pehle check karo ki Phone Number aur WABA same account ke hain
+async verifyPhoneNumberBelongsToWABA(): Promise<boolean> {
+  try {
+    const response = await fetch(
+      `${this.baseUrl}/${this.channel.whatsappBusinessAccountId}/phone_numbers`,
+      {
+        headers: {
+          Authorization: `Bearer ${this.channel.accessToken}`,
+        },
+      }
+    );
+    
+    const data = await response.json();
+    console.log("📱 Phone numbers in this WABA:", data);
+    
+    // Check if your phoneNumberId exists in this WABA
+    const phoneExists = data.data?.some(
+      (phone: any) => phone.id === this.channel.phoneNumberId
+    );
+    
+    if (!phoneExists) {
+      console.error("❌ Phone Number ID doesn't belong to this WABA!");
+      console.error(`   Phone Number ID: ${this.channel.phoneNumberId}`);
+      console.error(`   WABA ID: ${this.channel.whatsappBusinessAccountId}`);
+    }
+    
+    return phoneExists;
+  } catch (error) {
+    console.error("❌ Failed to verify:", error);
+    return false;
+  }
+}
+
+async getMessageTemplateByName(
+  templateName: string,
+  apiVersion = "v23.0"
+) {
+  const wabaId = this.channel.whatsappBusinessAccountId;
+  const accessToken = this.channel.accessToken;
+
+  if (!wabaId) {
+    throw new Error("whatsappBusinessAccountId not found");
+  }
+
+  if (!accessToken) {
+    throw new Error("accessToken not found");
+  }
+
+  const url = `https://graph.facebook.com/${apiVersion}/${wabaId}/message_templates`;
+
+  const res = await axios.get(url, {
+    params: { name: templateName },
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!res.data?.data?.length) {
+    throw new Error(`Template "${templateName}" not found`);
+  }
+
+  return res.data.data[0];
+}
+
+
+  
+
+  async checkTemplateExists(templateName: string): Promise<boolean> {
+  const url = `${this.baseUrl}/${this.channel.whatsappBusinessAccountId}/message_templates?name=${encodeURIComponent(templateName)}`;
+
+  const res = await fetch(url, {
+    method: "GET",
+    headers: this.headers
+  });
+
+  if (res.status === 404) return false;
+
+  const data = await res.json();
+
+  return data.data && data.data.length > 0;
+}
+
+
+
+
+ async deleteTemplate(templateName: string): Promise<any> {
+  console.log("DELETE CHECK:", templateName);
+
+  // Check if template exists
+  const exists = await this.checkTemplateExists(templateName);
+
+  if (!exists) {
+    console.log(`⚠️ Template '${templateName}' does NOT exist on WhatsApp. Skipping delete.`);
+    return { skipped: true };
+  }
+
+  console.log(`🗑 Deleting WhatsApp template: ${templateName}`);
+
+  const url = `${this.baseUrl}/${this.channel.whatsappBusinessAccountId}/message_templates?name=${encodeURIComponent(templateName)}`;
+
+  const response = await fetch(url, {
+    method: "DELETE",
+    headers: this.headers
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    console.error("DELETE ERROR RESPONSE:", error);
+    throw new Error(error.error?.message || "Failed to delete template");
+  }
+
+  return await response.json();
+}
+
+
+async getTemplateStatus(templateName: string): Promise<string> {
+  const url = `${this.baseUrl}/${this.channel.whatsappBusinessAccountId}/message_templates?name=${encodeURIComponent(templateName)}`;
+
+  const res = await fetch(url, {
+    method: "GET",
+    headers: this.headers
+  });
+
+  if (res.status === 404) return "NOT_FOUND";
+
+  const data = await res.json();
+  if (!data.data || data.data.length === 0) return "NOT_FOUND";
+
+  return data.data[0].status || "UNKNOWN";
+}
+
+
+
+  async getTemplates(): Promise<WhatsAppTemplate[]> {
+    const response = await fetch(
+      `${this.baseUrl}/${this.channel.whatsappBusinessAccountId}/message_templates?fields=id,status,name,language,category,components&limit=100`,
+      {
+        headers: this.headers,
+      }
+    );
+
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || "Failed to fetch templates");
+    }
+
+    const data = await response.json();
+    return data.data || [];
+  }
+
+async sendMessage(
+  to: string,
+  templateName: string,
+  parameters: string[] = [],
+  mediaId?: string // NEW: optional header media
+): Promise<any> {
+  const formattedPhone = this.formatPhoneNumber(to);
+  const template = (await storage.getTemplatesByName(templateName))[0];
+  if (!template) throw new Error("Template not found");
+
+  
+  // Build components array
+  const components: any[] = [];
+
+  // Add header component if mediaId provided
+  const mediaIDD = template?.mediaUrl
+  if (mediaIDD) {
+    components.push({
+      type: "header",
+      parameters: [
+        {
+          type: "image", // or "video", "document" based on your template
+          image: {
+            id: mediaIDD
+          }
+        }
+      ]
+    });
+  }
+
+  // Add body component if parameters provided
+  if (parameters.length > 0) {
+    components.push({
+      type: "body",
+      parameters: parameters.map((text) => ({
+        type: "text",
+        text: String(text) // Ensure it's a string
+      }))
+    });
+  }
+
+  const body = {
+    messaging_product: "whatsapp",
+    to: formattedPhone,
+    type: "template",
+    template: {
+      name: templateName,
+      language: { code: "en_US" },
+      components: components.length > 0 ? components : undefined
+    }
+  };
+
+  // console.log("Sending WhatsApp template:", JSON.stringify(body, null, 2));
+
+  const response = await fetch(
+    `${this.baseUrl}/${this.channel.phoneNumberId}/messages`,
+    {
+      method: "POST",
+      headers: this.headers,
+      body: JSON.stringify(body)
+    }
+  );
+
+  const responseData = await response.json();
+
+  if (!response.ok) {
+    console.error("WhatsApp API Error:", responseData);
+    throw new Error(
+      responseData.error?.message || 
+      responseData.error?.error_data?.details || 
+      "Failed to send template"
+    );
+  }
+
+  console.log("WhatsApp template sent successfully:", responseData);
+  return responseData;
+}
+
+
+  async sendTextMessage(to: string, text: string): Promise<any> {
+    const formattedPhone = this.formatPhoneNumber(to);
+    const body = {
+      messaging_product: "whatsapp",
+      to: formattedPhone,
+      type: "text",
+      text: { body: text },
+    };
+
+    const response = await fetch(
+      `${this.baseUrl}/${this.channel.phoneNumberId}/messages`,
+      {
+        method: "POST",
+        headers: this.headers,
+        body: JSON.stringify(body),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || "Failed to send message");
+    }
+
+    return await response.json();
+  }
+
+  async getPublicMediaUrl(relativePath: string): Promise<string> {
+    // Assuming your uploads are served at /uploads endpoint
+    // Adjust this based on your server configuration
+    const baseUrl = process.env.APP_URL || "https://yourdomain.com";
+
+    // Remove leading slash if present
+    const cleanPath = relativePath.startsWith("/")
+      ? relativePath.substring(1)
+      : relativePath;
+
+    return `${baseUrl}/${cleanPath}`;
+  }
+
+  /**
+   * Upload media buffer to WhatsApp (for cloud files)
+   */
+  async uploadMediaBuffer(
+    buffer: Buffer,
+    mimeType: string,
+    filename: string
+  ): Promise<string> {
+    try {
+      const FormData = (await import("form-data")).default;
+      const form = new FormData();
+
+      
+
+      form.append("file", buffer, {
+        filename: filename,
+        contentType: mimeType,
+      });
+      form.append("messaging_product", "whatsapp");
+
+      const response = await axios.post(
+        `${this.baseUrl}/${this.channel.phoneNumberId}/media`,
+        form,
+        {
+          headers: {
+            Authorization: `Bearer ${this.channel.accessToken}`,
+            ...form.getHeaders(),
+          },
+        }
+      );
+
+      console.log("✅ WhatsApp media upload response:", response.data);
+      return response.data.id;
+    } catch (error) {
+      console.error("❌ WhatsApp upload buffer error:", error);
+      throw new Error("Failed to upload media buffer to WhatsApp");
+    }
+  }
+
+
+  async uploadMediaBufferHeader(
+  buffer: Buffer,
+  mimeType: string,
+  filename: string
+): Promise<string> {
+  try {
+    const FormData = (await import("form-data")).default;
+    const form = new FormData();
+
+    form.append("file", buffer, {
+      filename,
+      contentType: mimeType,
+    });
+
+    // 🔥 REQUIRED FIELDS
+    form.append("type", mimeType); // 👈 MOST IMPORTANT
+    form.append("messaging_product", "whatsapp");
+
+    const response = await axios.post(
+      `${this.baseUrl}/${this.channel.phoneNumberId}/media`,
+      form,
+      {
+        headers: {
+          Authorization: `Bearer ${this.channel.accessToken}`,
+          ...form.getHeaders(),
+        },
+      }
+    );
+
+    // console.log("✅ WhatsApp media upload response:", response.data);
+
+    if (!response.data?.id) {
+      throw new Error("WhatsApp media id not returned");
+    }
+
+    return response.data.id;
+  } catch (error: any) {
+    console.error(
+      "❌ WhatsApp upload buffer error:",
+      error?.response?.data || error
+    );
+    throw new Error("Failed to upload media buffer to WhatsApp");
+  }
+}
+
+
+// template image upload
+
+async getImageTemplateHeaderHandle(
+  templateName = "image_template_1"
+): Promise<string> {
+  const wabaId = this.channel.whatsappBusinessAccountId;
+  const accessToken = this.channel.accessToken;
+
+  if (!wabaId) {
+    throw new Error("whatsappBusinessAccountId not found in channel");
+  }
+
+  if (!accessToken) {
+    throw new Error("accessToken not found in channel");
+  }
+
+  const res = await axios.get(
+    `https://graph.facebook.com/v23.0/${wabaId}/message_templates`,
+    {
+      params: { name: templateName },
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+
+  const template = res.data?.data?.[0];
+  if (!template) {
+    throw new Error(`Template "${templateName}" not found`);
+  }
+
+  if (template.status !== "APPROVED") {
+    throw new Error(
+      `Template "${templateName}" is not approved (status: ${template.status})`
+    );
+  }
+
+  const headerHandle =
+    template.components
+      ?.find(
+        (c: any) => c.type === "HEADER" && c.format === "IMAGE"
+      )
+      ?.example?.header_handle?.[0];
+
+  if (!headerHandle || !headerHandle.startsWith("4::")) {
+    throw new Error(
+      `No valid IMAGE header_handle found for template "${templateName}"`
+    );
+  }
+
+  return headerHandle; // ✅ e.g. "4::aW9nZXJzL2ltYWdlLzEyMzQ1"
+}
+
+
+
+async uploadTemplateMedia(
+  buffer: Buffer,
+  mimeType: string,
+  filename: string
+): Promise<string> {
+
+  const appId = this.channel.appId;
+
+  // STEP 1️⃣ Create upload session
+  const sessionRes = await axios.post(
+    `https://graph.facebook.com/v19.0/${appId}/uploads`,
+    {
+      file_name: filename,
+      file_length: buffer.length,
+      file_type: mimeType
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${this.channel.accessToken}`,
+        "Content-Type": "application/json"
+      }
+    }
+  );
+
+  const uploadSessionId = sessionRes.data.id;
+
+  // STEP 2️⃣ Upload binary
+  const uploadBinaryRes = await axios.post(
+    `https://graph.facebook.com/v19.0/${uploadSessionId}`,
+    buffer,
+    {
+      headers: {
+        Authorization: `Bearer ${this.channel.accessToken}`,
+        "Content-Type": "application/octet-stream"
+      }
+    }
+  );
+
+  const headerHandle = uploadBinaryRes.data.h;
+
+  console.log("Uploaded template media, header handle:", headerHandle);
+
+  if (!headerHandle) {
+    throw new Error("No header handle returned");
+  }
+
+  return headerHandle; // ✅ "4::xxxx"
+}
+
+  async uploadMedia(filePath: string, mimeType: string): Promise<string> {
+    const resolvedPath = path.resolve(filePath);
+
+    const formData = new FormData();
+    formData.append("messaging_product", "whatsapp");
+    formData.append("file", fs.createReadStream(resolvedPath), {
+      filename: path.basename(resolvedPath),
+      contentType: mimeType,
+    });
+
+    console.log("Uploading local media:", resolvedPath, mimeType);
+
+    try {
+      const response = await axios.post(
+        `${this.baseUrl}/${this.channel.phoneNumberId}/media`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${this.channel.accessToken}`,
+            ...formData.getHeaders(),
+          },
+        }
+      );
+
+      console.log("Media uploaded successfully, ID:", response.data.id);
+      return response.data.id;
+    } catch (error: any) {
+      console.error(
+        "WhatsApp upload error:",
+        error.response?.data || error.message
+      );
+      throw new Error(
+        error.response?.data?.error?.message || "Failed to upload media"
+      );
+    }
+  }
+
+  async uploadMediaManual(filePath: string, mimeType: string): Promise<string> {
+    const resolvedPath = path.resolve(filePath);
+    const fileBuffer = fs.readFileSync(resolvedPath);
+    const fileName = path.basename(resolvedPath);
+
+    // Create boundary for multipart form
+    const boundary = `----formdata-node-${Math.random().toString(36)}`;
+
+    // Construct multipart body manually
+    const chunks: Buffer[] = [];
+
+    // Add messaging_product field
+    chunks.push(Buffer.from(`--${boundary}\r\n`));
+    chunks.push(
+      Buffer.from(
+        `Content-Disposition: form-data; name="messaging_product"\r\n\r\n`
+      )
+    );
+    chunks.push(Buffer.from(`whatsapp\r\n`));
+
+    // Add file field
+    chunks.push(Buffer.from(`--${boundary}\r\n`));
+    chunks.push(
+      Buffer.from(
+        `Content-Disposition: form-data; name="file"; filename="${fileName}"\r\n`
+      )
+    );
+    chunks.push(Buffer.from(`Content-Type: ${mimeType}\r\n\r\n`));
+    chunks.push(fileBuffer);
+    chunks.push(Buffer.from(`\r\n`));
+
+    // End boundary
+    chunks.push(Buffer.from(`--${boundary}--\r\n`));
+
+    const body = Buffer.concat(chunks);
+
+    console.log("Uploading local media:", resolvedPath, mimeType);
+
+    const response = await fetch(
+      `${this.baseUrl}/${this.channel.phoneNumberId}/media`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${this.channel.accessToken}`,
+          "Content-Type": `multipart/form-data; boundary=${boundary}`,
+        },
+        body,
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error("WhatsApp upload error response:", data);
+      throw new Error(data.error?.message || "Failed to upload media");
+    }
+
+    console.log("Media uploaded successfully, ID:", data.id);
+    return data.id;
+  }
+
+
+
+// Add new function for URL uploads
+async uploadMediaFromUrl(url: string, mimeType: string = 'image/jpeg'): Promise<string> {
+  const tempDir = path.join(__dirname, '../../temp');
+  if (!fs.existsSync(tempDir)) {
+    fs.mkdirSync(tempDir, { recursive: true });
+  }
+
+  const tempFileName = `temp_${Date.now()}_${path.basename(url.split('?')[0]) || 'image.jpg'}`;
+  const tempFilePath = path.join(tempDir, tempFileName);
+
+  try {
+    console.log("📥 Downloading media from URL:", url);
+    
+    // Download file
+    const response = await axios.get(url, {
+      responseType: 'arraybuffer',
+      timeout: 30000, // 30 seconds timeout
+    });
+    
+    // Save to temp file
+    fs.writeFileSync(tempFilePath, Buffer.from(response.data));
+    console.log("✅ File downloaded to:", tempFilePath);
+
+    // Upload using existing function
+    const mediaId = await this.uploadMediaTwo(tempFilePath, mimeType);
+
+    // Cleanup
+    if (fs.existsSync(tempFilePath)) {
+      fs.unlinkSync(tempFilePath);
+      console.log("🗑️ Temporary file deleted");
+    }
+
+    return mediaId;
+    
+  } catch (error: any) {
+    // Cleanup on error
+    if (fs.existsSync(tempFilePath)) {
+      fs.unlinkSync(tempFilePath);
+    }
+    
+    console.error("❌ Upload from URL failed:", error.message);
+    throw new Error(`Failed to upload media from URL: ${error.message}`);
+  }
+}
+
+
+  async getMediaUrl(mediaId: string): Promise<string | null> {
+    try {
+      const response = await fetch(
+        `https://graph.facebook.com/v17.0/${mediaId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.channel.accessToken}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        console.error(
+          "Failed to get media URL:",
+          response.status,
+          response.statusText
+        );
+        return null;
+      }
+
+      const data = await response.json();
+      return data.url;
+    } catch (error) {
+      console.error("Error getting media URL:", error);
+      return null;
+    }
+  }
+
+  /**
+   * Download media content as buffer
+   */
+  async getMedia(mediaId: string): Promise<Buffer | null> {
+    try {
+      // First, get the fresh media URL
+      const mediaUrl = await this.getMediaUrl(mediaId);
+      if (!mediaUrl) {
+        return null;
+      }
+
+      // Then, download the media content
+      const response = await fetch(mediaUrl, {
+        headers: {
+          Authorization: `Bearer ${this.channel.accessToken}`,
+          "User-Agent": "WhatsAppBusinessAPI/1.0",
+        },
+      });
+
+      if (!response.ok) {
+        console.error(
+          "Failed to download media:",
+          response.status,
+          response.statusText
+        );
+        return null;
+      }
+
+      const arrayBuffer = await response.arrayBuffer();
+      return Buffer.from(arrayBuffer);
+    } catch (error) {
+      console.error("Error downloading media:", error);
+      return null;
+    }
+  }
+
+  /**
+   * Stream media content directly
+   */
+  async streamMedia(mediaId: string, res: Response<any>): Promise<boolean> {
+    try {
+      // First, get the fresh media URL
+      const mediaUrl = await this.getMediaUrl(mediaId);
+      if (!mediaUrl) {
+        return false;
+      }
+
+      // Stream using axios
+      const response = await axios({
+        method: "get",
+        url: mediaUrl,
+        responseType: "stream",
+        headers: {
+          Authorization: `Bearer ${this.channel.accessToken}`,
+          "User-Agent": "WhatsAppBusinessAPI/1.0",
+        },
+      });
+
+      if (response.status !== 200) {
+        console.error(
+          "Failed to stream media:",
+          response.status,
+          response.statusText
+        );
+        return false;
+      }
+
+      // Set content length if available
+      if (response.headers["content-length"]) {
+        res.set("Content-Length", response.headers["content-length"]);
+      }
+
+      // Pipe the stream
+      response.data.pipe(res);
+
+      return new Promise((resolve, reject) => {
+        response.data.on("end", () => resolve(true));
+        response.data.on("error", (error: any) => {
+          console.error("Stream error:", error);
+          reject(false);
+        });
+      });
+    } catch (error) {
+      console.error("Error streaming media with axios:", error);
+      return false;
+    }
+  }
+
+  // Optional: Method to download and save media locally
+  async downloadAndSaveMedia(
+    mediaUrl: string,
+    fileName: string
+  ): Promise<string> {
+    const response = await fetch(mediaUrl, {
+      headers: {
+        Authorization: `Bearer ${this.channel.accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to download media");
+    }
+
+    const buffer = await response.arrayBuffer();
+    const localPath = path.join("uploads", "media", fileName);
+
+    // Ensure directory exists
+    const dir = path.dirname(localPath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+
+    fs.writeFileSync(localPath, Buffer.from(buffer));
+    return localPath;
+  }
+
+  async sendMediaMessage(
+    to: string,
+    mediaId: string,
+    type: "image" | "video" | "audio" | "document",
+    caption?: string
+  ): Promise<any> {
+    const formattedPhone = this.formatPhoneNumber(to);
+
+    const body: any = {
+      messaging_product: "whatsapp",
+      to: formattedPhone,
+      type: type,
+      [type]: {
+        id: mediaId,
+      },
+    };
+
+    if (
+      caption &&
+      (type === "image" || type === "video" || type === "document")
+    ) {
+      body[type].caption = caption;
+    }
+
+    const response = await fetch(
+      `${this.baseUrl}/${this.channel.phoneNumberId}/messages`,
+      {
+        method: "POST",
+        headers: this.headers,
+        body: JSON.stringify(body),
+      }
+    );
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error?.message || "Failed to send media message");
+    }
+
+    return data;
+  }
+
+  async sendDirectMessage(payload: any): Promise<any> {
+    // Format phone number if 'to' field exists
+    if (payload.to) {
+      payload.to = this.formatPhoneNumber(payload.to);
+    }
+
+    const body = {
+      messaging_product: "whatsapp",
+      ...payload,
+    };
+    console.log("Sending direct WhatsApp message with payload:", body);
+    const response = await fetch(
+      `${this.baseUrl}/${this.channel.phoneNumberId}/messages`,
+      {
+        method: "POST",
+        headers: this.headers,
+        body: JSON.stringify(body),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || "Failed to send message");
+    }
+
+    const data = await response.json();
+    console.log("Direct WhatsApp message sent successfully:", data);
+    return { success: true, data };
+  }
+
+
+  private formatTemplateComponentsThird(templateData: any): any[] {
+  const components: any[] = [];
+
+  /* ----------------------------------------
+     1) HEADER (Text or Media)
+  ---------------------------------------- */
+  if (templateData.header) {
+    if (templateData.mediaType && templateData.mediaType !== "text") {
+      // Media header
+      components.push({
+        type: "HEADER",
+        format: templateData.mediaType.toUpperCase(),
+        example: templateData.mediaUrl
+          ? { header_handle: [templateData.mediaUrl] }
+          : undefined,
+      });
+    } else {
+      // Text header
+      components.push({
+        type: "HEADER",
+        format: "TEXT",
+        text: templateData.header,
+      });
+    }
+  }
+
+  /* ----------------------------------------
+     2) BODY (Required)
+  ---------------------------------------- */
+  const bodyComponent: any = {
+    type: "BODY",
+    text: templateData.body,
+  };
+
+  // Add variable examples
+  if (templateData.examples && templateData.examples.length > 0) {
+    bodyComponent.example = {
+      body_text: [templateData.examples], // VERY IMPORTANT
+    };
+  }
+
+  components.push(bodyComponent);
+
+  /* ----------------------------------------
+     3) FOOTER (Optional)
+  ---------------------------------------- */
+  if (templateData.footer) {
+    components.push({
+      type: "FOOTER",
+      text: templateData.footer,
+    });
+  }
+
+  /* ----------------------------------------
+     4) BUTTONS (Optional)
+  ---------------------------------------- */
+  if (templateData.buttons && templateData.buttons.length > 0) {
+    components.push({
+      type: "BUTTONS",
+      buttons: templateData.buttons.map((btn: any) => {
+        switch (btn.type.toUpperCase()) {
+          case "URL":
+            return {
+              type: "URL",
+              text: btn.text,
+              url: btn.url,
+            };
+
+          case "PHONE":
+          case "PHONE_NUMBER":
+            return {
+              type: "PHONE_NUMBER",
+              text: btn.text,
+              phone_number: btn.phoneNumber,
+            };
+
+          default:
+            return {
+              type: "QUICK_REPLY",
+              text: btn.text,
+            };
+        }
+      }),
+    });
+  }
+
+  return components;
+}
+
+
+ private formatTemplateComponentsSECONDD(templateData: any): any[] {
+  const components: any[] = [];
+
+  // 1️⃣ HEADER (optional)
+  if (templateData.header) {
+    if (templateData.mediaType && templateData.mediaType !== "text") {
+      // Media header
+      components.push({
+        type: "HEADER",
+        format: templateData.mediaType.toUpperCase(),
+        example: templateData.mediaUrl
+          ? { header_handle: [templateData.mediaUrl] }
+          : undefined,
+      });
+    } else {
+      // Plain text header (NO format allowed)
+      components.push({
+        type: "HEADER",
+        text: templateData.header,
+      });
+    }
+  }
+
+  // 2️⃣ BODY (required)
+  if (templateData.body) {
+    const placeholderCount = (templateData.body.match(/{{\d+}}/g) || []).length;
+
+    const bodyComponent: any = {
+      type: "BODY",
+      text: templateData.body,
+    };
+
+    // Add examples ONLY if placeholders exist
+    if (placeholderCount > 0 && templateData.samples) {
+      bodyComponent.example = {
+        body_text: [templateData.samples],
+      };
+    }
+
+    components.push(bodyComponent);
+  }
+
+  // 3️⃣ FOOTER (optional)
+  if (templateData.footer) {
+    components.push({
+      type: "FOOTER",
+      text: templateData.footer,
+    });
+  }
+
+  // 4️⃣ BUTTONS — Cloud API format
+  if (templateData.buttons && templateData.buttons.length > 0) {
+    const buttonComponents = templateData.buttons.map((btn: any, index: number) => ({
+      type: "BUTTON",
+      sub_type: btn.type.toUpperCase(),
+      index: index.toString(),
+      parameters: btn.type === "URL"
+        ? [{ type: "text", text: btn.url }]
+        : btn.type === "PHONE_NUMBER"
+        ? [{ type: "text", text: btn.phoneNumber }]
+        : []
+    }));
+
+    components.push({
+      type: "BUTTONS",
+      buttons: buttonComponents,
+    });
+  }
+
+  return components;
+}
+
+
+
+
+  private formatTemplateComponents(templateData: any): any[] {
+    const components = [];
+
+    // Handle media header if present
+    if (templateData.mediaType && templateData.mediaType !== "text") {
+      const headerFormat = templateData.mediaType.toUpperCase();
+      if (templateData.header) {
+        components.push({
+          type: "HEADER",
+          format: headerFormat,
+          text: templateData.header,
+          example: templateData.mediaUrl
+            ? {
+                header_handle: [templateData.mediaUrl],
+              }
+            : undefined,
+        });
+      }
+    } else if (templateData.header) {
+      components.push({
+        type: "HEADER",
+        format: "TEXT",
+        text: templateData.header,
+      });
+    }
+
+    // Body component
+    components.push({
+      type: "BODY",
+      text: templateData.body,
+    });
+
+    // Footer component
+    if (templateData.footer) {
+      components.push({
+        type: "FOOTER",
+        text: templateData.footer,
+      });
+    }
+
+    // Buttons
+    if (templateData.buttons && templateData.buttons.length > 0) {
+      components.push({
+        type: "BUTTONS",
+        buttons: templateData.buttons.map((button: any) => {
+          if (button.type === "url") {
+            return {
+              type: "URL",
+              text: button.text,
+              url: button.url,
+            };
+          } else if (button.type === "phone") {
+            return {
+              type: "PHONE_NUMBER",
+              text: button.text,
+              phone_number: button.phoneNumber,
+            };
+          } else {
+            return {
+              type: "QUICK_REPLY",
+              text: button.text,
+            };
+          }
+        }),
+      });
+    }
+
+    return components;
+  }
+
+  async getMessageStatus(whatsappMessageId: string): Promise<any> {
+    // WhatsApp doesn't provide a direct API to get message status by ID
+    // Status updates come through webhooks, so we'll return a mock response
+    // In production, you would store webhook status updates and query from database
+    return {
+      status: "sent",
+      deliveredAt: null,
+      readAt: null,
+      errorCode: null,
+      errorMessage: null,
+    };
+  }
+}

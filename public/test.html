@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Widget Test Page</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        margin: 0;
+        padding: 40px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      }
+      h1 {
+        color: #333;
+        margin: 0 0 10px 0;
+      }
+      p {
+        color: #666;
+        line-height: 1.6;
+      }
+      .code-block {
+        background: #f5f5f5;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 20px 0;
+        font-family: monospace;
+        font-size: 14px;
+        overflow-x: auto;
+      }
+      .status {
+        display: inline-block;
+        padding: 4px 12px;
+        background: #10b981;
+        color: white;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="status">WIDGET ACTIVE</div>
+      <h1>AI Chat Widget Test Page</h1>
+      <p>
+        This is a test page to demonstrate the AI Chat Widget. The widget should
+        appear in the bottom-right corner of this page.
+      </p>
+
+      <h2>How to use:</h2>
+      <ol>
+        <li>Look for the chat button in the bottom-right corner</li>
+        <li>Click it to open the widget</li>
+        <li>Interact with the chat interface</li>
+        <li>Try sending messages and exploring features</li>
+      </ol>
+
+      <h2>Widget Configuration:</h2>
+      <div class="code-block">
+        <pre>siteId: "a466bb3c-7a0c-470b-b3a6-8f750a12bcb9"</pre>
+      </div>
+
+      <p>
+        <strong>Note:</strong> Make sure you have saved your widget
+        configuration in the Widget Designer before testing. The widget will
+        load the configuration you saved for this site.
+      </p>
+
+      <h2>About this demo:</h2>
+      <p>
+        This page simulates how the widget would appear on a real website. The
+        widget is fully functional and will respond to your interactions just
+        like it would on a production website.
+      </p>
+    </div>
+
+    <!-- AI Chat Widget Code -->
+<!-- AI Chat Widget -->
+    <script>
+      window.aiChatConfig = {
+       siteId: "11d20642-71f0-496f-9263-75a65b4f4a52",
+        channelId:"c8916f0c-313e-4c63-b2b8-4aa0fcb290e8",
+        url: "http://localhost:5001",
+      };
+    </script>
+<script src="http://localhost:5001/widget/widget.js" async></script>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  </body>
+</html>

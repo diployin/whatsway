@@ -1,0 +1,1 @@
+ALTER TABLE "panel_config" ADD COLUMN "log02" varchar;
